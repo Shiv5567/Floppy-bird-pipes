@@ -121,7 +121,8 @@ function loop(time: number) {
 
   const activeWorld = progressManager.getState().activeWorld;
   const ctx = gameEngine.renderer.ctx;
-  const height = gameEngine.renderer.canvas.height / (window.devicePixelRatio || 1);
+  const height = gameEngine.renderer.canvas.height / gameEngine.renderer.dpr;
+
 
   gameEngine.renderer.clearScreen(activeWorld);
   

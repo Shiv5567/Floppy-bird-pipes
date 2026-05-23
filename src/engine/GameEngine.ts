@@ -171,8 +171,9 @@ export class GameEngine {
 
     if (this.state === 'PHOTO_MODE') return;
 
-    const width = this.renderer.canvas.width / (window.devicePixelRatio || 1);
-    const height = this.renderer.canvas.height / (window.devicePixelRatio || 1);
+    const width = this.renderer.canvas.width / this.renderer.dpr;
+    const height = this.renderer.canvas.height / this.renderer.dpr;
+
 
     // Update active powerups durations
     this.updatePowerupTimers(dt);

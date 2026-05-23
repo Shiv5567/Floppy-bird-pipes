@@ -12,6 +12,7 @@ export class Renderer {
   public ctx: CanvasRenderingContext2D;
   private particleEngine: ParticleEngine;
   private cachedProfiles: number[][] = [];
+  public dpr = 1.0;
 
   // Parallax background offsets
   private offsets: number[] = [0, 0, 0, 0, 0];
@@ -50,11 +51,11 @@ export class Renderer {
   public resize() {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const maxDpr = isMobile ? 1.5 : 2.0;
-    const dpr = Math.min(maxDpr, window.devicePixelRatio || 1);
+    this.dpr = Math.min(maxDpr, window.devicePixelRatio || 1);
     const rect = this.canvas.getBoundingClientRect();
-    this.canvas.width = rect.width * dpr;
-    this.canvas.height = rect.height * dpr;
-    this.ctx.scale(dpr, dpr);
+    this.canvas.width = rect.width * this.dpr;
+    this.canvas.height = rect.height * this.dpr;
+    this.ctx.scale(this.dpr, this.dpr);
     // Base scale based on standard height
     this.scale = rect.height / 720;
   }
@@ -162,7 +163,7 @@ export class Renderer {
     }
 
     // Dynamic camera vertical tracking
-    const screenHeight = this.canvas.height / (window.devicePixelRatio || 1);
+    const screenHeight = this.canvas.height / this.dpr;
     this.targetCameraY = birdY - screenHeight / 2;
     // Smooth camera catchup
     this.cameraY += (this.targetCameraY - this.cameraY) * 0.08 * (deltaTime * 60);
@@ -198,7 +199,7 @@ export class Renderer {
         this.lightningFlash -= deltaTime;
       } else if (Math.random() < 0.005) {
         this.lightningFlash = 0.1 + Math.random() * 0.25; // Duration of flash
-        this.lightningStrikeX = Math.random() * (this.canvas.width / (window.devicePixelRatio || 1));
+        this.lightningStrikeX = Math.random() * (this.canvas.width / this.dpr);
       }
     }
 
@@ -212,8 +213,9 @@ export class Renderer {
   }
 
   private updateWeatherParticles(deltaTime: number) {
-    const width = this.canvas.width / (window.devicePixelRatio || 1);
-    const height = this.canvas.height / (window.devicePixelRatio || 1);
+    const width = this.canvas.width / this.dpr;
+    const height = this.canvas.height / this.dpr;
+
 
     // Spawn rare space shooting stars drifting super fast in clear weather (for Space world)
     if (this.weather.type === 'clear') {
@@ -375,8 +377,8 @@ export class Renderer {
 
   // Master render pipeline
   public clearScreen(worldId: string) {
-    const width = this.canvas.width / (window.devicePixelRatio || 1);
-    const height = this.canvas.height / (window.devicePixelRatio || 1);
+    const width = this.canvas.width / this.dpr;
+    const height = this.canvas.height / this.dpr;
 
     ctxSaveApplyShake(this.ctx, this.shakeIntensity, this.shakeDuration);
 
@@ -427,8 +429,8 @@ export class Renderer {
   }
 
   public renderBackgroundLayers(worldId: string) {
-    const width = this.canvas.width / (window.devicePixelRatio || 1);
-    const height = this.canvas.height / (window.devicePixelRatio || 1);
+    const width = this.canvas.width / this.dpr;
+    const height = this.canvas.height / this.dpr;
 
     // Layer 0: Sky Details & Atmosphere (Sun, moon, stars, auroras, nebulae)
     this.drawSkyDetails(worldId, width, height);
@@ -666,8 +668,8 @@ export class Renderer {
 
   // Draw environmental foregrounds and weather overlays
   public renderWeatherEffects() {
-    const width = this.canvas.width / (window.devicePixelRatio || 1);
-    const height = this.canvas.height / (window.devicePixelRatio || 1);
+    const width = this.canvas.width / this.dpr;
+    const height = this.canvas.height / this.dpr;
 
     // Branching lightning strike rendering
     if (this.weather.lightning && this.lightningFlash > 0 && Math.random() < 0.3) {
@@ -704,8 +706,8 @@ export class Renderer {
       return;
     }
 
-    const width = this.canvas.width / (window.devicePixelRatio || 1);
-    const height = this.canvas.height / (window.devicePixelRatio || 1);
+    const width = this.canvas.width / this.dpr;
+    const height = this.canvas.height / this.dpr;
 
     this.ctx.save();
     
@@ -746,8 +748,8 @@ export class Renderer {
 
   public beginCamera() {
     this.ctx.save();
-    const width = this.canvas.width / (window.devicePixelRatio || 1);
-    const height = this.canvas.height / (window.devicePixelRatio || 1);
+    const width = this.canvas.width / this.dpr;
+    const height = this.canvas.height / this.dpr;
     
     // Zoom from screen center
     this.ctx.translate(width / 2, height / 2);
@@ -761,6 +763,7 @@ export class Renderer {
   public endCamera() {
     this.ctx.restore();
   }
+
 
   public getCameraY(): number {
     return this.cameraY;
