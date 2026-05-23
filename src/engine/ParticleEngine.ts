@@ -21,8 +21,11 @@ export class ParticleEngine {
   private maxParticles = 1000;
 
   constructor() {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 800;
-    this.maxParticles = isMobile ? 300 : 1000;
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                     window.innerWidth < 1024 || 
+                     ('ontouchstart' in window) || 
+                     navigator.maxTouchPoints > 0;
+    this.maxParticles = isMobile ? 120 : 1000;
     this.initPool();
   }
 
@@ -151,7 +154,7 @@ export class ParticleEngine {
 
       ctx.save();
       ctx.globalAlpha = p.alpha;
-      ctx.translate(Math.round(p.x), Math.round(p.y));
+      ctx.translate(p.x, p.y);
       ctx.rotate(p.angle);
 
       if (p.glow && p.glowColor) {

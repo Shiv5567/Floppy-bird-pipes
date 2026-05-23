@@ -14,6 +14,7 @@ let lastScore = 0;
 let lastState = '';
 let lastBossHealth = 0;
 let lastUltPercent = 0;
+let hudFrameCount = 0;
 
 
 function init() {
@@ -21,7 +22,10 @@ function init() {
   if (!canvas) return;
 
   // Add mobile class helper to completely disable expensive layout blurs (backdrop-filter)
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 800;
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                   window.innerWidth < 1024 || 
+                   ('ontouchstart' in window) || 
+                   navigator.maxTouchPoints > 0;
   if (isMobile) {
     document.body.classList.add('mobile-performance');
   }
@@ -117,7 +121,10 @@ function updateGamepad() {
   }
 }
 
-const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 800;
+const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                       window.innerWidth < 1024 || 
+                       ('ontouchstart' in window) || 
+                       navigator.maxTouchPoints > 0;
 const frameMinTime = isMobileDevice ? 1000 / 60 : 1000 / 120; // Cap to 60fps on mobile to prevent thermal throttling, 120fps on desktop!
 
 function loop(time: number) {
@@ -157,8 +164,11 @@ function loop(time: number) {
   gameEngine.renderer.restoreScreen();
 
   if (gameEngine.state === 'PLAYING' || gameEngine.state === 'BOSS_FIGHT' || gameEngine.state === 'BOSS_WARNING') {
-    // Highly optimized in-place HUD updates run every single frame for buttery-smooth animations
-    uiManager.render();
+    // Highly optimized in-place HUD updates run once every 3 frames (~20Hz) to cut CPU load by 67% on mobile!
+    hudFrameCount++;
+    if (hudFrameCount % 3 === 0) {
+      uiManager.render();
+    }
   } else {
     // Standard state change checks for menus, pause screen, and game over
     const currentBossHealth = gameEngine.bossManager.isBossActive() ? gameEngine.bossManager.getHealth() : 0;
