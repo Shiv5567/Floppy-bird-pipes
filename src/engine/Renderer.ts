@@ -35,7 +35,7 @@ export class Renderer {
   private cameraY = 0;
   private shakeIntensity = 0;
   private shakeDuration = 0;
-  private zoomFactor = 0.85;
+  private zoomFactor = 1.10;
   public scale = 1.0;
 
   constructor(canvas: HTMLCanvasElement, particleEngine: ParticleEngine) {
@@ -166,13 +166,13 @@ export class Renderer {
     this.cameraY = 0;
 
     // Dynamic micro-camera zoom based on gameplay state
-    let targetZoom = 0.85;
+    let targetZoom = 1.10;
     if (gameState === 'BOSS_FIGHT') {
-      targetZoom = 0.72; // Zoom out for grand scale modular boss fight
+      targetZoom = 0.94; // Zoom out for grand scale modular boss fight
     } else if (timeScale < 0.9) {
-      targetZoom = 1.02; // Micro zoom-in during epic matrix slow-mo grazes
+      targetZoom = 1.33; // Micro zoom-in during epic matrix slow-mo grazes
     } else if (isTurbo) {
-      targetZoom = 1.08; // Zoom in during turbo speed blast
+      targetZoom = 1.40; // Zoom in during turbo speed blast
     }
 
     // Smoothly interpolate zoomFactor

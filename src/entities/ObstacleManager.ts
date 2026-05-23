@@ -72,18 +72,18 @@ export class ObstacleManager {
     // Smooth, step-by-step progressive difficulty scaling ratio over 60 points
     const progressRatio = Math.min(1.0, score / 60.0);
     
-    // Dynamic difficulty limits
-    let startGap = 240;
-    let minGap = 180;
+    // Dynamic difficulty limits (increased vertical gaps by ~25% to account for 30% screen zoom in)
+    let startGap = 295;
+    let minGap = 225;
     let distMultiplier = 1.0;
 
     if (difficulty === 'easy') {
-      startGap = 280;
-      minGap = 220;
+      startGap = 340;
+      minGap = 270;
       distMultiplier = 1.3;
     } else if (difficulty === 'hard') {
-      startGap = 205;
-      minGap = 150;
+      startGap = 250;
+      minGap = 185;
       distMultiplier = 0.80;
     }
 
@@ -101,6 +101,9 @@ export class ObstacleManager {
     } else if (zone === 'vertical') {
       targetDistance *= 1.25;
     }
+
+    // Reduce horizontal distance by 30% as requested
+    targetDistance *= 0.70;
 
     // If not set or invalid, initialize nextSpawnDistance
     if (this.nextSpawnDistance <= 150 && zone !== 'wave') {
@@ -166,14 +169,14 @@ export class ObstacleManager {
       const dynamicGap = startGap - (startGap - minGap) * progressRatio;
       this.spawnObstacle(worldId, width, height, dynamicGap, zone, difficulty, progressRatio);
 
-      // Determine next spawn distance
+      // Determine next spawn distance (reduced wave spawn distance by 30% as well)
       if (zone === 'wave') {
         if (this.tunnelSpawnCount < 3) { // 4 pipes total (0, 1, 2, 3)
           this.tunnelSpawnCount++;
-          this.nextSpawnDistance = 167; // close spacing for connected section (+15% distance)
+          this.nextSpawnDistance = 117; // close spacing for connected section (167 * 0.70)
         } else {
           this.tunnelSpawnCount = 0;
-          this.nextSpawnDistance = 552; // larger smooth gap section (+15% distance)
+          this.nextSpawnDistance = 386; // larger smooth gap section (552 * 0.70)
         }
       } else {
         this.nextSpawnDistance = targetDistance;
