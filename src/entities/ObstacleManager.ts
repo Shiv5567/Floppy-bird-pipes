@@ -470,41 +470,6 @@ export class ObstacleManager {
     }
   }
 
-  // Helper to draw seamless column fill and side borders extending offscreen
-  private drawInfiniteExtension(
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    width: number,
-    height: number,
-    fillStyle: string | CanvasGradient | CanvasPattern,
-    strokeStyle: string,
-    lineWidth: number
-  ) {
-    ctx.save();
-    ctx.fillStyle = fillStyle;
-    ctx.strokeStyle = strokeStyle;
-    ctx.lineWidth = lineWidth;
-
-    // Top infinite extension (from -2000 to 0)
-    ctx.fillRect(x, -2000, width, 2000);
-    ctx.beginPath();
-    ctx.moveTo(x, -2000);
-    ctx.lineTo(x, 0);
-    ctx.moveTo(x + width, -2000);
-    ctx.lineTo(x + width, 0);
-    ctx.stroke();
-
-    // Bottom infinite extension (from height to height + 2000)
-    ctx.fillRect(x, height, width, 2000);
-    ctx.beginPath();
-    ctx.moveTo(x, height);
-    ctx.lineTo(x, height + 2000);
-    ctx.moveTo(x + width, height);
-    ctx.lineTo(x + width, height + 2000);
-    ctx.stroke();
-
-    ctx.restore();
-  }
 
   // Visual Pillar Painters
   private drawDefaultPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
@@ -519,19 +484,16 @@ export class ObstacleManager {
     grad.addColorStop(0.7, '#336633');
     grad.addColorStop(1, '#1b3d1b');
 
-    // Draw infinite extensions first
-    this.drawInfiniteExtension(ctx, rx, rw, height, grad, '#0e240e', 3);
-
     ctx.fillStyle = grad;
     ctx.strokeStyle = '#0e240e';
     ctx.lineWidth = 3;
 
-    // Top column
-    ctx.fillRect(rx, 0, rw, rTop);
-    ctx.strokeRect(rx, 0, rw, rTop);
-    // Bottom column
-    ctx.fillRect(rx, height - rBottom, rw, rBottom);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom);
+    // Top column (Unified with offscreen extension)
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    // Bottom column (Unified with offscreen extension)
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
     // Pillar ridges caps (standardized to obs.width)
     ctx.fillStyle = '#88d888';
@@ -554,16 +516,13 @@ export class ObstacleManager {
     stoneGrad.addColorStop(0.5, '#7f8170');
     stoneGrad.addColorStop(1, '#2f3028');
 
-    // Draw infinite extensions first
-    this.drawInfiniteExtension(ctx, rx, rw, height, stoneGrad, '#1b1c16', 2.5);
-
     ctx.fillStyle = stoneGrad;
     ctx.strokeStyle = '#1b1c16';
     ctx.lineWidth = 2.5;
 
-    // Draw stone columns with brick joints lines
-    this.drawStoneColumn(ctx, rx, 0, rw, rTop);
-    this.drawStoneColumn(ctx, rx, height - rBottom, rw, rBottom);
+    // Draw stone columns with brick joints lines (Unified with offscreen extension)
+    this.drawStoneColumn(ctx, rx, -1000, rw, rTop + 1000);
+    this.drawStoneColumn(ctx, rx, height - rBottom, rw, rBottom + 1000);
 
     // Draw hanging green leaves / ivy vines procedurally
     ctx.fillStyle = 'rgba(34, 139, 34, 0.85)';
@@ -607,24 +566,21 @@ export class ObstacleManager {
     ctx.strokeStyle = '#00f3ff';
     ctx.lineWidth = 2.0;
 
-    // Draw infinite extensions first
-    this.drawInfiniteExtension(ctx, rx, rw, height, '#120f26', '#00f3ff', 2.0);
-
-    // Draw glowing neon panel infinite extensions
+    // Draw glowing neon panel infinite extensions (optimized to -1000 range)
     ctx.save();
     ctx.fillStyle = 'rgba(255, 0, 127, 0.15)'; // Top panel glow
-    ctx.fillRect(rx + 10, -2000, rw - 20, 2010);
+    ctx.fillRect(rx + 10, -1000, rw - 20, rTop + 990);
     ctx.fillStyle = 'rgba(0, 243, 255, 0.15)'; // Bottom panel glow
-    ctx.fillRect(rx + 10, height - 10, rw - 20, 2010);
+    ctx.fillRect(rx + 10, height - rBottom + 10, rw - 20, rBottom + 990);
     ctx.restore();
 
-    // Glowing metal columns scaffolding
+    // Glowing metal columns scaffolding (Unified with offscreen extension)
     ctx.fillStyle = '#120f26';
-    ctx.fillRect(rx, 0, rw, rTop);
-    ctx.strokeRect(rx, 0, rw, rTop);
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
 
-    ctx.fillRect(rx, height - rBottom, rw, rBottom);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom);
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
     // Draw glowing neon panel inside columns
     ctx.fillStyle = 'rgba(255, 0, 127, 0.15)';
@@ -675,20 +631,17 @@ export class ObstacleManager {
     iceGrad.addColorStop(0.7, 'rgba(135, 206, 235, 0.9)');
     iceGrad.addColorStop(1, 'rgba(70, 130, 180, 0.95)');
 
-    // Draw infinite extensions
-    this.drawInfiniteExtension(ctx, rx, rw, height, iceGrad, '#ffffff', 2.0);
-
     ctx.fillStyle = iceGrad;
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 2.0;
 
-    // Top column
-    ctx.fillRect(rx, 0, rw, rTop);
-    ctx.strokeRect(rx, 0, rw, rTop);
+    // Top column (Unified with offscreen extension)
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
 
-    // Bottom column
-    ctx.fillRect(rx, height - rBottom, rw, rBottom);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom);
+    // Bottom column (Unified with offscreen extension)
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
     // Snowy/frosty cap caps
     ctx.fillStyle = '#ffffff';
@@ -711,20 +664,17 @@ export class ObstacleManager {
     sandGrad.addColorStop(0.5, '#ab8e60');
     sandGrad.addColorStop(1, '#5e431f');
 
-    // Draw infinite extensions
-    this.drawInfiniteExtension(ctx, rx, rw, height, sandGrad, '#3e2c14', 2.0);
-
     ctx.fillStyle = sandGrad;
     ctx.strokeStyle = '#3e2c14';
     ctx.lineWidth = 2.0;
 
-    // Top obelisk
-    ctx.fillRect(rx, 0, rw, rTop);
-    ctx.strokeRect(rx, 0, rw, rTop);
+    // Top obelisk (Unified with offscreen extension)
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
 
-    // Bottom obelisk
-    ctx.fillRect(rx, height - rBottom, rw, rBottom);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom);
+    // Bottom obelisk (Unified with offscreen extension)
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
     // Engraved hieroglyph symbols
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
@@ -753,20 +703,17 @@ export class ObstacleManager {
     lavaGrad.addColorStop(0.5, '#40150a');
     lavaGrad.addColorStop(1, '#050101');
 
-    // Draw infinite extensions
-    this.drawInfiniteExtension(ctx, rx, rw, height, lavaGrad, '#ff3c00', 2.5);
-
     ctx.fillStyle = lavaGrad;
     ctx.strokeStyle = '#ff3c00';
     ctx.lineWidth = 2.5;
 
-    // Top Jagged Obsidian column
-    ctx.fillRect(rx, 0, rw, rTop);
-    ctx.strokeRect(rx, 0, rw, rTop);
+    // Top Jagged Obsidian column (Unified with offscreen extension)
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
 
-    // Bottom Jagged Obsidian column
-    ctx.fillRect(rx, height - rBottom, rw, rBottom);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom);
+    // Bottom Jagged Obsidian column (Unified with offscreen extension)
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
     // Lava cracks detailing
     ctx.fillStyle = 'rgba(255, 60, 0, 0.85)';
@@ -797,20 +744,17 @@ export class ObstacleManager {
     spaceGrad.addColorStop(0.5, '#2e0854');
     spaceGrad.addColorStop(1, '#05000d');
 
-    // Draw infinite extensions
-    this.drawInfiniteExtension(ctx, rx, rw, height, spaceGrad, '#da70d6', 2.0);
-
     ctx.fillStyle = spaceGrad;
     ctx.strokeStyle = '#da70d6';
     ctx.lineWidth = 2.0;
 
-    // Top cosmic column
-    ctx.fillRect(rx, 0, rw, rTop);
-    ctx.strokeRect(rx, 0, rw, rTop);
+    // Top cosmic column (Unified with offscreen extension)
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
 
-    // Bottom cosmic column
-    ctx.fillRect(rx, height - rBottom, rw, rBottom);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom);
+    // Bottom cosmic column (Unified with offscreen extension)
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
     // Glowing nebula cap
     const nebulaGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
@@ -838,20 +782,17 @@ export class ObstacleManager {
     marineGrad.addColorStop(0.5, '#004d40');
     marineGrad.addColorStop(1, '#001a14');
 
-    // Draw infinite extensions
-    this.drawInfiniteExtension(ctx, rx, rw, height, marineGrad, '#00695c', 2.0);
-
     ctx.fillStyle = marineGrad;
     ctx.strokeStyle = '#00695c';
     ctx.lineWidth = 2.0;
 
-    // Top
-    ctx.fillRect(rx, 0, rw, rTop);
-    ctx.strokeRect(rx, 0, rw, rTop);
+    // Top (Unified with offscreen extension)
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
 
-    // Bottom
-    ctx.fillRect(rx, height - rBottom, rw, rBottom);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom);
+    // Bottom (Unified with offscreen extension)
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
     // Seaweed leaves details overlay
     ctx.fillStyle = 'rgba(0, 150, 136, 0.4)';
@@ -878,20 +819,17 @@ export class ObstacleManager {
     heavGrad.addColorStop(0.8, '#e6e6fa');
     heavGrad.addColorStop(1, '#d8bfd8');
 
-    // Draw infinite extensions
-    this.drawInfiniteExtension(ctx, rx, rw, height, heavGrad, '#ffd700', 2.5);
-
     ctx.fillStyle = heavGrad;
     ctx.strokeStyle = '#ffd700';
     ctx.lineWidth = 2.5;
 
-    // Top
-    ctx.fillRect(rx, 0, rw, rTop);
-    ctx.strokeRect(rx, 0, rw, rTop);
+    // Top (Unified with offscreen extension)
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
 
-    // Bottom
-    ctx.fillRect(rx, height - rBottom, rw, rBottom);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom);
+    // Bottom (Unified with offscreen extension)
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
     // Golden halo crown on column caps (standardized to obs.width)
     ctx.fillStyle = '#ffd700';

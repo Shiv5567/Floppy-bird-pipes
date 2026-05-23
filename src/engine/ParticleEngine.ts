@@ -111,6 +111,42 @@ export class ParticleEngine {
       const p = this.pool[i];
       if (!p.active) continue;
 
+      // Direct draw mode for performance!
+      if ((p.shape === 'circle' || p.shape === 'square' || p.shape === 'bubble') && (!p.glow || disableShadows)) {
+        ctx.globalAlpha = p.alpha;
+
+        if (p.glow && p.glowColor) {
+          ctx.fillStyle = p.glowColor;
+          ctx.globalAlpha = p.alpha * 0.25;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * 2.2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = p.alpha;
+        }
+
+        ctx.fillStyle = p.color;
+        ctx.strokeStyle = p.color;
+
+        if (p.shape === 'circle') {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (p.shape === 'square') {
+          ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+        } else if (p.shape === 'bubble') {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+          ctx.beginPath();
+          ctx.arc(p.x - p.size * 0.3, p.y - p.size * 0.3, p.size * 0.25, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        continue;
+      }
+
       ctx.save();
       ctx.globalAlpha = p.alpha;
       ctx.translate(Math.round(p.x), Math.round(p.y));

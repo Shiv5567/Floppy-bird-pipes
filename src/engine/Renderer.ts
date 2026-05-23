@@ -11,6 +11,7 @@ export class Renderer {
   public canvas: HTMLCanvasElement;
   public ctx: CanvasRenderingContext2D;
   private particleEngine: ParticleEngine;
+  private cachedProfiles: number[][] = [];
 
   // Parallax background offsets
   private offsets: number[] = [0, 0, 0, 0, 0];
@@ -47,7 +48,9 @@ export class Renderer {
   }
 
   public resize() {
-    const dpr = window.devicePixelRatio || 1;
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const maxDpr = isMobile ? 1.5 : 2.0;
+    const dpr = Math.min(maxDpr, window.devicePixelRatio || 1);
     const rect = this.canvas.getBoundingClientRect();
     this.canvas.width = rect.width * dpr;
     this.canvas.height = rect.height * dpr;
@@ -86,6 +89,59 @@ export class Renderer {
         break;
       default:
         this.weather = { type: 'clear', windSpeed: 0, density: 0, lightning: false };
+    }
+    this.generateParallaxCache(worldId);
+  }
+
+  private generateParallaxCache(worldId: string) {
+    this.cachedProfiles = [[], [], [], []];
+    for (let layer = 1; layer <= 3; layer++) {
+      const profile = new Float32Array(2000);
+      for (let x = 0; x < 2000; x++) {
+        let dy = 0;
+        const lookupX = x;
+        switch (worldId) {
+          case 'jungle':
+            dy += Math.sin(lookupX * 0.003 * (4 - layer)) * 80 * (4 - layer);
+            dy += Math.sin(lookupX * 0.015) * 8;
+            break;
+          case 'cyberpunk': {
+            const buildingSeed = Math.floor(lookupX / 80);
+            const heightFactor = (Math.sin(buildingSeed * 1234.5) * 0.5 + 0.5);
+            dy -= heightFactor * 130 * (4 - layer);
+            break;
+          }
+          case 'ice':
+            dy += Math.sin(lookupX * 0.004) * 90 * (4 - layer);
+            dy += Math.abs(Math.sin(lookupX * 0.02) * 20);
+            break;
+          case 'desert':
+            dy += Math.cos(lookupX * 0.002 * (4 - layer)) * 70 * (4 - layer);
+            break;
+          case 'volcano':
+            dy += Math.sin(lookupX * 0.003) * 100 * (4 - layer);
+            if (lookupX % 180 < 30) {
+              dy -= 40;
+            }
+            break;
+          case 'space':
+            dy += Math.sin(lookupX * 0.0015) * 60;
+            dy += Math.cos(lookupX * 0.008) * 15;
+            break;
+          case 'underwater':
+            dy += Math.sin(lookupX * 0.003 * layer) * 50 * (4 - layer);
+            dy += Math.cos(lookupX * 0.01) * 10;
+            break;
+          case 'heaven':
+            dy += Math.sin(lookupX * 0.0025 * (4 - layer)) * 40 * (4 - layer);
+            dy += Math.sin(lookupX * 0.01) * 15;
+            break;
+          default:
+            dy += Math.sin(lookupX * 0.004 * (4 - layer)) * 50 * (4 - layer);
+        }
+        profile[x] = dy;
+      }
+      this.cachedProfiles[layer] = profile as any;
     }
   }
 
@@ -489,6 +545,8 @@ export class Renderer {
   }
 
   private drawParallaxHills(worldId: string, width: number, height: number) {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
     // 3 separate layers of hills / city silhouettes
     for (let layer = 1; layer <= 3; layer++) {
       this.ctx.save();
@@ -500,80 +558,30 @@ export class Renderer {
       this.ctx.moveTo(0, height);
 
       const segmentWidth = 100;
+      
       // Dynamically adjust step size per world to cut path complexity by 60-70%
-      let stepX = 10;
+      // On mobile devices, we double stepX to dramatically optimize draw paths!
+      let baseStepX = 30;
       if (worldId === 'cyberpunk') {
-        stepX = 40;
+        baseStepX = 40;
       } else if (worldId === 'space') {
-        stepX = 35;
-      } else if (worldId === 'jungle' || worldId === 'desert' || worldId === 'underwater' || worldId === 'heaven') {
-        stepX = 30;
+        baseStepX = 35;
       } else if (worldId === 'volcano' || worldId === 'ice') {
-        stepX = 25;
-      } else {
-        stepX = 30;
+        baseStepX = 25;
       }
+      
+      const stepX = isMobile ? baseStepX * 2.2 : baseStepX;
+
+      const profile = this.cachedProfiles[layer];
+      const hasProfile = profile && profile.length > 0;
 
       // Loop over the screen width to draw the mountains/skyscrapers
       for (let x = -segmentWidth; x < width + segmentWidth; x += stepX) {
-        // Adjust coordinate by offset
-        const lookupX = x + offset;
+        const lookupX = Math.floor(Math.abs(x + offset)) % 2000;
         let y = height * 0.55 + layer * 70; // baseline height
 
-        switch (worldId) {
-          case 'jungle':
-            // Layer organic forest ridges
-            y += Math.sin(lookupX * 0.003 * (4 - layer)) * 80 * (4 - layer);
-            y += Math.sin(lookupX * 0.015) * 8; // Small organic bumps
-            break;
-
-          case 'cyberpunk':
-            // Layer futuristic cubic buildings
-            const buildingSeed = Math.floor(lookupX / 80);
-            const heightFactor = (Math.sin(buildingSeed * 1234.5) * 0.5 + 0.5);
-            y -= heightFactor * 130 * (4 - layer);
-            // Flat rooftops
-            break;
-
-          case 'ice':
-            // Jagged sharp glacier peaks
-            y += Math.sin(lookupX * 0.004) * 90 * (4 - layer);
-            y += Math.abs(Math.sin(lookupX * 0.02) * 20); // Jagged corners
-            break;
-
-          case 'desert':
-            // Smooth swooping soft sand dunes
-            y += Math.cos(lookupX * 0.002 * (4 - layer)) * 70 * (4 - layer);
-            break;
-
-          case 'volcano':
-            // Spiked volcanic terrain
-            y += Math.sin(lookupX * 0.003) * 100 * (4 - layer);
-            if (lookupX % 180 < 30) {
-              y -= 40; // Volcano craters
-            }
-            break;
-
-          case 'space':
-            // Giant floating round asteroid rocks
-            y += Math.sin(lookupX * 0.0015) * 60;
-            y += Math.cos(lookupX * 0.008) * 15;
-            break;
-
-          case 'underwater':
-            // Rolling deep seabed reef profiles
-            y += Math.sin(lookupX * 0.003 * layer) * 50 * (4 - layer);
-            y += Math.cos(lookupX * 0.01) * 10;
-            break;
-
-          case 'heaven':
-            // Soft fluffy celestial clouds profiles
-            y += Math.sin(lookupX * 0.0025 * (4 - layer)) * 40 * (4 - layer);
-            y += Math.sin(lookupX * 0.01) * 15;
-            break;
-
-          default:
-            y += Math.sin(lookupX * 0.004 * (4 - layer)) * 50 * (4 - layer);
+        if (hasProfile) {
+          y += profile[lookupX];
         }
 
         // Subtract camera height tracker and round to integer
@@ -691,6 +699,11 @@ export class Renderer {
 
   // Volumetric bloom/lighting filter overlay (AAA polish)
   public applyCinematicBloom(worldId: string) {
+    if ((window as any).gameDisableShadows) {
+      // Bypassed on mobile / Low-Graphics Mode to save immense GPU fill-rate!
+      return;
+    }
+
     const width = this.canvas.width / (window.devicePixelRatio || 1);
     const height = this.canvas.height / (window.devicePixelRatio || 1);
 

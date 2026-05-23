@@ -68,6 +68,7 @@ export class GameEngine {
   private bossWarningTimer = 0;
   private bossScoreMilestone = 25; // Spawn a boss every 25 points!
   private smoothedDt = 0.0166;
+  private fpsLowFrameStreak = 0;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -131,9 +132,30 @@ export class GameEngine {
   }
 
   public update(deltaTime: number) {
+    // FPS performance governor
+    if (deltaTime > 0) {
+      const currentFps = 1 / deltaTime;
+      // If frame rate drops below 45 FPS
+      if (currentFps < 45) {
+        this.fpsLowFrameStreak++;
+        if (this.fpsLowFrameStreak >= 120 && !(window as any).gameDisableShadows) {
+          (window as any).gameDisableShadows = true;
+          window.dispatchEvent(new CustomEvent('achievement_unlocked', {
+            detail: {
+              name: 'PERFORMANCE MODE ENABLED ⚡',
+              desc: 'Graphics simplified to maintain target 60 FPS!'
+            }
+          }));
+        }
+      } else {
+        // Slowly cool down the low frame streak
+        if (this.fpsLowFrameStreak > 0) this.fpsLowFrameStreak--;
+      }
+    }
 
     // Apply delta-time cap to avoid giant skips when tabbing away
     const rawDt = Math.min(0.1, deltaTime);
+
 
     // Snap raw delta time to standard monitor refresh rates (60Hz, 75Hz, 90Hz, 120Hz, 144Hz, 165Hz, 240Hz, 360Hz) with 1.5ms tolerance
     // This perfectly aligns physics and drawing intervals with VSYNC, removing scrolling micro-stutter
