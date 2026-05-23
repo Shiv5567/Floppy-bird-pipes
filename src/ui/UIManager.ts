@@ -340,7 +340,6 @@ export class UIManager {
             <div class="top-bar-gem">
               <span class="top-bar-gem-icon">💎</span>${progress.gems.toLocaleString()}
             </div>
-            <button class="btn-dev-cheat" id="btn-cheat">⚡ CHEAT</button>
           </div>
         </div>
 
@@ -802,14 +801,6 @@ export class UIManager {
       if (el) el.addEventListener('click', action);
     };
 
-    // Cheat button
-    bindClick('btn-cheat', () => {
-      this.engine.progressManager.addCoins(100000);
-      this.engine.progressManager.addGems(5000);
-      this.showToastNotification('CHEAT ENABLED', '+100,000 Gold Coins and +5,000 Gems granted!');
-      this.render();
-    });
-
     // Back to main landing page
     bindClick('btn-back-main', () => {
       this.activeTab = 'main';
@@ -1113,7 +1104,6 @@ export class UIManager {
           </div>
 
           <div class="hud-actions">
-            <button class="hud-circle-btn" id="btn-hud-photo" title="Photo Mode">📸</button>
             <button class="hud-circle-btn" id="btn-hud-pause">⏸️</button>
           </div>
         </div>
@@ -1184,13 +1174,6 @@ export class UIManager {
     const pBtn = document.getElementById('btn-hud-pause');
     if (pBtn) pBtn.addEventListener('click', () => {
       this.engine.togglePause();
-      this.render();
-    });
-
-    const photoBtn = document.getElementById('btn-hud-photo');
-    if (photoBtn) photoBtn.addEventListener('click', () => {
-      this.lastEngineState = this.engine.state;
-      this.engine.state = 'PHOTO_MODE';
       this.render();
     });
   }
