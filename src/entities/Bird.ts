@@ -184,7 +184,7 @@ export class Bird {
   // Draw procedural birds depending on active skin
   public render(ctx: CanvasRenderingContext2D) {
     ctx.save();
-    ctx.translate(Math.round(this.x), Math.round(this.y));
+    ctx.translate(this.x, this.y);
     ctx.rotate(this.angle);
 
     // Apply scaling

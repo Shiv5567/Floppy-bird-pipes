@@ -588,8 +588,8 @@ export class Renderer {
           y += profile[lookupX];
         }
 
-        // Subtract camera height tracker and round to integer
-        const finalY = Math.round(y - this.cameraY * (layer * 0.25));
+        // Subtract camera height tracker with sub-pixel precision
+        const finalY = y - this.cameraY * (layer * 0.25);
         this.ctx.lineTo(x, finalY);
       }
 
@@ -758,8 +758,8 @@ export class Renderer {
     this.ctx.scale(this.zoomFactor, this.zoomFactor);
     this.ctx.translate(-width / 2, -height / 2);
 
-    // Translate standard coordinate space downwards by active cameraY and round to integer
-    this.ctx.translate(0, -Math.round(this.cameraY));
+    // Translate standard coordinate space downwards by active cameraY with sub-pixel precision
+    this.ctx.translate(0, -this.cameraY);
   }
 
   public endCamera() {

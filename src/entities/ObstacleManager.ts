@@ -480,10 +480,10 @@ export class ObstacleManager {
 
   // Visual Pillar Painters
   private drawDefaultPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const rx = Math.round(obs.x);
-    const rw = Math.round(obs.width);
-    const rTop = Math.round(obs.topHeight);
-    const rBottom = Math.round(obs.bottomHeight);
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
 
     const grad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
     grad.addColorStop(0, '#55a855');
@@ -512,10 +512,10 @@ export class ObstacleManager {
   }
 
   private drawJunglePillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const rx = Math.round(obs.x);
-    const rw = Math.round(obs.width);
-    const rTop = Math.round(obs.topHeight);
-    const rBottom = Math.round(obs.bottomHeight);
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
 
     // Ancient stone pillars
     const stoneGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
@@ -564,10 +564,10 @@ export class ObstacleManager {
   }
 
   private drawCyberpunkPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const rx = Math.round(obs.x);
-    const rw = Math.round(obs.width);
-    const rTop = Math.round(obs.topHeight);
-    const rBottom = Math.round(obs.bottomHeight);
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
     const disableShadows = (window as any).gameDisableShadows;
 
     ctx.strokeStyle = '#00f3ff';
@@ -620,10 +620,10 @@ export class ObstacleManager {
   }
 
   private drawIcePillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const rx = Math.round(obs.x);
-    const rw = Math.round(obs.width);
-    const rTop = Math.round(obs.topHeight);
-    const rBottom = Math.round(obs.bottomHeight);
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
     const disableShadows = (window as any).gameDisableShadows;
 
     if (!disableShadows) {
@@ -660,10 +660,10 @@ export class ObstacleManager {
   }
 
   private drawDesertPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const rx = Math.round(obs.x);
-    const rw = Math.round(obs.width);
-    const rTop = Math.round(obs.topHeight);
-    const rBottom = Math.round(obs.bottomHeight);
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
 
     // Ancient desert sandstones obelisks
     const sandGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
@@ -693,10 +693,10 @@ export class ObstacleManager {
   }
 
   private drawVolcanoPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const rx = Math.round(obs.x);
-    const rw = Math.round(obs.width);
-    const rTop = Math.round(obs.topHeight);
-    const rBottom = Math.round(obs.bottomHeight);
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
     const disableShadows = (window as any).gameDisableShadows;
 
     if (!disableShadows) {
@@ -734,10 +734,10 @@ export class ObstacleManager {
   }
 
   private drawSpaceObstacles(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const rx = Math.round(obs.x);
-    const rw = Math.round(obs.width);
-    const rTop = Math.round(obs.topHeight);
-    const rBottom = Math.round(obs.bottomHeight);
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
     const disableShadows = (window as any).gameDisableShadows;
 
     if (!disableShadows) {
@@ -778,10 +778,10 @@ export class ObstacleManager {
   }
 
   private drawUnderwaterPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const rx = Math.round(obs.x);
-    const rw = Math.round(obs.width);
-    const rTop = Math.round(obs.topHeight);
-    const rBottom = Math.round(obs.bottomHeight);
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
 
     // Algae covered marine pillars
     const marineGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
@@ -808,10 +808,10 @@ export class ObstacleManager {
   }
 
   private drawHeavenPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const rx = Math.round(obs.x);
-    const rw = Math.round(obs.width);
-    const rTop = Math.round(obs.topHeight);
-    const rBottom = Math.round(obs.bottomHeight);
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
     const disableShadows = (window as any).gameDisableShadows;
 
     if (!disableShadows) {
