@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="description" content="Flight of Legends is a premium AAA-quality, highly addictive flappy arcade adventure. Collect legendary skins, travel through 8 mythical worlds, defeat titanic bosses, and rank in the Battle Pass!" />
+    
+    <!-- OpenGraph meta tags for premium presentation sharing -->
+    <meta property="og:title" content="Flight of Legends - AAA Flappy Arcade Adventure" />
+    <meta property="og:description" content="Immersive 60FPS physics, volumetric weather, and 8 mythological landscapes await." />
+    <meta property="og:type" content="website" />
+    
+    <title>Flight of Legends - AAA Flappy Arcade Adventure</title>
+    
+    <!-- Preconnect to Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  </head>
+  <body>
+    <div id="app">
+      <!-- High performance game canvas drawing sits behind -->
+      <canvas id="gameCanvas"></canvas>
+      
+      <!-- Frosted glass UI overlay sits on top -->
+      <div id="uiContainer"></div>
+    </div>
+    
+    <!-- Modular main script injection -->
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
