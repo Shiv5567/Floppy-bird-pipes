@@ -67,8 +67,8 @@ export class GameEngine {
 
   private bossWarningTimer = 0;
   private bossScoreMilestone = 25; // Spawn a boss every 25 points!
-  private smoothedDt = 0.0166;
   private fpsLowFrameStreak = 0;
+
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -153,34 +153,9 @@ export class GameEngine {
       }
     }
 
-    // Apply delta-time cap to avoid giant skips when tabbing away
-    const rawDt = Math.min(0.1, deltaTime);
+    // Apply delta-time cap to avoid giant skips when tabbing away and use exact raw delta time
+    const dt = Math.min(0.1, deltaTime);
 
-
-    // Snap raw delta time to standard monitor refresh rates (60Hz, 75Hz, 90Hz, 120Hz, 144Hz, 165Hz, 240Hz, 360Hz) with 1.5ms tolerance
-    // This perfectly aligns physics and drawing intervals with VSYNC, removing scrolling micro-stutter
-    let snappedDt = rawDt;
-    const standardRates = [1 / 60, 1 / 75, 1 / 90, 1 / 120, 1 / 144, 1 / 165, 1 / 240, 1 / 360];
-    for (let i = 0; i < standardRates.length; i++) {
-      const rate = standardRates[i];
-      if (Math.abs(rawDt - rate) < 0.0015) {
-        snappedDt = rate;
-        break;
-      }
-    }
-
-    // Apply a micro-smoothing low-pass filter only if we did not snap to a standard refresh rate
-    if (snappedDt === rawDt) {
-      if (this.smoothedDt === 0.0166) {
-        this.smoothedDt = rawDt;
-      } else {
-        this.smoothedDt = this.smoothedDt * 0.85 + rawDt * 0.15;
-      }
-      snappedDt = this.smoothedDt;
-    } else {
-      this.smoothedDt = snappedDt;
-    }
-    const dt = snappedDt;
 
     // 1. Update visual engines
     this.particleEngine.update(dt);
