@@ -439,6 +439,7 @@ export class ObstacleManager {
 
   // Draw procedural themed obstacle pillars
   public render(ctx: CanvasRenderingContext2D, height: number) {
+    ctx.shadowBlur = 0; // Disable expensive shadow blurs for maximum rendering performance
     for (let i = 0; i < this.list.length; i++) {
       const obs = this.list[i];
 
@@ -568,7 +569,6 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const disableShadows = (window as any).gameDisableShadows;
 
     ctx.strokeStyle = '#00f3ff';
     ctx.lineWidth = 2.0;
@@ -598,13 +598,9 @@ export class ObstacleManager {
     // Dynamic Central Laser Beam rendering
     if (obs.isLaser) {
       if (obs.laserActive) {
-        if (!disableShadows) {
-          ctx.shadowBlur = 15;
-          ctx.shadowColor = '#ff0055';
-        }
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(rx + rw * 0.45, rTop, rw * 0.1, height - rTop - rBottom);
-        ctx.fillStyle = 'rgba(255, 0, 85, 0.75)';
+        ctx.fillStyle = 'rgba(255, 0, 85, 0.85)';
         ctx.fillRect(rx + rw * 0.42, rTop, rw * 0.16, height - rTop - rBottom);
       } else {
         // Soft red dotted warning line
@@ -624,22 +620,10 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const disableShadows = (window as any).gameDisableShadows;
 
-    if (!disableShadows) {
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = 'rgba(0, 200, 255, 0.4)';
-    }
-
-    // Ice crystals column drawing
-    const iceGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    iceGrad.addColorStop(0, 'rgba(173, 216, 230, 0.85)');
-    iceGrad.addColorStop(0.3, 'rgba(255, 255, 255, 0.95)');
-    iceGrad.addColorStop(0.7, 'rgba(135, 206, 235, 0.9)');
-    iceGrad.addColorStop(1, 'rgba(70, 130, 180, 0.95)');
-
-    ctx.fillStyle = iceGrad;
-    ctx.strokeStyle = '#ffffff';
+    // Use solid semi-transparent ice-blue background (removing slow gradient & heavy shadow calculations)
+    ctx.fillStyle = 'rgba(173, 216, 230, 0.75)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
     ctx.lineWidth = 2.0;
 
     // Top column (Unified with offscreen extension)
@@ -697,12 +681,6 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const disableShadows = (window as any).gameDisableShadows;
-
-    if (!disableShadows) {
-      ctx.shadowBlur = 12;
-      ctx.shadowColor = '#ff3c00';
-    }
 
     // Molten igneous obsidian pillars
     const lavaGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
@@ -738,12 +716,6 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const disableShadows = (window as any).gameDisableShadows;
-
-    if (!disableShadows) {
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = '#8a2be2';
-    }
 
     // Deep space dark purple gradient column
     const spaceGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
@@ -812,12 +784,6 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const disableShadows = (window as any).gameDisableShadows;
-
-    if (!disableShadows) {
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = '#ffd700';
-    }
 
     // Golden white celestial marble columns
     const heavGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
