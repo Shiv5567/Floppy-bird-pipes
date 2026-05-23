@@ -2632,8 +2632,51 @@ body, html {
   }
 }
 
+/* Highly optimized performance governor: Reduce extremely heavy blur filters across all panels to solve lag */
+.overlay-screen,
+.glass-nav,
+.currency,
+.menu-top-bar,
+.skin-card,
+.world-card,
+.bp-tier-card,
+.achievement-card,
+.reward-card,
+.zone-card,
+.photo-controls,
+.settings-panel,
+.pause-panel,
+.game-over-panel,
+.zones-configuration-card,
+.revive-panel,
+.hud-ultimate-container,
+.boss-alert-container,
+.glass-card {
+  backdrop-filter: blur(3px) !important;
+  -webkit-backdrop-filter: blur(3px) !important;
+}
+
 /* High-performance throttles for mobile screens (deactivates expensive layout blurs) */
-body.mobile-performance * {
+body.mobile-performance *,
+body.mobile-performance .overlay-screen,
+body.mobile-performance .glass-nav,
+body.mobile-performance .currency,
+body.mobile-performance .menu-top-bar,
+body.mobile-performance .skin-card,
+body.mobile-performance .world-card,
+body.mobile-performance .bp-tier-card,
+body.mobile-performance .achievement-card,
+body.mobile-performance .reward-card,
+body.mobile-performance .zone-card,
+body.mobile-performance .photo-controls,
+body.mobile-performance .settings-panel,
+body.mobile-performance .pause-panel,
+body.mobile-performance .game-over-panel,
+body.mobile-performance .zones-configuration-card,
+body.mobile-performance .revive-panel,
+body.mobile-performance .hud-ultimate-container,
+body.mobile-performance .boss-alert-container,
+body.mobile-performance .glass-card {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }

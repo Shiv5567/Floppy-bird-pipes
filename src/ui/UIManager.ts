@@ -767,7 +767,7 @@ export class UIManager {
       case 'zones': {
         return `
           <div class="tab-sheet-title">🎯 CONFIGURE ZONE & DIFFICULTY</div>
-          <div class="zones-configuration-card glass-card" style="padding: 24px; border-radius: 20px; background: rgba(13, 10, 28, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); backdrop-filter: blur(20px); max-width: 420px; margin: 0 auto;">
+          <div class="zones-configuration-card glass-card" style="padding: 24px; border-radius: 20px; background: rgba(13, 10, 28, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); max-width: 420px; margin: 0 auto;">
             <!-- Gameplay Zone segmented control -->
             <div class="control-group" style="margin-bottom: 24px;">
               <div class="segment-label" style="font-size: 11px; font-weight: 800; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 10px; text-transform: uppercase;">GAMEPLAY ZONE</div>

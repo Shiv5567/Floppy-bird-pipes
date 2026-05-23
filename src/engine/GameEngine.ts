@@ -90,8 +90,9 @@ export class GameEngine {
     
     this.renderer.setWeather(this.progressManager.getState().activeWorld);
 
-    // Initialize global mobile performance detector to bypass expensive shadow blurs
-    (window as any).gameDisableShadows = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 800;
+    // Initialize global performance detector to bypass expensive shadow blurs
+    // ALWAYS disable canvas shadows by default on ALL devices (PC and mobile) to solve lag completely
+    (window as any).gameDisableShadows = true;
   }
 
   public startGame() {
