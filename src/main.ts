@@ -20,6 +20,12 @@ function init() {
   const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
   if (!canvas) return;
 
+  // Add mobile class helper to completely disable expensive layout blurs (backdrop-filter)
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 800;
+  if (isMobile) {
+    document.body.classList.add('mobile-performance');
+  }
+
   progressManager = new ProgressManager();
   soundManager = new SoundManager();
   
