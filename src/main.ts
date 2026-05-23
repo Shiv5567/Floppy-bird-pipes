@@ -117,8 +117,16 @@ function updateGamepad() {
   }
 }
 
+const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 800;
+const frameMinTime = isMobileDevice ? 1000 / 60 : 1000 / 120; // Cap to 60fps on mobile to prevent thermal throttling, 120fps on desktop!
+
 function loop(time: number) {
-  const deltaTime = (time - lastTime) / 1000;
+  const elapsed = time - lastTime;
+  if (elapsed < frameMinTime - 1) { // 1ms tolerance for requestAnimationFrame timing jitter
+    requestAnimationFrame(loop);
+    return;
+  }
+  const deltaTime = elapsed / 1000;
   lastTime = time;
 
   updateGamepad();
