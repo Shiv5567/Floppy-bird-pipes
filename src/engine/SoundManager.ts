@@ -198,41 +198,45 @@ export class SoundManager {
       baseNotes = [146.83, 164.81, 110.00, 130.81]; // Cosmic ambient
     }
 
-    const intervalTime = (60 / tempo) * 1000 / 2; // Eighth notes
+    const isPerformanceMode = (window as any).gameDisableShadows;
+    const intervalTime = isPerformanceMode 
+      ? (60 / tempo) * 1000 // Quarter notes on mobile (twice as slow, half the ticks!)
+      : (60 / tempo) * 1000 / 2; // Eighth notes on desktop
+
     this.musicInterval = setInterval(() => {
       if (this.isMuted || !this.ctx || this.ctx.state === 'suspended') return;
 
-      const barStep = this.beatStep % 16;
-      const baseNoteIndex = Math.floor(this.beatStep / 4) % baseNotes.length;
+      const barStep = this.beatStep % (isPerformanceMode ? 8 : 16);
+      const baseNoteIndex = Math.floor(this.beatStep / (isPerformanceMode ? 2 : 4)) % baseNotes.length;
       const baseFreq = baseNotes[baseNoteIndex];
 
-      // Play bass arpeggiator on eighth notes
-      if (barStep % 2 === 0) {
-        this.playTone(baseFreq, baseFreq, 0.22, 'sine', 0.18, 'linear');
-      }
+      // Play bass arpeggiator (1 node)
+      this.playTone(baseFreq, baseFreq, isPerformanceMode ? 0.35 : 0.22, 'sine', 0.18, 'linear');
 
-      // Add atmospheric chords / leads on specific beats
-      if (barStep === 0) {
-        // Melodic root chord
-        this.playTone(baseFreq * 2, baseFreq * 2.02, 0.6, 'sine', 0.12, 'linear');
-        this.playTone(baseFreq * 3, baseFreq * 3.02, 0.6, 'sine', 0.08, 'linear');
-      } else if (barStep === 6) {
-        // High melodic chord accent
-        this.playTone(baseFreq * 2.4, baseFreq * 2.42, 0.3, 'sine', 0.08, 'linear');
-      } else if (barStep === 10) {
-        this.playTone(baseFreq * 3.2, baseFreq * 3.22, 0.4, 'sine', 0.06, 'linear');
-      }
+      if (!isPerformanceMode) {
+        // Desktop only: Add atmospheric chords / leads on specific beats
+        if (barStep === 0) {
+          // Melodic root chord
+          this.playTone(baseFreq * 2, baseFreq * 2.02, 0.6, 'sine', 0.12, 'linear');
+          this.playTone(baseFreq * 3, baseFreq * 3.02, 0.6, 'sine', 0.08, 'linear');
+        } else if (barStep === 6) {
+          // High melodic chord accent
+          this.playTone(baseFreq * 2.4, baseFreq * 2.42, 0.3, 'sine', 0.08, 'linear');
+        } else if (barStep === 10) {
+          this.playTone(baseFreq * 3.2, baseFreq * 3.22, 0.4, 'sine', 0.06, 'linear');
+        }
 
-      // Minimal synthesized highhat rhythm
-      if (barStep % 4 === 2) {
-        // Synth Highhat noise burst
-        this.playHihat();
-      }
+        // Minimal synthesized highhat rhythm
+        if (barStep % 4 === 2) {
+          // Synth Highhat noise burst
+          this.playHihat();
+        }
 
-      // Minimal synth snare on beat 2 and 4 (steps 4 and 12)
-      if (worldId === 'cyberpunk' || worldId === 'volcano') {
-        if (barStep === 4 || barStep === 12) {
-          this.playSnare();
+        // Minimal synth snare on beat 2 and 4 (steps 4 and 12)
+        if (worldId === 'cyberpunk' || worldId === 'volcano') {
+          if (barStep === 4 || barStep === 12) {
+            this.playSnare();
+          }
         }
       }
 

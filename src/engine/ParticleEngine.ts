@@ -21,6 +21,8 @@ export class ParticleEngine {
   private maxParticles = 1000;
 
   constructor() {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 800;
+    this.maxParticles = isMobile ? 300 : 1000;
     this.initPool();
   }
 

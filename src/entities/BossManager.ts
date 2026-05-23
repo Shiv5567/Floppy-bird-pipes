@@ -387,28 +387,30 @@ export class BossManager {
     }
   }
 
-  // Collision checks with active Boss or his bullets
+  // Collision checks with active Boss or his bullets (highly optimized squared distance checks)
   public checkCollisions(birdX: number, birdY: number, birdRadius: number): boolean {
     if (!this.active || this.state === 'defeated') return false;
 
-    // 1. Check collision with Boss Body itself
+    // 1. Check collision with Boss Body itself (squared distance)
     const dx = birdX - this.bossX;
     const dy = birdY - this.bossY;
-    const dist = Math.sqrt(dx * dx + dy * dy);
+    const distSq = dx * dx + dy * dy;
     
     const bossTouchRadius = 45;
-    if (dist < birdRadius + bossTouchRadius) {
+    const minDist = birdRadius + bossTouchRadius;
+    if (distSq < minDist * minDist) {
       return true;
     }
 
-    // 2. Check collision with Boss Projectiles
+    // 2. Check collision with Boss Projectiles (squared distance)
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const p = this.projectiles[i];
       const pdx = birdX - p.x;
       const pdy = birdY - p.y;
-      const pdist = Math.sqrt(pdx * pdx + pdy * pdy);
+      const pDistSq = pdx * pdx + pdy * pdy;
+      const minPDist = birdRadius + p.radius;
 
-      if (pdist < birdRadius + p.radius) {
+      if (pDistSq < minPDist * minPDist) {
         this.projectiles.splice(i, 1); // Delete bullet
         return true;
       }
