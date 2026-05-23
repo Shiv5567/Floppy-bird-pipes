@@ -33,7 +33,6 @@ export class Renderer {
 
   // Camera settings
   private cameraY = 0;
-  private targetCameraY = 0;
   private shakeIntensity = 0;
   private shakeDuration = 0;
   private zoomFactor = 0.85;
@@ -162,11 +161,9 @@ export class Renderer {
       this.offsets[i] = (this.offsets[i] + this.speeds[i] * speedMultiplier) % 2000;
     }
 
-    // Dynamic camera vertical tracking
-    const screenHeight = this.canvas.height / this.dpr;
-    this.targetCameraY = birdY - screenHeight / 2;
-    // Smooth camera catchup
-    this.cameraY += (this.targetCameraY - this.cameraY) * 0.08 * (deltaTime * 60);
+    // Static camera vertical tracking (disabled vertical scrolling to keep background static)
+    void birdY;
+    this.cameraY = 0;
 
     // Dynamic micro-camera zoom based on gameplay state
     let targetZoom = 0.85;
