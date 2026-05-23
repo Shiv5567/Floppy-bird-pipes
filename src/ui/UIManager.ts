@@ -9,6 +9,19 @@ export class UIManager {
   private lastEngineState: GameState = 'MENU';
   private activeRewardsSubTab: 'daily' | 'trophies' | 'bp' = 'daily';
 
+  // Cached HUD DOM element references
+  private scoreEl: HTMLElement | null = null;
+  private btnUltimate: HTMLElement | null = null;
+  private ultIcon: HTMLElement | null = null;
+  private ultFill: HTMLElement | null = null;
+  private ultText: HTMLElement | null = null;
+  private runStatsCoins: HTMLElement | null = null;
+  private runStatsGems: HTMLElement | null = null;
+  private powerupsHolder: HTMLElement | null = null;
+  private bossContainer: HTMLElement | null = null;
+  private bossHealthVal: HTMLElement | null = null;
+  private bossHealthFill: HTMLElement | null = null;
+
   constructor(containerId: string, engine: GameEngine) {
     this.engine = engine;
     const el = document.getElementById(containerId);
@@ -89,10 +102,10 @@ export class UIManager {
   }
 
   private updateHUDValues() {
-    // 1. Score
-    const scoreEl = document.getElementById('hud-score');
-    if (scoreEl) {
-      scoreEl.innerText = this.engine.score.toString();
+    // 1. Score (using cached reference if available, otherwise query and cache it)
+    if (!this.scoreEl) this.scoreEl = document.getElementById('hud-score');
+    if (this.scoreEl) {
+      this.scoreEl.innerText = this.engine.score.toString();
     }
 
     // 2. Ultimate Bar
@@ -102,93 +115,143 @@ export class UIManager {
     const skinGlow = this.engine.bird.getSkin().glowColor || '#00f3ff';
     const ultBarBg = ultReady ? `linear-gradient(90deg, #ffd700, ${skinGlow})` : skinGlow;
 
-    const ultContainer = document.getElementById('btn-hud-ultimate');
-    if (ultContainer) {
-      // Toggle class lists
+    if (!this.btnUltimate) {
+      this.btnUltimate = document.getElementById('btn-hud-ultimate');
+      if (this.btnUltimate) {
+        this.ultIcon = this.btnUltimate.querySelector('.ult-icon');
+        this.ultFill = this.btnUltimate.querySelector('.ult-progress-fill');
+        this.ultText = this.btnUltimate.querySelector('.ult-text');
+      }
+    }
+
+    if (this.btnUltimate) {
+      // Toggle class lists in place
       if (ultReady) {
-        ultContainer.classList.add('ult-ready-pulse');
+        this.btnUltimate.classList.add('ult-ready-pulse');
       } else {
-        ultContainer.classList.remove('ult-ready-pulse');
+        this.btnUltimate.classList.remove('ult-ready-pulse');
       }
 
       if (ultActive) {
-        ultContainer.classList.add('ult-active-glow');
+        this.btnUltimate.classList.add('ult-active-glow');
       } else {
-        ultContainer.classList.remove('ult-active-glow');
+        this.btnUltimate.classList.remove('ult-active-glow');
       }
 
-      const ultIcon = ultContainer.querySelector('.ult-icon') as HTMLElement;
-      if (ultIcon) {
-        ultIcon.innerText = ultActive ? '⚡' : ultReady ? '🔥' : '✨';
+      if (this.ultIcon) {
+        this.ultIcon.innerText = ultActive ? '⚡' : ultReady ? '🔥' : '✨';
       }
 
-      const ultFill = ultContainer.querySelector('.ult-progress-fill') as HTMLElement;
-      if (ultFill) {
-        ultFill.style.width = `${ultPercent}%`;
-        ultFill.style.background = ultBarBg;
+      if (this.ultFill) {
+        this.ultFill.style.width = `${ultPercent}%`;
+        this.ultFill.style.background = ultBarBg;
       }
 
-      const ultText = ultContainer.querySelector('.ult-text') as HTMLElement;
-      if (ultText) {
-        ultText.innerText = ultActive ? 'ACTIVE' : ultReady ? 'READY!' : `${ultPercent}%`;
+      if (this.ultText) {
+        this.ultText.innerText = ultActive ? 'ACTIVE' : ultReady ? 'READY!' : `${ultPercent}%`;
       }
     }
 
-    // 3. Stats (Coins & Gems)
-    const runStats = this.container.querySelector('.run-stats') as HTMLElement;
-    if (runStats) {
-      const statsBadges = runStats.querySelectorAll('.stat-badge');
-      if (statsBadges.length >= 2) {
-        (statsBadges[0] as HTMLElement).innerHTML = `🟡 ${this.engine.coinsCollectedThisRun}`;
-        (statsBadges[1] as HTMLElement).innerHTML = `💎 ${this.engine.gemsCollectedThisRun}`;
+    // 3. Stats (Coins & Gems) - using fast innerText with emojis!
+    if (!this.runStatsCoins || !this.runStatsGems) {
+      const runStats = this.container.querySelector('.run-stats');
+      if (runStats) {
+        const statsBadges = runStats.querySelectorAll('.stat-badge');
+        if (statsBadges.length >= 2) {
+          this.runStatsCoins = statsBadges[0] as HTMLElement;
+          this.runStatsGems = statsBadges[1] as HTMLElement;
+        }
       }
     }
 
-    // 4. Powerup timers holder
-    const holder = this.container.querySelector('.powerup-timers-holder') as HTMLElement;
+    if (this.runStatsCoins) {
+      this.runStatsCoins.innerText = `🟡 ${this.engine.coinsCollectedThisRun}`;
+    }
+    if (this.runStatsGems) {
+      this.runStatsGems.innerText = `💎 ${this.engine.gemsCollectedThisRun}`;
+    }
+
+    // 4. Powerup timers holder (In-place updates without DOM reconstruction!)
+    if (!this.powerupsHolder) {
+      this.powerupsHolder = this.container.querySelector('.powerup-timers-holder');
+    }
+    const holder = this.powerupsHolder;
     if (holder) {
       const pList = this.engine.getActivePowerups();
-      const powerupBadgesHTML = pList.map(p => {
-        const percent = (p.durationLeft / p.maxDuration) * 100;
-        return `
-          <div class="hud-powerup-badge glass-card fade-in">
-            <span class="pow-icon">${p.type === 'shield' ? '🛡️' : p.type === 'slowmo' ? '⏳' : p.type === 'magnet' ? '🧲' : p.type === 'double' ? '✨' : p.type === 'turbo' ? '🔥' : p.type === 'ghost' ? '👻' : p.type === 'mini' ? '🔎' : '🪶'}</span>
-            <div class="pow-bar-container">
-              <div class="pow-bar-inner" style="width: ${percent}%; background-color: ${this.getPowerupColor(p.type)}"></div>
-            </div>
-          </div>
-        `;
-      }).join('');
-      holder.innerHTML = powerupBadgesHTML;
+      
+      // Get current types in holder and next types to update
+      const currentBadges = Array.from(holder.querySelectorAll('.hud-powerup-badge')) as HTMLElement[];
+      const currentTypes = currentBadges.map(el => el.getAttribute('data-powerup-type') || '');
+      const nextTypes = pList.map(p => p.type);
+
+      if (currentTypes.join(',') !== nextTypes.join(',')) {
+        // Powerups set has changed, regenerate HTML once
+        if (pList.length === 0) {
+          holder.innerHTML = '';
+        } else {
+          holder.innerHTML = pList.map(p => {
+            const percent = (p.durationLeft / p.maxDuration) * 100;
+            return `
+              <div class="hud-powerup-badge glass-card fade-in" data-powerup-type="${p.type}">
+                <span class="pow-icon">${p.type === 'shield' ? '🛡️' : p.type === 'slowmo' ? '⏳' : p.type === 'magnet' ? '🧲' : p.type === 'double' ? '✨' : p.type === 'turbo' ? '🔥' : p.type === 'ghost' ? '👻' : p.type === 'mini' ? '🔎' : '🪶'}</span>
+                <div class="pow-bar-container">
+                  <div class="pow-bar-inner" style="width: ${percent}%; background-color: ${this.getPowerupColor(p.type)}"></div>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      } else {
+        // Types are identical, update timer widths in-place!
+        for (let idx = 0; idx < pList.length; idx++) {
+          const p = pList[idx];
+          const badge = currentBadges[idx];
+          if (badge) {
+            const fill = badge.querySelector('.pow-bar-inner') as HTMLElement;
+            if (fill) {
+              const percent = (p.durationLeft / p.maxDuration) * 100;
+              fill.style.width = `${percent}%`;
+            }
+          }
+        }
+      }
     }
 
-    // 5. Boss Health Bar
+    // 5. Boss Health Bar (Optimized to skip queries)
     const state = this.engine.state;
     const isBossFight = state === 'BOSS_FIGHT';
     const isBossActive = this.engine.bossManager.isBossActive();
-    const bossContainer = this.container.querySelector('.boss-health-bar-container');
+
+    if (!this.bossContainer) {
+      this.bossContainer = this.container.querySelector('.boss-health-bar-container') as HTMLElement;
+      if (this.bossContainer) {
+        this.bossHealthVal = this.bossContainer.querySelector('.boss-health-val');
+        this.bossHealthFill = this.bossContainer.querySelector('.boss-health-fill');
+      }
+    }
 
     if (isBossFight && isBossActive) {
       const bossHealth = this.engine.bossManager.getHealth();
       const bossMaxHealth = this.engine.bossManager.getMaxHealth();
       const bossHealthPercent = Math.max(0, Math.min(100, (bossHealth / bossMaxHealth) * 100));
 
-      if (bossContainer) {
-        // Just update values in place!
-        const healthVal = bossContainer.querySelector('.boss-health-val') as HTMLElement;
-        if (healthVal) {
-          healthVal.innerText = `${bossHealth} / ${bossMaxHealth}`;
+      if (this.bossContainer) {
+        // Just update values in place using cached elements!
+        if (this.bossHealthVal) {
+          this.bossHealthVal.innerText = `${bossHealth} / ${bossMaxHealth}`;
         }
-        const healthFill = bossContainer.querySelector('.boss-health-fill') as HTMLElement;
-        if (healthFill) {
-          healthFill.style.width = `${bossHealthPercent}%`;
+        if (this.bossHealthFill) {
+          this.bossHealthFill.style.width = `${bossHealthPercent}%`;
         }
       } else {
-        // Boss health bar doesn't exist yet, we must do a full render to spawn it
+        // Boss health bar doesn't exist yet, we must do a full render to spawn it and cache references
         this.renderHUD();
       }
-    } else if (bossContainer) {
-      // Boss is defeated or gone but health bar is still there, do a full render to wipe it out
+    } else if (this.bossContainer) {
+      // Boss is defeated or gone but health bar container reference still active, reset references and do full render HUD to clear
+      this.bossContainer = null;
+      this.bossHealthVal = null;
+      this.bossHealthFill = null;
       this.renderHUD();
     }
   }
@@ -1073,6 +1136,42 @@ export class UIManager {
     `;
 
     this.container.innerHTML = hudHTML;
+
+    // Cache DOM references for zero-thrashing fast active gameplay updates
+    this.scoreEl = document.getElementById('hud-score');
+    this.btnUltimate = document.getElementById('btn-hud-ultimate');
+    if (this.btnUltimate) {
+      this.ultIcon = this.btnUltimate.querySelector('.ult-icon');
+      this.ultFill = this.btnUltimate.querySelector('.ult-progress-fill');
+      this.ultText = this.btnUltimate.querySelector('.ult-text');
+    } else {
+      this.ultIcon = null;
+      this.ultFill = null;
+      this.ultText = null;
+    }
+    const runStats = this.container.querySelector('.run-stats');
+    if (runStats) {
+      const statsBadges = runStats.querySelectorAll('.stat-badge');
+      if (statsBadges.length >= 2) {
+        this.runStatsCoins = statsBadges[0] as HTMLElement;
+        this.runStatsGems = statsBadges[1] as HTMLElement;
+      } else {
+        this.runStatsCoins = null;
+        this.runStatsGems = null;
+      }
+    } else {
+      this.runStatsCoins = null;
+      this.runStatsGems = null;
+    }
+    this.powerupsHolder = this.container.querySelector('.powerup-timers-holder');
+    this.bossContainer = this.container.querySelector('.boss-health-bar-container');
+    if (this.bossContainer) {
+      this.bossHealthVal = this.bossContainer.querySelector('.boss-health-val');
+      this.bossHealthFill = this.bossContainer.querySelector('.boss-health-fill');
+    } else {
+      this.bossHealthVal = null;
+      this.bossHealthFill = null;
+    }
 
     // Bind triggers
     const ultBtn = document.getElementById('btn-hud-ultimate');

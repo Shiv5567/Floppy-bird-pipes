@@ -128,7 +128,9 @@ export class Bird {
     this.radius = this.baseRadius * this.sizeMultiplier;
 
     // Emit skin-specific trails
-    if (isPlaying && !this.isCrashing && Math.random() < 0.35 * dtCoeff) {
+    const isPerformanceMode = (window as any).gameDisableShadows;
+    const trailRate = isPerformanceMode ? 0.15 : 0.35;
+    if (isPlaying && !this.isCrashing && Math.random() < trailRate * dtCoeff) {
       this.emitSkinTrail(particleEngine);
     }
   }

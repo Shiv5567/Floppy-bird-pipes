@@ -142,14 +142,20 @@ function loop(time: number) {
 
   gameEngine.renderer.restoreScreen();
 
-  const currentBossHealth = gameEngine.bossManager.isBossActive() ? gameEngine.bossManager.getHealth() : 0;
-  const currentUltPercent = Math.min(100, Math.floor(gameEngine.ultimateEnergy));
-  if (gameEngine.score !== lastScore || gameEngine.state !== lastState || currentBossHealth !== lastBossHealth || currentUltPercent !== lastUltPercent) {
-    lastScore = gameEngine.score;
-    lastState = gameEngine.state;
-    lastBossHealth = currentBossHealth;
-    lastUltPercent = currentUltPercent;
+  if (gameEngine.state === 'PLAYING' || gameEngine.state === 'BOSS_FIGHT' || gameEngine.state === 'BOSS_WARNING') {
+    // Highly optimized in-place HUD updates run every single frame for buttery-smooth animations
     uiManager.render();
+  } else {
+    // Standard state change checks for menus, pause screen, and game over
+    const currentBossHealth = gameEngine.bossManager.isBossActive() ? gameEngine.bossManager.getHealth() : 0;
+    const currentUltPercent = Math.min(100, Math.floor(gameEngine.ultimateEnergy));
+    if (gameEngine.score !== lastScore || gameEngine.state !== lastState || currentBossHealth !== lastBossHealth || currentUltPercent !== lastUltPercent) {
+      lastScore = gameEngine.score;
+      lastState = gameEngine.state;
+      lastBossHealth = currentBossHealth;
+      lastUltPercent = currentUltPercent;
+      uiManager.render();
+    }
   }
 
   requestAnimationFrame(loop);

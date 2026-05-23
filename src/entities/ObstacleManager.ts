@@ -317,6 +317,13 @@ export class ObstacleManager {
 
       const left = obs.x;
       const right = obs.x + obs.width;
+
+      // Range check: Skip heavy math if bird is horizontally nowhere near this obstacle!
+      const maxRad = bird.radius;
+      if (right < bird.x - maxRad || left > bird.x + maxRad) {
+        continue;
+      }
+
       const topPipeBottom = obs.topHeight;
       const bottomPipeTop = height - obs.bottomHeight;
 

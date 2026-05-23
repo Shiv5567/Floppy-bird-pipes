@@ -238,7 +238,9 @@ export class Renderer {
     }
 
     const rateCoeff = deltaTime * this.weather.density;
-    if (Math.random() < rateCoeff * 0.3) {
+    const isPerformanceMode = (window as any).gameDisableShadows;
+    const spawnRate = isPerformanceMode ? rateCoeff * 0.12 : rateCoeff * 0.3;
+    if (Math.random() < spawnRate) {
       switch (this.weather.type) {
         case 'rain': {
           // Spawn rain drops falling fast diagonally, reacting to flight wind speed
