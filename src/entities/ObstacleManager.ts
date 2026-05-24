@@ -97,8 +97,9 @@ export class ObstacleManager {
     // Scale horizontal distance according to user specs
     let targetDistance;
     if (zone === 'classic') {
-      // Classic Mode: Keep horizontal distance completely constant and generous
-      targetDistance = baseDistance * 1.15;
+      // Classic Mode: Enforce constant horizontal gap same as hard difficulty level (distMultiplier = 0.80) across all difficulties
+      const baseDistanceClassic = (width / 1.35) * 0.80;
+      targetDistance = baseDistanceClassic * 1.15;
     } else if (zone === 'vertical') {
       targetDistance = (baseDistance - (baseDistance - minDistance) * progressRatio) * 1.25 * 0.60;
     } else {
@@ -219,15 +220,35 @@ export class ObstacleManager {
       isMoving = true;
       rangeY = 65; // constant amplitude for cohesive wave look
     } else {
-      // Classic Mode: smooth, gentle vertical alignment transitions instead of wild jumps
+      // Classic Mode: unpredictable zigzag vertical alignment from starting to ending
       const playableHeight = height - gapHeight - margin * 2;
-      let targetTopHeight = margin + playableHeight * 0.5; // start in the middle
+      let targetTopHeight = margin + Math.random() * playableHeight;
 
       if (this.lastTopHeight !== null) {
-        // Gentle step: maximum 12% vertical shift from the last pipe's height for smooth flow
-        const maxStep = playableHeight * 0.12;
-        const minVal = Math.max(margin, this.lastTopHeight - maxStep);
-        const maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
+        // Unpredictable Zigzag: high variation (up to 80%) at all times from starting to ending
+        const maxStep = playableHeight * 0.80;
+        
+        // 68% chance to actively bias the next height in the opposite vertical half of the screen
+        const forceAlternate = Math.random() < 0.68;
+        let minVal = Math.max(margin, this.lastTopHeight - maxStep);
+        let maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
+        
+        if (forceAlternate) {
+          const isHigh = this.lastTopHeight > margin + playableHeight * 0.5;
+          if (isHigh) {
+            // Last pipe was high, bias the new one to the lower screen region
+            maxVal = Math.min(maxVal, margin + playableHeight * 0.45);
+          } else {
+            // Last pipe was low, bias the new one to the upper screen region
+            minVal = Math.max(minVal, margin + playableHeight * 0.55);
+          }
+          // Safeguard bounds validity
+          if (minVal > maxVal) {
+            minVal = Math.max(margin, this.lastTopHeight - maxStep);
+            maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
+          }
+        }
+
         targetTopHeight = minVal + Math.random() * (maxVal - minVal);
       }
 
