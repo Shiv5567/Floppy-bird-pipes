@@ -72,18 +72,18 @@ export class ObstacleManager {
     // Smooth, step-by-step progressive difficulty scaling ratio over 60 points
     const progressRatio = Math.min(1.0, score / 60.0);
     
-    // Dynamic difficulty limits (enforce the Hard difficulty vertical gap of 196 constantly across all modes)
-    let startGap = 196;
-    let minGap = 196;
+    // Dynamic difficulty limits (enforce the constant vertical gap of 255 - representing a 30% increase from 196)
+    let startGap = 255;
+    let minGap = 255;
     let distMultiplier = 1.0;
 
     if (difficulty === 'easy') {
-      startGap = 196;
-      minGap = 196;
+      startGap = 255;
+      minGap = 255;
       distMultiplier = 1.3;
     } else if (difficulty === 'hard') {
-      startGap = 196;
-      minGap = 196;
+      startGap = 255;
+      minGap = 255;
       distMultiplier = 0.80;
     }
 
