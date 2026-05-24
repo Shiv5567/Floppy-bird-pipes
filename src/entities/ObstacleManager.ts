@@ -97,9 +97,16 @@ export class ObstacleManager {
     // Scale horizontal distance according to user specs
     let targetDistance;
     if (zone === 'classic') {
-      // Classic Mode: Enforce constant horizontal gap same as hard difficulty level (distMultiplier = 0.80) across all difficulties
+      // Classic Mode: Default (Medium/Hard) classic gap uses 0.80 multiplier
       const baseDistanceClassic = (width / 1.35) * 0.80;
-      targetDistance = baseDistanceClassic * 1.15;
+      const defaultDistance = baseDistanceClassic * 1.15;
+      
+      if (difficulty === 'easy') {
+        // Easy Mode: 20% constant gap increase compared to the default (medium/hard) classic gap
+        targetDistance = defaultDistance * 1.20;
+      } else {
+        targetDistance = defaultDistance;
+      }
     } else if (zone === 'vertical') {
       targetDistance = (baseDistance - (baseDistance - minDistance) * progressRatio) * 1.25 * 0.60;
     } else {
