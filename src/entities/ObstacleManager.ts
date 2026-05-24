@@ -9,6 +9,7 @@ export interface Obstacle {
   passed: boolean;
   grazed?: boolean;
   isCavern?: boolean;
+  isMutated?: boolean;
   
   // Custom modifiers per theme
   worldId: string;
@@ -360,6 +361,7 @@ export class ObstacleManager {
       bottomHeight,
       passed: false,
       isCavern: isCavernVal,
+      isMutated: (score >= 20 && score <= 50),
       worldId,
       isMoving,
       movingDir: Math.random() > 0.5 ? 1 : -1,
@@ -630,30 +632,58 @@ export class ObstacleManager {
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    const grad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    grad.addColorStop(0, '#55a855');
-    grad.addColorStop(0.3, '#88d888');
-    grad.addColorStop(0.7, '#336633');
-    grad.addColorStop(1, '#1b3d1b');
+    if (obs.isMutated) {
+      // Royal blue and polished gold
+      const grad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      grad.addColorStop(0, '#0f172a');
+      grad.addColorStop(0.3, '#1e3a8a');
+      grad.addColorStop(0.7, '#1e40af');
+      grad.addColorStop(1, '#0f172a');
+      ctx.fillStyle = grad;
+      ctx.strokeStyle = '#fbbf24'; // Gold outline
+      ctx.lineWidth = 3.5;
 
-    ctx.fillStyle = grad;
-    ctx.strokeStyle = '#0e240e';
-    ctx.lineWidth = 3;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
-    // Top column (Unified with offscreen extension)
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-    // Bottom column (Unified with offscreen extension)
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      // Shiny gold caps
+      const goldGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      goldGrad.addColorStop(0, '#d97706');
+      goldGrad.addColorStop(0.5, '#fef08a');
+      goldGrad.addColorStop(1, '#b45309');
+      ctx.fillStyle = goldGrad;
+      ctx.fillRect(rx, rTop - 20, rw, 20);
+      ctx.strokeRect(rx, rTop - 20, rw, 20);
+      ctx.fillRect(rx, height - rBottom, rw, 20);
+      ctx.strokeRect(rx, height - rBottom, rw, 20);
+    } else {
+      const grad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      grad.addColorStop(0, '#55a855');
+      grad.addColorStop(0.3, '#88d888');
+      grad.addColorStop(0.7, '#336633');
+      grad.addColorStop(1, '#1b3d1b');
 
-    // Pillar ridges caps (standardized to obs.width)
-    ctx.fillStyle = '#88d888';
-    ctx.fillRect(rx, rTop - 20, rw, 20);
-    ctx.strokeRect(rx, rTop - 20, rw, 20);
+      ctx.fillStyle = grad;
+      ctx.strokeStyle = '#0e240e';
+      ctx.lineWidth = 3;
 
-    ctx.fillRect(rx, height - rBottom, rw, 20);
-    ctx.strokeRect(rx, height - rBottom, rw, 20);
+      // Top column (Unified with offscreen extension)
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      // Bottom column (Unified with offscreen extension)
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+      // Pillar ridges caps (standardized to obs.width)
+      ctx.fillStyle = '#88d888';
+      ctx.fillRect(rx, rTop - 20, rw, 20);
+      ctx.strokeRect(rx, rTop - 20, rw, 20);
+
+      ctx.fillRect(rx, height - rBottom, rw, 20);
+      ctx.strokeRect(rx, height - rBottom, rw, 20);
+    }
   }
 
   private drawRetroPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
@@ -662,24 +692,50 @@ export class ObstacleManager {
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    ctx.fillStyle = '#73c93e'; // Simple retro green
-    ctx.strokeStyle = '#000000'; // Simple black outline
-    ctx.lineWidth = 3;
+    if (obs.isMutated) {
+      // Retro pink
+      ctx.fillStyle = '#ec4899';
+      ctx.strokeStyle = '#06b6d4'; // Cyan neon outline
+      ctx.lineWidth = 3.5;
 
-    // Top column
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-    // Bottom column
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
-    // Pillar ridges caps
-    ctx.fillStyle = '#9be669'; // Lighter green for simple flat highlight cap
-    ctx.fillRect(rx - 4, rTop - 24, rw + 8, 24);
-    ctx.strokeRect(rx - 4, rTop - 24, rw + 8, 24);
+      // Vaporwave retro horizontal gridlines
+      ctx.strokeStyle = '#06b6d4';
+      ctx.lineWidth = 2.0;
+      ctx.beginPath();
+      for (let y = rTop - 120; y < rTop; y += 24) {
+        ctx.moveTo(rx, y);
+        ctx.lineTo(rx + rw, y);
+      }
+      for (let y = height - rBottom; y < height - rBottom + 120; y += 24) {
+        ctx.moveTo(rx, y);
+        ctx.lineTo(rx + rw, y);
+      }
+      ctx.stroke();
+    } else {
+      ctx.fillStyle = '#73c93e'; // Simple retro green
+      ctx.strokeStyle = '#000000'; // Simple black outline
+      ctx.lineWidth = 3;
 
-    ctx.fillRect(rx - 4, height - rBottom, rw + 8, 24);
-    ctx.strokeRect(rx - 4, height - rBottom, rw + 8, 24);
+      // Top column
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      // Bottom column
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+      // Pillar ridges caps
+      ctx.fillStyle = '#9be669'; // Lighter green for simple flat highlight cap
+      ctx.fillRect(rx - 4, rTop - 24, rw + 8, 24);
+      ctx.strokeRect(rx - 4, rTop - 24, rw + 8, 24);
+
+      ctx.fillRect(rx - 4, height - rBottom, rw + 8, 24);
+      ctx.strokeRect(rx - 4, height - rBottom, rw + 8, 24);
+    }
   }
 
   private drawJunglePillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
@@ -688,31 +744,69 @@ export class ObstacleManager {
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    // Ancient stone pillars
-    const stoneGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    stoneGrad.addColorStop(0, '#4f5043');
-    stoneGrad.addColorStop(0.5, '#7f8170');
-    stoneGrad.addColorStop(1, '#2f3028');
+    if (obs.isMutated) {
+      // Glowing green crystal obelisks
+      const crystalGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      crystalGrad.addColorStop(0, '#064e3b');
+      crystalGrad.addColorStop(0.4, '#10b981');
+      crystalGrad.addColorStop(0.6, '#34d399');
+      crystalGrad.addColorStop(1, '#064e3b');
+      ctx.fillStyle = crystalGrad;
+      ctx.strokeStyle = '#fbbf24'; // Golden outline
+      ctx.lineWidth = 3;
 
-    ctx.fillStyle = stoneGrad;
-    ctx.strokeStyle = '#1b1c16';
-    ctx.lineWidth = 2.5;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
-    // Draw stone columns with brick joints lines (Unified with offscreen extension)
-    this.drawStoneColumn(ctx, rx, -1000, rw, rTop + 1000);
-    this.drawStoneColumn(ctx, rx, height - rBottom, rw, rBottom + 1000);
+      // Glowing crystal shards overlay
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(rx + rw * 0.2, rTop - 40);
+      ctx.lineTo(rx + rw * 0.5, rTop - 10);
+      ctx.lineTo(rx + rw * 0.8, rTop - 40);
+      ctx.moveTo(rx + rw * 0.2, height - rBottom + 40);
+      ctx.lineTo(rx + rw * 0.5, height - rBottom + 10);
+      ctx.lineTo(rx + rw * 0.8, height - rBottom + 40);
+      ctx.stroke();
 
-    // Draw hanging green leaves / ivy vines procedurally
-    ctx.fillStyle = 'rgba(34, 139, 34, 0.85)';
-    ctx.beginPath();
-    // Hanging vines paths
-    ctx.moveTo(rx + 10, rTop);
-    ctx.lineTo(rx + 15, rTop + 15);
-    ctx.lineTo(rx + 22, rTop);
-    ctx.moveTo(rx + 50, rTop);
-    ctx.lineTo(rx + 55, rTop + 25);
-    ctx.lineTo(rx + 65, rTop);
-    ctx.fill();
+      // Magical glowing jungle leaves / golden coral polyps
+      ctx.fillStyle = 'rgba(251, 191, 36, 0.9)'; // Golden leaves/flowers
+      ctx.beginPath();
+      ctx.arc(rx + 15, rTop + 8, 6, 0, Math.PI * 2);
+      ctx.arc(rx + rw - 15, rTop + 12, 5, 0, Math.PI * 2);
+      ctx.arc(rx + 20, height - rBottom - 8, 6, 0, Math.PI * 2);
+      ctx.arc(rx + rw - 20, height - rBottom - 12, 5, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // Ancient stone pillars
+      const stoneGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      stoneGrad.addColorStop(0, '#4f5043');
+      stoneGrad.addColorStop(0.5, '#7f8170');
+      stoneGrad.addColorStop(1, '#2f3028');
+
+      ctx.fillStyle = stoneGrad;
+      ctx.strokeStyle = '#1b1c16';
+      ctx.lineWidth = 2.5;
+
+      // Draw stone columns with brick joints lines (Unified with offscreen extension)
+      this.drawStoneColumn(ctx, rx, -1000, rw, rTop + 1000);
+      this.drawStoneColumn(ctx, rx, height - rBottom, rw, rBottom + 1000);
+
+      // Draw hanging green leaves / ivy vines procedurally
+      ctx.fillStyle = 'rgba(34, 139, 34, 0.85)';
+      ctx.beginPath();
+      // Hanging vines paths
+      ctx.moveTo(rx + 10, rTop);
+      ctx.lineTo(rx + 15, rTop + 15);
+      ctx.lineTo(rx + 22, rTop);
+      ctx.moveTo(rx + 50, rTop);
+      ctx.lineTo(rx + 55, rTop + 25);
+      ctx.lineTo(rx + 65, rTop);
+      ctx.fill();
+    }
   }
 
   private drawStoneColumn(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
@@ -740,47 +834,91 @@ export class ObstacleManager {
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    ctx.strokeStyle = '#00f3ff';
-    ctx.lineWidth = 2.0;
+    if (obs.isMutated) {
+      // Matrix code columns
+      ctx.fillStyle = '#05050a';
+      ctx.strokeStyle = '#39ff14'; // Matrix neon green outline
+      ctx.lineWidth = 2.5;
 
-    // Draw glowing neon panel infinite extensions (optimized to -1000 range)
-    ctx.save();
-    ctx.fillStyle = 'rgba(255, 0, 127, 0.15)'; // Top panel glow
-    ctx.fillRect(rx + 10, -1000, rw - 20, rTop + 990);
-    ctx.fillStyle = 'rgba(0, 243, 255, 0.15)'; // Bottom panel glow
-    ctx.fillRect(rx + 10, height - rBottom + 10, rw - 20, rBottom + 990);
-    ctx.restore();
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
-    // Glowing metal columns scaffolding (Unified with offscreen extension)
-    ctx.fillStyle = '#120f26';
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      // Draw digital code grid lines
+      ctx.strokeStyle = 'rgba(57, 255, 20, 0.25)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let y = rTop - 120; y < rTop; y += 20) {
+        ctx.moveTo(rx, y);
+        ctx.lineTo(rx + rw, y);
+      }
+      for (let y = height - rBottom; y < height - rBottom + 120; y += 20) {
+        ctx.moveTo(rx, y);
+        ctx.lineTo(rx + rw, y);
+      }
+      ctx.stroke();
 
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      // Laser warning
+      if (obs.isLaser) {
+        if (obs.laserActive) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(rx + rw * 0.45, rTop, rw * 0.1, height - rTop - rBottom);
+          ctx.fillStyle = 'rgba(57, 255, 20, 0.9)'; // Neon green laser beam
+          ctx.fillRect(rx + rw * 0.42, rTop, rw * 0.16, height - rTop - rBottom);
+        } else {
+          ctx.strokeStyle = 'rgba(57, 255, 20, 0.4)';
+          ctx.setLineDash([5, 5]);
+          ctx.beginPath();
+          ctx.moveTo(rx + rw * 0.5, rTop);
+          ctx.lineTo(rx + rw * 0.5, height - rBottom);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      }
+    } else {
+      ctx.strokeStyle = '#00f3ff';
+      ctx.lineWidth = 2.0;
 
-    // Draw glowing neon panel inside columns
-    ctx.fillStyle = 'rgba(255, 0, 127, 0.15)';
-    ctx.fillRect(rx + 10, 10, rw - 20, rTop - 20);
-    ctx.fillStyle = 'rgba(0, 243, 255, 0.15)';
-    ctx.fillRect(rx + 10, height - rBottom + 10, rw - 20, rBottom - 20);
+      // Draw glowing neon panel infinite extensions (optimized to -1000 range)
+      ctx.save();
+      ctx.fillStyle = 'rgba(255, 0, 127, 0.15)'; // Top panel glow
+      ctx.fillRect(rx + 10, -1000, rw - 20, rTop + 990);
+      ctx.fillStyle = 'rgba(0, 243, 255, 0.15)'; // Bottom panel glow
+      ctx.fillRect(rx + 10, height - rBottom + 10, rw - 20, rBottom + 990);
+      ctx.restore();
 
-    // Dynamic Central Laser Beam rendering
-    if (obs.isLaser) {
-      if (obs.laserActive) {
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(rx + rw * 0.45, rTop, rw * 0.1, height - rTop - rBottom);
-        ctx.fillStyle = 'rgba(255, 0, 85, 0.85)';
-        ctx.fillRect(rx + rw * 0.42, rTop, rw * 0.16, height - rTop - rBottom);
-      } else {
-        // Soft red dotted warning line
-        ctx.strokeStyle = 'rgba(255, 0, 50, 0.35)';
-        ctx.setLineDash([5, 5]);
-        ctx.beginPath();
-        ctx.moveTo(rx + rw * 0.5, rTop);
-        ctx.lineTo(rx + rw * 0.5, height - rBottom);
-        ctx.stroke();
-        ctx.setLineDash([]);
+      // Glowing metal columns scaffolding (Unified with offscreen extension)
+      ctx.fillStyle = '#120f26';
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+      // Draw glowing neon panel inside columns
+      ctx.fillStyle = 'rgba(255, 0, 127, 0.15)';
+      ctx.fillRect(rx + 10, 10, rw - 20, rTop - 20);
+      ctx.fillStyle = 'rgba(0, 243, 255, 0.15)';
+      ctx.fillRect(rx + 10, height - rBottom + 10, rw - 20, rBottom - 20);
+
+      // Dynamic Central Laser Beam rendering
+      if (obs.isLaser) {
+        if (obs.laserActive) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(rx + rw * 0.45, rTop, rw * 0.1, height - rTop - rBottom);
+          ctx.fillStyle = 'rgba(255, 0, 85, 0.85)';
+          ctx.fillRect(rx + rw * 0.42, rTop, rw * 0.16, height - rTop - rBottom);
+        } else {
+          // Soft red dotted warning line
+          ctx.strokeStyle = 'rgba(255, 0, 50, 0.35)';
+          ctx.setLineDash([5, 5]);
+          ctx.beginPath();
+          ctx.moveTo(rx + rw * 0.5, rTop);
+          ctx.lineTo(rx + rw * 0.5, height - rBottom);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
       }
     }
   }
@@ -791,26 +929,56 @@ export class ObstacleManager {
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    // Use solid semi-transparent ice-blue background (removing slow gradient & heavy shadow calculations)
-    ctx.fillStyle = 'rgba(173, 216, 230, 0.75)';
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.lineWidth = 2.0;
+    if (obs.isMutated) {
+      // Aurora prism gradient
+      const prismGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      prismGrad.addColorStop(0, '#ec4899'); // Pink
+      prismGrad.addColorStop(0.5, '#3b82f6'); // Blue
+      prismGrad.addColorStop(1, '#06b6d4'); // Cyan
+      ctx.fillStyle = prismGrad;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
 
-    // Top column (Unified with offscreen extension)
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
-    // Bottom column (Unified with offscreen extension)
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      // Frost crack sparkles
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(rx + rw * 0.5, rTop - 5);
+      ctx.lineTo(rx + rw * 0.5, rTop - 60);
+      ctx.moveTo(rx + rw * 0.2, rTop - 35);
+      ctx.lineTo(rx + rw * 0.8, rTop - 35);
+      ctx.moveTo(rx + rw * 0.5, height - rBottom + 5);
+      ctx.lineTo(rx + rw * 0.5, height - rBottom + 60);
+      ctx.moveTo(rx + rw * 0.2, height - rBottom + 35);
+      ctx.lineTo(rx + rw * 0.8, height - rBottom + 35);
+      ctx.stroke();
+    } else {
+      // Use solid semi-transparent ice-blue background (removing slow gradient & heavy shadow calculations)
+      ctx.fillStyle = 'rgba(173, 216, 230, 0.75)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.lineWidth = 2.0;
 
-    // Snowy/frosty cap caps
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(rx, rTop - 15, rw, 15);
-    ctx.strokeRect(rx, rTop - 15, rw, 15);
+      // Top column (Unified with offscreen extension)
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
 
-    ctx.fillRect(rx, height - rBottom, rw, 15);
-    ctx.strokeRect(rx, height - rBottom, rw, 15);
+      // Bottom column (Unified with offscreen extension)
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+      // Snowy/frosty cap caps
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(rx, rTop - 15, rw, 15);
+      ctx.strokeRect(rx, rTop - 15, rw, 15);
+
+      ctx.fillRect(rx, height - rBottom, rw, 15);
+      ctx.strokeRect(rx, height - rBottom, rw, 15);
+    }
   }
 
   private drawDesertPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
@@ -819,31 +987,59 @@ export class ObstacleManager {
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    // Ancient desert sandstones obelisks
-    const sandGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    sandGrad.addColorStop(0, '#8e6d3c');
-    sandGrad.addColorStop(0.5, '#ab8e60');
-    sandGrad.addColorStop(1, '#5e431f');
+    if (obs.isMutated) {
+      // Jeweled sandstone
+      const sandGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      sandGrad.addColorStop(0, '#b45309');
+      sandGrad.addColorStop(0.5, '#fbbf24');
+      sandGrad.addColorStop(1, '#78350f');
+      ctx.fillStyle = sandGrad;
+      ctx.strokeStyle = '#ef4444'; // Ruby red borders
+      ctx.lineWidth = 2.5;
 
-    ctx.fillStyle = sandGrad;
-    ctx.strokeStyle = '#3e2c14';
-    ctx.lineWidth = 2.0;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
-    // Top obelisk (Unified with offscreen extension)
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      // Draw embedded glowing gems
+      ctx.fillStyle = '#06b6d4'; // Turquoise gems
+      ctx.beginPath();
+      ctx.arc(rx + rw * 0.5, rTop - 40, 6, 0, Math.PI * 2);
+      ctx.arc(rx + rw * 0.5, height - rBottom + 40, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ef4444'; // Ruby gems
+      ctx.beginPath();
+      ctx.arc(rx + rw * 0.5, rTop - 100, 5, 0, Math.PI * 2);
+      ctx.arc(rx + rw * 0.5, height - rBottom + 100, 5, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // Ancient desert sandstones obelisks
+      const sandGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      sandGrad.addColorStop(0, '#8e6d3c');
+      sandGrad.addColorStop(0.5, '#ab8e60');
+      sandGrad.addColorStop(1, '#5e431f');
 
-    // Bottom obelisk (Unified with offscreen extension)
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.fillStyle = sandGrad;
+      ctx.strokeStyle = '#3e2c14';
+      ctx.lineWidth = 2.0;
 
-    // Engraved hieroglyph symbols
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
-    ctx.beginPath();
-    ctx.arc(rx + rw * 0.5, rTop * 0.5, 8, 0, Math.PI * 2);
-    ctx.moveTo(rx + rw * 0.3, height - rBottom * 0.5);
-    ctx.lineTo(rx + rw * 0.7, height - rBottom * 0.5);
-    ctx.stroke();
+      // Top obelisk (Unified with offscreen extension)
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+
+      // Bottom obelisk (Unified with offscreen extension)
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+      // Engraved hieroglyph symbols
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
+      ctx.beginPath();
+      ctx.arc(rx + rw * 0.5, rTop * 0.5, 8, 0, Math.PI * 2);
+      ctx.moveTo(rx + rw * 0.3, height - rBottom * 0.5);
+      ctx.lineTo(rx + rw * 0.7, height - rBottom * 0.5);
+      ctx.stroke();
+    }
   }
 
   private drawVolcanoPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
@@ -852,33 +1048,54 @@ export class ObstacleManager {
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    // Molten igneous obsidian pillars
-    const lavaGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    lavaGrad.addColorStop(0, '#100505');
-    lavaGrad.addColorStop(0.5, '#40150a');
-    lavaGrad.addColorStop(1, '#050101');
+    if (obs.isMutated) {
+      // Darkest obsidian
+      ctx.fillStyle = '#0a0505';
+      ctx.strokeStyle = '#f97316'; // Orange outline
+      ctx.lineWidth = 3;
 
-    ctx.fillStyle = lavaGrad;
-    ctx.strokeStyle = '#ff3c00';
-    ctx.lineWidth = 2.5;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
-    // Top Jagged Obsidian column (Unified with offscreen extension)
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      // Flowing central lava vein
+      const lavaFlow = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      lavaFlow.addColorStop(0, '#f97316');
+      lavaFlow.addColorStop(0.5, '#facc15'); // Yellow core
+      lavaFlow.addColorStop(1, '#ea580c');
+      ctx.fillStyle = lavaFlow;
+      ctx.fillRect(rx + rw * 0.38, -1000, rw * 0.24, rTop + 1000);
+      ctx.fillRect(rx + rw * 0.38, height - rBottom, rw * 0.24, rBottom + 1000);
+    } else {
+      // Molten igneous obsidian pillars
+      const lavaGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      lavaGrad.addColorStop(0, '#100505');
+      lavaGrad.addColorStop(0.5, '#40150a');
+      lavaGrad.addColorStop(1, '#050101');
 
-    // Bottom Jagged Obsidian column (Unified with offscreen extension)
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.fillStyle = lavaGrad;
+      ctx.strokeStyle = '#ff3c00';
+      ctx.lineWidth = 2.5;
 
-    // Lava cracks detailing
-    ctx.fillStyle = 'rgba(255, 60, 0, 0.85)';
-    ctx.strokeStyle = '#ff3c00';
-    ctx.beginPath();
-    ctx.moveTo(rx + rw * 0.2, 0);
-    ctx.lineTo(rx + rw * 0.3, rTop * 0.7);
-    ctx.lineTo(rx + rw * 0.25, rTop);
-    ctx.lineTo(rx + rw * 0.4, rTop * 0.6);
-    ctx.stroke();
+      // Top Jagged Obsidian column (Unified with offscreen extension)
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+
+      // Bottom Jagged Obsidian column (Unified with offscreen extension)
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+      // Lava cracks detailing
+      ctx.fillStyle = 'rgba(255, 60, 0, 0.85)';
+      ctx.strokeStyle = '#ff3c00';
+      ctx.beginPath();
+      ctx.moveTo(rx + rw * 0.2, 0);
+      ctx.lineTo(rx + rw * 0.3, rTop * 0.7);
+      ctx.lineTo(rx + rw * 0.25, rTop);
+      ctx.lineTo(rx + rw * 0.4, rTop * 0.6);
+      ctx.stroke();
+    }
   }
 
   private drawSpaceObstacles(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
@@ -887,36 +1104,63 @@ export class ObstacleManager {
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    // Deep space dark purple gradient column
-    const spaceGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    spaceGrad.addColorStop(0, '#0b001a');
-    spaceGrad.addColorStop(0.5, '#2e0854');
-    spaceGrad.addColorStop(1, '#05000d');
+    if (obs.isMutated) {
+      // Deep cosmic black
+      ctx.fillStyle = '#030008';
+      ctx.strokeStyle = '#a855f7'; // Purple neon outline
+      ctx.lineWidth = 2.5;
 
-    ctx.fillStyle = spaceGrad;
-    ctx.strokeStyle = '#da70d6';
-    ctx.lineWidth = 2.0;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
-    // Top cosmic column (Unified with offscreen extension)
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      // Nebula dust sparkles
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(rx + rw * 0.2, rTop - 40, 3, 3);
+      ctx.fillRect(rx + rw * 0.7, rTop - 80, 2, 2);
+      ctx.fillRect(rx + rw * 0.5, height - rBottom + 60, 3, 3);
 
-    // Bottom cosmic column (Unified with offscreen extension)
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      // Glowing galaxy rings wrapped around the pillar
+      const ringGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      ringGrad.addColorStop(0, '#ec4899');
+      ringGrad.addColorStop(0.5, '#e0f2fe'); // Star white
+      ringGrad.addColorStop(1, '#3b82f6');
+      ctx.fillStyle = ringGrad;
+      ctx.fillRect(rx - 6, rTop - 30, rw + 12, 10);
+      ctx.fillRect(rx - 6, height - rBottom + 20, rw + 12, 10);
+    } else {
+      // Deep space dark purple gradient column
+      const spaceGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      spaceGrad.addColorStop(0, '#0b001a');
+      spaceGrad.addColorStop(0.5, '#2e0854');
+      spaceGrad.addColorStop(1, '#05000d');
 
-    // Glowing nebula cap
-    const nebulaGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    nebulaGrad.addColorStop(0, '#ff1493');
-    nebulaGrad.addColorStop(0.5, '#ffffff');
-    nebulaGrad.addColorStop(1, '#00bfff');
+      ctx.fillStyle = spaceGrad;
+      ctx.strokeStyle = '#da70d6';
+      ctx.lineWidth = 2.0;
 
-    ctx.fillStyle = nebulaGrad;
-    ctx.fillRect(rx, rTop - 15, rw, 15);
-    ctx.strokeRect(rx, rTop - 15, rw, 15);
+      // Top cosmic column (Unified with offscreen extension)
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
 
-    ctx.fillRect(rx, height - rBottom, rw, 15);
-    ctx.strokeRect(rx, height - rBottom, rw, 15);
+      // Bottom cosmic column (Unified with offscreen extension)
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+      // Glowing nebula cap
+      const nebulaGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      nebulaGrad.addColorStop(0, '#ff1493');
+      nebulaGrad.addColorStop(0.5, '#ffffff');
+      nebulaGrad.addColorStop(1, '#00bfff');
+
+      ctx.fillStyle = nebulaGrad;
+      ctx.fillRect(rx, rTop - 15, rw, 15);
+      ctx.strokeRect(rx, rTop - 15, rw, 15);
+
+      ctx.fillRect(rx, height - rBottom, rw, 15);
+      ctx.strokeRect(rx, height - rBottom, rw, 15);
+    }
   }
 
   private drawUnderwaterPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
@@ -925,28 +1169,49 @@ export class ObstacleManager {
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    // Algae covered marine pillars
-    const marineGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    marineGrad.addColorStop(0, '#00251a');
-    marineGrad.addColorStop(0.5, '#004d40');
-    marineGrad.addColorStop(1, '#001a14');
+    if (obs.isMutated) {
+      // Deep sea navy
+      ctx.fillStyle = '#081e26';
+      ctx.strokeStyle = '#ec4899'; // Coral pink outline
+      ctx.lineWidth = 2.5;
 
-    ctx.fillStyle = marineGrad;
-    ctx.strokeStyle = '#00695c';
-    ctx.lineWidth = 2.0;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
-    // Top (Unified with offscreen extension)
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      // Bioluminescent pink corals polyps
+      ctx.fillStyle = '#f472b6';
+      ctx.beginPath();
+      ctx.arc(rx + 12, rTop - 25, 6, 0, Math.PI * 2);
+      ctx.arc(rx + 25, rTop - 50, 4, 0, Math.PI * 2);
+      ctx.arc(rx + rw - 15, height - rBottom + 35, 7, 0, Math.PI * 2);
+      ctx.arc(rx + rw - 30, height - rBottom + 60, 5, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // Algae covered marine pillars
+      const marineGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      marineGrad.addColorStop(0, '#00251a');
+      marineGrad.addColorStop(0.5, '#004d40');
+      marineGrad.addColorStop(1, '#001a14');
 
-    // Bottom (Unified with offscreen extension)
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.fillStyle = marineGrad;
+      ctx.strokeStyle = '#00695c';
+      ctx.lineWidth = 2.0;
 
-    // Seaweed leaves details overlay
-    ctx.fillStyle = 'rgba(0, 150, 136, 0.4)';
-    ctx.fillRect(rx + 4, rTop - 15, rw - 8, 15);
-    ctx.fillRect(rx + 4, height - rBottom, rw - 8, 15);
+      // Top (Unified with offscreen extension)
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+
+      // Bottom (Unified with offscreen extension)
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+      // Seaweed leaves details overlay
+      ctx.fillStyle = 'rgba(0, 150, 136, 0.4)';
+      ctx.fillRect(rx + 4, rTop - 15, rw - 8, 15);
+      ctx.fillRect(rx + 4, height - rBottom, rw - 8, 15);
+    }
   }
 
   private drawHeavenPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
@@ -955,29 +1220,51 @@ export class ObstacleManager {
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    // Golden white celestial marble columns
-    const heavGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    heavGrad.addColorStop(0, '#ffffff');
-    heavGrad.addColorStop(0.5, '#f5f5f0');
-    heavGrad.addColorStop(0.8, '#e6e6fa');
-    heavGrad.addColorStop(1, '#d8bfd8');
+    if (obs.isMutated) {
+      // Divine white marble
+      const heavGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      heavGrad.addColorStop(0, '#fcd34d'); // Gold yellow
+      heavGrad.addColorStop(0.3, '#ffffff');
+      heavGrad.addColorStop(0.7, '#ffffff');
+      heavGrad.addColorStop(1, '#a7f3d0'); // Divine mint
+      ctx.fillStyle = heavGrad;
+      ctx.strokeStyle = '#fcd34d'; // Shiny gold
+      ctx.lineWidth = 3;
 
-    ctx.fillStyle = heavGrad;
-    ctx.strokeStyle = '#ffd700';
-    ctx.lineWidth = 2.5;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
-    // Top (Unified with offscreen extension)
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      // Glowing golden wings caps
+      ctx.fillStyle = '#fcd34d';
+      ctx.fillRect(rx - 8, rTop - 16, rw + 16, 16);
+      ctx.fillRect(rx - 8, height - rBottom, rw + 16, 16);
+    } else {
+      // Golden white celestial marble columns
+      const heavGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      heavGrad.addColorStop(0, '#ffffff');
+      heavGrad.addColorStop(0.5, '#f5f5f0');
+      heavGrad.addColorStop(0.8, '#e6e6fa');
+      heavGrad.addColorStop(1, '#d8bfd8');
 
-    // Bottom (Unified with offscreen extension)
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.fillStyle = heavGrad;
+      ctx.strokeStyle = '#ffd700';
+      ctx.lineWidth = 2.5;
 
-    // Golden halo crown on column caps (standardized to obs.width)
-    ctx.fillStyle = '#ffd700';
-    ctx.fillRect(rx, rTop - 12, rw, 12);
-    ctx.fillRect(rx, height - rBottom, rw, 12);
+      // Top (Unified with offscreen extension)
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+
+      // Bottom (Unified with offscreen extension)
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+      // Golden halo crown on column caps (standardized to obs.width)
+      ctx.fillStyle = '#ffd700';
+      ctx.fillRect(rx, rTop - 12, rw, 12);
+      ctx.fillRect(rx, height - rBottom, rw, 12);
+    }
   }
 
   private drawCavernObstacle(
