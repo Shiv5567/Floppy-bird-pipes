@@ -61,15 +61,15 @@ export class Bird {
     // Jump lift scaled with skin upgrade level (minor bonus)
     const levelBonus = (this.activeSkin.upgradeLevel - 1) * 0.05;
     
-    // Synchronize physics jump lift with exponential distance multiplier
-    const exponentialMultiplier = Math.pow(1.05, score / 25.0);
-    const impulse = this.jumpLift * (1 + levelBonus) * exponentialMultiplier;
-    const currentMaxRiseSpeed = this.maxRiseSpeed * exponentialMultiplier;
+    // Synchronize physics jump lift with 5% speed increase every 25 score
+    const speedMultiplier = 1.0 + Math.floor(score / 25.0) * 0.05;
+    const impulse = this.jumpLift * (1 + levelBonus) * speedMultiplier;
+    const currentMaxRiseSpeed = this.maxRiseSpeed * speedMultiplier;
     
     // Instant, sharp, and skill-based responsiveness:
     // If we are falling or rising slowly, instantly reset velocity to the upward jump impulse for an immediate, crisp response.
     // If we are already rising quickly and tap again, accumulate upward speed (additive) to reward fast tapping with rapid flight!
-    if (this.vy > -4 * exponentialMultiplier) {
+    if (this.vy > -4 * speedMultiplier) {
       this.vy = impulse;
     } else {
       this.vy += impulse * 0.85; // Increased additive thrust reward for rapid taps (0.85 instead of 0.7) for superior control
@@ -85,11 +85,11 @@ export class Bird {
   public update(deltaTime: number, particleEngine: ParticleEngine, isPlaying: boolean, timeScale: number, score = 0) {
     const dtCoeff = deltaTime * 60 * timeScale;
     
-    // Synchronize physics gravity and max speed caps with exponential distance multiplier
-    const exponentialMultiplier = Math.pow(1.05, score / 25.0);
-    const currentGravity = this.gravity * exponentialMultiplier;
-    const currentMaxFallSpeed = this.maxFallSpeed * exponentialMultiplier;
-    const currentMaxRiseSpeed = this.maxRiseSpeed * exponentialMultiplier;
+    // Synchronize physics gravity and max speed caps with 5% speed increase every 25 score
+    const speedMultiplier = 1.0 + Math.floor(score / 25.0) * 0.05;
+    const currentGravity = this.gravity * speedMultiplier;
+    const currentMaxFallSpeed = this.maxFallSpeed * speedMultiplier;
+    const currentMaxRiseSpeed = this.maxRiseSpeed * speedMultiplier;
     
     if (isPlaying) {
       // Apply gravity
@@ -102,7 +102,7 @@ export class Bird {
       // Dynamic orientation angle based on vertical speed
       if (!this.isCrashing) {
         // Snappier and more expressive tilting responding directly to the new velocity thresholds
-        const targetAngle = Math.max(-0.55, Math.min(0.8, this.vy * 0.045 / exponentialMultiplier));
+        const targetAngle = Math.max(-0.55, Math.min(0.8, this.vy * 0.045 / speedMultiplier));
         this.angle += (targetAngle - this.angle) * 0.22 * dtCoeff;
       } else {
         // Crashing spin animation

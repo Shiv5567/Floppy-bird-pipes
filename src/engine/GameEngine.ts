@@ -258,13 +258,13 @@ export class GameEngine {
         
         const speedCoeff = startSpeed + (maxSpeed - startSpeed) * progressRatio;
         
-        // Smoothly increase speed exponentially by 5% every 25 score based on distance
-        const exponentialMultiplier = Math.pow(1.05, this.score / 25.0);
+        // Add exactly 5% speed every 25 score
+        const speedMultiplier = 1.0 + Math.floor(this.score / 25.0) * 0.05;
 
         if (this.activePowerupsList['turbo']) {
           this.scrollSpeed = this.baseScrollSpeed * 2.3;
         } else {
-          this.scrollSpeed = this.baseScrollSpeed * speedCoeff * exponentialMultiplier;
+          this.scrollSpeed = this.baseScrollSpeed * speedCoeff * speedMultiplier;
         }
       }
 
