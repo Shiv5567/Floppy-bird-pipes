@@ -790,28 +790,36 @@ export class ObstacleManager {
     const rBottom = obs.bottomHeight;
 
     if (obs.isMutated) {
-      // Semi-transparent deep forest green linear gradient (environment friendly and slightly transparent)
+      // Vibrant semi-transparent exotic emerald forest gradient (very attractive and environment matching)
       const forestGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      forestGrad.addColorStop(0, 'rgba(15, 45, 27, 0.72)');
-      forestGrad.addColorStop(0.5, 'rgba(28, 75, 45, 0.78)');
-      forestGrad.addColorStop(1, 'rgba(10, 30, 18, 0.72)');
+      forestGrad.addColorStop(0, 'rgba(8, 55, 34, 0.72)');
+      forestGrad.addColorStop(0.5, 'rgba(18, 92, 58, 0.78)');
+      forestGrad.addColorStop(1, 'rgba(6, 42, 26, 0.72)');
 
+      // 1. Draw central organic bark-brown wooden vine-core panel
+      ctx.fillStyle = 'rgba(109, 76, 65, 0.65)';
+      ctx.fillRect(rx + rw * 0.4, -1000, rw * 0.2, rTop + 1000 - 8);
+      ctx.fillRect(rx + rw * 0.4, height - rBottom + 8, rw * 0.2, rBottom + 1000 - 8);
+
+      // 2. Draw outer semi-transparent foliage shell
       ctx.fillStyle = forestGrad;
-      ctx.strokeStyle = 'rgba(46, 125, 50, 0.8)'; // Moss green outline (non-glowing, environment-friendly)
+      ctx.strokeStyle = 'rgba(0, 230, 118, 0.95)'; // Rich vibrant neon-moss green outline
       ctx.lineWidth = 2.0;
 
-      // Draw simple standard columns
+      // Draw Top Column Shell
       ctx.fillRect(rx, -1000, rw, rTop + 1000);
       ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+
+      // Draw Bottom Column Shell
       ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
       ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
-      // Standard non-glowing caps matching border green
-      ctx.fillStyle = 'rgba(46, 125, 50, 0.8)';
+      // Flat caps matching border green
+      ctx.fillStyle = 'rgba(0, 230, 118, 0.95)';
       ctx.fillRect(rx, rTop - 8, rw, 8);
       ctx.fillRect(rx, height - rBottom, rw, 8);
 
-      // Simple flat green leaves details hanging from safe boundaries
+      // Flat green leaves details hanging from boundaries
       ctx.fillStyle = 'rgba(34, 139, 34, 0.8)';
       ctx.beginPath();
       ctx.moveTo(rx + 10, rTop);
@@ -1489,14 +1497,14 @@ export class ObstacleManager {
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    // Semi-transparent deep jungle moss-green linear gradient
+    // Semi-transparent deep mossy jade-olive gradient (environment friendly and slightly transparent)
     const jungleGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    jungleGrad.addColorStop(0, 'rgba(12, 38, 22, 0.72)');
-    jungleGrad.addColorStop(0.5, 'rgba(22, 64, 38, 0.78)');
-    jungleGrad.addColorStop(1, 'rgba(8, 26, 15, 0.72)');
+    jungleGrad.addColorStop(0, 'rgba(16, 42, 25, 0.72)');
+    jungleGrad.addColorStop(0.5, 'rgba(38, 75, 45, 0.78)');
+    jungleGrad.addColorStop(1, 'rgba(10, 32, 18, 0.72)');
 
     ctx.fillStyle = jungleGrad;
-    ctx.strokeStyle = 'rgba(46, 125, 50, 0.85)'; // Forest green outline (no gold)
+    ctx.strokeStyle = 'rgba(251, 191, 36, 0.95)'; // Elegant, non-glowing amber-gold outline
     ctx.lineWidth = 2.0;
 
     // TOP COLUMN (flat standard rectangle)
@@ -1507,13 +1515,15 @@ export class ObstacleManager {
     ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
     ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
-    // Flat cap ridges
-    ctx.fillStyle = 'rgba(46, 125, 50, 0.85)';
-    ctx.fillRect(rx, rTop - 8, rw, 8);
-    ctx.fillRect(rx, height - rBottom, rw, 8);
+    // Stepped gold joint collars at safe boundaries (very premium, flat and static)
+    ctx.fillStyle = 'rgba(251, 191, 36, 0.95)';
+    ctx.fillRect(rx - 2, rTop - 8, rw + 4, 8);
+    ctx.strokeRect(rx - 2, rTop - 8, rw + 4, 8);
+    ctx.fillRect(rx - 2, height - rBottom, rw + 4, 8);
+    ctx.strokeRect(rx - 2, height - rBottom, rw + 4, 8);
 
-    // Simple flat horizontal bamboo/tree joint lines to look "structured" but normal (no glowing)
-    ctx.strokeStyle = 'rgba(46, 125, 50, 0.45)';
+    // Simple flat horizontal joints (ancient temple block divisions)
+    ctx.strokeStyle = 'rgba(251, 191, 36, 0.4)';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(rx, rTop - 45);
@@ -1526,8 +1536,21 @@ export class ObstacleManager {
     ctx.lineTo(rx + rw, height - rBottom + 90);
     ctx.stroke();
 
-    // Hanging canopy vines (flat green leaves)
-    ctx.fillStyle = 'rgba(34, 139, 34, 0.75)';
+    // Side gold rivets/decorations at block segments (very low performance footprint, flat graphics)
+    ctx.fillStyle = 'rgba(251, 191, 36, 0.95)';
+    ctx.beginPath();
+    ctx.arc(rx + 3, rTop - 45, 2.5, 0, Math.PI * 2);
+    ctx.arc(rx + rw - 3, rTop - 45, 2.5, 0, Math.PI * 2);
+    ctx.arc(rx + 3, rTop - 90, 2.5, 0, Math.PI * 2);
+    ctx.arc(rx + rw - 3, rTop - 90, 2.5, 0, Math.PI * 2);
+    ctx.arc(rx + 3, height - rBottom + 45, 2.5, 0, Math.PI * 2);
+    ctx.arc(rx + rw - 3, height - rBottom + 45, 2.5, 0, Math.PI * 2);
+    ctx.arc(rx + 3, height - rBottom + 90, 2.5, 0, Math.PI * 2);
+    ctx.arc(rx + rw - 3, height - rBottom + 90, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Hanging canopy vines (flat olive green leaves)
+    ctx.fillStyle = 'rgba(46, 125, 50, 0.85)';
     ctx.beginPath();
     ctx.moveTo(rx + 15, rTop);
     ctx.lineTo(rx + 20, rTop + 15);
