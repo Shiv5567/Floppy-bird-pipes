@@ -72,18 +72,18 @@ export class ObstacleManager {
     // Smooth, step-by-step progressive difficulty scaling ratio over 60 points
     const progressRatio = Math.min(1.0, score / 60.0);
     
-    // Dynamic difficulty limits (increased vertical gaps by ~25% to account for 30% screen zoom in)
-    let startGap = 320;
-    let minGap = 250;
+    // Dynamic difficulty limits (reduced vertical gaps slightly to make it tighter and more competitive)
+    let startGap = 290;
+    let minGap = 220;
     let distMultiplier = 1.0;
 
     if (difficulty === 'easy') {
-      startGap = 365;
-      minGap = 295;
+      startGap = 335;
+      minGap = 265;
       distMultiplier = 1.3;
     } else if (difficulty === 'hard') {
-      startGap = 275;
-      minGap = 210;
+      startGap = 245;
+      minGap = 180;
       distMultiplier = 0.80;
     }
 
@@ -170,7 +170,7 @@ export class ObstacleManager {
       const dynamicGap = zone === 'classic' 
         ? startGap 
         : (startGap - (startGap - minGap) * progressRatio);
-      this.spawnObstacle(worldId, width, height, dynamicGap, zone, difficulty, progressRatio);
+      this.spawnObstacle(worldId, width, height, dynamicGap, zone, difficulty, progressRatio, score);
 
       // Determine next spawn distance (reduced wave spawn distance as well)
       if (zone === 'wave') {
@@ -194,7 +194,8 @@ export class ObstacleManager {
     gapHeight: number,
     zone: 'classic' | 'vertical' | 'wave' = 'classic',
     difficulty: 'easy' | 'medium' | 'hard' = 'medium',
-    progressRatio = 0
+    progressRatio = 0,
+    score = 0
   ) {
     void difficulty;
     let margin = 60;
@@ -225,8 +226,10 @@ export class ObstacleManager {
       let targetTopHeight = margin + Math.random() * playableHeight;
 
       if (this.lastTopHeight !== null) {
-        // Unpredictable Zigzag: high variation (up to 80%) at all times from starting to ending
-        const maxStep = playableHeight * 0.80;
+        // Unpredictable Zigzag: base variation of 60%, increasing by 10% every 50 score up to 95%
+        const scoreTier = Math.floor(score / 50);
+        const zigzagFactor = Math.min(0.95, 0.60 + scoreTier * 0.10);
+        const maxStep = playableHeight * zigzagFactor;
         
         // 68% chance to actively bias the next height in the opposite vertical half of the screen
         const forceAlternate = Math.random() < 0.68;
