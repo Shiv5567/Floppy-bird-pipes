@@ -248,7 +248,15 @@ export class ObstacleManager {
       topHeight = margin + 0.25 * playableHeight + Math.random() * 0.5 * playableHeight;
       bottomHeight = height - topHeight - gapHeight;
       isMoving = true;
-      rangeY = 55 + Math.random() * 25; // beautiful vertical sweep
+      
+      // Vertical Zone oscillation range scaled by difficulty
+      if (difficulty === 'easy') {
+        rangeY = 30 + Math.random() * 15;
+      } else if (difficulty === 'hard') {
+        rangeY = 85 + Math.random() * 35;
+      } else {
+        rangeY = 55 + Math.random() * 20;
+      }
       isCavernVal = false;
     } else if (zone === 'wave') {
       margin = 85;
@@ -257,36 +265,64 @@ export class ObstacleManager {
       topHeight = margin + playableHeight / 2;
       bottomHeight = height - topHeight - gapHeight;
       isMoving = true;
-      rangeY = 65; // constant amplitude for cohesive wave look
+      
+      // Wave Zone sine wave amplitude scaled by difficulty
+      if (difficulty === 'easy') {
+        rangeY = 40;
+      } else if (difficulty === 'hard') {
+        rangeY = 100;
+      } else {
+        rangeY = 65;
+      }
       isCavernVal = false;
     } else {
       // Classic Mode: Spawns flat columns or jagged caverns based on player score
-      // "jaba score 50 pugha ta jagged cavern effect start huncha 100 score sama"
       isCavernVal = (score >= 50 && score <= 100);
 
-      // Height and gap calculation (both cavern and flat pillars share the same flat column gap and unpredictable zigzag heights)
-      // "Narrow jagged cavern ko vertical gap lai flat surfaces pillars jastai rakha, ra alternative narakha"
+      // Determine margin and boundaries: Hard mode has tighter margins to allow columns closer to edges
+      if (difficulty === 'easy') {
+        margin = 75;
+      } else if (difficulty === 'hard') {
+        margin = 40;
+      } else {
+        margin = 60;
+      }
+
       const playableHeight = height - gapHeight - margin * 2;
       let targetTopHeight = margin + Math.random() * playableHeight;
 
       if (this.lastTopHeight !== null) {
         const scoreTier = Math.floor(score / 50);
-        const zigzagFactor = Math.min(0.95, 0.60 + scoreTier * 0.10);
-        const maxStep = playableHeight * zigzagFactor;
+        let zigzagFactor = 0.65;
+        let forceAlternateChance = 0.68;
         
-        // 68% chance to actively bias the next height in the opposite vertical half of the screen
-        const forceAlternate = Math.random() < 0.68;
+        if (difficulty === 'easy') {
+          // Smooth, shallow paths with low step variation
+          zigzagFactor = Math.min(0.45, 0.25 + scoreTier * 0.05);
+          forceAlternateChance = 0.30;
+        } else if (difficulty === 'hard') {
+          // Extreme hard mode jumps and shifts closer to edges
+          zigzagFactor = Math.min(0.98, 0.85 + scoreTier * 0.05);
+          forceAlternateChance = 0.90;
+        } else {
+          // Standard medium mode paths
+          zigzagFactor = Math.min(0.85, 0.60 + scoreTier * 0.08);
+          forceAlternateChance = 0.68;
+        }
+
+        const maxStep = playableHeight * zigzagFactor;
+        const forceAlternate = Math.random() < forceAlternateChance;
         let minVal = Math.max(margin, this.lastTopHeight - maxStep);
         let maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
         
         if (forceAlternate) {
           const isHigh = this.lastTopHeight > margin + playableHeight * 0.5;
           if (isHigh) {
-            // Last pipe was high, bias the new one to the lower screen region
-            maxVal = Math.min(maxVal, margin + playableHeight * 0.45);
+            const lowBiasLimit = difficulty === 'easy' ? 0.35 : (difficulty === 'hard' ? 0.48 : 0.45);
+            maxVal = Math.min(maxVal, margin + playableHeight * lowBiasLimit);
           } else {
-            // Last pipe was low, bias the new one to the upper screen region
-            minVal = Math.max(minVal, margin + playableHeight * 0.55);
+            const highBiasLimit = difficulty === 'easy' ? 0.65 : (difficulty === 'hard' ? 0.52 : 0.55);
+            minVal = Math.max(minVal, margin + playableHeight * highBiasLimit);
           }
           // Safeguard bounds validity
           if (minVal > maxVal) {
