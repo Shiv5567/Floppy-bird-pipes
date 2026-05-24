@@ -231,15 +231,23 @@ export class ObstacleManager {
       // Classic Mode: unpredictable zigzag vertical alignment from starting to ending
       const playableHeight = height - gapHeight - margin * 2;
       let targetTopHeight = margin + Math.random() * playableHeight;
-
       if (this.lastTopHeight !== null) {
         // Unpredictable Zigzag: base variation of 60%, increasing by 10% every 50 score up to 95%
         const scoreTier = Math.floor(score / 50);
-        const zigzagFactor = Math.min(0.95, 0.60 + scoreTier * 0.10);
+        let baseZigzag = 0.60;
+        let alternateChance = 0.68;
+        
+        if (difficulty === 'hard') {
+          // Increase unpredictable or pattern zigzag frequency and range by 30% for hard difficulty
+          baseZigzag = Math.min(0.95, 0.60 * 1.30); // 0.78 base variation (30% increase)
+          alternateChance = Math.min(0.99, 0.68 * 1.30); // 88.4% pattern alternation frequency (30% increase)
+        }
+        
+        const zigzagFactor = Math.min(0.95, baseZigzag + scoreTier * 0.10);
         const maxStep = playableHeight * zigzagFactor;
         
-        // 68% chance to actively bias the next height in the opposite vertical half of the screen
-        const forceAlternate = Math.random() < 0.68;
+        // Active bias to force height alternation in opposite vertical halves
+        const forceAlternate = Math.random() < alternateChance;
         let minVal = Math.max(margin, this.lastTopHeight - maxStep);
         let maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
         
