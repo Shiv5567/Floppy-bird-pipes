@@ -790,40 +790,36 @@ export class ObstacleManager {
     const rBottom = obs.bottomHeight;
 
     if (obs.isMutated) {
-      // Glowing green crystal obelisks
-      const crystalGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      crystalGrad.addColorStop(0, '#064e3b');
-      crystalGrad.addColorStop(0.4, '#10b981');
-      crystalGrad.addColorStop(0.6, '#34d399');
-      crystalGrad.addColorStop(1, '#064e3b');
-      ctx.fillStyle = crystalGrad;
-      ctx.strokeStyle = '#fbbf24'; // Golden outline
-      ctx.lineWidth = 3;
+      // Semi-transparent deep forest green linear gradient (environment friendly and slightly transparent)
+      const forestGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      forestGrad.addColorStop(0, 'rgba(15, 45, 27, 0.72)');
+      forestGrad.addColorStop(0.5, 'rgba(28, 75, 45, 0.78)');
+      forestGrad.addColorStop(1, 'rgba(10, 30, 18, 0.72)');
 
+      ctx.fillStyle = forestGrad;
+      ctx.strokeStyle = 'rgba(46, 125, 50, 0.8)'; // Moss green outline (non-glowing, environment-friendly)
+      ctx.lineWidth = 2.0;
+
+      // Draw simple standard columns
       ctx.fillRect(rx, -1000, rw, rTop + 1000);
       ctx.strokeRect(rx, -1000, rw, rTop + 1000);
       ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
       ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
-      // Glowing crystal shards overlay
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(rx + rw * 0.2, rTop - 40);
-      ctx.lineTo(rx + rw * 0.5, rTop - 10);
-      ctx.lineTo(rx + rw * 0.8, rTop - 40);
-      ctx.moveTo(rx + rw * 0.2, height - rBottom + 40);
-      ctx.lineTo(rx + rw * 0.5, height - rBottom + 10);
-      ctx.lineTo(rx + rw * 0.8, height - rBottom + 40);
-      ctx.stroke();
+      // Standard non-glowing caps matching border green
+      ctx.fillStyle = 'rgba(46, 125, 50, 0.8)';
+      ctx.fillRect(rx, rTop - 8, rw, 8);
+      ctx.fillRect(rx, height - rBottom, rw, 8);
 
-      // Magical glowing jungle leaves / golden coral polyps
-      ctx.fillStyle = 'rgba(251, 191, 36, 0.9)'; // Golden leaves/flowers
+      // Simple flat green leaves details hanging from safe boundaries
+      ctx.fillStyle = 'rgba(34, 139, 34, 0.8)';
       ctx.beginPath();
-      ctx.arc(rx + 15, rTop + 8, 6, 0, Math.PI * 2);
-      ctx.arc(rx + rw - 15, rTop + 12, 5, 0, Math.PI * 2);
-      ctx.arc(rx + 20, height - rBottom - 8, 6, 0, Math.PI * 2);
-      ctx.arc(rx + rw - 20, height - rBottom - 12, 5, 0, Math.PI * 2);
+      ctx.moveTo(rx + 10, rTop);
+      ctx.lineTo(rx + 15, rTop + 12);
+      ctx.lineTo(rx + 20, rTop);
+      ctx.moveTo(rx + 45, rTop);
+      ctx.lineTo(rx + 50, rTop + 18);
+      ctx.lineTo(rx + 58, rTop);
       ctx.fill();
     } else {
       // Ancient stone pillars
@@ -1493,45 +1489,52 @@ export class ObstacleManager {
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    // Mayan ancient stepped columns - Physically stepping inward like pyramid layers
-    const crystalGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    crystalGrad.addColorStop(0, '#064e3b');
-    crystalGrad.addColorStop(0.4, '#10b981');
-    crystalGrad.addColorStop(0.6, '#34d399');
-    crystalGrad.addColorStop(1, '#064e3b');
-    ctx.fillStyle = crystalGrad;
-    ctx.strokeStyle = '#fbbf24'; // Golden outline
-    ctx.lineWidth = 3;
+    // Semi-transparent deep jungle moss-green linear gradient
+    const jungleGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    jungleGrad.addColorStop(0, 'rgba(12, 38, 22, 0.72)');
+    jungleGrad.addColorStop(0.5, 'rgba(22, 64, 38, 0.78)');
+    jungleGrad.addColorStop(1, 'rgba(8, 26, 15, 0.72)');
 
-    // TOP COLUMN: stepped Mayan jade segments
-    // 1. Wide base (to rTop - 75)
-    ctx.fillRect(rx - 10, -1000, rw + 20, rTop + 1000 - 75);
-    ctx.strokeRect(rx - 10, -1000, rw + 20, rTop + 1000 - 75);
-    // 2. Middle block (rTop - 75 to rTop - 35)
-    ctx.fillRect(rx - 4, rTop - 75, rw + 8, 40);
-    ctx.strokeRect(rx - 4, rTop - 75, rw + 8, 40);
-    // 3. Narrow block (rTop - 35 to rTop)
-    ctx.fillRect(rx + 4, rTop - 35, rw - 8, 35);
-    ctx.strokeRect(rx + 4, rTop - 35, rw - 8, 35);
+    ctx.fillStyle = jungleGrad;
+    ctx.strokeStyle = 'rgba(46, 125, 50, 0.85)'; // Forest green outline (no gold)
+    ctx.lineWidth = 2.0;
 
-    // BOTTOM COLUMN: stepped Mayan jade segments
-    // 1. Wide base (height - rBottom + 75 to deep offscreen)
-    ctx.fillRect(rx - 10, height - rBottom + 75, rw + 20, rBottom + 1000 - 75);
-    ctx.strokeRect(rx - 10, height - rBottom + 75, rw + 20, rBottom + 1000 - 75);
-    // 2. Middle block (height - rBottom + 35 to height - rBottom + 75)
-    ctx.fillRect(rx - 4, height - rBottom + 35, rw + 8, 40);
-    ctx.strokeRect(rx - 4, height - rBottom + 35, rw + 8, 40);
-    // 3. Narrow block (height - rBottom to height - rBottom + 35)
-    ctx.fillRect(rx + 4, height - rBottom, rw - 8, 35);
-    ctx.strokeRect(rx + 4, height - rBottom, rw - 8, 35);
+    // TOP COLUMN (flat standard rectangle)
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
 
-    // Magical glowing golden leaves overlay
-    ctx.fillStyle = 'rgba(251, 191, 36, 0.9)';
+    // BOTTOM COLUMN (flat standard rectangle)
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    // Flat cap ridges
+    ctx.fillStyle = 'rgba(46, 125, 50, 0.85)';
+    ctx.fillRect(rx, rTop - 8, rw, 8);
+    ctx.fillRect(rx, height - rBottom, rw, 8);
+
+    // Simple flat horizontal bamboo/tree joint lines to look "structured" but normal (no glowing)
+    ctx.strokeStyle = 'rgba(46, 125, 50, 0.45)';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.arc(rx + 15, rTop + 8, 6, 0, Math.PI * 2);
-    ctx.arc(rx + rw - 15, rTop + 12, 5, 0, Math.PI * 2);
-    ctx.arc(rx + 20, height - rBottom - 8, 6, 0, Math.PI * 2);
-    ctx.arc(rx + rw - 20, height - rBottom - 12, 5, 0, Math.PI * 2);
+    ctx.moveTo(rx, rTop - 45);
+    ctx.lineTo(rx + rw, rTop - 45);
+    ctx.moveTo(rx, rTop - 90);
+    ctx.lineTo(rx + rw, rTop - 90);
+    ctx.moveTo(rx, height - rBottom + 45);
+    ctx.lineTo(rx + rw, height - rBottom + 45);
+    ctx.moveTo(rx, height - rBottom + 90);
+    ctx.lineTo(rx + rw, height - rBottom + 90);
+    ctx.stroke();
+
+    // Hanging canopy vines (flat green leaves)
+    ctx.fillStyle = 'rgba(34, 139, 34, 0.75)';
+    ctx.beginPath();
+    ctx.moveTo(rx + 15, rTop);
+    ctx.lineTo(rx + 20, rTop + 15);
+    ctx.lineTo(rx + 25, rTop);
+    ctx.moveTo(rx + 40, rTop);
+    ctx.lineTo(rx + 45, rTop + 20);
+    ctx.lineTo(rx + 52, rTop);
     ctx.fill();
   }
 
