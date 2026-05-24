@@ -10,6 +10,7 @@ export interface Obstacle {
   grazed?: boolean;
   isCavern?: boolean;
   isMutated?: boolean;
+  isStructured?: boolean;
   
   // Custom modifiers per theme
   worldId: string;
@@ -278,7 +279,7 @@ export class ObstacleManager {
       isCavernVal = false;
     } else {
       // Classic Mode: Spawns flat columns or jagged caverns based on player score
-      isCavernVal = (score >= 50 && score <= 100);
+      isCavernVal = (score > 70 && score <= 100);
 
       // Determine margin and boundaries: Hard mode has tighter margins to allow columns closer to edges
       if (difficulty === 'easy') {
@@ -361,7 +362,8 @@ export class ObstacleManager {
       bottomHeight,
       passed: false,
       isCavern: isCavernVal,
-      isMutated: (score >= 20 && score <= 50),
+      isMutated: (score >= 20 && score < 50),
+      isStructured: (score >= 50 && score <= 70),
       worldId,
       isMoving,
       movingDir: Math.random() > 0.5 ? 1 : -1,
@@ -588,6 +590,38 @@ export class ObstacleManager {
         }
 
         this.drawCavernObstacle(ctx, obs, height, colorTop, colorBottom, outlineColor);
+      } else if (obs.isStructured) {
+        switch (obs.worldId) {
+          case 'jungle':
+            this.drawStructuredJunglePillars(ctx, obs, height);
+            break;
+          case 'cyberpunk':
+            this.drawStructuredCyberpunkPillars(ctx, obs, height);
+            break;
+          case 'ice':
+            this.drawStructuredIcePillars(ctx, obs, height);
+            break;
+          case 'desert':
+            this.drawStructuredDesertPillars(ctx, obs, height);
+            break;
+          case 'volcano':
+            this.drawStructuredVolcanoPillars(ctx, obs, height);
+            break;
+          case 'space':
+            this.drawStructuredSpaceObstacles(ctx, obs, height);
+            break;
+          case 'underwater':
+            this.drawStructuredUnderwaterPillars(ctx, obs, height);
+            break;
+          case 'heaven':
+            this.drawStructuredHeavenPillars(ctx, obs, height);
+            break;
+          case 'retro':
+            this.drawStructuredRetroPillars(ctx, obs, height);
+            break;
+          default:
+            this.drawStructuredDefaultPillars(ctx, obs, height);
+        }
       } else {
         switch (obs.worldId) {
           case 'jungle':
@@ -1337,14 +1371,459 @@ export class ObstacleManager {
     ctx.fill();
     ctx.stroke();
 
-    // Draw rocky layers and texture lines inside the bottom cavern
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(rx + rw * 0.2, floorY + 35);
-    ctx.lineTo(rx + rw * 0.6, floorY + 15);
-    ctx.lineTo(rx + rw * 0.8, floorY + 40);
     ctx.stroke();
     ctx.restore();
+  }
+
+  // Visual Structured Pillar Painters
+  private drawStructuredDefaultPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
+
+    // Deep royal blue gradient columns with golden joints
+    const grad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    grad.addColorStop(0, '#0f172a');
+    grad.addColorStop(0.3, '#1e3a8a');
+    grad.addColorStop(0.7, '#1e40af');
+    grad.addColorStop(1, '#0f172a');
+    ctx.fillStyle = grad;
+    ctx.strokeStyle = '#fbbf24'; // Gold outline
+    ctx.lineWidth = 3;
+
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    // Draw structural block joints
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let y = rTop - 120; y < rTop - 20; y += 35) {
+      ctx.moveTo(rx, y);
+      ctx.lineTo(rx + rw, y);
+    }
+    for (let y = height - rBottom + 20; y < height - rBottom + 120; y += 35) {
+      ctx.moveTo(rx, y);
+      ctx.lineTo(rx + rw, y);
+    }
+    ctx.stroke();
+
+    // Stepped Greek capital crowns
+    const goldGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    goldGrad.addColorStop(0, '#d97706');
+    goldGrad.addColorStop(0.5, '#fef08a');
+    goldGrad.addColorStop(1, '#b45309');
+    ctx.fillStyle = goldGrad;
+
+    ctx.fillRect(rx - 6, rTop - 24, rw + 12, 12);
+    ctx.strokeRect(rx - 6, rTop - 24, rw + 12, 12);
+    ctx.fillRect(rx - 2, rTop - 12, rw + 4, 12);
+    ctx.strokeRect(rx - 2, rTop - 12, rw + 4, 12);
+
+    ctx.fillRect(rx - 6, height - rBottom, rw + 12, 12);
+    ctx.strokeRect(rx - 6, height - rBottom, rw + 12, 12);
+    ctx.fillRect(rx - 2, height - rBottom + 12, rw + 4, 12);
+    ctx.strokeRect(rx - 2, height - rBottom + 12, rw + 4, 12);
+  }
+
+  private drawStructuredRetroPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
+
+    // Stacked pixel blocks with isometric 3D-shaded borders
+    ctx.fillStyle = '#ec4899'; // Hot pink
+    ctx.strokeStyle = '#06b6d4'; // Cyan neon
+    ctx.lineWidth = 3;
+
+    // Draw stepped 3D segmented towers
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    // Vaporwave retro horizontal gridlines
+    ctx.strokeStyle = '#06b6d4';
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    for (let y = rTop - 120; y < rTop; y += 24) {
+      ctx.moveTo(rx, y);
+      ctx.lineTo(rx + rw, y);
+    }
+    for (let y = height - rBottom; y < height - rBottom + 120; y += 24) {
+      ctx.moveTo(rx, y);
+      ctx.lineTo(rx + rw, y);
+    }
+    ctx.stroke();
+
+    // Stepped pixel block caps (structured)
+    ctx.fillStyle = '#f43f5e';
+    ctx.fillRect(rx - 8, rTop - 28, rw + 16, 14);
+    ctx.strokeRect(rx - 8, rTop - 28, rw + 16, 14);
+    ctx.fillRect(rx - 4, rTop - 14, rw + 8, 14);
+    ctx.strokeRect(rx - 4, rTop - 14, rw + 8, 14);
+
+    ctx.fillRect(rx - 8, height - rBottom, rw + 16, 14);
+    ctx.strokeRect(rx - 8, height - rBottom, rw + 16, 14);
+    ctx.fillRect(rx - 4, height - rBottom + 14, rw + 8, 14);
+    ctx.strokeRect(rx - 4, height - rBottom + 14, rw + 8, 14);
+  }
+
+  private drawStructuredJunglePillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
+
+    // Mayan ancient stepped columns
+    const crystalGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    crystalGrad.addColorStop(0, '#064e3b');
+    crystalGrad.addColorStop(0.4, '#10b981');
+    crystalGrad.addColorStop(0.6, '#34d399');
+    crystalGrad.addColorStop(1, '#064e3b');
+    ctx.fillStyle = crystalGrad;
+    ctx.strokeStyle = '#fbbf24'; // Golden outline
+    ctx.lineWidth = 3;
+
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    // Draw stepped layers seams
+    ctx.strokeStyle = 'rgba(251, 191, 36, 0.4)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let y = rTop - 120; y < rTop - 20; y += 30) {
+      ctx.moveTo(rx, y);
+      ctx.lineTo(rx + rw, y);
+    }
+    for (let y = height - rBottom + 30; y < height - rBottom + 120; y += 30) {
+      ctx.moveTo(rx, y);
+      ctx.lineTo(rx + rw, y);
+    }
+    ctx.stroke();
+
+    // Glowing crystal shards overlay
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(rx + rw * 0.2, rTop - 40);
+    ctx.lineTo(rx + rw * 0.5, rTop - 10);
+    ctx.lineTo(rx + rw * 0.8, rTop - 40);
+    ctx.moveTo(rx + rw * 0.2, height - rBottom + 40);
+    ctx.lineTo(rx + rw * 0.5, height - rBottom + 10);
+    ctx.lineTo(rx + rw * 0.8, height - rBottom + 40);
+    ctx.stroke();
+
+    // Magical glowing golden leaves
+    ctx.fillStyle = 'rgba(251, 191, 36, 0.9)';
+    ctx.beginPath();
+    ctx.arc(rx + 15, rTop + 8, 6, 0, Math.PI * 2);
+    ctx.arc(rx + rw - 15, rTop + 12, 5, 0, Math.PI * 2);
+    ctx.arc(rx + 20, height - rBottom - 8, 6, 0, Math.PI * 2);
+    ctx.arc(rx + rw - 20, height - rBottom - 12, 5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  private drawStructuredCyberpunkPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
+
+    // Segmented high-tech reactor power conduits
+    ctx.fillStyle = '#05050a';
+    ctx.strokeStyle = '#39ff14'; // Matrix neon green
+    ctx.lineWidth = 2.5;
+
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    // Draw reactor segmented metal rings and glowing rivets
+    ctx.fillStyle = '#115e59';
+    ctx.strokeStyle = '#39ff14';
+    ctx.lineWidth = 1.5;
+    
+    // Draw horizontal rings
+    ctx.fillRect(rx - 4, rTop - 45, rw + 8, 12);
+    ctx.strokeRect(rx - 4, rTop - 45, rw + 8, 12);
+    ctx.fillRect(rx - 4, height - rBottom + 35, rw + 8, 12);
+    ctx.strokeRect(rx - 4, height - rBottom + 35, rw + 8, 12);
+
+    // Glowing rivets on rings
+    ctx.fillStyle = '#39ff14';
+    ctx.beginPath();
+    ctx.arc(rx + 10, rTop - 39, 3, 0, Math.PI * 2);
+    ctx.arc(rx + rw - 10, rTop - 39, 3, 0, Math.PI * 2);
+    ctx.arc(rx + 10, height - rBottom + 41, 3, 0, Math.PI * 2);
+    ctx.arc(rx + rw - 10, height - rBottom + 41, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Laser warning
+    if (obs.isLaser) {
+      if (obs.laserActive) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(rx + rw * 0.45, rTop, rw * 0.1, height - rTop - rBottom);
+        ctx.fillStyle = 'rgba(57, 255, 20, 0.9)'; // Neon green laser beam
+        ctx.fillRect(rx + rw * 0.42, rTop, rw * 0.16, height - rTop - rBottom);
+      } else {
+        ctx.strokeStyle = 'rgba(57, 255, 20, 0.4)';
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(rx + rw * 0.5, rTop);
+        ctx.lineTo(rx + rw * 0.5, height - rBottom);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
+  }
+
+  private drawStructuredIcePillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
+
+    // Aurora prism gradient and ice facet layers
+    const prismGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    prismGrad.addColorStop(0, '#ec4899'); // Pink
+    prismGrad.addColorStop(0.5, '#3b82f6'); // Blue
+    prismGrad.addColorStop(1, '#06b6d4'); // Cyan
+    ctx.fillStyle = prismGrad;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3;
+
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    // Stepped structured crystal crowns
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.fillRect(rx - 6, rTop - 25, rw + 12, 10);
+    ctx.strokeRect(rx - 6, rTop - 25, rw + 12, 10);
+    ctx.fillRect(rx - 6, height - rBottom, rw + 12, 10);
+    ctx.strokeRect(rx - 6, height - rBottom, rw + 12, 10);
+
+    // Diagonal ice facet cuts
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.beginPath();
+    ctx.moveTo(rx, rTop - 60);
+    ctx.lineTo(rx + rw * 0.5, rTop - 35);
+    ctx.lineTo(rx + rw, rTop - 80);
+    ctx.moveTo(rx, height - rBottom + 60);
+    ctx.lineTo(rx + rw * 0.5, height - rBottom + 35);
+    ctx.lineTo(rx + rw, height - rBottom + 80);
+    ctx.stroke();
+  }
+
+  private drawStructuredDesertPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
+
+    // Egyptian Obelisk golden sandstone pylons
+    const sandGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    sandGrad.addColorStop(0, '#b45309');
+    sandGrad.addColorStop(0.5, '#fbbf24');
+    sandGrad.addColorStop(1, '#78350f');
+    ctx.fillStyle = sandGrad;
+    ctx.strokeStyle = '#ef4444'; // Ruby red borders
+    ctx.lineWidth = 2.5;
+
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    // Stepped Egyptian capitals
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillRect(rx - 8, rTop - 26, rw + 16, 12);
+    ctx.strokeRect(rx - 8, rTop - 26, rw + 16, 12);
+    ctx.fillRect(rx - 4, rTop - 14, rw + 8, 14);
+    ctx.strokeRect(rx - 4, rTop - 14, rw + 8, 14);
+
+    ctx.fillRect(rx - 8, height - rBottom, rw + 16, 12);
+    ctx.strokeRect(rx - 8, height - rBottom, rw + 16, 12);
+    ctx.fillRect(rx - 4, height - rBottom + 14, rw + 8, 14);
+    ctx.strokeRect(rx - 4, height - rBottom + 14, rw + 8, 14);
+
+    // Embedded glowing ruby gems
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.arc(rx + rw * 0.5, rTop - 60, 6, 0, Math.PI * 2);
+    ctx.arc(rx + rw * 0.5, height - rBottom + 60, 6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  private drawStructuredVolcanoPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
+
+    // Basalt columnar joints vents (stacked hexagonal columns)
+    ctx.fillStyle = '#0a0505';
+    ctx.strokeStyle = '#f97316'; // Lava orange
+    ctx.lineWidth = 3;
+
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    // Vertical structural columns division lines
+    ctx.strokeStyle = 'rgba(249, 115, 22, 0.5)';
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    ctx.moveTo(rx + rw * 0.33, -1000);
+    ctx.lineTo(rx + rw * 0.33, rTop);
+    ctx.moveTo(rx + rw * 0.66, -1000);
+    ctx.lineTo(rx + rw * 0.66, rTop);
+
+    ctx.moveTo(rx + rw * 0.33, height - rBottom);
+    ctx.lineTo(rx + rw * 0.33, height + 1000);
+    ctx.moveTo(rx + rw * 0.66, height - rBottom);
+    ctx.lineTo(rx + rw * 0.66, height + 1000);
+    ctx.stroke();
+
+    // Flowing central superheated yellow magma vein
+    const lavaFlow = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    lavaFlow.addColorStop(0, '#f97316');
+    lavaFlow.addColorStop(0.5, '#facc15'); // Yellow core
+    lavaFlow.addColorStop(1, '#ea580c');
+    ctx.fillStyle = lavaFlow;
+    ctx.fillRect(rx + rw * 0.38, -1000, rw * 0.24, rTop + 1000);
+    ctx.fillRect(rx + rw * 0.38, height - rBottom, rw * 0.24, rBottom + 1000);
+  }
+
+  private drawStructuredSpaceObstacles(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
+
+    // Stacked mechanical power sphere cells
+    ctx.fillStyle = '#030008';
+    ctx.strokeStyle = '#a855f7'; // Purple neon
+    ctx.lineWidth = 2.5;
+
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    // Glowing starfield details
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(rx + rw * 0.2, rTop - 40, 3, 3);
+    ctx.fillRect(rx + rw * 0.7, rTop - 80, 2, 2);
+    ctx.fillRect(rx + rw * 0.5, height - rBottom + 60, 3, 3);
+
+    // Plasma coil ring collars
+    const ringGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    ringGrad.addColorStop(0, '#ec4899');
+    ringGrad.addColorStop(0.5, '#e0f2fe'); // White hot plasma
+    ringGrad.addColorStop(1, '#3b82f6');
+    ctx.fillStyle = ringGrad;
+    
+    // Physical ring ridges wrapped around column
+    ctx.fillRect(rx - 6, rTop - 30, rw + 12, 10);
+    ctx.fillRect(rx - 6, height - rBottom + 20, rw + 12, 10);
+    ctx.fillRect(rx - 6, rTop - 80, rw + 12, 10);
+    ctx.fillRect(rx - 6, height - rBottom + 70, rw + 12, 10);
+  }
+
+  private drawStructuredUnderwaterPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
+
+    // Atlantis fluted ruins columns
+    ctx.fillStyle = '#081e26';
+    ctx.strokeStyle = '#ec4899'; // Coral pink
+    ctx.lineWidth = 2.5;
+
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    // Fluted grooved vertical structural lines
+    ctx.strokeStyle = 'rgba(236, 72, 153, 0.4)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(rx + rw * 0.25, -1000);
+    ctx.lineTo(rx + rw * 0.25, rTop);
+    ctx.moveTo(rx + rw * 0.5, -1000);
+    ctx.lineTo(rx + rw * 0.5, rTop);
+    ctx.moveTo(rx + rw * 0.75, -1000);
+    ctx.lineTo(rx + rw * 0.75, rTop);
+
+    ctx.moveTo(rx + rw * 0.25, height - rBottom);
+    ctx.lineTo(rx + rw * 0.25, height + 1000);
+    ctx.moveTo(rx + rw * 0.5, height - rBottom);
+    ctx.lineTo(rx + rw * 0.5, height + 1000);
+    ctx.moveTo(rx + rw * 0.75, height - rBottom);
+    ctx.lineTo(rx + rw * 0.75, height + 1000);
+    ctx.stroke();
+
+    // Bioluminescent coral polyps details
+    ctx.fillStyle = '#f472b6';
+    ctx.beginPath();
+    ctx.arc(rx + 12, rTop - 25, 6, 0, Math.PI * 2);
+    ctx.arc(rx + 25, rTop - 50, 4, 0, Math.PI * 2);
+    ctx.arc(rx + rw - 15, height - rBottom + 35, 7, 0, Math.PI * 2);
+    ctx.arc(rx + rw - 30, height - rBottom + 60, 5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  private drawStructuredHeavenPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
+
+    // Winged angelic marble columns
+    const heavGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    heavGrad.addColorStop(0, '#fcd34d');
+    heavGrad.addColorStop(0.3, '#ffffff');
+    heavGrad.addColorStop(0.7, '#ffffff');
+    heavGrad.addColorStop(1, '#a7f3d0');
+    ctx.fillStyle = heavGrad;
+    ctx.strokeStyle = '#fcd34d'; // Shiny gold
+    ctx.lineWidth = 3;
+
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    // Fluted grooved lines
+    ctx.strokeStyle = 'rgba(252, 211, 77, 0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(rx + rw * 0.33, -1000);
+    ctx.lineTo(rx + rw * 0.33, rTop);
+    ctx.moveTo(rx + rw * 0.66, -1000);
+    ctx.lineTo(rx + rw * 0.66, rTop);
+    ctx.moveTo(rx + rw * 0.33, height - rBottom);
+    ctx.lineTo(rx + rw * 0.33, height + 1000);
+    ctx.moveTo(rx + rw * 0.66, height - rBottom);
+    ctx.lineTo(rx + rw * 0.66, height + 1000);
+    ctx.stroke();
+
+    // Golden angel wing step cap arches
+    ctx.fillStyle = '#fcd34d';
+    ctx.fillRect(rx - 8, rTop - 16, rw + 16, 16);
+    ctx.fillRect(rx - 8, height - rBottom, rw + 16, 16);
   }
 }
