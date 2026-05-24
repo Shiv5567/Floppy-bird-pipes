@@ -56,27 +56,24 @@ export class Bird {
   }
 
   public jump(soundManager?: any, score = 0) {
+    void score;
     if (this.isCrashing) return;
     
     // Jump lift scaled with skin upgrade level (minor bonus)
     const levelBonus = (this.activeSkin.upgradeLevel - 1) * 0.05;
-    
-    // Synchronize physics jump lift with 5% speed increase every 25 score
-    const speedMultiplier = 1.0 + Math.floor(score / 25.0) * 0.05;
-    const impulse = this.jumpLift * (1 + levelBonus) * speedMultiplier;
-    const currentMaxRiseSpeed = this.maxRiseSpeed * speedMultiplier;
+    const impulse = this.jumpLift * (1 + levelBonus);
     
     // Instant, sharp, and skill-based responsiveness:
     // If we are falling or rising slowly, instantly reset velocity to the upward jump impulse for an immediate, crisp response.
     // If we are already rising quickly and tap again, accumulate upward speed (additive) to reward fast tapping with rapid flight!
-    if (this.vy > -4 * speedMultiplier) {
+    if (this.vy > -4) {
       this.vy = impulse;
     } else {
       this.vy += impulse * 0.85; // Increased additive thrust reward for rapid taps (0.85 instead of 0.7) for superior control
     }
     
     // Clamp to ensure it doesn't exceed maximum rising velocity bounds
-    if (this.vy < currentMaxRiseSpeed) this.vy = currentMaxRiseSpeed;
+    if (this.vy < this.maxRiseSpeed) this.vy = this.maxRiseSpeed;
     
     this.flapCycle = 0; // Reset wing animation cycle to start flap
     if (soundManager) soundManager.playFlap();
@@ -85,24 +82,23 @@ export class Bird {
   public update(deltaTime: number, particleEngine: ParticleEngine, isPlaying: boolean, timeScale: number, score = 0) {
     const dtCoeff = deltaTime * 60 * timeScale;
     
-    // Synchronize physics gravity and max speed caps with 5% speed increase every 25 score
+    // Synchronize physics gravity and max fall speed caps with 5% speed increase every 25 score
     const speedMultiplier = 1.0 + Math.floor(score / 25.0) * 0.05;
     const currentGravity = this.gravity * speedMultiplier;
     const currentMaxFallSpeed = this.maxFallSpeed * speedMultiplier;
-    const currentMaxRiseSpeed = this.maxRiseSpeed * speedMultiplier;
     
     if (isPlaying) {
       // Apply gravity
       this.vy += currentGravity * dtCoeff;
       if (this.vy > currentMaxFallSpeed) this.vy = currentMaxFallSpeed;
-      if (this.vy < currentMaxRiseSpeed) this.vy = currentMaxRiseSpeed;
+      if (this.vy < this.maxRiseSpeed) this.vy = this.maxRiseSpeed; // Keep upward rise cap constant
 
       this.y += this.vy * dtCoeff;
 
       // Dynamic orientation angle based on vertical speed
       if (!this.isCrashing) {
         // Snappier and more expressive tilting responding directly to the new velocity thresholds
-        const targetAngle = Math.max(-0.55, Math.min(0.8, this.vy * 0.045 / speedMultiplier));
+        const targetAngle = Math.max(-0.55, Math.min(0.8, this.vy * 0.045));
         this.angle += (targetAngle - this.angle) * 0.22 * dtCoeff;
       } else {
         // Crashing spin animation
