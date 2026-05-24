@@ -1274,7 +1274,6 @@ export class UIManager {
     const price = 5;
     const canAfford = gems >= price;
 
-    const remainingRevives = 3 - this.engine.revivesUsedThisRun;
     const reviveHTML = `
       <div class="overlay-screen fade-in glass-modal">
         <div class="modal-card revive-card animate-slide-up">
@@ -1283,7 +1282,7 @@ export class UIManager {
           <p class="modal-subtitle">Resume your flight instantly from this location!</p>
 
           <div style="font-size:11px; color:#ffd700; font-weight:800; letter-spacing:1.5px; margin-top:-5px; margin-bottom:15px; text-transform:uppercase; text-shadow:0 0 8px rgba(255,215,0,0.4);">
-            REVIVES REMAINING: ${remainingRevives} / 3
+            REVIVES USED: ${this.engine.revivesUsedThisRun} (UNLIMITED)
           </div>
 
           <!-- Circular digital countdown -->

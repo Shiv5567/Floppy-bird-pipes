@@ -523,13 +523,10 @@ export class GameEngine {
     // Stop music and proceed to check manual continue system
     this.soundManager.stopMusic();
 
-    if (this.revivesUsedThisRun < 3) {
-      this.preReviveState = this.state === 'BOSS_WARNING' || this.state === 'BOSS_FIGHT' ? this.state : 'PLAYING';
-      this.state = 'REVIVE_CHOICE';
-      this.reviveCountdown = 5.0;
-    } else {
-      this.confirmGameOver();
-    }
+    // Unlimited revives allowed!
+    this.preReviveState = this.state === 'BOSS_WARNING' || this.state === 'BOSS_FIGHT' ? this.state : 'PLAYING';
+    this.state = 'REVIVE_CHOICE';
+    this.reviveCountdown = 5.0;
   }
 
   public confirmGameOver() {
@@ -559,7 +556,7 @@ export class GameEngine {
     this.progressManager.save();
 
     this.revivesUsedThisRun++;
-    this.hasRevivedThisRun = this.revivesUsedThisRun >= 3;
+    this.hasRevivedThisRun = false; // Unlimited revives!
     this.bird.isCrashing = false;
     this.bird.isInvincible = true;
     this.bird.vy = -4.5; // slight upwards jump impulse to resume
