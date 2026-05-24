@@ -40,23 +40,11 @@ export class Bird {
   }
 
   public setDifficulty(difficulty: 'easy' | 'medium' | 'hard') {
-    if (difficulty === 'easy') {
-      this.gravity = 0.30;
-      this.jumpLift = -6.0;
-      this.maxFallSpeed = 9.0;
-      this.maxRiseSpeed = -9.0;
-    } else if (difficulty === 'hard') {
-      this.gravity = 0.58;
-      this.jumpLift = -9.5;
-      this.maxFallSpeed = 15.0;
-      this.maxRiseSpeed = -15.0;
-    } else {
-      // medium
-      this.gravity = 0.40;
-      this.jumpLift = -7.4;
-      this.maxFallSpeed = 11.0;
-      this.maxRiseSpeed = -11.0;
-    }
+    void difficulty; // Enforce medium physics across all modes for constant tap responsiveness
+    this.gravity = 0.40;
+    this.jumpLift = -7.4;
+    this.maxFallSpeed = 11.0;
+    this.maxRiseSpeed = -11.0;
   }
 
   public setSkin(skin: Skin) {
