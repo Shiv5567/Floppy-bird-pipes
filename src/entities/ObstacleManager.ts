@@ -40,13 +40,6 @@ export class ObstacleManager {
   private nextSpawnDistance = 350;
   private lastTopHeight: number | null = null;
 
-  // Exponential curved path state variables for spawning
-  private curveRemaining = 0;
-  private curveIndex = 0;
-  private curveDirection: 'up' | 'down' = 'up';
-  private curveBaseHeight = 0;
-  private curveStep = 0;
-
   constructor() {}
 
   public getList(): Obstacle[] {
@@ -60,8 +53,6 @@ export class ObstacleManager {
     this.tunnelSpawnCount = 0;
     this.nextSpawnDistance = 350;
     this.lastTopHeight = null;
-    this.curveRemaining = 0;
-    this.curveIndex = 0;
   }
 
   public update(
@@ -103,18 +94,16 @@ export class ObstacleManager {
     const baseDistance = (width / 1.35) * distMultiplier;
     const minDistance = width / 2.0;
     
-    // Scale horizontal distance according to user specs
+    // Scale horizontal distance according to user specs (Narrow Horizontal Spacing: no coasting)
     let targetDistance;
     if (zone === 'classic') {
-      // Classic Mode: Default (Medium/Hard) classic gap uses 0.80 multiplier
-      const baseDistanceClassic = (width / 1.35) * 0.80;
-      const defaultDistance = baseDistanceClassic * 1.15;
-      
+      // Base classic distance of 165px (very tight, chaotic, immediate next peak visible)
+      const baseClassicDistance = 165;
       if (difficulty === 'easy') {
-        // Easy Mode: 20% constant gap increase compared to the default (medium/hard) classic gap
-        targetDistance = defaultDistance * 1.20;
+        // Easy Mode: 20% constant gap increase compared to the base gap (165 * 1.20 = 198px)
+        targetDistance = baseClassicDistance * 1.20;
       } else {
-        targetDistance = defaultDistance;
+        targetDistance = baseClassicDistance;
       }
     } else if (zone === 'vertical') {
       targetDistance = (baseDistance - (baseDistance - minDistance) * progressRatio) * 1.25 * 0.60;
@@ -236,6 +225,8 @@ export class ObstacleManager {
     progressRatio = 0,
     score = 0
   ) {
+    void score;
+    void progressRatio;
     let margin = 60;
     let topHeight = 0;
     let bottomHeight = 0;
@@ -259,86 +250,35 @@ export class ObstacleManager {
       isMoving = true;
       rangeY = 65; // constant amplitude for cohesive wave look
     } else {
-      // Classic Mode: unpredictable zigzag vertical alignment or occasional exponential curved path
-      const playableHeight = height - gapHeight - margin * 2;
+      // Classic Mode: Jagged Cavern Heartbeat / Seismograph Generator
+      // Dynamic Gap Width: randomly between a "tight squeeze" (65px) and "brief breathing room" (110px)
+      const gapHeightVal = 65 + Math.random() * 45;
+      const playableHeight = height - gapHeightVal - margin * 2;
       let targetTopHeight = margin + Math.random() * playableHeight;
 
-      if (this.curveRemaining > 0) {
-        // Continue exponential curved path sequence!
-        const stepOffset = Math.pow(1.5, this.curveIndex) * this.curveStep;
-        if (this.curveDirection === 'up') {
-          targetTopHeight = this.curveBaseHeight - stepOffset;
+      if (this.lastTopHeight !== null) {
+        // Seismograph Heartbeat logic: a high peak is immediately followed by a deep, sharp dip
+        const isLastHigh = this.lastTopHeight < margin + playableHeight * 0.5;
+        let minVal, maxVal;
+        
+        if (isLastHigh) {
+          // Last stalactite was high (top half). Force the new stalagmite to be deep low (bottom half).
+          minVal = margin + playableHeight * 0.58;
+          maxVal = margin + playableHeight * 0.95;
         } else {
-          targetTopHeight = this.curveBaseHeight + stepOffset;
+          // Last stalactite was low (bottom half). Force the new stalagmite to be extremely high (top half).
+          minVal = margin + playableHeight * 0.05;
+          maxVal = margin + playableHeight * 0.42;
         }
         
-        // Clamp bounds safely
-        targetTopHeight = Math.max(margin, Math.min(margin + playableHeight, targetTopHeight));
-        
-        this.curveIndex++;
-        this.curveRemaining--;
-      } else if (this.lastTopHeight !== null) {
-        // Chance to trigger a new exponential curved flying path sequence (25% chance normally, 40% if Hard)
-        const triggerChance = difficulty === 'hard' ? 0.40 : 0.25;
-        if (Math.random() < triggerChance) {
-          this.curveRemaining = 4 + Math.floor(Math.random() * 3); // 4 to 6 pipes in sequence
-          this.curveIndex = 0;
-          this.curveDirection = Math.random() > 0.5 ? 'up' : 'down';
-          this.curveBaseHeight = this.lastTopHeight;
-          this.curveStep = 10 + Math.random() * 10;
-          
-          const stepOffset = Math.pow(1.5, this.curveIndex) * this.curveStep;
-          if (this.curveDirection === 'up') {
-            targetTopHeight = this.curveBaseHeight - stepOffset;
-          } else {
-            targetTopHeight = this.curveBaseHeight + stepOffset;
-          }
-          targetTopHeight = Math.max(margin, Math.min(margin + playableHeight, targetTopHeight));
-          
-          this.curveIndex++;
-          this.curveRemaining--;
-        } else {
-          // Standard Unpredictable Zigzag: base variation of 60%, increasing by 10% every 50 score up to 95%
-          const scoreTier = Math.floor(score / 50);
-          let baseZigzag = 0.60;
-          let alternateChance = 0.68;
-          
-          if (difficulty === 'hard') {
-            // Increase unpredictable or pattern zigzag frequency and range by 30% for hard difficulty
-            baseZigzag = Math.min(0.95, 0.60 * 1.30); // 0.78 base variation (30% increase)
-            alternateChance = Math.min(0.99, 0.68 * 1.30); // 88.4% pattern alternation frequency (30% increase)
-          }
-          
-          const zigzagFactor = Math.min(0.95, baseZigzag + scoreTier * 0.10);
-          const maxStep = playableHeight * zigzagFactor;
-          
-          // Active bias to force height alternation in opposite vertical halves
-          const forceAlternate = Math.random() < alternateChance;
-          let minVal = Math.max(margin, this.lastTopHeight - maxStep);
-          let maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
-          
-          if (forceAlternate) {
-            const isHigh = this.lastTopHeight > margin + playableHeight * 0.5;
-            if (isHigh) {
-              maxVal = Math.min(maxVal, margin + playableHeight * 0.45);
-            } else {
-              minVal = Math.max(minVal, margin + playableHeight * 0.55);
-            }
-            if (minVal > maxVal) {
-              minVal = Math.max(margin, this.lastTopHeight - maxStep);
-              maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
-            }
-          }
-
-          targetTopHeight = minVal + Math.random() * (maxVal - minVal);
-        }
+        targetTopHeight = minVal + Math.random() * (maxVal - minVal);
       }
 
       topHeight = targetTopHeight;
       this.lastTopHeight = topHeight;
-      bottomHeight = height - topHeight - gapHeight;
+      bottomHeight = height - topHeight - gapHeightVal;
       
-      // Keep pipes static in Classic Zone
+      // Keep cavern walls static on screen in Classic Zone
       isMoving = false;
       isLaser = worldId === 'cyberpunk' && Math.random() < 0.35;
     }
@@ -524,405 +464,148 @@ export class ObstacleManager {
   }
 
 
-  // Draw procedural themed obstacle pillars
+  // Draw procedural themed obstacle pillars as a jagged rocky cavern / canyon channel
   public render(ctx: CanvasRenderingContext2D, height: number) {
-    ctx.shadowBlur = 0; // Disable expensive shadow blurs for maximum rendering performance
+    ctx.shadowBlur = 0; // Disable shadows for high performance
     for (let i = 0; i < this.list.length; i++) {
       const obs = this.list[i];
-
       ctx.save();
       
+      let colorTop = '#55a855';
+      let colorBottom = '#336633';
+      let outlineColor = '#0e240e';
+
       switch (obs.worldId) {
         case 'jungle':
-          this.drawJunglePillars(ctx, obs, height);
+          colorTop = '#5c5d4d';
+          colorBottom = '#3c3d33';
+          outlineColor = '#181914';
           break;
         case 'cyberpunk':
-          this.drawCyberpunkPillars(ctx, obs, height);
+          colorTop = '#ff007f';
+          colorBottom = '#00f3ff';
+          outlineColor = '#0b001a';
           break;
         case 'ice':
-          this.drawIcePillars(ctx, obs, height);
+          colorTop = '#e0ffff';
+          colorBottom = '#4682b4';
+          outlineColor = '#ffffff';
           break;
         case 'desert':
-          this.drawDesertPillars(ctx, obs, height);
+          colorTop = '#d2b48c';
+          colorBottom = '#8b5a2b';
+          outlineColor = '#3e2723';
           break;
         case 'volcano':
-          this.drawVolcanoPillars(ctx, obs, height);
+          colorTop = '#ff4500';
+          colorBottom = '#4a0e00';
+          outlineColor = '#ff1a00';
           break;
         case 'space':
-          this.drawSpaceObstacles(ctx, obs, height);
+          colorTop = '#8a2be2';
+          colorBottom = '#4b0082';
+          outlineColor = '#da70d6';
           break;
         case 'underwater':
-          this.drawUnderwaterPillars(ctx, obs, height);
+          colorTop = '#20b2aa';
+          colorBottom = '#008b8b';
+          outlineColor = '#004d40';
           break;
         case 'heaven':
-          this.drawHeavenPillars(ctx, obs, height);
+          colorTop = '#ffffff';
+          colorBottom = '#87ceeb';
+          outlineColor = '#ffd700';
           break;
         case 'retro':
-          this.drawRetroPillars(ctx, obs, height);
+          colorTop = '#73c93e';
+          colorBottom = '#387c12';
+          outlineColor = '#000000';
           break;
-        default:
-          this.drawDefaultPillars(ctx, obs, height);
       }
 
+      this.drawCavernObstacle(ctx, obs, height, colorTop, colorBottom, outlineColor);
       ctx.restore();
     }
   }
 
-
-  // Visual Pillar Painters
-  private drawDefaultPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+  private drawCavernObstacle(
+    ctx: CanvasRenderingContext2D,
+    obs: Obstacle,
+    height: number,
+    colorTop: string,
+    colorBottom: string,
+    outlineColor: string
+  ) {
     const rx = obs.x;
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    const grad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    grad.addColorStop(0, '#55a855');
-    grad.addColorStop(0.3, '#88d888');
-    grad.addColorStop(0.7, '#336633');
-    grad.addColorStop(1, '#1b3d1b');
-
-    ctx.fillStyle = grad;
-    ctx.strokeStyle = '#0e240e';
-    ctx.lineWidth = 3;
-
-    // Top column (Unified with offscreen extension)
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-    // Bottom column (Unified with offscreen extension)
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-    // Pillar ridges caps (standardized to obs.width)
-    ctx.fillStyle = '#88d888';
-    ctx.fillRect(rx, rTop - 20, rw, 20);
-    ctx.strokeRect(rx, rTop - 20, rw, 20);
-
-    ctx.fillRect(rx, height - rBottom, rw, 20);
-    ctx.strokeRect(rx, height - rBottom, rw, 20);
-  }
-
-  private drawRetroPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const rx = obs.x;
-    const rw = obs.width;
-    const rTop = obs.topHeight;
-    const rBottom = obs.bottomHeight;
-
-    ctx.fillStyle = '#73c93e'; // Simple retro green
-    ctx.strokeStyle = '#000000'; // Simple black outline
-    ctx.lineWidth = 3;
-
-    // Top column
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-    // Bottom column
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-    // Pillar ridges caps
-    ctx.fillStyle = '#9be669'; // Lighter green for simple flat highlight cap
-    ctx.fillRect(rx - 4, rTop - 24, rw + 8, 24);
-    ctx.strokeRect(rx - 4, rTop - 24, rw + 8, 24);
-
-    ctx.fillRect(rx - 4, height - rBottom, rw + 8, 24);
-    ctx.strokeRect(rx - 4, height - rBottom, rw + 8, 24);
-  }
-
-  private drawJunglePillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const rx = obs.x;
-    const rw = obs.width;
-    const rTop = obs.topHeight;
-    const rBottom = obs.bottomHeight;
-
-    // Ancient stone pillars
-    const stoneGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    stoneGrad.addColorStop(0, '#4f5043');
-    stoneGrad.addColorStop(0.5, '#7f8170');
-    stoneGrad.addColorStop(1, '#2f3028');
-
-    ctx.fillStyle = stoneGrad;
-    ctx.strokeStyle = '#1b1c16';
-    ctx.lineWidth = 2.5;
-
-    // Draw stone columns with brick joints lines (Unified with offscreen extension)
-    this.drawStoneColumn(ctx, rx, -1000, rw, rTop + 1000);
-    this.drawStoneColumn(ctx, rx, height - rBottom, rw, rBottom + 1000);
-
-    // Draw hanging green leaves / ivy vines procedurally
-    ctx.fillStyle = 'rgba(34, 139, 34, 0.85)';
-    ctx.beginPath();
-    // Hanging vines paths
-    ctx.moveTo(rx + 10, rTop);
-    ctx.lineTo(rx + 15, rTop + 15);
-    ctx.lineTo(rx + 22, rTop);
-    ctx.moveTo(rx + 50, rTop);
-    ctx.lineTo(rx + 55, rTop + 25);
-    ctx.lineTo(rx + 65, rTop);
-    ctx.fill();
-  }
-
-  private drawStoneColumn(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
-    ctx.fillRect(x, y, w, h);
-    ctx.strokeRect(x, y, w, h);
-
-    // Horizontal cracks lines
-    ctx.strokeStyle = '#1b1c16';
-    ctx.beginPath();
-    ctx.moveTo(x, y + h * 0.3);
-    ctx.lineTo(x + w * 0.6, y + h * 0.3);
-    ctx.moveTo(x + w * 0.4, y + h * 0.7);
-    ctx.lineTo(x + w, y + h * 0.7);
-    ctx.stroke();
-
-    // Moss highlights overlay
-    ctx.fillStyle = 'rgba(85, 107, 47, 0.4)';
-    ctx.fillRect(x + 2, y + 2, w - 4, 15);
-    ctx.fillRect(x + w - 15, y + 10, 13, h - 20);
-  }
-
-  private drawCyberpunkPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const rx = obs.x;
-    const rw = obs.width;
-    const rTop = obs.topHeight;
-    const rBottom = obs.bottomHeight;
-
-    ctx.strokeStyle = '#00f3ff';
-    ctx.lineWidth = 2.0;
-
-    // Draw glowing neon panel infinite extensions (optimized to -1000 range)
+    // Draw Jagged Top Stalactite Cavern Wall
     ctx.save();
-    ctx.fillStyle = 'rgba(255, 0, 127, 0.15)'; // Top panel glow
-    ctx.fillRect(rx + 10, -1000, rw - 20, rTop + 990);
-    ctx.fillStyle = 'rgba(0, 243, 255, 0.15)'; // Bottom panel glow
-    ctx.fillRect(rx + 10, height - rBottom + 10, rw - 20, rBottom + 990);
+    const gradTop = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    gradTop.addColorStop(0, colorTop);
+    gradTop.addColorStop(0.5, colorBottom);
+    gradTop.addColorStop(1, '#1b1b1b');
+    ctx.fillStyle = gradTop;
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = 3.5;
+
+    ctx.beginPath();
+    ctx.moveTo(rx, -1000);
+    ctx.lineTo(rx, rTop - 12);
+    // Draw jagged rocky stalactites along the safe opening edge
+    ctx.lineTo(rx + rw * 0.2, rTop - 25 + Math.sin(rx * 0.05) * 8);
+    ctx.lineTo(rx + rw * 0.45, rTop + 10); // Sharp spike stalactite
+    ctx.lineTo(rx + rw * 0.75, rTop - 20 + Math.cos(rx * 0.03) * 6);
+    ctx.lineTo(rx + rw, rTop - 8);
+    ctx.lineTo(rx + rw, -1000);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    // Draw rocky layers and texture lines inside the top cavern
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(rx + rw * 0.15, rTop - 40);
+    ctx.lineTo(rx + rw * 0.5, rTop - 15);
+    ctx.lineTo(rx + rw * 0.85, rTop - 35);
+    ctx.stroke();
     ctx.restore();
 
-    // Glowing metal columns scaffolding (Unified with offscreen extension)
-    ctx.fillStyle = '#120f26';
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    // Draw Jagged Bottom Stalagmite Cavern Wall
+    ctx.save();
+    const gradBottom = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    gradBottom.addColorStop(0, colorTop);
+    gradBottom.addColorStop(0.5, colorBottom);
+    gradBottom.addColorStop(1, '#1b1b1b');
+    ctx.fillStyle = gradBottom;
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = 3.5;
 
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-    // Draw glowing neon panel inside columns
-    ctx.fillStyle = 'rgba(255, 0, 127, 0.15)';
-    ctx.fillRect(rx + 10, 10, rw - 20, rTop - 20);
-    ctx.fillStyle = 'rgba(0, 243, 255, 0.15)';
-    ctx.fillRect(rx + 10, height - rBottom + 10, rw - 20, rBottom - 20);
-
-    // Dynamic Central Laser Beam rendering
-    if (obs.isLaser) {
-      if (obs.laserActive) {
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(rx + rw * 0.45, rTop, rw * 0.1, height - rTop - rBottom);
-        ctx.fillStyle = 'rgba(255, 0, 85, 0.85)';
-        ctx.fillRect(rx + rw * 0.42, rTop, rw * 0.16, height - rTop - rBottom);
-      } else {
-        // Soft red dotted warning line
-        ctx.strokeStyle = 'rgba(255, 0, 50, 0.35)';
-        ctx.setLineDash([5, 5]);
-        ctx.beginPath();
-        ctx.moveTo(rx + rw * 0.5, rTop);
-        ctx.lineTo(rx + rw * 0.5, height - rBottom);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      }
-    }
-  }
-
-  private drawIcePillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const rx = obs.x;
-    const rw = obs.width;
-    const rTop = obs.topHeight;
-    const rBottom = obs.bottomHeight;
-
-    // Use solid semi-transparent ice-blue background (removing slow gradient & heavy shadow calculations)
-    ctx.fillStyle = 'rgba(173, 216, 230, 0.75)';
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.lineWidth = 2.0;
-
-    // Top column (Unified with offscreen extension)
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-
-    // Bottom column (Unified with offscreen extension)
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-    // Snowy/frosty cap caps
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(rx, rTop - 15, rw, 15);
-    ctx.strokeRect(rx, rTop - 15, rw, 15);
-
-    ctx.fillRect(rx, height - rBottom, rw, 15);
-    ctx.strokeRect(rx, height - rBottom, rw, 15);
-  }
-
-  private drawDesertPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const rx = obs.x;
-    const rw = obs.width;
-    const rTop = obs.topHeight;
-    const rBottom = obs.bottomHeight;
-
-    // Ancient desert sandstones obelisks
-    const sandGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    sandGrad.addColorStop(0, '#8e6d3c');
-    sandGrad.addColorStop(0.5, '#ab8e60');
-    sandGrad.addColorStop(1, '#5e431f');
-
-    ctx.fillStyle = sandGrad;
-    ctx.strokeStyle = '#3e2c14';
-    ctx.lineWidth = 2.0;
-
-    // Top obelisk (Unified with offscreen extension)
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-
-    // Bottom obelisk (Unified with offscreen extension)
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-    // Engraved hieroglyph symbols
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
+    const floorY = height - rBottom;
     ctx.beginPath();
-    ctx.arc(rx + rw * 0.5, rTop * 0.5, 8, 0, Math.PI * 2);
-    ctx.moveTo(rx + rw * 0.3, height - rBottom * 0.5);
-    ctx.lineTo(rx + rw * 0.7, height - rBottom * 0.5);
+    ctx.moveTo(rx, height + 1000);
+    ctx.lineTo(rx, floorY + 12);
+    // Draw jagged rocky stalagmites along the safe opening edge
+    ctx.lineTo(rx + rw * 0.25, floorY + 20 + Math.cos(rx * 0.04) * 8);
+    ctx.lineTo(rx + rw * 0.55, floorY - 12); // Sharp stalagmite spike pointing up
+    ctx.lineTo(rx + rw * 0.8, floorY + 18 + Math.sin(rx * 0.06) * 6);
+    ctx.lineTo(rx + rw, floorY + 8);
+    ctx.lineTo(rx + rw, height + 1000);
+    ctx.closePath();
+    ctx.fill();
     ctx.stroke();
-  }
 
-  private drawVolcanoPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const rx = obs.x;
-    const rw = obs.width;
-    const rTop = obs.topHeight;
-    const rBottom = obs.bottomHeight;
-
-    // Molten igneous obsidian pillars
-    const lavaGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    lavaGrad.addColorStop(0, '#100505');
-    lavaGrad.addColorStop(0.5, '#40150a');
-    lavaGrad.addColorStop(1, '#050101');
-
-    ctx.fillStyle = lavaGrad;
-    ctx.strokeStyle = '#ff3c00';
-    ctx.lineWidth = 2.5;
-
-    // Top Jagged Obsidian column (Unified with offscreen extension)
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-
-    // Bottom Jagged Obsidian column (Unified with offscreen extension)
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-    // Lava cracks detailing
-    ctx.fillStyle = 'rgba(255, 60, 0, 0.85)';
-    ctx.strokeStyle = '#ff3c00';
+    // Draw rocky layers and texture lines inside the bottom cavern
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(rx + rw * 0.2, 0);
-    ctx.lineTo(rx + rw * 0.3, rTop * 0.7);
-    ctx.lineTo(rx + rw * 0.25, rTop);
-    ctx.lineTo(rx + rw * 0.4, rTop * 0.6);
+    ctx.moveTo(rx + rw * 0.2, floorY + 35);
+    ctx.lineTo(rx + rw * 0.6, floorY + 15);
+    ctx.lineTo(rx + rw * 0.8, floorY + 40);
     ctx.stroke();
-  }
-
-  private drawSpaceObstacles(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const rx = obs.x;
-    const rw = obs.width;
-    const rTop = obs.topHeight;
-    const rBottom = obs.bottomHeight;
-
-    // Deep space dark purple gradient column
-    const spaceGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    spaceGrad.addColorStop(0, '#0b001a');
-    spaceGrad.addColorStop(0.5, '#2e0854');
-    spaceGrad.addColorStop(1, '#05000d');
-
-    ctx.fillStyle = spaceGrad;
-    ctx.strokeStyle = '#da70d6';
-    ctx.lineWidth = 2.0;
-
-    // Top cosmic column (Unified with offscreen extension)
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-
-    // Bottom cosmic column (Unified with offscreen extension)
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-    // Glowing nebula cap
-    const nebulaGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    nebulaGrad.addColorStop(0, '#ff1493');
-    nebulaGrad.addColorStop(0.5, '#ffffff');
-    nebulaGrad.addColorStop(1, '#00bfff');
-
-    ctx.fillStyle = nebulaGrad;
-    ctx.fillRect(rx, rTop - 15, rw, 15);
-    ctx.strokeRect(rx, rTop - 15, rw, 15);
-
-    ctx.fillRect(rx, height - rBottom, rw, 15);
-    ctx.strokeRect(rx, height - rBottom, rw, 15);
-  }
-
-  private drawUnderwaterPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const rx = obs.x;
-    const rw = obs.width;
-    const rTop = obs.topHeight;
-    const rBottom = obs.bottomHeight;
-
-    // Algae covered marine pillars
-    const marineGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    marineGrad.addColorStop(0, '#00251a');
-    marineGrad.addColorStop(0.5, '#004d40');
-    marineGrad.addColorStop(1, '#001a14');
-
-    ctx.fillStyle = marineGrad;
-    ctx.strokeStyle = '#00695c';
-    ctx.lineWidth = 2.0;
-
-    // Top (Unified with offscreen extension)
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-
-    // Bottom (Unified with offscreen extension)
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-    // Seaweed leaves details overlay
-    ctx.fillStyle = 'rgba(0, 150, 136, 0.4)';
-    ctx.fillRect(rx + 4, rTop - 15, rw - 8, 15);
-    ctx.fillRect(rx + 4, height - rBottom, rw - 8, 15);
-  }
-
-  private drawHeavenPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const rx = obs.x;
-    const rw = obs.width;
-    const rTop = obs.topHeight;
-    const rBottom = obs.bottomHeight;
-
-    // Golden white celestial marble columns
-    const heavGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    heavGrad.addColorStop(0, '#ffffff');
-    heavGrad.addColorStop(0.5, '#f5f5f0');
-    heavGrad.addColorStop(0.8, '#e6e6fa');
-    heavGrad.addColorStop(1, '#d8bfd8');
-
-    ctx.fillStyle = heavGrad;
-    ctx.strokeStyle = '#ffd700';
-    ctx.lineWidth = 2.5;
-
-    // Top (Unified with offscreen extension)
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-
-    // Bottom (Unified with offscreen extension)
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-    // Golden halo crown on column caps (standardized to obs.width)
-    ctx.fillStyle = '#ffd700';
-    ctx.fillRect(rx, rTop - 12, rw, 12);
-    ctx.fillRect(rx, height - rBottom, rw, 12);
+    ctx.restore();
   }
 }
