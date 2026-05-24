@@ -73,17 +73,17 @@ export class ObstacleManager {
     const progressRatio = Math.min(1.0, score / 60.0);
     
     // Dynamic difficulty limits (increased vertical gaps by ~25% to account for 30% screen zoom in)
-    let startGap = 295;
-    let minGap = 225;
+    let startGap = 320;
+    let minGap = 250;
     let distMultiplier = 1.0;
 
     if (difficulty === 'easy') {
-      startGap = 340;
-      minGap = 270;
+      startGap = 365;
+      minGap = 295;
       distMultiplier = 1.3;
     } else if (difficulty === 'hard') {
-      startGap = 250;
-      minGap = 185;
+      startGap = 275;
+      minGap = 210;
       distMultiplier = 0.80;
     }
 
@@ -102,8 +102,8 @@ export class ObstacleManager {
       targetDistance *= 1.25;
     }
 
-    // Reduce horizontal distance by 30% as requested
-    targetDistance *= 0.70;
+    // Reduce horizontal distance by 40% as requested
+    targetDistance *= 0.60;
 
     // If not set or invalid, initialize nextSpawnDistance
     if (this.nextSpawnDistance <= 150 && zone !== 'wave') {
@@ -169,14 +169,14 @@ export class ObstacleManager {
       const dynamicGap = startGap - (startGap - minGap) * progressRatio;
       this.spawnObstacle(worldId, width, height, dynamicGap, zone, difficulty, progressRatio);
 
-      // Determine next spawn distance (reduced wave spawn distance by 30% as well)
+      // Determine next spawn distance (reduced wave spawn distance as well)
       if (zone === 'wave') {
         if (this.tunnelSpawnCount < 3) { // 4 pipes total (0, 1, 2, 3)
           this.tunnelSpawnCount++;
-          this.nextSpawnDistance = 117; // close spacing for connected section (167 * 0.70)
+          this.nextSpawnDistance = 100; // close spacing for connected section
         } else {
           this.tunnelSpawnCount = 0;
-          this.nextSpawnDistance = 386; // larger smooth gap section (552 * 0.70)
+          this.nextSpawnDistance = 330; // larger smooth gap section
         }
       } else {
         this.nextSpawnDistance = targetDistance;
