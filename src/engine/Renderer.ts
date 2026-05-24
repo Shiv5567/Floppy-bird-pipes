@@ -35,7 +35,7 @@ export class Renderer {
   private cameraY = 0;
   private shakeIntensity = 0;
   private shakeDuration = 0;
-  private zoomFactor = 1.00;
+  private zoomFactor = 0.90;
   public scale = 1.0;
 
   constructor(canvas: HTMLCanvasElement, particleEngine: ParticleEngine) {
@@ -167,18 +167,18 @@ export class Renderer {
       this.offsets[i] = (this.offsets[i] + this.speeds[i] * speedMultiplier) % 2000;
     }
 
-    // Static camera vertical tracking (disabled vertical scrolling to keep background static)
-    void birdY;
-    this.cameraY = 0;
+    // Camera smoothly follows the bird vertically to keep it in focus
+    const targetCameraY = (birdY - 360) * 0.65; // Dampen the tracking slightly for stability
+    this.cameraY += (targetCameraY - this.cameraY) * 0.12 * (deltaTime * 60);
 
-    // Dynamic micro-camera zoom based on gameplay state
-    let targetZoom = 1.00;
+    // Dynamic micro-camera zoom based on gameplay state (zoomed out by 10%)
+    let targetZoom = 0.90;
     if (gameState === 'BOSS_FIGHT') {
-      targetZoom = 0.85; // Zoom out for grand scale modular boss fight
+      targetZoom = 0.77; // Zoom out for grand scale modular boss fight
     } else if (timeScale < 0.9) {
-      targetZoom = 1.21; // Micro zoom-in during epic matrix slow-mo grazes
+      targetZoom = 1.09; // Micro zoom-in during epic matrix slow-mo grazes
     } else if (isTurbo) {
-      targetZoom = 1.27; // Zoom in during turbo speed blast
+      targetZoom = 1.14; // Zoom in during turbo speed blast
     }
 
     // Smoothly interpolate zoomFactor
