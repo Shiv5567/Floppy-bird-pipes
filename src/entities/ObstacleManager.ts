@@ -40,6 +40,13 @@ export class ObstacleManager {
   private nextSpawnDistance = 350;
   private lastTopHeight: number | null = null;
 
+  // Exponential curved path state variables for spawning
+  private curveRemaining = 0;
+  private curveIndex = 0;
+  private curveDirection: 'up' | 'down' = 'up';
+  private curveBaseHeight = 0;
+  private curveStep = 0;
+
   constructor() {}
 
   public getList(): Obstacle[] {
@@ -53,6 +60,8 @@ export class ObstacleManager {
     this.tunnelSpawnCount = 0;
     this.nextSpawnDistance = 350;
     this.lastTopHeight = null;
+    this.curveRemaining = 0;
+    this.curveIndex = 0;
   }
 
   public update(
@@ -124,7 +133,7 @@ export class ObstacleManager {
       obs.x -= actualScrollSpeed;
 
       // Handle vertical moving pillars per Zone with progressive speed & range scaling
-      if (difficulty === 'hard') {
+      if (difficulty === 'hard' && obs.isMoving) {
         // Chaotic unpredictable "flying" behavior: instant up and down jumps, no continuous pattern
         if (Math.random() < 0.05 * dtCoeff) {
           obs.movingDir = Math.random() > 0.5 ? 1 : -1;
@@ -230,7 +239,7 @@ export class ObstacleManager {
     let margin = 60;
     let topHeight = 0;
     let bottomHeight = 0;
-    let isMoving = difficulty === 'hard';
+    let isMoving = false;
     let isLaser = false;
     let rangeY = difficulty === 'hard' ? 50 + Math.random() * 40 : 30 + Math.random() * 30;
 
@@ -250,46 +259,79 @@ export class ObstacleManager {
       isMoving = true;
       rangeY = 65; // constant amplitude for cohesive wave look
     } else {
-      // Classic Mode: unpredictable zigzag vertical alignment from starting to ending
+      // Classic Mode: unpredictable zigzag vertical alignment or occasional exponential curved path
       const playableHeight = height - gapHeight - margin * 2;
       let targetTopHeight = margin + Math.random() * playableHeight;
-      if (this.lastTopHeight !== null) {
-        // Unpredictable Zigzag: base variation of 60%, increasing by 10% every 50 score up to 95%
-        const scoreTier = Math.floor(score / 50);
-        let baseZigzag = 0.60;
-        let alternateChance = 0.68;
-        
-        if (difficulty === 'hard') {
-          // Increase unpredictable or pattern zigzag frequency and range by 30% for hard difficulty
-          baseZigzag = Math.min(0.95, 0.60 * 1.30); // 0.78 base variation (30% increase)
-          alternateChance = Math.min(0.99, 0.68 * 1.30); // 88.4% pattern alternation frequency (30% increase)
-        }
-        
-        const zigzagFactor = Math.min(0.95, baseZigzag + scoreTier * 0.10);
-        const maxStep = playableHeight * zigzagFactor;
-        
-        // Active bias to force height alternation in opposite vertical halves
-        const forceAlternate = Math.random() < alternateChance;
-        let minVal = Math.max(margin, this.lastTopHeight - maxStep);
-        let maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
-        
-        if (forceAlternate) {
-          const isHigh = this.lastTopHeight > margin + playableHeight * 0.5;
-          if (isHigh) {
-            // Last pipe was high, bias the new one to the lower screen region
-            maxVal = Math.min(maxVal, margin + playableHeight * 0.45);
-          } else {
-            // Last pipe was low, bias the new one to the upper screen region
-            minVal = Math.max(minVal, margin + playableHeight * 0.55);
-          }
-          // Safeguard bounds validity
-          if (minVal > maxVal) {
-            minVal = Math.max(margin, this.lastTopHeight - maxStep);
-            maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
-          }
-        }
 
-        targetTopHeight = minVal + Math.random() * (maxVal - minVal);
+      if (this.curveRemaining > 0) {
+        // Continue exponential curved path sequence!
+        const stepOffset = Math.pow(1.5, this.curveIndex) * this.curveStep;
+        if (this.curveDirection === 'up') {
+          targetTopHeight = this.curveBaseHeight - stepOffset;
+        } else {
+          targetTopHeight = this.curveBaseHeight + stepOffset;
+        }
+        
+        // Clamp bounds safely
+        targetTopHeight = Math.max(margin, Math.min(margin + playableHeight, targetTopHeight));
+        
+        this.curveIndex++;
+        this.curveRemaining--;
+      } else if (this.lastTopHeight !== null) {
+        // Chance to trigger a new exponential curved flying path sequence (25% chance normally, 40% if Hard)
+        const triggerChance = difficulty === 'hard' ? 0.40 : 0.25;
+        if (Math.random() < triggerChance) {
+          this.curveRemaining = 4 + Math.floor(Math.random() * 3); // 4 to 6 pipes in sequence
+          this.curveIndex = 0;
+          this.curveDirection = Math.random() > 0.5 ? 'up' : 'down';
+          this.curveBaseHeight = this.lastTopHeight;
+          this.curveStep = 10 + Math.random() * 10;
+          
+          const stepOffset = Math.pow(1.5, this.curveIndex) * this.curveStep;
+          if (this.curveDirection === 'up') {
+            targetTopHeight = this.curveBaseHeight - stepOffset;
+          } else {
+            targetTopHeight = this.curveBaseHeight + stepOffset;
+          }
+          targetTopHeight = Math.max(margin, Math.min(margin + playableHeight, targetTopHeight));
+          
+          this.curveIndex++;
+          this.curveRemaining--;
+        } else {
+          // Standard Unpredictable Zigzag: base variation of 60%, increasing by 10% every 50 score up to 95%
+          const scoreTier = Math.floor(score / 50);
+          let baseZigzag = 0.60;
+          let alternateChance = 0.68;
+          
+          if (difficulty === 'hard') {
+            // Increase unpredictable or pattern zigzag frequency and range by 30% for hard difficulty
+            baseZigzag = Math.min(0.95, 0.60 * 1.30); // 0.78 base variation (30% increase)
+            alternateChance = Math.min(0.99, 0.68 * 1.30); // 88.4% pattern alternation frequency (30% increase)
+          }
+          
+          const zigzagFactor = Math.min(0.95, baseZigzag + scoreTier * 0.10);
+          const maxStep = playableHeight * zigzagFactor;
+          
+          // Active bias to force height alternation in opposite vertical halves
+          const forceAlternate = Math.random() < alternateChance;
+          let minVal = Math.max(margin, this.lastTopHeight - maxStep);
+          let maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
+          
+          if (forceAlternate) {
+            const isHigh = this.lastTopHeight > margin + playableHeight * 0.5;
+            if (isHigh) {
+              maxVal = Math.min(maxVal, margin + playableHeight * 0.45);
+            } else {
+              minVal = Math.max(minVal, margin + playableHeight * 0.55);
+            }
+            if (minVal > maxVal) {
+              minVal = Math.max(margin, this.lastTopHeight - maxStep);
+              maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
+            }
+          }
+
+          targetTopHeight = minVal + Math.random() * (maxVal - minVal);
+        }
       }
 
       topHeight = targetTopHeight;
