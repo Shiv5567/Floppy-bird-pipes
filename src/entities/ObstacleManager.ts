@@ -210,24 +210,13 @@ export class ObstacleManager {
           this.nextSpawnDistance = 330; // larger smooth gap section
         }
       } else if (zone === 'classic') {
-        const lastObs = this.list[this.list.length - 1];
-        if (lastObs && lastObs.isCavern) {
-          // If we just spawned a cavern obstacle, use tight spacing
-          const baseClassicDistance = 165;
-          if (difficulty === 'easy') {
-            this.nextSpawnDistance = baseClassicDistance * 1.20;
-          } else {
-            this.nextSpawnDistance = baseClassicDistance;
-          }
+        // Standard spacious classic distance for all Classic Mode obstacles
+        const baseDistanceClassic = (width / 1.35) * 0.80;
+        const defaultDistance = baseDistanceClassic * 1.15;
+        if (difficulty === 'easy') {
+          this.nextSpawnDistance = defaultDistance * 1.20;
         } else {
-          // Otherwise, it was a standard pillar obstacle, use standard spacious classic distance
-          const baseDistanceClassic = (width / 1.35) * 0.80;
-          const defaultDistance = baseDistanceClassic * 1.15;
-          if (difficulty === 'easy') {
-            this.nextSpawnDistance = defaultDistance * 1.20;
-          } else {
-            this.nextSpawnDistance = defaultDistance;
-          }
+          this.nextSpawnDistance = defaultDistance;
         }
       } else {
         this.nextSpawnDistance = targetDistance;
@@ -271,77 +260,47 @@ export class ObstacleManager {
       rangeY = 65; // constant amplitude for cohesive wave look
       isCavernVal = false;
     } else {
-      // Classic Mode: Hybrid Selection
-      // 40% probability for a jagged cavern, 60% for a standard flat pillar
-      isCavernVal = Math.random() < 0.40;
+      // Classic Mode: Spawns flat columns or jagged caverns based on player score
+      // "jaba score 50 pugha ta jagged cavern effect start huncha 100 score sama"
+      isCavernVal = (score >= 50 && score <= 100);
 
-      if (isCavernVal) {
-        // Jagged Cavern Heartbeat / Seismograph Generator
-        // Dynamic Gap Width: randomly between a "tight squeeze" (65px) and "brief breathing room" (110px)
-        const gapHeightVal = 65 + Math.random() * 45;
-        const playableHeight = height - gapHeightVal - margin * 2;
-        let targetTopHeight = margin + Math.random() * playableHeight;
+      // Height and gap calculation (both cavern and flat pillars share the same flat column gap and unpredictable zigzag heights)
+      // "Narrow jagged cavern ko vertical gap lai flat surfaces pillars jastai rakha, ra alternative narakha"
+      const playableHeight = height - gapHeight - margin * 2;
+      let targetTopHeight = margin + Math.random() * playableHeight;
 
-        if (this.lastTopHeight !== null) {
-          // Seismograph Heartbeat logic: a high peak is immediately followed by a deep, sharp dip
-          const isLastHigh = this.lastTopHeight < margin + playableHeight * 0.5;
-          let minVal, maxVal;
-          
-          if (isLastHigh) {
-            // Last stalactite was high (top half). Force the new stalagmite to be deep low (bottom half).
-            minVal = margin + playableHeight * 0.58;
-            maxVal = margin + playableHeight * 0.95;
+      if (this.lastTopHeight !== null) {
+        const scoreTier = Math.floor(score / 50);
+        const zigzagFactor = Math.min(0.95, 0.60 + scoreTier * 0.10);
+        const maxStep = playableHeight * zigzagFactor;
+        
+        // 68% chance to actively bias the next height in the opposite vertical half of the screen
+        const forceAlternate = Math.random() < 0.68;
+        let minVal = Math.max(margin, this.lastTopHeight - maxStep);
+        let maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
+        
+        if (forceAlternate) {
+          const isHigh = this.lastTopHeight > margin + playableHeight * 0.5;
+          if (isHigh) {
+            // Last pipe was high, bias the new one to the lower screen region
+            maxVal = Math.min(maxVal, margin + playableHeight * 0.45);
           } else {
-            // Last stalactite was low (bottom half). Force the new stalagmite to be extremely high (top half).
-            minVal = margin + playableHeight * 0.05;
-            maxVal = margin + playableHeight * 0.42;
+            // Last pipe was low, bias the new one to the upper screen region
+            minVal = Math.max(minVal, margin + playableHeight * 0.55);
           }
-          
-          targetTopHeight = minVal + Math.random() * (maxVal - minVal);
+          // Safeguard bounds validity
+          if (minVal > maxVal) {
+            minVal = Math.max(margin, this.lastTopHeight - maxStep);
+            maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
+          }
         }
 
-        topHeight = targetTopHeight;
-        this.lastTopHeight = topHeight;
-        bottomHeight = height - topHeight - gapHeightVal;
-      } else {
-        // Traditional flat-surfaced columns
-        // Unpredictable Zigzag: base variation of 60%, increasing by 10% every 50 score up to 95%
-        const playableHeight = height - gapHeight - margin * 2;
-        let targetTopHeight = margin + Math.random() * playableHeight;
-
-        if (this.lastTopHeight !== null) {
-          const scoreTier = Math.floor(score / 50);
-          const zigzagFactor = Math.min(0.95, 0.60 + scoreTier * 0.10);
-          const maxStep = playableHeight * zigzagFactor;
-          
-          // 68% chance to actively bias the next height in the opposite vertical half of the screen
-          const forceAlternate = Math.random() < 0.68;
-          let minVal = Math.max(margin, this.lastTopHeight - maxStep);
-          let maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
-          
-          if (forceAlternate) {
-            const isHigh = this.lastTopHeight > margin + playableHeight * 0.5;
-            if (isHigh) {
-              // Last pipe was high, bias the new one to the lower screen region
-              maxVal = Math.min(maxVal, margin + playableHeight * 0.45);
-            } else {
-              // Last pipe was low, bias the new one to the upper screen region
-              minVal = Math.max(minVal, margin + playableHeight * 0.55);
-            }
-            // Safeguard bounds validity
-            if (minVal > maxVal) {
-              minVal = Math.max(margin, this.lastTopHeight - maxStep);
-              maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
-            }
-          }
-
-          targetTopHeight = minVal + Math.random() * (maxVal - minVal);
-        }
-
-        topHeight = targetTopHeight;
-        this.lastTopHeight = topHeight;
-        bottomHeight = height - topHeight - gapHeight;
+        targetTopHeight = minVal + Math.random() * (maxVal - minVal);
       }
+
+      topHeight = targetTopHeight;
+      this.lastTopHeight = topHeight;
+      bottomHeight = height - topHeight - gapHeight;
 
       // Keep walls static on screen in Classic Zone
       isMoving = false;
