@@ -1541,143 +1541,55 @@ export class ObstacleManager {
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    // 1. Sleek metallic dark chassis gradient (Background-friendly deep indigo-violet-black)
+    // Simple background-friendly dark metallic chassis (static linear gradient)
     const chassisGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    chassisGrad.addColorStop(0, '#070312');
-    chassisGrad.addColorStop(0.3, '#100824');
-    chassisGrad.addColorStop(0.7, '#160c30');
-    chassisGrad.addColorStop(1, '#05020d');
+    chassisGrad.addColorStop(0, '#0e0b1c');
+    chassisGrad.addColorStop(0.5, '#15102a');
+    chassisGrad.addColorStop(1, '#0e0b1c');
 
-    // 2. High-contrast neon transition stroke gradient
-    const strokeGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    strokeGrad.addColorStop(0, '#ff007f');   // Hot vaporwave pink
-    strokeGrad.addColorStop(0.5, '#a855f7'); // Neon purple
-    strokeGrad.addColorStop(1, '#00f3ff');   // Electric cyan
-
-    ctx.lineWidth = 2.5;
+    ctx.fillStyle = chassisGrad;
+    ctx.strokeStyle = '#8a2be2'; // Background-friendly static neon violet outline
+    ctx.lineWidth = 2.0;
 
     // Draw Top Pillar Main Chassis
-    ctx.fillStyle = chassisGrad;
-    ctx.strokeStyle = strokeGrad;
-    ctx.fillRect(rx + 6, -1000, rw - 12, rTop + 1000 - 25);
-    ctx.strokeRect(rx + 6, -1000, rw - 12, rTop + 1000 - 25);
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
 
     // Draw Bottom Pillar Main Chassis
-    ctx.fillRect(rx + 6, height - rBottom + 25, rw - 12, rBottom + 1000 - 25);
-    ctx.strokeRect(rx + 6, height - rBottom + 25, rw - 12, rBottom + 1000 - 25);
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
-    // 3. Glowing central energy conduit
-    const conduitX = rx + rw * 0.42;
-    const conduitW = rw * 0.16;
-    const conduitGrad = ctx.createLinearGradient(conduitX, 0, conduitX + conduitW, 0);
-    conduitGrad.addColorStop(0, 'rgba(0, 243, 255, 0.85)');
-    conduitGrad.addColorStop(0.5, '#ffffff');
-    conduitGrad.addColorStop(1, 'rgba(255, 0, 127, 0.85)');
+    // Simple flat structural joint caps at the safe borders
+    ctx.fillStyle = '#8a2be2';
+    ctx.fillRect(rx, rTop - 8, rw, 8);
+    ctx.fillRect(rx, height - rBottom, rw, 8);
 
-    ctx.fillStyle = conduitGrad;
-    ctx.fillRect(conduitX, -1000, conduitW, rTop + 1000 - 25);
-    ctx.fillRect(conduitX, height - rBottom + 25, conduitW, rBottom + 1000 - 25);
-
-    // 4. Subtle cyber grid division panels
-    ctx.strokeStyle = 'rgba(168, 85, 247, 0.12)';
-    ctx.lineWidth = 1.0;
+    // Simple static cyber panel divisions for "structured" look (very low performance footprint, no lights)
+    ctx.strokeStyle = 'rgba(138, 43, 226, 0.35)';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    for (let y = rTop - 200; y < rTop - 25; y += 40) {
-      ctx.moveTo(rx + 6, y);
-      ctx.lineTo(rx + rw - 6, y);
-    }
-    for (let y = height - rBottom + 25; y < height - rBottom + 200; y += 40) {
-      ctx.moveTo(rx + 6, y);
-      ctx.lineTo(rx + rw - 6, y);
-    }
+    ctx.moveTo(rx, rTop - 45);
+    ctx.lineTo(rx + rw, rTop - 45);
+    ctx.moveTo(rx, rTop - 90);
+    ctx.lineTo(rx + rw, rTop - 90);
+    ctx.moveTo(rx, height - rBottom + 45);
+    ctx.lineTo(rx + rw, height - rBottom + 45);
+    ctx.moveTo(rx, height - rBottom + 90);
+    ctx.lineTo(rx + rw, height - rBottom + 90);
     ctx.stroke();
 
-    // 5. Animated traveling horizontal indicator lightbands (waveTime-driven pulsing waves)
-    const numBands = 4;
-    for (let j = 0; j < numBands; j++) {
-      // Top column indicator bands
-      const yTop = rTop - 55 - j * 45;
-      const pulseTop = Math.max(0.1, Math.sin(this.waveTime * 5.0 - j * 1.2));
-      ctx.fillStyle = `rgba(0, 243, 255, ${0.15 + 0.55 * pulseTop})`;
-      ctx.fillRect(rx + 6, yTop - 3, rw - 12, 6);
-      ctx.fillStyle = `rgba(255, 0, 127, ${0.2 + 0.6 * pulseTop})`;
-      ctx.fillRect(rx + rw * 0.3, yTop - 2, rw * 0.4, 4);
-
-      // Bottom column indicator bands
-      const yBottom = height - rBottom + 55 + j * 45;
-      const pulseBottom = Math.max(0.1, Math.sin(this.waveTime * 5.0 - j * 1.2));
-      ctx.fillStyle = `rgba(0, 243, 255, ${0.15 + 0.55 * pulseBottom})`;
-      ctx.fillRect(rx + 6, yBottom - 3, rw - 12, 6);
-      ctx.fillStyle = `rgba(255, 0, 127, ${0.2 + 0.6 * pulseBottom})`;
-      ctx.fillRect(rx + rw * 0.3, yBottom - 2, rw * 0.4, 4);
-    }
-
-    // 6. Layered Sci-Fi Capacitor Caps and Emitters
-    // TOP CAP: Stepped sci-fi plate
-    ctx.fillStyle = '#1b162e'; // dark carbon capacitor plate
-    ctx.strokeStyle = '#a855f7';
-    ctx.lineWidth = 2.0;
-    // 1. Carbon base plate
-    ctx.fillRect(rx - 4, rTop - 25, rw + 8, 12);
-    ctx.strokeRect(rx - 4, rTop - 25, rw + 8, 12);
-    // 2. High-energy emitter collar
-    const collarGradTop = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    collarGradTop.addColorStop(0, '#ff007f');
-    collarGradTop.addColorStop(1, '#00f3ff');
-    ctx.fillStyle = collarGradTop;
-    ctx.fillRect(rx, rTop - 13, rw, 13);
-    ctx.strokeRect(rx, rTop - 13, rw, 13);
-    // 3. Glowing neon tip reactor core
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(rx + rw * 0.35, rTop - 4, rw * 0.3, 4);
-
-    // BOTTOM CAP: Stepped sci-fi plate
-    ctx.fillStyle = '#1b162e';
-    ctx.strokeStyle = '#00f3ff';
-    ctx.lineWidth = 2.0;
-    // 1. Carbon base plate
-    ctx.fillRect(rx - 4, height - rBottom + 13, rw + 8, 12);
-    ctx.strokeRect(rx - 4, height - rBottom + 13, rw + 8, 12);
-    // 2. High-energy emitter collar
-    const collarGradBottom = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    collarGradBottom.addColorStop(0, '#ff007f');
-    collarGradBottom.addColorStop(1, '#00f3ff');
-    ctx.fillStyle = collarGradBottom;
-    ctx.fillRect(rx, height - rBottom, rw, 13);
-    ctx.strokeRect(rx, height - rBottom, rw, 13);
-    // 3. Glowing neon tip reactor core
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(rx + rw * 0.35, height - rBottom, rw * 0.3, 4);
-
-    // Glowing rivets details on carbon plates
-    ctx.fillStyle = '#00f3ff';
-    ctx.beginPath();
-    ctx.arc(rx + 2, rTop - 19, 2.5, 0, Math.PI * 2);
-    ctx.arc(rx + rw - 2, rTop - 19, 2.5, 0, Math.PI * 2);
-    ctx.arc(rx + 2, height - rBottom + 19, 2.5, 0, Math.PI * 2);
-    ctx.arc(rx + rw - 2, height - rBottom + 19, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 7. Background-Friendly Cyberpunk Laser rendering
+    // Standard Cyberpunk Laser (simple flat rendering, no complex transparency overlays)
     if (obs.isLaser) {
       if (obs.laserActive) {
-        // Outer neon magenta laser glow field
-        ctx.fillStyle = 'rgba(255, 0, 127, 0.32)';
-        ctx.fillRect(rx + rw * 0.36, rTop, rw * 0.28, height - rTop - rBottom);
-
-        // Core laser beam
-        ctx.fillStyle = 'rgba(255, 0, 127, 0.9)';
+        ctx.fillStyle = 'rgba(255, 0, 127, 0.85)'; // Solid pink laser
         ctx.fillRect(rx + rw * 0.42, rTop, rw * 0.16, height - rTop - rBottom);
-
-        // Pure white high-energy core
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = '#ffffff'; // White core
         ctx.fillRect(rx + rw * 0.46, rTop, rw * 0.08, height - rTop - rBottom);
       } else {
-        // Soft pulsing magenta warning indicator line
-        const pulseAlpha = 0.2 + 0.25 * Math.sin(this.waveTime * 8);
-        ctx.strokeStyle = `rgba(255, 0, 127, ${pulseAlpha})`;
-        ctx.lineWidth = 2.0;
-        ctx.setLineDash([6, 6]);
+        // Dotted warning line
+        ctx.strokeStyle = 'rgba(255, 0, 127, 0.45)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([5, 5]);
         ctx.beginPath();
         ctx.moveTo(rx + rw * 0.5, rTop);
         ctx.lineTo(rx + rw * 0.5, height - rBottom);
@@ -1875,41 +1787,7 @@ export class ObstacleManager {
     ctx.fillRect(rx, height - rBottom + 30, rw, rBottom + 1000 - 30);
     ctx.strokeRect(rx, height - rBottom + 30, rw, rBottom + 1000 - 30);
 
-    // 1. Layered "Environment-Friendly" Cosmic Solar Wings / Energy Flanges
-    // Side panels that act as starry vacuum energy harvesters
-    ctx.fillStyle = 'rgba(168, 85, 247, 0.2)';
-    ctx.strokeStyle = '#ec4899'; // Pink neon energy outline
-    ctx.lineWidth = 1.5;
-
-    // Top column panels
-    ctx.beginPath();
-    ctx.moveTo(rx - 15, rTop - 120); ctx.lineTo(rx, rTop - 100); ctx.lineTo(rx, rTop - 140); ctx.closePath();
-    ctx.fill(); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(rx + rw + 15, rTop - 120); ctx.lineTo(rx + rw, rTop - 100); ctx.lineTo(rx + rw, rTop - 140); ctx.closePath();
-    ctx.fill(); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(rx - 15, rTop - 60); ctx.lineTo(rx, rTop - 40); ctx.lineTo(rx, rTop - 80); ctx.closePath();
-    ctx.fill(); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(rx + rw + 15, rTop - 60); ctx.lineTo(rx + rw, rTop - 40); ctx.lineTo(rx + rw, rTop - 80); ctx.closePath();
-    ctx.fill(); ctx.stroke();
-
-    // Bottom column panels
-    ctx.beginPath();
-    ctx.moveTo(rx - 15, height - rBottom + 120); ctx.lineTo(rx, height - rBottom + 100); ctx.lineTo(rx, height - rBottom + 140); ctx.closePath();
-    ctx.fill(); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(rx + rw + 15, height - rBottom + 120); ctx.lineTo(rx + rw, height - rBottom + 100); ctx.lineTo(rx + rw, height - rBottom + 140); ctx.closePath();
-    ctx.fill(); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(rx - 15, height - rBottom + 60); ctx.lineTo(rx, height - rBottom + 40); ctx.lineTo(rx, height - rBottom + 80); ctx.closePath();
-    ctx.fill(); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(rx + rw + 15, height - rBottom + 60); ctx.lineTo(rx + rw, height - rBottom + 40); ctx.lineTo(rx + rw, height - rBottom + 80); ctx.closePath();
-    ctx.fill(); ctx.stroke();
-
-    // 2. Central glowing quantum energy conduits
+    // 1. Central glowing quantum energy conduits
     ctx.save();
     ctx.fillStyle = '#3b82f6'; // Bright blue core
     if (!(window as any).gameDisableShadows) {
@@ -1920,7 +1798,7 @@ export class ObstacleManager {
     ctx.fillRect(rx + rw * 0.42, height - rBottom + 30, rw * 0.16, rBottom + 1000 - 30);
     ctx.restore();
 
-    // 3. Stepped warp-gate node capitals at safe boundaries
+    // 2. Stepped warp-gate node capitals at safe boundaries
     const nodeGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
     nodeGrad.addColorStop(0, '#a855f7');
     nodeGrad.addColorStop(0.5, '#ffffff'); // bright core
