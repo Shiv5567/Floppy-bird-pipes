@@ -555,12 +555,13 @@ export class UIManager {
 
       case 'worlds': {
         const worldColors: Record<string, string> = {
-          jungle: '#00c853', cyberpunk: '#7c4dff', ice: '#40c4ff',
+          jungle: '#00c853', jungle_temple: '#2e7d32', cyberpunk: '#7c4dff', ice: '#40c4ff',
           desert: '#ffab40', volcano: '#ff3d00', space: '#651fff',
           underwater: '#0091ea', heaven: '#ffd740', retro: '#78909c'
         };
         const worlds = [
           { id: 'jungle',     name: 'Tropical Rainforest', emoji: '🌴', desc: 'Lush greenery, cascades & ancient ruins' },
+          { id: 'jungle_temple', name: 'Jungle Temple Ruins', emoji: '🛕', desc: 'Lost ancient civilization, mossy ruins & sacred golden light' },
           { id: 'cyberpunk',  name: 'Cyberpunk Neon City',  emoji: '🏙️', desc: 'Neon lights, hover roads & laser grids' },
           { id: 'ice',        name: 'Frozen Ice Kingdom',   emoji: '❄️', desc: 'Sub-zero snowstorms & giant icicles' },
           { id: 'desert',     name: 'Ancient Desert Ruins', emoji: '🏜️', desc: 'Swirling dust & golden sandstone obelisks' },
@@ -1060,6 +1061,7 @@ export class UIManager {
 
     const bossNames: Record<string, string> = {
       jungle: 'Canopy Harpy',
+      jungle_temple: 'Sentinel Golem Mask',
       cyberpunk: 'Nexus Interceptor',
       ice: 'Glacial Frost Wyrm',
       desert: 'Obelisk Sphinx',

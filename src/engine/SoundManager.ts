@@ -187,6 +187,9 @@ export class SoundManager {
     if (worldId === 'cyberpunk') {
       tempo = 125;
       baseNotes = [73.42, 82.41, 110.00, 97.99]; // Cyber D-E-A-G bass
+    } else if (worldId === 'jungle_temple') {
+      tempo = 102;
+      baseNotes = [110.00, 130.81, 146.83, 164.81]; // Mysterious adventure A-C-D-E bass
     } else if (worldId === 'ice') {
       tempo = 95;
       baseNotes = [130.81, 146.83, 164.81, 196.00]; // Cold C-D-E-G bass

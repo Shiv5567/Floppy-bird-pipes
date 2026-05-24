@@ -1,7 +1,7 @@
 import { ParticleEngine } from './ParticleEngine.ts';
 
 export interface WeatherConfig {
-  type: 'clear' | 'rain' | 'snow' | 'sandstorm' | 'lava' | 'underwater' | 'fog' | 'heavenly';
+  type: 'clear' | 'rain' | 'snow' | 'sandstorm' | 'lava' | 'underwater' | 'fog' | 'heavenly' | 'jungle_fog';
   windSpeed: number;
   density: number;
   lightning: boolean;
@@ -66,6 +66,9 @@ export class Renderer {
       case 'jungle':
         this.weather = { type: 'rain', windSpeed: 1, density: 40, lightning: true };
         break;
+      case 'jungle_temple':
+        this.weather = { type: 'jungle_fog', windSpeed: 0.1, density: 30, lightning: false };
+        break;
       case 'cyberpunk':
         this.weather = { type: 'fog', windSpeed: 0.2, density: 10, lightning: false };
         break;
@@ -108,6 +111,15 @@ export class Renderer {
             dy += Math.sin(lookupX * 0.003 * (4 - layer)) * 80 * (4 - layer);
             dy += Math.sin(lookupX * 0.015) * 8;
             break;
+          case 'jungle_temple': {
+            const templeSeed = Math.floor(lookupX / 140);
+            const steppedHeight = (Math.sin(templeSeed * 789.1) * 0.5 + 0.5);
+            dy -= steppedHeight * 80 * (4 - layer);
+            if (lookupX % 140 < 20) {
+              dy -= 35;
+            }
+            break;
+          }
           case 'cyberpunk': {
             const buildingSeed = Math.floor(lookupX / 80);
             const heightFactor = (Math.sin(buildingSeed * 1234.5) * 0.5 + 0.5);
@@ -376,6 +388,54 @@ export class Renderer {
           );
           break;
         }
+        case 'jungle_fog': {
+          if (Math.random() < 0.45) {
+            this.particleEngine.spawn(
+              Math.random() * width,
+              height + 10,
+              (Math.random() - 0.5) * 1.5 - this.currentSpeed * 0.15,
+              -0.8 - Math.random() * 1.5,
+              'rgba(255, 215, 0, 0.85)',
+              2.0 + Math.random() * 2.5,
+              0.85,
+              0.008,
+              'bubble',
+              true,
+              'rgba(255, 170, 0, 0.5)'
+            );
+          }
+          if (Math.random() < 0.28) {
+            const windShift = Math.sin(this.weatherTime * 0.8) * 1.2 - this.currentSpeed * 0.25;
+            this.particleEngine.spawn(
+              Math.random() * (width + 200) - 100,
+              -10,
+              windShift,
+              1.2 + Math.random() * 2.0,
+              'rgba(34, 139, 34, 0.75)',
+              3.0 + Math.random() * 4.0,
+              0.85,
+              0.005,
+              'snowflake'
+            );
+          }
+          if (Math.random() < 0.15) {
+            this.particleEngine.spawn(
+              Math.random() * width,
+              height - Math.random() * 40,
+              -this.currentSpeed * 0.25,
+              -0.2 - Math.random() * 0.5,
+              'rgba(255, 255, 255, 0.12)',
+              20.0 + Math.random() * 30.0,
+              0.5,
+              0.008,
+              'circle',
+              false,
+              undefined,
+              0.15
+            );
+          }
+          break;
+        }
       }
     }
   }
@@ -393,6 +453,10 @@ export class Renderer {
       case 'jungle':
         skyGrad.addColorStop(0, '#001a11');
         skyGrad.addColorStop(1, '#0c3527');
+        break;
+      case 'jungle_temple':
+        skyGrad.addColorStop(0, '#001208');
+        skyGrad.addColorStop(1, '#123c26');
         break;
       case 'cyberpunk':
         skyGrad.addColorStop(0, '#04001a');
@@ -551,6 +615,39 @@ export class Renderer {
         this.ctx.restore();
         break;
       }
+      case 'jungle_temple': {
+        const rayGrad = this.ctx.createRadialGradient(0, 0, 50, 0, 0, 500);
+        rayGrad.addColorStop(0, 'rgba(255, 223, 137, 0.22)');
+        rayGrad.addColorStop(0.6, 'rgba(18, 60, 38, 0.12)');
+        rayGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        this.ctx.fillStyle = rayGrad;
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, 650, 0, Math.PI * 0.5, false);
+        this.ctx.fill();
+        
+        this.ctx.save();
+        this.ctx.globalCompositeOperation = 'screen';
+        
+        const numRays = 3;
+        for (let i = 0; i < numRays; i++) {
+          const rayAngle = Math.sin(this.weatherTime * 0.12 + i * 2.2) * 0.14 + 0.65 + (i * 0.28);
+          const rayWidth = 0.07 + Math.sin(this.weatherTime * 0.3 + i) * 0.025;
+          
+          const grad = this.ctx.createLinearGradient(0, 0, width, height);
+          grad.addColorStop(0, 'rgba(255, 235, 180, 0.16)');
+          grad.addColorStop(1, 'rgba(12, 53, 39, 0.0)');
+          
+          this.ctx.fillStyle = grad;
+          this.ctx.beginPath();
+          this.ctx.moveTo(0, 0);
+          this.ctx.lineTo(Math.cos(rayAngle - rayWidth) * width * 1.5, Math.sin(rayAngle - rayWidth) * height * 1.5);
+          this.ctx.lineTo(Math.cos(rayAngle + rayWidth) * width * 1.5, Math.sin(rayAngle + rayWidth) * height * 1.5);
+          this.ctx.closePath();
+          this.ctx.fill();
+        }
+        this.ctx.restore();
+        break;
+      }
     }
     this.ctx.restore();
   }
@@ -615,6 +712,12 @@ export class Renderer {
           '#0c2a1c', // Layer 1 (Furthest)
           '#081e13', // Layer 2
           '#05120a'  // Layer 3 (Closest)
+        ][layer - 1];
+      case 'jungle_temple':
+        return [
+          '#081a0f',
+          '#051109',
+          '#020804'
         ][layer - 1];
 
       case 'cyberpunk':
@@ -742,6 +845,7 @@ export class Renderer {
     else if (worldId === 'volcano') glowColor = 'rgba(255, 69, 0, 0.15)';
     else if (worldId === 'heaven') glowColor = 'rgba(255, 223, 137, 0.15)';
     else if (worldId === 'ice') glowColor = 'rgba(0, 243, 255, 0.08)';
+    else if (worldId === 'jungle_temple') glowColor = 'rgba(212, 175, 55, 0.12)';
 
     const glowGrad = this.ctx.createRadialGradient(width * 0.5, height * 0.5, 100, width * 0.5, height * 0.5, width * 0.6);
     glowGrad.addColorStop(0, glowColor);
@@ -755,6 +859,7 @@ export class Renderer {
     if (worldId === 'volcano') filterColor = 'rgba(255, 230, 220, 1.0)';
     else if (worldId === 'ice') filterColor = 'rgba(220, 245, 255, 1.0)';
     else if (worldId === 'cyberpunk') filterColor = 'rgba(240, 220, 255, 1.0)';
+    else if (worldId === 'jungle_temple') filterColor = 'rgba(235, 255, 240, 1.0)';
 
     this.ctx.fillStyle = filterColor;
     this.ctx.fillRect(0, 0, width, height);

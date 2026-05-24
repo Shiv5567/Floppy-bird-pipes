@@ -260,6 +260,23 @@ export class BossManager {
         }
         break;
       }
+      case 'jungle_temple': {
+        for (let i = -1; i <= 1; i++) {
+          const spreadAngle = 0.20 * i;
+          const rx = vx * Math.cos(spreadAngle) - vy * Math.sin(spreadAngle);
+          const ry = vx * Math.sin(spreadAngle) + vy * Math.cos(spreadAngle);
+          this.projectiles.push({
+            x: this.bossX - 40,
+            y: this.bossY,
+            vx: rx * 0.90,
+            vy: ry * 0.90,
+            radius: 8.0,
+            color: '#ffd700',
+            glowColor: '#ffaa00'
+          });
+        }
+        break;
+      }
 
       case 'cyberpunk': {
         // Dual rapid neon bolts tracking bird
@@ -502,6 +519,8 @@ export class BossManager {
 
     if (this.worldId === 'cyberpunk') {
       this.drawCyberBoss(ctx);
+    } else if (this.worldId === 'jungle_temple') {
+      this.drawJungleTempleBoss(ctx);
     } else if (this.worldId === 'volcano') {
       this.drawLavaBoss(ctx);
     } else if (this.worldId === 'ice') {
@@ -724,6 +743,104 @@ export class BossManager {
     ctx.beginPath();
     ctx.arc(18, -10, 5, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  private drawJungleTempleBoss(ctx: CanvasRenderingContext2D) {
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = '#ffd700';
+    }
+
+    ctx.fillStyle = '#d4af37';
+    ctx.strokeStyle = '#3a2503';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    const numRays = 8;
+    for (let i = 0; i < numRays; i++) {
+      const angle = (Math.PI / (numRays - 1)) * i - Math.PI;
+      const rxOuter = Math.cos(angle) * 65;
+      const ryOuter = Math.sin(angle) * 65;
+      const rxInner1 = Math.cos(angle - 0.25) * 35;
+      const ryInner1 = Math.sin(angle - 0.25) * 35;
+      const rxInner2 = Math.cos(angle + 0.25) * 35;
+      const ryInner2 = Math.sin(angle + 0.25) * 35;
+
+      ctx.moveTo(rxInner1, ryInner1);
+      ctx.lineTo(rxOuter, ryOuter);
+      ctx.lineTo(rxInner2, ryInner2);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    const stoneGrad = ctx.createLinearGradient(-35, -35, 35, 35);
+    stoneGrad.addColorStop(0, '#5a6b5c');
+    stoneGrad.addColorStop(0.6, '#3a473b');
+    stoneGrad.addColorStop(1, '#1b241e');
+
+    ctx.fillStyle = stoneGrad;
+    ctx.strokeStyle = '#0e120f';
+    ctx.lineWidth = 3.0;
+
+    ctx.beginPath();
+    ctx.moveTo(-25, -45);
+    ctx.lineTo(25, -45);
+    ctx.lineTo(40, -15);
+    ctx.lineTo(35, 25);
+    ctx.lineTo(0, 48);
+    ctx.lineTo(-35, 25);
+    ctx.lineTo(-40, -15);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(34, 139, 34, 0.45)';
+    ctx.beginPath();
+    ctx.moveTo(-25, -43);
+    ctx.lineTo(25, -43);
+    ctx.lineTo(35, -20);
+    ctx.lineTo(-35, -20);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = '#0e120f';
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    ctx.moveTo(-15, 10);
+    ctx.lineTo(-28, 18);
+    ctx.lineTo(-32, 5);
+    ctx.moveTo(10, -25);
+    ctx.lineTo(28, -35);
+    ctx.stroke();
+
+    ctx.fillStyle = '#ff9900';
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = '#ff5500';
+    }
+    ctx.beginPath();
+    ctx.arc(-16, -12, 6, 0, Math.PI * 2);
+    ctx.arc(16, -12, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+    ctx.save();
+    ctx.strokeStyle = '#0e120f';
+    ctx.lineWidth = 1.5;
+    ctx.fillStyle = '#4c574d';
+    
+    const numDebris = 3;
+    for (let i = 0; i < numDebris; i++) {
+      const angle = this.timer * 2.8 + (i * (Math.PI * 2 / numDebris));
+      const dx = Math.cos(angle) * 78;
+      const dy = Math.sin(angle) * 40;
+      
+      ctx.beginPath();
+      ctx.rect(dx - 5, dy - 5, 10, 10);
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.restore();
   }
 
   // Visual themed boss vector graphics for remaining worlds (Visual Weather & Aura Pack)

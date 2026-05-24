@@ -547,6 +547,11 @@ export class ObstacleManager {
             colorBottom = '#3c3d33';
             outlineColor = '#181914';
             break;
+          case 'jungle_temple':
+            colorTop = '#3a533c';
+            colorBottom = '#243325';
+            outlineColor = '#0b130c';
+            break;
           case 'cyberpunk':
             colorTop = '#ff007f';
             colorBottom = '#00f3ff';
@@ -595,6 +600,9 @@ export class ObstacleManager {
           case 'jungle':
             this.drawStructuredJunglePillars(ctx, obs, height);
             break;
+          case 'jungle_temple':
+            this.drawStructuredJungleTemplePillars(ctx, obs, height);
+            break;
           case 'cyberpunk':
             this.drawStructuredCyberpunkPillars(ctx, obs, height);
             break;
@@ -626,6 +634,9 @@ export class ObstacleManager {
         switch (obs.worldId) {
           case 'jungle':
             this.drawJunglePillars(ctx, obs, height);
+            break;
+          case 'jungle_temple':
+            this.drawJungleTemplePillars(ctx, obs, height);
             break;
           case 'cyberpunk':
             this.drawCyberpunkPillars(ctx, obs, height);
@@ -1825,5 +1836,165 @@ export class ObstacleManager {
     ctx.fillStyle = '#fcd34d';
     ctx.fillRect(rx - 8, rTop - 16, rw + 16, 16);
     ctx.fillRect(rx - 8, height - rBottom, rw + 16, 16);
+  }
+
+  // Draw Jungle Temple Pillars (Standard & Mutated)
+  private drawJungleTemplePillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
+
+    const stoneGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    stoneGrad.addColorStop(0, '#384339');
+    stoneGrad.addColorStop(0.3, '#5c6b5d');
+    stoneGrad.addColorStop(0.7, '#434e44');
+    stoneGrad.addColorStop(1, '#1e241f');
+
+    ctx.fillStyle = stoneGrad;
+    ctx.strokeStyle = '#0e120f';
+    ctx.lineWidth = 3.0;
+
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    ctx.strokeStyle = '#0e120f';
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    ctx.moveTo(rx, rTop - 60);
+    ctx.lineTo(rx + rw * 0.4, rTop - 45);
+    ctx.lineTo(rx + rw * 0.35, rTop - 90);
+    ctx.moveTo(rx + rw * 0.6, rTop - 120);
+    ctx.lineTo(rx + rw, rTop - 140);
+    ctx.moveTo(rx, height - rBottom + 80);
+    ctx.lineTo(rx + rw * 0.5, height - rBottom + 60);
+    ctx.lineTo(rx + rw * 0.7, height - rBottom + 110);
+    ctx.stroke();
+
+    ctx.save();
+    if (obs.isMutated) {
+      ctx.strokeStyle = '#00ffaa';
+      if (!(window as any).gameDisableShadows) {
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#00ffaa';
+      }
+      ctx.lineWidth = 2.5;
+    } else {
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 1.8;
+    }
+
+    ctx.beginPath();
+    ctx.arc(rx + rw * 0.5, rTop - 80, 12, 0, Math.PI * 2);
+    ctx.moveTo(rx + rw * 0.35, rTop - 80);
+    ctx.lineTo(rx + rw * 0.65, rTop - 80);
+    ctx.moveTo(rx + rw * 0.5, rTop - 95);
+    ctx.lineTo(rx + rw * 0.5, rTop - 65);
+    ctx.arc(rx + rw * 0.5, height - rBottom + 80, 12, 0, Math.PI * 2);
+    ctx.moveTo(rx + rw * 0.35, height - rBottom + 80);
+    ctx.lineTo(rx + rw * 0.65, height - rBottom + 80);
+    ctx.moveTo(rx + rw * 0.5, height - rBottom + 65);
+    ctx.lineTo(rx + rw * 0.5, height - rBottom + 95);
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.strokeStyle = '#1b4d22';
+    ctx.lineWidth = 3.0;
+    ctx.beginPath();
+    ctx.moveTo(rx - 2, rTop - 10);
+    ctx.quadraticCurveTo(rx + rw * 0.4, rTop - 30, rx + rw * 0.7, rTop - 15);
+    ctx.quadraticCurveTo(rx + rw * 0.9, rTop - 2, rx + rw + 2, rTop - 25);
+    ctx.moveTo(rx - 2, height - rBottom + 25);
+    ctx.quadraticCurveTo(rx + rw * 0.3, height - rBottom + 10, rx + rw * 0.6, height - rBottom + 30);
+    ctx.quadraticCurveTo(rx + rw * 0.8, height - rBottom + 45, rx + rw + 2, height - rBottom + 15);
+    ctx.stroke();
+
+    ctx.fillStyle = '#2d7a3c';
+    ctx.beginPath();
+    ctx.arc(rx + 15, rTop - 26, 6, 0, Math.PI * 2);
+    ctx.arc(rx + 35, rTop - 22, 5, 0, Math.PI * 2);
+    ctx.arc(rx + rw - 20, rTop - 16, 6, 0, Math.PI * 2);
+    ctx.arc(rx + 25, height - rBottom + 20, 5, 0, Math.PI * 2);
+    ctx.arc(rx + rw - 30, height - rBottom + 32, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#3a2212';
+    ctx.fillRect(rx, rTop - 12, rw, 12);
+    ctx.fillRect(rx, height - rBottom, rw, 12);
+  }
+
+  // Draw Jungle Temple Structured Stepped Pillars (Score 50-70)
+  private drawStructuredJungleTemplePillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
+
+    const stoneGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    stoneGrad.addColorStop(0, '#2d382f');
+    stoneGrad.addColorStop(0.3, '#435446');
+    stoneGrad.addColorStop(0.7, '#344237');
+    stoneGrad.addColorStop(1, '#1b241e');
+
+    ctx.fillStyle = stoneGrad;
+    ctx.strokeStyle = '#0a0d0b';
+    ctx.lineWidth = 3.0;
+
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    ctx.strokeStyle = '#122616';
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    for (let y = rTop - 150; y < rTop - 20; y += 45) {
+      ctx.moveTo(rx, y);
+      ctx.lineTo(rx + rw, y);
+    }
+    for (let y = height - rBottom + 45; y < height - rBottom + 150; y += 45) {
+      ctx.moveTo(rx, y);
+      ctx.lineTo(rx + rw, y);
+    }
+    ctx.stroke();
+
+    ctx.fillStyle = '#d4af37';
+    ctx.fillRect(rx + rw * 0.42, rTop - 120, rw * 0.16, 12);
+    ctx.fillRect(rx + rw * 0.42, rTop - 75, rw * 0.16, 12);
+    ctx.fillRect(rx + rw * 0.42, height - rBottom + 70, rw * 0.16, 12);
+    ctx.fillRect(rx + rw * 0.42, height - rBottom + 115, rw * 0.16, 12);
+
+    const goldGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    goldGrad.addColorStop(0, '#cda225');
+    goldGrad.addColorStop(0.5, '#fef08a');
+    goldGrad.addColorStop(1, '#aa7e18');
+    ctx.fillStyle = goldGrad;
+    ctx.strokeStyle = '#0a0d0b';
+    ctx.lineWidth = 2.5;
+
+    ctx.fillRect(rx - 8, rTop - 36, rw + 16, 12);
+    ctx.strokeRect(rx - 8, rTop - 36, rw + 16, 12);
+    ctx.fillRect(rx - 4, rTop - 24, rw + 8, 12);
+    ctx.strokeRect(rx - 4, rTop - 24, rw + 8, 12);
+    ctx.fillRect(rx - 1, rTop - 12, rw + 2, 12);
+    ctx.strokeRect(rx - 1, rTop - 12, rw + 2, 12);
+
+    ctx.fillRect(rx - 8, height - rBottom + 24, rw + 16, 12);
+    ctx.strokeRect(rx - 8, height - rBottom + 24, rw + 16, 12);
+    ctx.fillRect(rx - 4, height - rBottom + 12, rw + 8, 12);
+    ctx.strokeRect(rx - 4, height - rBottom + 12, rw + 8, 12);
+    ctx.fillRect(rx - 1, height - rBottom, rw + 2, 12);
+    ctx.strokeRect(rx - 1, height - rBottom, rw + 2, 12);
+
+    ctx.strokeStyle = '#22542a';
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    ctx.moveTo(rx - 8, rTop - 30);
+    ctx.lineTo(rx + rw + 8, rTop - 30);
+    ctx.moveTo(rx - 8, height - rBottom + 30);
+    ctx.lineTo(rx + rw + 8, height - rBottom + 30);
+    ctx.stroke();
   }
 }
