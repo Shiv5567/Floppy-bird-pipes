@@ -911,10 +911,16 @@ body, html {
   flex-direction: column;
   gap: 8px;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y !important;
   min-height: 0;
   /* Hide scrollbar on mobile but keep functional */
   scrollbar-width: thin;
   scrollbar-color: rgba(255,255,255,0.12) transparent;
+}
+
+.tab-content-area,
+.tab-content-area * {
+  touch-action: pan-y !important;
 }
 
 .tab-content-area::-webkit-scrollbar {
