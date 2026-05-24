@@ -124,7 +124,30 @@ export class ObstacleManager {
       obs.x -= actualScrollSpeed;
 
       // Handle vertical moving pillars per Zone with progressive speed & range scaling
-      if (zone === 'vertical') {
+      if (difficulty === 'hard') {
+        // Chaotic unpredictable "flying" behavior: instant up and down jumps, no continuous pattern
+        if (Math.random() < 0.05 * dtCoeff) {
+          obs.movingDir = Math.random() > 0.5 ? 1 : -1;
+        }
+        const chaoticStep = (1.5 + Math.random() * 3.5) * obs.speedY * obs.movingDir * dtCoeff;
+        obs.topHeight += chaoticStep;
+        obs.bottomHeight -= chaoticStep;
+
+        // 3% chance per frame for sudden instant vertical teleport/jitter
+        if (Math.random() < 0.03 * dtCoeff) {
+          const teleportAmt = (Math.random() - 0.5) * obs.rangeY * 1.5;
+          obs.topHeight = obs.initialTopHeight + teleportAmt;
+          obs.bottomHeight = obs.initialBottomHeight - teleportAmt;
+        }
+
+        // Clamp to physical ranges
+        const topDiff = obs.topHeight - obs.initialTopHeight;
+        if (Math.abs(topDiff) > obs.rangeY * 1.5) {
+          obs.movingDir *= -1;
+          obs.topHeight = obs.initialTopHeight + Math.sign(topDiff) * obs.rangeY * 1.5;
+          obs.bottomHeight = obs.initialBottomHeight - Math.sign(topDiff) * obs.rangeY * 1.5;
+        }
+      } else if (zone === 'vertical') {
         // Use stored frequency and range to prevent on-screen jitter/jump on score increment
         const frequency = obs.oscillationFrequency !== undefined ? obs.oscillationFrequency : (0.8 + 1.0 * progressRatio);
         const range = obs.oscillationRange !== undefined ? obs.oscillationRange : (obs.rangeY * (0.5 + 0.5 * progressRatio));
@@ -204,13 +227,12 @@ export class ObstacleManager {
     progressRatio = 0,
     score = 0
   ) {
-    void difficulty;
     let margin = 60;
     let topHeight = 0;
     let bottomHeight = 0;
-    let isMoving = false;
+    let isMoving = difficulty === 'hard';
     let isLaser = false;
-    let rangeY = 30 + Math.random() * 30;
+    let rangeY = difficulty === 'hard' ? 50 + Math.random() * 40 : 30 + Math.random() * 30;
 
     if (zone === 'vertical') {
       margin = 85;
