@@ -1769,44 +1769,90 @@ export class ObstacleManager {
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    // Stacked mechanical power sphere cells (Floating circular nodes!)
-    ctx.fillStyle = '#030008';
-    ctx.strokeStyle = '#a855f7'; // Purple neon
+    // Dark space-alloy obelisk body
+    const spaceGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    spaceGrad.addColorStop(0, '#020005');
+    spaceGrad.addColorStop(0.4, '#15062b');
+    spaceGrad.addColorStop(0.7, '#0d021f');
+    spaceGrad.addColorStop(1, '#000000');
+
+    ctx.fillStyle = spaceGrad;
+    ctx.strokeStyle = '#a855f7'; // Neon purple outline
     ctx.lineWidth = 2.5;
 
-    const rad = rw * 0.65;
-    const cx = rx + rw * 0.5;
+    // TOP COLUMN: Quantum Monolith (Stepped height)
+    ctx.fillRect(rx, -1000, rw, rTop + 1000 - 30);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000 - 30);
 
-    // TOP COLUMN (Floating circular plasma cells)
-    // 1. Far sphere (rTop - 120)
-    ctx.beginPath(); ctx.arc(cx, rTop - 120, rad, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    // 2. Middle sphere (rTop - 65)
-    ctx.beginPath(); ctx.arc(cx, rTop - 65, rad, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    // 3. Inner sphere (rTop - 15)
-    ctx.beginPath(); ctx.arc(cx, rTop - 15, rad, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    // BOTTOM COLUMN: Quantum Monolith
+    ctx.fillRect(rx, height - rBottom + 30, rw, rBottom + 1000 - 30);
+    ctx.strokeRect(rx, height - rBottom + 30, rw, rBottom + 1000 - 30);
 
-    // BOTTOM COLUMN
-    // 1. Far sphere (height - rBottom + 120)
-    ctx.beginPath(); ctx.arc(cx, height - rBottom + 120, rad, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    // 2. Middle sphere (height - rBottom + 65)
-    ctx.beginPath(); ctx.arc(cx, height - rBottom + 65, rad, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    // 3. Inner sphere (height - rBottom + 15)
-    ctx.beginPath(); ctx.arc(cx, height - rBottom + 15, rad, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    // 1. Layered "Environment-Friendly" Cosmic Solar Wings / Energy Flanges
+    // Side panels that act as starry vacuum energy harvesters
+    ctx.fillStyle = 'rgba(168, 85, 247, 0.2)';
+    ctx.strokeStyle = '#ec4899'; // Pink neon energy outline
+    ctx.lineWidth = 1.5;
 
-    // Starfield details inside
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(cx - 10, rTop - 65, 2, 2);
-    ctx.fillRect(cx + 8, rTop - 120, 2.5, 2.5);
-    ctx.fillRect(cx - 6, height - rBottom + 65, 2, 2);
+    // Top column panels
+    ctx.beginPath();
+    ctx.moveTo(rx - 15, rTop - 120); ctx.lineTo(rx, rTop - 100); ctx.lineTo(rx, rTop - 140); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(rx + rw + 15, rTop - 120); ctx.lineTo(rx + rw, rTop - 100); ctx.lineTo(rx + rw, rTop - 140); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(rx - 15, rTop - 60); ctx.lineTo(rx, rTop - 40); ctx.lineTo(rx, rTop - 80); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(rx + rw + 15, rTop - 60); ctx.lineTo(rx + rw, rTop - 40); ctx.lineTo(rx + rw, rTop - 80); ctx.closePath();
+    ctx.fill(); ctx.stroke();
 
-    // Glowing plasma coil ring collars
-    const ringGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    ringGrad.addColorStop(0, '#ec4899');
-    ringGrad.addColorStop(0.5, '#e0f2fe');
-    ringGrad.addColorStop(1, '#3b82f6');
-    ctx.fillStyle = ringGrad;
-    ctx.fillRect(rx - 8, rTop - 70, rw + 16, 8);
-    ctx.fillRect(rx - 8, height - rBottom + 62, rw + 16, 8);
+    // Bottom column panels
+    ctx.beginPath();
+    ctx.moveTo(rx - 15, height - rBottom + 120); ctx.lineTo(rx, height - rBottom + 100); ctx.lineTo(rx, height - rBottom + 140); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(rx + rw + 15, height - rBottom + 120); ctx.lineTo(rx + rw, height - rBottom + 100); ctx.lineTo(rx + rw, height - rBottom + 140); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(rx - 15, height - rBottom + 60); ctx.lineTo(rx, height - rBottom + 40); ctx.lineTo(rx, height - rBottom + 80); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(rx + rw + 15, height - rBottom + 60); ctx.lineTo(rx + rw, height - rBottom + 40); ctx.lineTo(rx + rw, height - rBottom + 80); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+
+    // 2. Central glowing quantum energy conduits
+    ctx.save();
+    ctx.fillStyle = '#3b82f6'; // Bright blue core
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = '#3b82f6';
+    }
+    ctx.fillRect(rx + rw * 0.42, -1000, rw * 0.16, rTop + 1000 - 30);
+    ctx.fillRect(rx + rw * 0.42, height - rBottom + 30, rw * 0.16, rBottom + 1000 - 30);
+    ctx.restore();
+
+    // 3. Stepped warp-gate node capitals at safe boundaries
+    const nodeGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    nodeGrad.addColorStop(0, '#a855f7');
+    nodeGrad.addColorStop(0.5, '#ffffff'); // bright core
+    nodeGrad.addColorStop(1, '#3b82f6');
+    ctx.fillStyle = nodeGrad;
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2.0;
+
+    // Top stepped nodes
+    ctx.fillRect(rx - 8, rTop - 30, rw + 16, 12);
+    ctx.strokeRect(rx - 8, rTop - 30, rw + 16, 12);
+    ctx.fillRect(rx - 4, rTop - 18, rw + 8, 18);
+    ctx.strokeRect(rx - 4, rTop - 18, rw + 8, 18);
+
+    // Bottom stepped nodes
+    ctx.fillRect(rx - 8, height - rBottom + 18, rw + 16, 12);
+    ctx.strokeRect(rx - 8, height - rBottom + 18, rw + 16, 12);
+    ctx.fillRect(rx - 4, height - rBottom, rw + 8, 18);
+    ctx.strokeRect(rx - 4, height - rBottom, rw + 8, 18);
   }
 
   private drawStructuredUnderwaterPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
