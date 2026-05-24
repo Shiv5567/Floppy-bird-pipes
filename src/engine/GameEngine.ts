@@ -66,7 +66,7 @@ export class GameEngine {
   };
 
   private bossWarningTimer = 0;
-  private bossScoreMilestone = 25; // Spawn a boss every 25 points!
+  private bossScoreMilestone = 50; // Spawn a boss every 50 points!
   private fpsLowFrameStreak = 0;
 
 
