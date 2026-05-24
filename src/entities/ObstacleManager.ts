@@ -1476,12 +1476,15 @@ export class ObstacleManager {
     ctx.fillRect(rx - 8, rTop - 28, rw + 16, 14);
     ctx.strokeRect(rx - 8, rTop - 28, rw + 16, 14);
     ctx.fillRect(rx - 4, rTop - 14, rw + 8, 14);
-    ctx.strokeRect(rx - 4, rTop - 14, rw + 8, 14);
+    ctx.fillRect(rx - 4, rTop - 12, rw + 8, 12);
+    ctx.strokeRect(rx - 4, rTop - 12, rw + 8, 12);
+    ctx.fillRect(rx - 8, rTop - 24, rw + 16, 12);
+    ctx.strokeRect(rx - 8, rTop - 24, rw + 16, 12);
 
-    ctx.fillRect(rx - 8, height - rBottom, rw + 16, 14);
-    ctx.strokeRect(rx - 8, height - rBottom, rw + 16, 14);
-    ctx.fillRect(rx - 4, height - rBottom + 14, rw + 8, 14);
-    ctx.strokeRect(rx - 4, height - rBottom + 14, rw + 8, 14);
+    ctx.fillRect(rx - 4, height - rBottom, rw + 8, 12);
+    ctx.strokeRect(rx - 4, height - rBottom, rw + 8, 12);
+    ctx.fillRect(rx - 8, height - rBottom + 12, rw + 16, 12);
+    ctx.strokeRect(rx - 8, height - rBottom + 12, rw + 16, 12);
   }
 
   private drawStructuredJunglePillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
@@ -1490,7 +1493,7 @@ export class ObstacleManager {
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    // Mayan ancient stepped columns
+    // Mayan ancient stepped columns - Physically stepping inward like pyramid layers
     const crystalGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
     crystalGrad.addColorStop(0, '#064e3b');
     crystalGrad.addColorStop(0.4, '#10b981');
@@ -1500,38 +1503,29 @@ export class ObstacleManager {
     ctx.strokeStyle = '#fbbf24'; // Golden outline
     ctx.lineWidth = 3;
 
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+    // TOP COLUMN: stepped Mayan jade segments
+    // 1. Wide base (to rTop - 75)
+    ctx.fillRect(rx - 10, -1000, rw + 20, rTop + 1000 - 75);
+    ctx.strokeRect(rx - 10, -1000, rw + 20, rTop + 1000 - 75);
+    // 2. Middle block (rTop - 75 to rTop - 35)
+    ctx.fillRect(rx - 4, rTop - 75, rw + 8, 40);
+    ctx.strokeRect(rx - 4, rTop - 75, rw + 8, 40);
+    // 3. Narrow block (rTop - 35 to rTop)
+    ctx.fillRect(rx + 4, rTop - 35, rw - 8, 35);
+    ctx.strokeRect(rx + 4, rTop - 35, rw - 8, 35);
 
-    // Draw stepped layers seams
-    ctx.strokeStyle = 'rgba(251, 191, 36, 0.4)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (let y = rTop - 120; y < rTop - 20; y += 30) {
-      ctx.moveTo(rx, y);
-      ctx.lineTo(rx + rw, y);
-    }
-    for (let y = height - rBottom + 30; y < height - rBottom + 120; y += 30) {
-      ctx.moveTo(rx, y);
-      ctx.lineTo(rx + rw, y);
-    }
-    ctx.stroke();
+    // BOTTOM COLUMN: stepped Mayan jade segments
+    // 1. Wide base (height - rBottom + 75 to deep offscreen)
+    ctx.fillRect(rx - 10, height - rBottom + 75, rw + 20, rBottom + 1000 - 75);
+    ctx.strokeRect(rx - 10, height - rBottom + 75, rw + 20, rBottom + 1000 - 75);
+    // 2. Middle block (height - rBottom + 35 to height - rBottom + 75)
+    ctx.fillRect(rx - 4, height - rBottom + 35, rw + 8, 40);
+    ctx.strokeRect(rx - 4, height - rBottom + 35, rw + 8, 40);
+    // 3. Narrow block (height - rBottom to height - rBottom + 35)
+    ctx.fillRect(rx + 4, height - rBottom, rw - 8, 35);
+    ctx.strokeRect(rx + 4, height - rBottom, rw - 8, 35);
 
-    // Glowing crystal shards overlay
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(rx + rw * 0.2, rTop - 40);
-    ctx.lineTo(rx + rw * 0.5, rTop - 10);
-    ctx.lineTo(rx + rw * 0.8, rTop - 40);
-    ctx.moveTo(rx + rw * 0.2, height - rBottom + 40);
-    ctx.lineTo(rx + rw * 0.5, height - rBottom + 10);
-    ctx.lineTo(rx + rw * 0.8, height - rBottom + 40);
-    ctx.stroke();
-
-    // Magical glowing golden leaves
+    // Magical glowing golden leaves overlay
     ctx.fillStyle = 'rgba(251, 191, 36, 0.9)';
     ctx.beginPath();
     ctx.arc(rx + 15, rTop + 8, 6, 0, Math.PI * 2);
@@ -1547,34 +1541,44 @@ export class ObstacleManager {
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    // Segmented high-tech reactor power conduits
-    ctx.fillStyle = '#05050a';
-    ctx.strokeStyle = '#39ff14'; // Matrix neon green
+    // Segmented high-tech reactor power conduits: Heavy bulging collars and narrow cores!
+    ctx.fillStyle = '#05050a'; // Dark chassis
+    ctx.strokeStyle = '#39ff14'; // Neon green outline
     ctx.lineWidth = 2.5;
 
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-    // Draw reactor segmented metal rings and glowing rivets
+    // TOP COLUMN: Bulging collars and narrow cores
+    // 1. Base column (to rTop - 90)
+    ctx.fillRect(rx + 6, -1000, rw - 12, rTop + 1000 - 90);
+    ctx.strokeRect(rx + 6, -1000, rw - 12, rTop + 1000 - 90);
+    // 2. Heavy bulging collar flange (rTop - 90 to rTop - 50)
     ctx.fillStyle = '#115e59';
-    ctx.strokeStyle = '#39ff14';
-    ctx.lineWidth = 1.5;
-    
-    // Draw horizontal rings
-    ctx.fillRect(rx - 4, rTop - 45, rw + 8, 12);
-    ctx.strokeRect(rx - 4, rTop - 45, rw + 8, 12);
-    ctx.fillRect(rx - 4, height - rBottom + 35, rw + 8, 12);
-    ctx.strokeRect(rx - 4, height - rBottom + 35, rw + 8, 12);
+    ctx.fillRect(rx - 8, rTop - 90, rw + 16, 40);
+    ctx.strokeRect(rx - 8, rTop - 90, rw + 16, 40);
+    // 3. Inner core cylinder (rTop - 50 to rTop)
+    ctx.fillStyle = '#05050a';
+    ctx.fillRect(rx + 6, rTop - 50, rw - 12, 50);
+    ctx.strokeRect(rx + 6, rTop - 50, rw - 12, 50);
 
-    // Glowing rivets on rings
+    // BOTTOM COLUMN: Bulging collars and narrow cores
+    // 1. Base column (height - rBottom + 90 to deep offscreen)
+    ctx.fillRect(rx + 6, height - rBottom + 90, rw - 12, rBottom + 1000 - 90);
+    ctx.strokeRect(rx + 6, height - rBottom + 90, rw - 12, rBottom + 1000 - 90);
+    // 2. Heavy bulging collar flange (height - rBottom + 50 to height - rBottom + 90)
+    ctx.fillStyle = '#115e59';
+    ctx.fillRect(rx - 8, height - rBottom + 50, rw + 16, 40);
+    ctx.strokeRect(rx - 8, height - rBottom + 50, rw + 16, 40);
+    // 3. Inner core cylinder (height - rBottom to height - rBottom + 50)
+    ctx.fillStyle = '#05050a';
+    ctx.fillRect(rx + 6, height - rBottom, rw - 12, 50);
+    ctx.strokeRect(rx + 6, height - rBottom, rw - 12, 50);
+
+    // Glowing rivets on heavy metal collars
     ctx.fillStyle = '#39ff14';
     ctx.beginPath();
-    ctx.arc(rx + 10, rTop - 39, 3, 0, Math.PI * 2);
-    ctx.arc(rx + rw - 10, rTop - 39, 3, 0, Math.PI * 2);
-    ctx.arc(rx + 10, height - rBottom + 41, 3, 0, Math.PI * 2);
-    ctx.arc(rx + rw - 10, height - rBottom + 41, 3, 0, Math.PI * 2);
+    ctx.arc(rx - 2, rTop - 70, 3, 0, Math.PI * 2);
+    ctx.arc(rx + rw + 2, rTop - 70, 3, 0, Math.PI * 2);
+    ctx.arc(rx - 2, height - rBottom + 70, 3, 0, Math.PI * 2);
+    ctx.arc(rx + rw + 2, height - rBottom + 70, 3, 0, Math.PI * 2);
     ctx.fill();
 
     // Laser warning
@@ -1602,36 +1606,55 @@ export class ObstacleManager {
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    // Aurora prism gradient and ice facet layers
+    // Aurora prism gradient and sharp, jagged crystalline facets instead of rectangles!
     const prismGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
     prismGrad.addColorStop(0, '#ec4899'); // Pink
     prismGrad.addColorStop(0.5, '#3b82f6'); // Blue
     prismGrad.addColorStop(1, '#06b6d4'); // Cyan
     ctx.fillStyle = prismGrad;
     ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2.5;
 
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-    // Stepped structured crystal crowns
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-    ctx.fillRect(rx - 6, rTop - 25, rw + 12, 10);
-    ctx.strokeRect(rx - 6, rTop - 25, rw + 12, 10);
-    ctx.fillRect(rx - 6, height - rBottom, rw + 12, 10);
-    ctx.strokeRect(rx - 6, height - rBottom, rw + 12, 10);
-
-    // Diagonal ice facet cuts
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    // TOP CRYSTAL SPIRE (procedural jagged facets)
     ctx.beginPath();
-    ctx.moveTo(rx, rTop - 60);
-    ctx.lineTo(rx + rw * 0.5, rTop - 35);
-    ctx.lineTo(rx + rw, rTop - 80);
-    ctx.moveTo(rx, height - rBottom + 60);
-    ctx.lineTo(rx + rw * 0.5, height - rBottom + 35);
-    ctx.lineTo(rx + rw, height - rBottom + 80);
+    ctx.moveTo(rx + 8, -1000);
+    ctx.lineTo(rx + 8, rTop - 90);
+    ctx.lineTo(rx - 12, rTop - 65); // Jagged left spike
+    ctx.lineTo(rx + 16, rTop - 45); // Stepped crystal joint
+    ctx.lineTo(rx - 8, rTop - 25);  // Inner left spike
+    ctx.lineTo(rx + rw * 0.5, rTop); // Sharp tip!
+    ctx.lineTo(rx + rw + 8, rTop - 25);
+    ctx.lineTo(rx + rw - 16, rTop - 45);
+    ctx.lineTo(rx + rw + 12, rTop - 65); // Jagged right spike
+    ctx.lineTo(rx + rw - 8, rTop - 90);
+    ctx.lineTo(rx + rw - 8, -1000);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // BOTTOM CRYSTAL SPIRE
+    ctx.beginPath();
+    ctx.moveTo(rx + 8, height + 1000);
+    ctx.lineTo(rx + 8, height - rBottom + 90);
+    ctx.lineTo(rx - 12, height - rBottom + 65); // Jagged left spike
+    ctx.lineTo(rx + 16, height - rBottom + 45);
+    ctx.lineTo(rx - 8, height - rBottom + 25);
+    ctx.lineTo(rx + rw * 0.5, height - rBottom); // Sharp tip!
+    ctx.lineTo(rx + rw + 8, height - rBottom + 25);
+    ctx.lineTo(rx + rw - 16, height - rBottom + 45);
+    ctx.lineTo(rx + rw + 12, height - rBottom + 65); // Jagged right spike
+    ctx.lineTo(rx + rw - 8, height - rBottom + 90);
+    ctx.lineTo(rx + rw - 8, height + 1000);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Inner ice shine lines
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(rx + rw * 0.5, rTop - 90); ctx.lineTo(rx + rw * 0.5, rTop);
+    ctx.moveTo(rx + rw * 0.5, height - rBottom + 90); ctx.lineTo(rx + rw * 0.5, height - rBottom);
     ctx.stroke();
   }
 
@@ -1641,7 +1664,7 @@ export class ObstacleManager {
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    // Egyptian Obelisk golden sandstone pylons
+    // Egyptian Tapered Sandstone Pylons!
     const sandGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
     sandGrad.addColorStop(0, '#b45309');
     sandGrad.addColorStop(0.5, '#fbbf24');
@@ -1650,22 +1673,37 @@ export class ObstacleManager {
     ctx.strokeStyle = '#ef4444'; // Ruby red borders
     ctx.lineWidth = 2.5;
 
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+    // TOP COLUMN: Tapered pylon path (slopes inward smoothly)
+    ctx.beginPath();
+    ctx.moveTo(rx - 10, -1000);
+    ctx.lineTo(rx + rw + 10, -1000);
+    ctx.lineTo(rx + rw - 8, rTop - 25);
+    ctx.lineTo(rx + 8, rTop - 25);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
 
-    // Stepped Egyptian capitals
+    // BOTTOM COLUMN: Tapered pylon path
+    ctx.beginPath();
+    ctx.moveTo(rx - 10, height + 1000);
+    ctx.lineTo(rx + rw + 10, height + 1000);
+    ctx.lineTo(rx + rw - 8, height - rBottom + 25);
+    ctx.lineTo(rx + 8, height - rBottom + 25);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Flat stepped Egyptian capitals
     ctx.fillStyle = '#fbbf24';
-    ctx.fillRect(rx - 8, rTop - 26, rw + 16, 12);
-    ctx.strokeRect(rx - 8, rTop - 26, rw + 16, 12);
-    ctx.fillRect(rx - 4, rTop - 14, rw + 8, 14);
-    ctx.strokeRect(rx - 4, rTop - 14, rw + 8, 14);
+    ctx.fillRect(rx + 4, rTop - 25, rw - 8, 12);
+    ctx.strokeRect(rx + 4, rTop - 25, rw - 8, 12);
+    ctx.fillRect(rx, rTop - 13, rw, 13);
+    ctx.strokeRect(rx, rTop - 13, rw, 13);
 
-    ctx.fillRect(rx - 8, height - rBottom, rw + 16, 12);
-    ctx.strokeRect(rx - 8, height - rBottom, rw + 16, 12);
-    ctx.fillRect(rx - 4, height - rBottom + 14, rw + 8, 14);
-    ctx.strokeRect(rx - 4, height - rBottom + 14, rw + 8, 14);
+    ctx.fillRect(rx + 4, height - rBottom + 13, rw - 8, 12);
+    ctx.strokeRect(rx + 4, height - rBottom + 13, rw - 8, 12);
+    ctx.fillRect(rx, height - rBottom, rw, 13);
+    ctx.strokeRect(rx, height - rBottom, rw, 13);
 
     // Embedded glowing ruby gems
     ctx.fillStyle = '#ef4444';
@@ -1681,39 +1719,48 @@ export class ObstacleManager {
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    // Basalt columnar joints vents (stacked hexagonal columns)
-    ctx.fillStyle = '#0a0505';
+    // Basalt staggered columnar joints (bundle of vertical hexagonal joints of different heights)
     ctx.strokeStyle = '#f97316'; // Lava orange
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2.5;
 
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+    const colW = rw / 3;
 
-    // Vertical structural columns division lines
-    ctx.strokeStyle = 'rgba(249, 115, 22, 0.5)';
-    ctx.lineWidth = 2.0;
-    ctx.beginPath();
-    ctx.moveTo(rx + rw * 0.33, -1000);
-    ctx.lineTo(rx + rw * 0.33, rTop);
-    ctx.moveTo(rx + rw * 0.66, -1000);
-    ctx.lineTo(rx + rw * 0.66, rTop);
+    // TOP COLUMN (3 staggered basalt joints)
+    // Left joint column (medium height)
+    ctx.fillStyle = '#0a0505';
+    ctx.fillRect(rx, -1000, colW, rTop + 1000 - 15);
+    ctx.strokeRect(rx, -1000, colW, rTop + 1000 - 15);
+    // Middle joint column (longest height)
+    ctx.fillStyle = '#110505';
+    ctx.fillRect(rx + colW, -1000, colW, rTop + 1000);
+    ctx.strokeRect(rx + colW, -1000, colW, rTop + 1000);
+    // Right joint column (shortest height)
+    ctx.fillStyle = '#050101';
+    ctx.fillRect(rx + colW * 2, -1000, colW, rTop + 1000 - 30);
+    ctx.strokeRect(rx + colW * 2, -1000, colW, rTop + 1000 - 30);
 
-    ctx.moveTo(rx + rw * 0.33, height - rBottom);
-    ctx.lineTo(rx + rw * 0.33, height + 1000);
-    ctx.moveTo(rx + rw * 0.66, height - rBottom);
-    ctx.lineTo(rx + rw * 0.66, height + 1000);
-    ctx.stroke();
+    // BOTTOM COLUMN (staggered joints)
+    // Left joint column
+    ctx.fillStyle = '#0a0505';
+    ctx.fillRect(rx, height - rBottom + 15, colW, rBottom + 1000 - 15);
+    ctx.strokeRect(rx, height - rBottom + 15, colW, rBottom + 1000 - 15);
+    // Middle joint column (longest height closer to safe gap)
+    ctx.fillStyle = '#110505';
+    ctx.fillRect(rx + colW, height - rBottom, colW, rBottom + 1000);
+    ctx.strokeRect(rx + colW, height - rBottom, colW, rBottom + 1000);
+    // Right joint column
+    ctx.fillStyle = '#050101';
+    ctx.fillRect(rx + colW * 2, height - rBottom + 30, colW, rBottom + 1000 - 30);
+    ctx.strokeRect(rx + colW * 2, height - rBottom + 30, colW, rBottom + 1000 - 30);
 
-    // Flowing central superheated yellow magma vein
-    const lavaFlow = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    // Flowing central superheated yellow magma vein inside the middle column
+    const lavaFlow = ctx.createLinearGradient(rx + colW, 0, rx + colW * 2, 0);
     lavaFlow.addColorStop(0, '#f97316');
     lavaFlow.addColorStop(0.5, '#facc15'); // Yellow core
     lavaFlow.addColorStop(1, '#ea580c');
     ctx.fillStyle = lavaFlow;
-    ctx.fillRect(rx + rw * 0.38, -1000, rw * 0.24, rTop + 1000);
-    ctx.fillRect(rx + rw * 0.38, height - rBottom, rw * 0.24, rBottom + 1000);
+    ctx.fillRect(rx + colW + 4, -1000, colW - 8, rTop + 1000);
+    ctx.fillRect(rx + colW + 4, height - rBottom, colW - 8, rBottom + 1000);
   }
 
   private drawStructuredSpaceObstacles(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
@@ -1722,34 +1769,44 @@ export class ObstacleManager {
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    // Stacked mechanical power sphere cells
+    // Stacked mechanical power sphere cells (Floating circular nodes!)
     ctx.fillStyle = '#030008';
     ctx.strokeStyle = '#a855f7'; // Purple neon
     ctx.lineWidth = 2.5;
 
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+    const rad = rw * 0.65;
+    const cx = rx + rw * 0.5;
 
-    // Glowing starfield details
+    // TOP COLUMN (Floating circular plasma cells)
+    // 1. Far sphere (rTop - 120)
+    ctx.beginPath(); ctx.arc(cx, rTop - 120, rad, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    // 2. Middle sphere (rTop - 65)
+    ctx.beginPath(); ctx.arc(cx, rTop - 65, rad, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    // 3. Inner sphere (rTop - 15)
+    ctx.beginPath(); ctx.arc(cx, rTop - 15, rad, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+    // BOTTOM COLUMN
+    // 1. Far sphere (height - rBottom + 120)
+    ctx.beginPath(); ctx.arc(cx, height - rBottom + 120, rad, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    // 2. Middle sphere (height - rBottom + 65)
+    ctx.beginPath(); ctx.arc(cx, height - rBottom + 65, rad, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    // 3. Inner sphere (height - rBottom + 15)
+    ctx.beginPath(); ctx.arc(cx, height - rBottom + 15, rad, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+    // Starfield details inside
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(rx + rw * 0.2, rTop - 40, 3, 3);
-    ctx.fillRect(rx + rw * 0.7, rTop - 80, 2, 2);
-    ctx.fillRect(rx + rw * 0.5, height - rBottom + 60, 3, 3);
+    ctx.fillRect(cx - 10, rTop - 65, 2, 2);
+    ctx.fillRect(cx + 8, rTop - 120, 2.5, 2.5);
+    ctx.fillRect(cx - 6, height - rBottom + 65, 2, 2);
 
-    // Plasma coil ring collars
+    // Glowing plasma coil ring collars
     const ringGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
     ringGrad.addColorStop(0, '#ec4899');
-    ringGrad.addColorStop(0.5, '#e0f2fe'); // White hot plasma
+    ringGrad.addColorStop(0.5, '#e0f2fe');
     ringGrad.addColorStop(1, '#3b82f6');
     ctx.fillStyle = ringGrad;
-    
-    // Physical ring ridges wrapped around column
-    ctx.fillRect(rx - 6, rTop - 30, rw + 12, 10);
-    ctx.fillRect(rx - 6, height - rBottom + 20, rw + 12, 10);
-    ctx.fillRect(rx - 6, rTop - 80, rw + 12, 10);
-    ctx.fillRect(rx - 6, height - rBottom + 70, rw + 12, 10);
+    ctx.fillRect(rx - 8, rTop - 70, rw + 16, 8);
+    ctx.fillRect(rx - 8, height - rBottom + 62, rw + 16, 8);
   }
 
   private drawStructuredUnderwaterPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
@@ -1758,42 +1815,32 @@ export class ObstacleManager {
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    // Atlantis fluted ruins columns
+    // Atlantis fluted ruins columns: Broken Greek columns shifted horizontally!
     ctx.fillStyle = '#081e26';
     ctx.strokeStyle = '#ec4899'; // Coral pink
     ctx.lineWidth = 2.5;
 
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+    // TOP COLUMN: broken at rTop - 60, offset left by 8px, right by 8px
+    // 1. Far base segment (shifted left)
+    ctx.fillRect(rx - 8, -1000, rw, rTop + 1000 - 60);
+    ctx.strokeRect(rx - 8, -1000, rw, rTop + 1000 - 60);
+    // 2. Inner crown segment (shifted right)
+    ctx.fillRect(rx + 8, rTop - 60, rw, 60);
+    ctx.strokeRect(rx + 8, rTop - 60, rw, 60);
 
-    // Fluted grooved vertical structural lines
-    ctx.strokeStyle = 'rgba(236, 72, 153, 0.4)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(rx + rw * 0.25, -1000);
-    ctx.lineTo(rx + rw * 0.25, rTop);
-    ctx.moveTo(rx + rw * 0.5, -1000);
-    ctx.lineTo(rx + rw * 0.5, rTop);
-    ctx.moveTo(rx + rw * 0.75, -1000);
-    ctx.lineTo(rx + rw * 0.75, rTop);
+    // BOTTOM COLUMN: broken at height - rBottom + 60, offset right by 8px, left by 8px
+    // 1. Far base segment (shifted right)
+    ctx.fillRect(rx + 8, height - rBottom + 60, rw, rBottom + 1000 - 60);
+    ctx.strokeRect(rx + 8, height - rBottom + 60, rw, rBottom + 1000 - 60);
+    // 2. Inner crown segment (shifted left)
+    ctx.fillRect(rx - 8, height - rBottom, rw, 60);
+    ctx.strokeRect(rx - 8, height - rBottom, rw, 60);
 
-    ctx.moveTo(rx + rw * 0.25, height - rBottom);
-    ctx.lineTo(rx + rw * 0.25, height + 1000);
-    ctx.moveTo(rx + rw * 0.5, height - rBottom);
-    ctx.lineTo(rx + rw * 0.5, height + 1000);
-    ctx.moveTo(rx + rw * 0.75, height - rBottom);
-    ctx.lineTo(rx + rw * 0.75, height + 1000);
-    ctx.stroke();
-
-    // Bioluminescent coral polyps details
+    // Bioluminescent coral polyps
     ctx.fillStyle = '#f472b6';
     ctx.beginPath();
     ctx.arc(rx + 12, rTop - 25, 6, 0, Math.PI * 2);
-    ctx.arc(rx + 25, rTop - 50, 4, 0, Math.PI * 2);
     ctx.arc(rx + rw - 15, height - rBottom + 35, 7, 0, Math.PI * 2);
-    ctx.arc(rx + rw - 30, height - rBottom + 60, 5, 0, Math.PI * 2);
     ctx.fill();
   }
 
@@ -1803,7 +1850,7 @@ export class ObstacleManager {
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
 
-    // Winged angelic marble columns
+    // Winged angelic marble columns with flaring gold wing-arches
     const heavGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
     heavGrad.addColorStop(0, '#fcd34d');
     heavGrad.addColorStop(0.3, '#ffffff');
@@ -1822,20 +1869,31 @@ export class ObstacleManager {
     ctx.strokeStyle = 'rgba(252, 211, 77, 0.4)';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(rx + rw * 0.33, -1000);
-    ctx.lineTo(rx + rw * 0.33, rTop);
-    ctx.moveTo(rx + rw * 0.66, -1000);
-    ctx.lineTo(rx + rw * 0.66, rTop);
-    ctx.moveTo(rx + rw * 0.33, height - rBottom);
-    ctx.lineTo(rx + rw * 0.33, height + 1000);
-    ctx.moveTo(rx + rw * 0.66, height - rBottom);
-    ctx.lineTo(rx + rw * 0.66, height + 1000);
+    ctx.moveTo(rx + rw * 0.33, -1000); ctx.lineTo(rx + rw * 0.33, rTop);
+    ctx.moveTo(rx + rw * 0.66, -1000); ctx.lineTo(rx + rw * 0.66, rTop);
+    ctx.moveTo(rx + rw * 0.33, height - rBottom); ctx.lineTo(rx + rw * 0.33, height + 1000);
+    ctx.moveTo(rx + rw * 0.66, height - rBottom); ctx.lineTo(rx + rw * 0.66, height + 1000);
     ctx.stroke();
 
-    // Golden angel wing step cap arches
+    // Grand flaring semi-circular gold wing-arches at safe gap caps!
     ctx.fillStyle = '#fcd34d';
-    ctx.fillRect(rx - 8, rTop - 16, rw + 16, 16);
-    ctx.fillRect(rx - 8, height - rBottom, rw + 16, 16);
+    ctx.beginPath();
+    // Top wing-arch flaring outwards
+    ctx.arc(rx + rw * 0.5, rTop - 12, rw * 0.7, Math.PI, 0, false);
+    ctx.lineTo(rx + rw, rTop);
+    ctx.lineTo(rx, rTop);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.beginPath();
+    // Bottom wing-arch flaring outwards
+    ctx.arc(rx + rw * 0.5, height - rBottom + 12, rw * 0.7, 0, Math.PI, false);
+    ctx.lineTo(rx, height - rBottom);
+    ctx.lineTo(rx + rw, height - rBottom);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
   }
 
   // Draw Jungle Temple Pillars (Standard & Mutated)
@@ -1942,13 +2000,6 @@ export class ObstacleManager {
     ctx.strokeStyle = '#0a0d0b';
     ctx.lineWidth = 3.0;
 
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-    ctx.strokeStyle = '#122616';
-    ctx.lineWidth = 3.5;
     ctx.beginPath();
     for (let y = rTop - 150; y < rTop - 20; y += 45) {
       ctx.moveTo(rx, y);
