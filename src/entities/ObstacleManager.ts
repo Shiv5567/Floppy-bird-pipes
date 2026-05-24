@@ -93,17 +93,17 @@ export class ObstacleManager {
     // Smooth horizontal distance spawning scaling
     const baseDistance = (width / 1.35) * distMultiplier;
     const minDistance = width / 2.0;
-    let targetDistance = baseDistance - (baseDistance - minDistance) * progressRatio;
     
-    // Scale horizontal distance according to user specs: Classic (+40%), Vertical (+25%)
+    // Scale horizontal distance according to user specs
+    let targetDistance;
     if (zone === 'classic') {
-      targetDistance *= 1.40;
+      // Classic Mode: Keep horizontal distance completely constant and generous
+      targetDistance = baseDistance * 1.15;
     } else if (zone === 'vertical') {
-      targetDistance *= 1.25;
+      targetDistance = (baseDistance - (baseDistance - minDistance) * progressRatio) * 1.25 * 0.60;
+    } else {
+      targetDistance = (baseDistance - (baseDistance - minDistance) * progressRatio) * 0.60;
     }
-
-    // Reduce horizontal distance by 40% as requested
-    targetDistance *= 0.60;
 
     // If not set or invalid, initialize nextSpawnDistance
     if (this.nextSpawnDistance <= 150 && zone !== 'wave') {
@@ -165,8 +165,10 @@ export class ObstacleManager {
     if (this.spawnTimer >= this.nextSpawnDistance) {
       this.spawnTimer = 0;
       
-      // Smooth step-by-step gap height scaling
-      const dynamicGap = startGap - (startGap - minGap) * progressRatio;
+      // Smooth step-by-step gap height scaling (Classic Mode has a completely constant, generous gap)
+      const dynamicGap = zone === 'classic' 
+        ? startGap 
+        : (startGap - (startGap - minGap) * progressRatio);
       this.spawnObstacle(worldId, width, height, dynamicGap, zone, difficulty, progressRatio);
 
       // Determine next spawn distance (reduced wave spawn distance as well)
@@ -217,36 +219,15 @@ export class ObstacleManager {
       isMoving = true;
       rangeY = 65; // constant amplitude for cohesive wave look
     } else {
-      // Classic Mode random placement with wild, unpredictable zigzag vertical shifts
+      // Classic Mode: smooth, gentle vertical alignment transitions instead of wild jumps
       const playableHeight = height - gapHeight - margin * 2;
-      let targetTopHeight = margin + Math.random() * playableHeight;
+      let targetTopHeight = margin + playableHeight * 0.5; // start in the middle
 
       if (this.lastTopHeight !== null) {
-        // Unpredictable Zigzag: Cap step variation progressively from 42% up to 80% to allow extreme vertical jumps!
-        const variationRatio = 0.42 + 0.38 * progressRatio;
-        const maxStep = playableHeight * variationRatio;
-        
-        // 68% chance to actively bias the next height in the opposite vertical half of the screen
-        const forceAlternate = Math.random() < 0.68;
-        let minVal = Math.max(margin, this.lastTopHeight - maxStep);
-        let maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
-        
-        if (forceAlternate) {
-          const isHigh = this.lastTopHeight > margin + playableHeight * 0.5;
-          if (isHigh) {
-            // Last pipe was high, bias the new one to the lower screen region
-            maxVal = Math.min(maxVal, margin + playableHeight * 0.45);
-          } else {
-            // Last pipe was low, bias the new one to the upper screen region
-            minVal = Math.max(minVal, margin + playableHeight * 0.55);
-          }
-          // Safeguard bounds validity
-          if (minVal > maxVal) {
-            minVal = Math.max(margin, this.lastTopHeight - maxStep);
-            maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
-          }
-        }
-
+        // Gentle step: maximum 12% vertical shift from the last pipe's height for smooth flow
+        const maxStep = playableHeight * 0.12;
+        const minVal = Math.max(margin, this.lastTopHeight - maxStep);
+        const maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
         targetTopHeight = minVal + Math.random() * (maxVal - minVal);
       }
 

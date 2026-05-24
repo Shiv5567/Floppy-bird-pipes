@@ -235,17 +235,27 @@ export class GameEngine {
 
       // Calculate and set unified progressive scroll speed before updating visual backgrounds or physics managers
       if (this.state === 'PLAYING') {
-        const progressRatio = Math.min(1.0, this.score / 60.0);
+        const selectedZone = this.progressManager.getState().selectedZone;
         const selectedDifficulty = this.progressManager.getState().selectedDifficulty;
+        
+        // Classic mode has a much slower, gradual, and longer progressive speed curve (up to 250 score)
+        const progressiveCap = selectedZone === 'classic' ? 250.0 : 60.0;
+        const progressRatio = Math.min(1.0, this.score / progressiveCap);
+        
         let startSpeed = 1.0;
         let maxSpeed = 1.25;
-        if (selectedDifficulty === 'easy') {
+        
+        if (selectedZone === 'classic') {
+          startSpeed = 0.72; // Start very comfortable and slow to allow longer survival
+          maxSpeed = 1.20;
+        } else if (selectedDifficulty === 'easy') {
           startSpeed = 0.75;
           maxSpeed = 0.90;
         } else if (selectedDifficulty === 'hard') {
           startSpeed = 1.20;
           maxSpeed = 1.50;
         }
+        
         const speedCoeff = startSpeed + (maxSpeed - startSpeed) * progressRatio;
 
         if (this.activePowerupsList['turbo']) {
