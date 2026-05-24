@@ -198,6 +198,7 @@ body, html {
 .world-bg-space    { background: radial-gradient(ellipse at 50% 60%, rgba(80,0,130,0.5) 0%, rgba(1,0,6,0.95) 100%); }
 .world-bg-underwater{ background: radial-gradient(ellipse at 50% 60%, rgba(0,80,160,0.6) 0%, rgba(0,19,43,0.92) 100%); }
 .world-bg-heaven   { background: radial-gradient(ellipse at 50% 40%, rgba(255,220,120,0.35) 0%, rgba(30,63,102,0.85) 100%); }
+.world-bg-retro    { background: #1a1a1a; }
 
 /* CSS ambient particles floating in background */
 .menu-particles {

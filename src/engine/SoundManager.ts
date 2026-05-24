@@ -196,6 +196,9 @@ export class SoundManager {
     } else if (worldId === 'space') {
       tempo = 90;
       baseNotes = [146.83, 164.81, 110.00, 130.81]; // Cosmic ambient
+    } else if (worldId === 'retro') {
+      tempo = 115;
+      baseNotes = [130.81, 164.81, 196.00, 220.00]; // Retro C-E-G-A arpeggio loop
     }
 
     const isPerformanceMode = (window as any).gameDisableShadows;

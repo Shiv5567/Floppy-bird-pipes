@@ -473,6 +473,9 @@ export class ObstacleManager {
         case 'heaven':
           this.drawHeavenPillars(ctx, obs, height);
           break;
+        case 'retro':
+          this.drawRetroPillars(ctx, obs, height);
+          break;
         default:
           this.drawDefaultPillars(ctx, obs, height);
       }
@@ -513,6 +516,32 @@ export class ObstacleManager {
 
     ctx.fillRect(rx, height - rBottom, rw, 20);
     ctx.strokeRect(rx, height - rBottom, rw, 20);
+  }
+
+  private drawRetroPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
+
+    ctx.fillStyle = '#73c93e'; // Simple retro green
+    ctx.strokeStyle = '#000000'; // Simple black outline
+    ctx.lineWidth = 3;
+
+    // Top column
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    // Bottom column
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    // Pillar ridges caps
+    ctx.fillStyle = '#9be669'; // Lighter green for simple flat highlight cap
+    ctx.fillRect(rx - 4, rTop - 24, rw + 8, 24);
+    ctx.strokeRect(rx - 4, rTop - 24, rw + 8, 24);
+
+    ctx.fillRect(rx - 4, height - rBottom, rw + 8, 24);
+    ctx.strokeRect(rx - 4, height - rBottom, rw + 8, 24);
   }
 
   private drawJunglePillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {

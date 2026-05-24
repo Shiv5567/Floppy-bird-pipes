@@ -87,6 +87,9 @@ export class Renderer {
       case 'heaven':
         this.weather = { type: 'heavenly', windSpeed: 0.5, density: 8, lightning: false };
         break;
+      case 'retro':
+        this.weather = { type: 'clear', windSpeed: 0, density: 0, lightning: false };
+        break;
       default:
         this.weather = { type: 'clear', windSpeed: 0, density: 0, lightning: false };
     }
@@ -135,6 +138,9 @@ export class Renderer {
           case 'heaven':
             dy += Math.sin(lookupX * 0.0025 * (4 - layer)) * 40 * (4 - layer);
             dy += Math.sin(lookupX * 0.01) * 15;
+            break;
+          case 'retro':
+            dy = -30 * layer;
             break;
           default:
             dy += Math.sin(lookupX * 0.004 * (4 - layer)) * 50 * (4 - layer);
@@ -418,6 +424,10 @@ export class Renderer {
         skyGrad.addColorStop(0.6, '#528aae');
         skyGrad.addColorStop(1, '#bcd4e6');
         break;
+      case 'retro':
+        skyGrad.addColorStop(0, '#1a1a1a');
+        skyGrad.addColorStop(1, '#1a1a1a');
+        break;
       default:
         skyGrad.addColorStop(0, '#70c5ce');
         skyGrad.addColorStop(1, '#3a95a8');
@@ -656,6 +666,13 @@ export class Renderer {
           'rgba(240, 248, 255, 0.9)'
         ][layer - 1];
 
+      case 'retro':
+        return [
+          '#2e2e2e',
+          '#424242',
+          '#5c5c5c'
+        ][layer - 1];
+
       default:
         return [
           '#2b738c',
@@ -700,8 +717,8 @@ export class Renderer {
 
   // Volumetric bloom/lighting filter overlay (AAA polish)
   public applyCinematicBloom(worldId: string) {
-    if ((window as any).gameDisableShadows) {
-      // Bypassed on mobile / Low-Graphics Mode to save immense GPU fill-rate!
+    if ((window as any).gameDisableShadows || worldId === 'retro') {
+      // Bypassed on mobile / Low-Graphics Mode / Retro World to save immense GPU fill-rate!
       return;
     }
 

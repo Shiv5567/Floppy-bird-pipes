@@ -514,10 +514,51 @@ export class BossManager {
       this.drawWaterBoss(ctx);
     } else if (this.worldId === 'heaven') {
       this.drawHeavenBoss(ctx);
+    } else if (this.worldId === 'retro') {
+      this.drawRetroBoss(ctx);
     } else {
       this.drawJungleBoss(ctx);
     }
 
+    ctx.restore();
+  }
+
+  private drawRetroBoss(ctx: CanvasRenderingContext2D) {
+    // A simple clean solid red retro blocky bird boss
+    ctx.fillStyle = '#ff3333';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 3.0;
+
+    ctx.beginPath();
+    ctx.arc(0, 0, 40, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Large pixel-style eye
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(10, -20, 16, 16);
+    ctx.strokeRect(10, -20, 16, 16);
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(16, -14, 8, 8);
+
+    // Simple flat yellow beak
+    ctx.fillStyle = '#ffaa00';
+    ctx.beginPath();
+    ctx.moveTo(25, -8);
+    ctx.lineTo(55, 0);
+    ctx.lineTo(25, 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Simple flat wing
+    ctx.save();
+    ctx.translate(-15, 0);
+    const flap = Math.sin(this.timer * 3) * 0.35;
+    ctx.rotate(flap);
+    ctx.fillStyle = '#cc1111';
+    ctx.fillRect(-35, -15, 40, 30);
+    ctx.strokeRect(-35, -15, 40, 30);
     ctx.restore();
   }
 

@@ -278,6 +278,7 @@ export class UIManager {
       space:      { name: 'Space Galaxy Void',     emoji: '🌌' },
       underwater: { name: 'Deep Ocean Trench',     emoji: '🐙' },
       heaven:     { name: 'Heaven Fantasy Realm',  emoji: '🌤️' },
+      retro:      { name: 'Retro Classic',         emoji: '🎮' },
     };
     const world = worldMeta[worldId] || { name: 'Tropical Rainforest', emoji: '🌴' };
 
@@ -556,7 +557,7 @@ export class UIManager {
         const worldColors: Record<string, string> = {
           jungle: '#00c853', cyberpunk: '#7c4dff', ice: '#40c4ff',
           desert: '#ffab40', volcano: '#ff3d00', space: '#651fff',
-          underwater: '#0091ea', heaven: '#ffd740'
+          underwater: '#0091ea', heaven: '#ffd740', retro: '#78909c'
         };
         const worlds = [
           { id: 'jungle',     name: 'Tropical Rainforest', emoji: '🌴', desc: 'Lush greenery, cascades & ancient ruins' },
@@ -566,7 +567,8 @@ export class UIManager {
           { id: 'volcano',    name: 'Volcano Hell World',   emoji: '🌋', desc: 'Magma rivers, lightning & basalt spires' },
           { id: 'space',      name: 'Space Galaxy Void',    emoji: '🌌', desc: 'Warp zones & drifting asteroid fields' },
           { id: 'underwater', name: 'Deep Ocean Trench',    emoji: '🐙', desc: 'Kelp forests, currents & sea mines' },
-          { id: 'heaven',     name: 'Heaven Fantasy Realm', emoji: '🌤️', desc: 'Marble pillars & golden sky lightrays' }
+          { id: 'heaven',     name: 'Heaven Fantasy Realm', emoji: '🌤️', desc: 'Marble pillars & golden sky lightrays' },
+          { id: 'retro',      name: 'Retro Classic',        emoji: '🎮', desc: 'Lag-free simple classic world with zero heavy effects' }
         ];
         const worldsCards = worlds.map(w => {
           const isActive = progress.activeWorld === w.id;
@@ -1064,7 +1066,8 @@ export class UIManager {
       volcano: 'Volcanic Lava Dragon',
       space: 'Singularity Leviathan',
       underwater: 'Abyssal Mecha-Kraken',
-      heaven: 'Seraphim Sol'
+      heaven: 'Seraphim Sol',
+      retro: 'Retro Pixelsaurus'
     };
     const bossName = bossNames[activeWorld] || 'Titan Sentinel';
 
