@@ -9,11 +9,11 @@ export class Bird {
   public baseRadius = 26;
   public angle = 0;
   
-  // Physics parameters
-  private gravity = 0.40;
-  private jumpLift = -7.4;
-  private maxFallSpeed = 11.0;
-  private maxRiseSpeed = -11.0;
+  // Physics parameters (tighter, snappier responsiveness: gravity increased from 0.40 to 0.52, jumpLift increased from -7.4 to -8.8)
+  private gravity = 0.52;
+  private jumpLift = -8.8;
+  private maxFallSpeed = 14.0;
+  private maxRiseSpeed = -14.0;
   
   // Animation variables
   private flapCycle = 0;
@@ -41,10 +41,10 @@ export class Bird {
 
   public setDifficulty(difficulty: 'easy' | 'medium' | 'hard') {
     void difficulty; // Enforce medium physics across all modes for constant tap responsiveness
-    this.gravity = 0.40;
-    this.jumpLift = -7.4;
-    this.maxFallSpeed = 11.0;
-    this.maxRiseSpeed = -11.0;
+    this.gravity = 0.52;
+    this.jumpLift = -8.8;
+    this.maxFallSpeed = 14.0;
+    this.maxRiseSpeed = -14.0;
   }
 
   public setSkin(skin: Skin) {
@@ -55,44 +55,54 @@ export class Bird {
     return this.activeSkin;
   }
 
-  public jump(soundManager?: any) {
+  public jump(soundManager?: any, score = 0) {
     if (this.isCrashing) return;
     
     // Jump lift scaled with skin upgrade level (minor bonus)
     const levelBonus = (this.activeSkin.upgradeLevel - 1) * 0.05;
-    const impulse = this.jumpLift * (1 + levelBonus);
+    
+    // Synchronize physics jump lift with exponential distance multiplier
+    const exponentialMultiplier = Math.pow(1.05, score / 25.0);
+    const impulse = this.jumpLift * (1 + levelBonus) * exponentialMultiplier;
+    const currentMaxRiseSpeed = this.maxRiseSpeed * exponentialMultiplier;
     
     // Instant, sharp, and skill-based responsiveness:
     // If we are falling or rising slowly, instantly reset velocity to the upward jump impulse for an immediate, crisp response.
     // If we are already rising quickly and tap again, accumulate upward speed (additive) to reward fast tapping with rapid flight!
-    if (this.vy > -4) {
+    if (this.vy > -4 * exponentialMultiplier) {
       this.vy = impulse;
     } else {
-      this.vy += impulse * 0.7; // Additive thrust reward for rapid taps
+      this.vy += impulse * 0.85; // Increased additive thrust reward for rapid taps (0.85 instead of 0.7) for superior control
     }
     
     // Clamp to ensure it doesn't exceed maximum rising velocity bounds
-    if (this.vy < this.maxRiseSpeed) this.vy = this.maxRiseSpeed;
+    if (this.vy < currentMaxRiseSpeed) this.vy = currentMaxRiseSpeed;
     
     this.flapCycle = 0; // Reset wing animation cycle to start flap
     if (soundManager) soundManager.playFlap();
   }
 
-  public update(deltaTime: number, particleEngine: ParticleEngine, isPlaying: boolean, timeScale: number) {
+  public update(deltaTime: number, particleEngine: ParticleEngine, isPlaying: boolean, timeScale: number, score = 0) {
     const dtCoeff = deltaTime * 60 * timeScale;
+    
+    // Synchronize physics gravity and max speed caps with exponential distance multiplier
+    const exponentialMultiplier = Math.pow(1.05, score / 25.0);
+    const currentGravity = this.gravity * exponentialMultiplier;
+    const currentMaxFallSpeed = this.maxFallSpeed * exponentialMultiplier;
+    const currentMaxRiseSpeed = this.maxRiseSpeed * exponentialMultiplier;
     
     if (isPlaying) {
       // Apply gravity
-      this.vy += this.gravity * dtCoeff;
-      if (this.vy > this.maxFallSpeed) this.vy = this.maxFallSpeed;
-      if (this.vy < this.maxRiseSpeed) this.vy = this.maxRiseSpeed;
+      this.vy += currentGravity * dtCoeff;
+      if (this.vy > currentMaxFallSpeed) this.vy = currentMaxFallSpeed;
+      if (this.vy < currentMaxRiseSpeed) this.vy = currentMaxRiseSpeed;
 
       this.y += this.vy * dtCoeff;
 
       // Dynamic orientation angle based on vertical speed
       if (!this.isCrashing) {
         // Snappier and more expressive tilting responding directly to the new velocity thresholds
-        const targetAngle = Math.max(-0.55, Math.min(0.8, this.vy * 0.045));
+        const targetAngle = Math.max(-0.55, Math.min(0.8, this.vy * 0.045 / exponentialMultiplier));
         this.angle += (targetAngle - this.angle) * 0.22 * dtCoeff;
       } else {
         // Crashing spin animation

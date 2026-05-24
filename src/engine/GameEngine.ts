@@ -184,7 +184,7 @@ export class GameEngine {
 
       const activeTimeScale = this.timeScale;
 
-      this.bird.update(dt, this.particleEngine, true, activeTimeScale);
+      this.bird.update(dt, this.particleEngine, true, activeTimeScale, this.score);
       
       // Update Ultimate Ability Energy Charging & Durations (Visual Upgrade Option 2)
       if (this.ultimateActive) {
@@ -444,7 +444,7 @@ export class GameEngine {
 
     } else if (this.state === 'GAMEOVER') {
       // Crash spinning physics update
-      this.bird.update(dt, this.particleEngine, true, 1.0);
+      this.bird.update(dt, this.particleEngine, true, 1.0, this.score);
       this.renderer.update(dt, 0, this.bird.y, 1.0, this.state);
 
       // Bounce once hit floor
@@ -455,7 +455,7 @@ export class GameEngine {
     } else if (this.state === 'BOSS_WARNING') {
       // Cinematic Boss warning sequence
       this.bossWarningTimer += dt;
-      this.bird.update(dt, this.particleEngine, true, 1.0);
+      this.bird.update(dt, this.particleEngine, true, 1.0, this.score);
       
       // Keep bird within screen boundaries during boss warning
       if (this.bird.y - this.bird.radius < 5) {
@@ -767,7 +767,7 @@ export class GameEngine {
   }
 
   public jump() {
-    this.bird.jump(this.soundManager);
+    this.bird.jump(this.soundManager, this.score);
   }
 
   // Trigger the Ultimate Special Ability (Option 2)
