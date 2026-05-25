@@ -69,6 +69,26 @@ export class LevelManager {
         patterns = ['exp_shrink_19'];
       } else if (levelNum === 20) {
         patterns = ['hybrid_20'];
+      } else if (levelNum === 21) {
+        patterns = ['snake_21'];
+      } else if (levelNum === 22) {
+        patterns = ['pulse_22'];
+      } else if (levelNum === 23) {
+        patterns = ['gravity_23'];
+      } else if (levelNum === 24) {
+        patterns = ['rotating_24'];
+      } else if (levelNum === 25) {
+        patterns = ['waterfall_25'];
+      } else if (levelNum === 26) {
+        patterns = ['elevator_26'];
+      } else if (levelNum === 27) {
+        patterns = ['magnetic_27'];
+      } else if (levelNum === 28) {
+        patterns = ['pendulum_28'];
+      } else if (levelNum === 29) {
+        patterns = ['sliding_29'];
+      } else if (levelNum === 30) {
+        patterns = ['boss_30'];
       } else if (levelNum <= 5) {
         // Levels 1-5: simple reactive motion
         patterns = ['stair_up', 'stair_down', 'v_shape'];

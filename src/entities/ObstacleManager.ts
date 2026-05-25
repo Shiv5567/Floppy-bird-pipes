@@ -186,6 +186,88 @@ export class ObstacleManager {
           const currentGap = obs.gapHeight! + Math.sin(this.waveTime * 4.0) * 30;
           obs.targetTopHeight = obs.spawnCenterY! - currentGap / 2;
           obs.targetBottomHeight = height - obs.spawnCenterY! - currentGap / 2;
+        } else if (obs.patternType === 'hybrid_20') {
+          const stair = (obs.obstacleIdx! % 8) * 16 - 64;
+          const centerY = height / 2 + stair + Math.sin(this.waveTime * 3.0 + obs.obstacleIdx! * 0.5) * 45;
+          obs.closedTopHeight = centerY - 15;
+          obs.closedBottomHeight = height - centerY - 15;
+          obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+          obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+        } else if (obs.patternType === 'snake_21') {
+          const centerY = height / 2 + Math.sin(this.waveTime * 3.5 - obs.x * 0.008) * 75;
+          obs.closedTopHeight = centerY - 15;
+          obs.closedBottomHeight = height - centerY - 15;
+          obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+          obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+        } else if (obs.patternType === 'pulse_22') {
+          const centerY = height / 2 + Math.sin(this.waveTime * 1.5) * 30;
+          obs.closedTopHeight = centerY - 15;
+          obs.closedBottomHeight = height - centerY - 15;
+          const currentGap = obs.gapHeight! + Math.sin(this.waveTime * 4.0) * 25;
+          obs.targetTopHeight = centerY - currentGap / 2;
+          obs.targetBottomHeight = height - centerY - currentGap / 2;
+        } else if (obs.patternType === 'gravity_23') {
+          const shift = Math.sin(this.waveTime * 2.0) * 55;
+          obs.closedTopHeight = obs.spawnCenterY! - 15;
+          obs.closedBottomHeight = height - obs.spawnCenterY! - 15;
+          obs.targetTopHeight = (obs.spawnCenterY! - obs.gapHeight! / 2) + shift;
+          obs.targetBottomHeight = (height - obs.spawnCenterY! - obs.gapHeight! / 2) - shift;
+        } else if (obs.patternType === 'rotating_24') {
+          const centerY = height / 2 + Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.7) * 45;
+          obs.closedTopHeight = centerY - 15;
+          obs.closedBottomHeight = height - centerY - 15;
+          obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+          obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+        } else if (obs.patternType === 'waterfall_25') {
+          const speed = 70;
+          const totalSpan = 240;
+          const rawOffset = (obs.obstacleIdx! * 50 - this.waveTime * speed) % totalSpan;
+          const offset = rawOffset - totalSpan / 2;
+          const centerY = height / 2 + offset;
+          obs.closedTopHeight = centerY - 15;
+          obs.closedBottomHeight = height - centerY - 15;
+          obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+          obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+        } else if (obs.patternType === 'elevator_26') {
+          const centerY = height / 2 + Math.sin(this.waveTime * 3.0 + (obs.obstacleIdx! % 2) * Math.PI) * 70;
+          obs.closedTopHeight = centerY - 15;
+          obs.closedBottomHeight = height - centerY - 15;
+          obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+          obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+        } else if (obs.patternType === 'magnetic_27') {
+          const gapChange = Math.sin(this.waveTime * 3.5 + obs.obstacleIdx! * 1.0) * 35;
+          const currentGap = obs.gapHeight! + gapChange;
+          obs.closedTopHeight = obs.spawnCenterY! - 15;
+          obs.closedBottomHeight = height - obs.spawnCenterY! - 15;
+          obs.targetTopHeight = obs.spawnCenterY! - currentGap / 2;
+          obs.targetBottomHeight = height - obs.spawnCenterY! - currentGap / 2;
+        } else if (obs.patternType === 'pendulum_28') {
+          const angle = Math.sin(this.waveTime * 2.5 + obs.obstacleIdx! * 0.5) * 0.45;
+          obs.shakeX = Math.sin(angle) * 70;
+          const drop = (1 - Math.cos(angle)) * 70;
+          const centerY = obs.spawnCenterY! + drop;
+          obs.closedTopHeight = centerY - 15;
+          obs.closedBottomHeight = height - centerY - 15;
+          obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+          obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+        } else if (obs.patternType === 'sliding_29') {
+          obs.shakeX = Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 1.1) * 45;
+          const centerY = height / 2 + Math.sin(this.waveTime * 1.5 + obs.obstacleIdx! * 0.6) * 35;
+          obs.closedTopHeight = centerY - 15;
+          obs.closedBottomHeight = height - centerY - 15;
+          obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+          obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+        } else if (obs.patternType === 'boss_30') {
+          const waveVal = Math.sin(this.waveTime * 3.5 + obs.obstacleIdx! * 0.4) * 40;
+          const pulseVal = Math.sin(this.waveTime * 5.0) * 20;
+          const stairVal = (obs.obstacleIdx! % 6) * 15 - 45;
+          const centerY = height / 2 + waveVal + stairVal;
+          const currentGap = obs.gapHeight! + pulseVal;
+          obs.closedTopHeight = centerY - 15;
+          obs.closedBottomHeight = height - centerY - 15;
+          obs.targetTopHeight = centerY - currentGap / 2;
+          obs.targetBottomHeight = height - centerY - currentGap / 2;
+          obs.shakeX = Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.8) * 20;
         }
 
         if (birdX !== undefined) {
@@ -577,6 +659,46 @@ export class ObstacleManager {
             const diagOffsets = [-83, -41.5, 0, 41.5, 83, 41.5];
             targetCenterY = height / 2 + diagOffsets[localIdx];
           }
+          break;
+        }
+        case 'snake_21': {
+          targetCenterY = height / 2;
+          break;
+        }
+        case 'pulse_22': {
+          targetCenterY = height / 2;
+          break;
+        }
+        case 'gravity_23': {
+          targetCenterY = height / 2 + ((obstacleIdx % 4) * 45 - 90);
+          break;
+        }
+        case 'rotating_24': {
+          targetCenterY = height / 2;
+          break;
+        }
+        case 'waterfall_25': {
+          targetCenterY = height / 2;
+          break;
+        }
+        case 'elevator_26': {
+          targetCenterY = height / 2;
+          break;
+        }
+        case 'magnetic_27': {
+          targetCenterY = height / 2 + ((obstacleIdx % 3) * 50 - 50);
+          break;
+        }
+        case 'pendulum_28': {
+          targetCenterY = height / 2;
+          break;
+        }
+        case 'sliding_29': {
+          targetCenterY = height / 2;
+          break;
+        }
+        case 'boss_30': {
+          targetCenterY = height / 2;
           break;
         }
         default:
@@ -1092,6 +1214,41 @@ export class ObstacleManager {
             this.drawDefaultPillars(ctx, obs, height);
         }
       }
+
+      if (obs.patternType === 'rotating_24') {
+        const centerY = obs.topHeight + (height - obs.bottomHeight - obs.topHeight) / 2;
+        ctx.save();
+        ctx.translate(obs.x + obs.width / 2, centerY);
+        ctx.rotate(this.waveTime * 2.0);
+        ctx.strokeStyle = 'rgba(0, 243, 255, 0.85)';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(-18, -18, 36, 36);
+        ctx.restore();
+      } else if (obs.patternType === 'boss_30') {
+        const centerY = obs.topHeight + (height - obs.bottomHeight - obs.topHeight) / 2;
+        ctx.save();
+        ctx.translate(obs.x + obs.width / 2, centerY);
+        
+        const pulse = 16 + Math.sin(this.waveTime * 8.0) * 5;
+        const grad = ctx.createRadialGradient(0, 0, 2, 0, 0, pulse);
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.3, '#ff8800');
+        grad.addColorStop(1, 'rgba(255, 68, 0, 0)');
+        
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(0, 0, pulse, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.rotate(-this.waveTime * 3.5);
+        ctx.strokeStyle = 'rgba(255, 69, 0, 0.9)';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(0, 0, 25, 0, Math.PI * 1.5);
+        ctx.stroke();
+        ctx.restore();
+      }
+
       ctx.restore();
     }
   }
