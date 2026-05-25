@@ -47,6 +47,9 @@ export interface Obstacle {
   closedBottomHeight?: number;
   levelNum?: number;
   shakeX?: number;
+  gapHeight?: number;
+  spawnCenterY?: number;
+  obstacleIdx?: number;
 }
 
 export class ObstacleManager {
@@ -153,6 +156,38 @@ export class ObstacleManager {
       obs.x -= actualScrollSpeed;
 
       if (obs.patternType) {
+        if (obs.patternType === 'breathing_12') {
+          const centerY = height / 2 + Math.sin(this.waveTime * 2.5) * 60;
+          obs.closedTopHeight = centerY - 15;
+          obs.closedBottomHeight = height - centerY - 15;
+          obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+          obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+        } else if (obs.patternType === 'moving_stair_15') {
+          const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 3.0) * 35;
+          obs.closedTopHeight = centerY - 15;
+          obs.closedBottomHeight = height - centerY - 15;
+          obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+          obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+        } else if (obs.patternType === 'rotating_17') {
+          const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 4.0 + obs.obstacleIdx! * 0.8) * 75;
+          obs.closedTopHeight = centerY - 15;
+          obs.closedBottomHeight = height - centerY - 15;
+          obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+          obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+        } else if (obs.patternType === 'dynamic_w_18') {
+          const centerY = obs.spawnCenterY! + Math.cos(this.waveTime * 2.8) * 30;
+          obs.closedTopHeight = centerY - 15;
+          obs.closedBottomHeight = height - centerY - 15;
+          obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+          obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+        } else if (obs.patternType === 'exp_shrink_19') {
+          obs.closedTopHeight = obs.spawnCenterY! - 15;
+          obs.closedBottomHeight = height - obs.spawnCenterY! - 15;
+          const currentGap = obs.gapHeight! + Math.sin(this.waveTime * 4.0) * 30;
+          obs.targetTopHeight = obs.spawnCenterY! - currentGap / 2;
+          obs.targetBottomHeight = height - obs.spawnCenterY! - currentGap / 2;
+        }
+
         if (birdX !== undefined) {
           const dx = obs.x - birdX;
           if (!obs.isTriggered && dx <= obs.triggerDistance!) {
@@ -334,7 +369,7 @@ export class ObstacleManager {
       // Determine next spawn distance (reduced wave spawn distance as well)
       if (this.isLevelMode && this.activeLevelConfig) {
         const levelNum = this.activeLevelConfig.levelNum;
-        if (levelNum === 1 || levelNum === 2 || levelNum === 3 || levelNum === 7 || levelNum === 8) {
+        if ((levelNum >= 1 && levelNum <= 3) || levelNum === 7 || levelNum === 8 || (levelNum >= 10 && levelNum <= 20)) {
           this.nextSpawnDistance = this.obstacleWidth;
         } else {
           this.nextSpawnDistance = 330;
@@ -475,6 +510,74 @@ export class ObstacleManager {
           targetCenterY = height / 2 + Math.sin(step * Math.PI / 3) * 85;
           break;
         }
+        case 'wave_10': {
+          const step = obstacleIdx % 12;
+          targetCenterY = height / 2 + Math.sin(step * (Math.PI * 2 / 12)) * 80;
+          break;
+        }
+        case 'zigzag_11': {
+          const offsets = [-75, 75];
+          const step = obstacleIdx % offsets.length;
+          targetCenterY = height / 2 + offsets[step];
+          break;
+        }
+        case 'breathing_12': {
+          targetCenterY = height / 2;
+          break;
+        }
+        case 'diagonal_13': {
+          const offsets = [-83, -41.5, 0, 41.5, 83, 41.5, 0, -41.5];
+          const step = obstacleIdx % offsets.length;
+          targetCenterY = height / 2 + offsets[step];
+          break;
+        }
+        case 'reactive_14': {
+          const offsets = [-65, 65];
+          const step = obstacleIdx % offsets.length;
+          targetCenterY = height / 2 + offsets[step];
+          break;
+        }
+        case 'moving_stair_15': {
+          const offsets = [80, 40, 0, -40, -80, -40, 0, 40];
+          const step = obstacleIdx % offsets.length;
+          targetCenterY = height / 2 + offsets[step];
+          break;
+        }
+        case 'alternating_16': {
+          const offsets = [-70, -70, 70, 70];
+          const step = obstacleIdx % offsets.length;
+          targetCenterY = height / 2 + offsets[step];
+          break;
+        }
+        case 'rotating_17': {
+          const offsets = [0, 0, 0, 0, 0, 0];
+          const step = obstacleIdx % offsets.length;
+          targetCenterY = height / 2 + offsets[step];
+          break;
+        }
+        case 'dynamic_w_18': {
+          const offsets = [-80, -40, 0, 40, 80, 40, 0, -40];
+          const step = obstacleIdx % offsets.length;
+          targetCenterY = height / 2 + offsets[step];
+          break;
+        }
+        case 'exp_shrink_19': {
+          targetCenterY = height / 2;
+          break;
+        }
+        case 'hybrid_20': {
+          const segIdx = Math.floor((obstacleIdx % 18) / 6);
+          const localIdx = obstacleIdx % 6;
+          if (segIdx === 0) {
+            targetCenterY = height / 2 + Math.sin(localIdx * (Math.PI * 2 / 6)) * 75;
+          } else if (segIdx === 1) {
+            targetCenterY = height / 2 + (80 - localIdx * 32);
+          } else {
+            const diagOffsets = [-83, -41.5, 0, 41.5, 83, 41.5];
+            targetCenterY = height / 2 + diagOffsets[localIdx];
+          }
+          break;
+        }
         default:
           targetCenterY = height / 2;
           break;
@@ -489,12 +592,31 @@ export class ObstacleManager {
       const targetBottomHeight = height - targetCenterY - gapHeight / 2;
 
       // Close the gaps initially with a small visual warning slit (30px gap)
-      const closedTopHeight = height / 2 - 15;
-      const closedBottomHeight = height / 2 - 15;
+      let closedTopHeight = height / 2 - 15;
+      let closedBottomHeight = height / 2 - 15;
+      if (patternType === 'reactive_14') {
+        closedTopHeight = height / 2;
+        closedBottomHeight = height / 2;
+      }
 
       const levelNum = this.activeLevelConfig.levelNum;
       const isMutated = (levelNum % 2 === 0);
       const isStructured = (levelNum % 3 === 0);
+
+      let animDuration = 0.38;
+      if (levelNum === 4 || levelNum === 5) {
+        animDuration = 0.28;
+      } else if (patternType === 'reactive_14') {
+        animDuration = 0.22;
+      }
+
+      let triggerDistance = 200 + Math.random() * 20;
+      if ((levelNum >= 1 && levelNum <= 3) || levelNum === 7 || levelNum === 8 || (levelNum >= 10 && levelNum <= 20)) {
+        triggerDistance = 220;
+      }
+      if (patternType === 'reactive_14') {
+        triggerDistance = 160;
+      }
 
       this.list.push({
         x: width + 50,
@@ -518,14 +640,17 @@ export class ObstacleManager {
         patternType,
         isTriggered: false,
         animTimer: 0,
-        animDuration: (levelNum === 4 || levelNum === 5) ? 0.28 : 0.38, // Fast snap for Levels 4 & 5
-        triggerDistance: (levelNum === 1 || levelNum === 2 || levelNum === 3 || levelNum === 7 || levelNum === 8) ? 220 : (200 + Math.random() * 20), // Constant 220px trigger for Levels 1, 2, 3, 7, 8
+        animDuration,
+        triggerDistance,
         closedTopHeight,
         closedBottomHeight,
         targetTopHeight,
         targetBottomHeight,
         levelNum,
-        shakeX: 0
+        shakeX: 0,
+        gapHeight,
+        spawnCenterY: targetCenterY,
+        obstacleIdx
       });
       return;
     }
