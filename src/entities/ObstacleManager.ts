@@ -45,6 +45,8 @@ export interface Obstacle {
   targetBottomHeight?: number;
   closedTopHeight?: number;
   closedBottomHeight?: number;
+  levelNum?: number;
+  shakeX?: number;
 }
 
 export class ObstacleManager {
@@ -157,23 +159,39 @@ export class ObstacleManager {
             obs.isTriggered = true;
             obs.animTimer = 0;
             if (particleEngine) {
-              for (let k = 0; k < 12; k++) {
+              const particleCount = (obs.levelNum === 4 || obs.levelNum === 5) ? 24 : 12;
+              for (let k = 0; k < particleCount; k++) {
                 const px = obs.x + Math.random() * obs.width;
                 const py = height / 2 + (Math.random() - 0.5) * 40;
                 let pColor = '#ffd700';
                 let pType = 'spark';
-                if (obs.worldId === 'jungle') { pColor = '#4caf50'; pType = 'circle'; }
-                else if (obs.worldId === 'jungle_temple') { pColor = '#8b5a2b'; pType = 'circle'; }
-                else if (obs.worldId === 'ice') { pColor = '#e0ffff'; pType = 'snowflake'; }
-                else if (obs.worldId === 'cyberpunk') { pColor = '#00f3ff'; pType = 'neon'; }
-                else if (obs.worldId === 'volcano') { pColor = '#ff4500'; pType = 'fire'; }
+                
+                if (obs.levelNum === 4 || obs.levelNum === 5) {
+                  const rand = Math.random();
+                  if (rand < 0.4) {
+                    pColor = '#4caf50'; // Leaf green
+                    pType = 'circle';
+                  } else if (rand < 0.75) {
+                    pColor = '#9e9e9e'; // Gray stone chips
+                    pType = 'circle';
+                  } else {
+                    pColor = '#ffd700'; // Spark energy glow
+                    pType = 'spark';
+                  }
+                } else {
+                  if (obs.worldId === 'jungle') { pColor = '#4caf50'; pType = 'circle'; }
+                  else if (obs.worldId === 'jungle_temple') { pColor = '#8b5a2b'; pType = 'circle'; }
+                  else if (obs.worldId === 'ice') { pColor = '#e0ffff'; pType = 'snowflake'; }
+                  else if (obs.worldId === 'cyberpunk') { pColor = '#00f3ff'; pType = 'neon'; }
+                  else if (obs.worldId === 'volcano') { pColor = '#ff4500'; pType = 'fire'; }
+                }
                 
                 particleEngine.spawn(
                   px, py,
-                  -scrollSpeed * 0.5 + (Math.random() - 0.5) * 2,
-                  (Math.random() - 0.5) * 3,
+                  -scrollSpeed * 0.5 + (Math.random() - 0.5) * 2.5,
+                  (Math.random() - 0.5) * 4.5,
                   pColor,
-                  2.5 + Math.random() * 2.5,
+                  2.0 + Math.random() * 3.5,
                   1.0,
                   0.02,
                   pType as any
@@ -195,6 +213,17 @@ export class ObstacleManager {
 
         obs.topHeight = obs.closedTopHeight! + (obs.targetTopHeight! - obs.closedTopHeight!) * eased;
         obs.bottomHeight = obs.closedBottomHeight! + (obs.targetBottomHeight! - obs.closedBottomHeight!) * eased;
+
+        // Apply engaging horizontal rumble shake for Level 4 & 5
+        if (obs.levelNum === 4 || obs.levelNum === 5) {
+          if (progress < 1.0) {
+            obs.shakeX = Math.sin(obs.animTimer! * 55) * 7.5 * (1 - progress);
+          } else {
+            obs.shakeX = 0;
+          }
+        } else {
+          obs.shakeX = 0;
+        }
 
         if (obs.isLaser) {
           obs.laserTimer += deltaTime * timeScale;
@@ -458,12 +487,14 @@ export class ObstacleManager {
         patternType,
         isTriggered: false,
         animTimer: 0,
-        animDuration: 0.38, // Dynamic smooth open duration (380ms)
+        animDuration: (levelNum === 4 || levelNum === 5) ? 0.28 : 0.38, // Fast snap for Levels 4 & 5
         triggerDistance: 200 + Math.random() * 20, // 200px to 220px away
         closedTopHeight,
         closedBottomHeight,
         targetTopHeight,
-        targetBottomHeight
+        targetBottomHeight,
+        levelNum,
+        shakeX: 0
       });
       return;
     }
@@ -769,6 +800,10 @@ export class ObstacleManager {
     for (let i = 0; i < this.list.length; i++) {
       const obs = this.list[i];
       ctx.save();
+      
+      if (obs.shakeX) {
+        ctx.translate(obs.shakeX, 0);
+      }
       
       if (obs.isCavern) {
         let colorTop = '#55a855';
