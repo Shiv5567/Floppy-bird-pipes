@@ -6,6 +6,8 @@ import { Bird } from '../entities/Bird.ts';
 import { ObstacleManager } from '../entities/ObstacleManager.ts';
 import { PowerupManager } from '../entities/PowerupManager.ts';
 import { BossManager } from '../entities/BossManager.ts';
+import { LevelManager } from '../systems/LevelManager.ts';
+import type { LevelConfig } from '../systems/LevelManager.ts';
 
 export type GameState = 'MENU' | 'PLAYING' | 'PAUSED' | 'BOSS_WARNING' | 'BOSS_FIGHT' | 'GAMEOVER' | 'PHOTO_MODE' | 'REVIVE_CHOICE';
 
@@ -21,6 +23,12 @@ export class GameEngine {
   public revivesUsedThisRun = 0;
   public reviveCountdown = 5.0;
   private preReviveState: GameState = 'PLAYING';
+  
+  // Level Mode systems
+  public gameMode: 'endless' | 'level' = 'endless';
+  public currentLevelNum = 1;
+  public activeLevelConfig: LevelConfig | null = null;
+  public shieldBrokenThisRun = false;
   
   // Ultimate Skill state variables (Visual Upgrade Option 2)
   public ultimateEnergy = 0; // 0 to 100
@@ -99,10 +107,25 @@ export class GameEngine {
     this.state = 'PLAYING';
     this.hasRevivedThisRun = false;
     this.revivesUsedThisRun = 0;
+    this.shieldBrokenThisRun = false;
     this.score = 0;
     this.coinsCollectedThisRun = 0;
     this.gemsCollectedThisRun = 0;
-    this.scrollSpeed = this.baseScrollSpeed;
+
+    if (this.gameMode === 'level') {
+      const levelConfig = LevelManager.getLevel(this.currentLevelNum);
+      if (levelConfig) {
+        this.activeLevelConfig = levelConfig;
+        this.scrollSpeed = levelConfig.scrollSpeed;
+        this.baseScrollSpeed = levelConfig.scrollSpeed;
+        this.progressManager.setWorld(levelConfig.worldId);
+        this.renderer.setWeather(levelConfig.worldId);
+      }
+    } else {
+      this.activeLevelConfig = null;
+      this.scrollSpeed = this.baseScrollSpeed;
+    }
+
     this.timeScale = 1.0;
     this.scoreMultiplier = 1;
     this.activePowerupsList = {};
@@ -126,6 +149,11 @@ export class GameEngine {
     this.bird.setDifficulty(this.progressManager.getState().selectedDifficulty);
 
     this.obstacleManager.clear();
+    if (this.gameMode === 'level' && this.activeLevelConfig) {
+      this.obstacleManager.setLevelMode(true, this.activeLevelConfig);
+    } else {
+      this.obstacleManager.setLevelMode(false, null);
+    }
     this.powerupManager.clear();
     
     this.soundManager.stopMusic();
@@ -235,36 +263,45 @@ export class GameEngine {
 
       // Calculate and set unified progressive scroll speed before updating visual backgrounds or physics managers
       if (this.state === 'PLAYING') {
-        const selectedZone = this.progressManager.getState().selectedZone;
-        const selectedDifficulty = this.progressManager.getState().selectedDifficulty;
-        
-        // Classic mode has a much slower, gradual, and longer progressive speed curve (up to 250 score)
-        const progressiveCap = selectedZone === 'classic' ? 250.0 : 60.0;
-        const progressRatio = Math.min(1.0, this.score / progressiveCap);
-        
-        let startSpeed = 1.0;
-        let maxSpeed = 1.25;
-        
-        if (selectedZone === 'classic') {
-          startSpeed = 0.72; // Start very comfortable and slow to allow longer survival
-          maxSpeed = 1.20;
-        } else if (selectedDifficulty === 'easy') {
-          startSpeed = 0.75;
-          maxSpeed = 0.90;
-        } else if (selectedDifficulty === 'hard') {
-          startSpeed = 1.20;
-          maxSpeed = 1.50;
-        }
-        
-        const speedCoeff = startSpeed + (maxSpeed - startSpeed) * progressRatio;
-        
-        // Add exactly 5% speed every 25 score
-        const speedMultiplier = 1.0 + Math.floor(this.score / 25.0) * 0.05;
-
-        if (this.activePowerupsList['turbo']) {
-          this.scrollSpeed = this.baseScrollSpeed * 2.3;
+        if (this.gameMode === 'level' && this.activeLevelConfig) {
+          if (this.activePowerupsList['turbo']) {
+            this.scrollSpeed = this.activeLevelConfig.scrollSpeed * 2.3;
+          } else {
+            const progressiveFactor = 1.0 + Math.floor(this.score / 5) * 0.02;
+            this.scrollSpeed = this.activeLevelConfig.scrollSpeed * progressiveFactor;
+          }
         } else {
-          this.scrollSpeed = this.baseScrollSpeed * speedCoeff * speedMultiplier;
+          const selectedZone = this.progressManager.getState().selectedZone;
+          const selectedDifficulty = this.progressManager.getState().selectedDifficulty;
+          
+          // Classic mode has a much slower, gradual, and longer progressive speed curve (up to 250 score)
+          const progressiveCap = selectedZone === 'classic' ? 250.0 : 60.0;
+          const progressRatio = Math.min(1.0, this.score / progressiveCap);
+          
+          let startSpeed = 1.0;
+          let maxSpeed = 1.25;
+          
+          if (selectedZone === 'classic') {
+            startSpeed = 0.72; // Start very comfortable and slow to allow longer survival
+            maxSpeed = 1.20;
+          } else if (selectedDifficulty === 'easy') {
+            startSpeed = 0.75;
+            maxSpeed = 0.90;
+          } else if (selectedDifficulty === 'hard') {
+            startSpeed = 1.20;
+            maxSpeed = 1.50;
+          }
+          
+          const speedCoeff = startSpeed + (maxSpeed - startSpeed) * progressRatio;
+          
+          // Add exactly 5% speed every 25 score
+          const speedMultiplier = 1.0 + Math.floor(this.score / 25.0) * 0.05;
+
+          if (this.activePowerupsList['turbo']) {
+            this.scrollSpeed = this.baseScrollSpeed * 2.3;
+          } else {
+            this.scrollSpeed = this.baseScrollSpeed * speedCoeff * speedMultiplier;
+          }
         }
       }
 
@@ -275,7 +312,7 @@ export class GameEngine {
         const selectedDifficulty = this.progressManager.getState().selectedDifficulty;
 
         // Standard scrolling hazards
-        this.obstacleManager.update(dt, this.scrollSpeed, this.score, this.progressManager.getState().activeWorld, width, height, activeTimeScale, selectedZone, selectedDifficulty);
+        this.obstacleManager.update(dt, this.scrollSpeed, this.score, this.progressManager.getState().activeWorld, width, height, activeTimeScale, selectedZone, selectedDifficulty, this.bird.x);
         this.powerupManager.update(dt, this.scrollSpeed, this.bird.x, this.bird.y, !!this.activePowerupsList['magnet'], width, height, activeTimeScale, this.obstacleManager.getList());
 
         // Check near-miss grazes
@@ -366,6 +403,7 @@ export class GameEngine {
             // Collided. Check Shield safety
             if (this.bird.hasShield) {
               this.bird.hasShield = false;
+              this.shieldBrokenThisRun = true;
               delete this.activePowerupsList['shield'];
               this.bird.isInvincible = true;
               
@@ -416,6 +454,7 @@ export class GameEngine {
           if (bossHit) {
             if (this.bird.hasShield) {
               this.bird.hasShield = false;
+              this.shieldBrokenThisRun = true;
               delete this.activePowerupsList['shield'];
               this.bird.isInvincible = true;
               this.particleEngine.emitRing(this.bird.x, this.bird.y, '#00f3ff', 20);
@@ -635,13 +674,41 @@ export class GameEngine {
     // Spawn point sparkles
     this.particleEngine.emitCoinSparkle(this.bird.x + 30, this.bird.y, '#00ffcc');
 
-    // Progressive ambient world transition every 10 points (DISABLED as requested to persist manually selected world)
-    // if (this.score > 0 && this.score % 10 === 0) {
-    //   this.transitionToNextWorld();
-    // }
+    // Level Mode target check
+    if (this.gameMode === 'level' && this.activeLevelConfig) {
+      if (this.score >= this.activeLevelConfig.targetScore) {
+        // Level complete!
+        this.state = 'LEVEL_COMPLETE' as any; // Cast in case State type is checked
+        this.soundManager.stopMusic();
+        this.soundManager.playLevelUp();
+        
+        // Stars calculation:
+        // 3 Stars: 0 revives used AND shield not broken
+        // 2 Stars: 0 revives used AND shield broken
+        // 1 Star: 1 or more revives used
+        let stars = 1;
+        if (this.revivesUsedThisRun === 0) {
+          stars = this.shieldBrokenThisRun ? 2 : 3;
+        }
+        
+        this.progressManager.setLevelComplete(this.currentLevelNum, stars);
+        
+        window.dispatchEvent(new CustomEvent('level_complete_state', {
+          detail: {
+            levelNum: this.currentLevelNum,
+            stars: stars,
+            score: this.score,
+            targetScore: this.activeLevelConfig.targetScore,
+            coinsGained: this.coinsCollectedThisRun,
+            gemsGained: this.gemsCollectedThisRun
+          }
+        }));
+        return;
+      }
+    }
 
-    // Trigger Boss Warning sequence at milestone
-    if (this.score > 0 && this.score % this.bossScoreMilestone === 0 && this.state !== 'BOSS_FIGHT') {
+    // Trigger Boss Warning sequence at milestone (Endless Mode only)
+    if (this.gameMode === 'endless' && this.score > 0 && this.score % this.bossScoreMilestone === 0 && this.state !== 'BOSS_FIGHT') {
       this.triggerBossWarning();
     }
   }

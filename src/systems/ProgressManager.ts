@@ -49,6 +49,8 @@ export interface PlayerProgressState {
   selectedDifficulty: 'easy' | 'medium' | 'hard';
   lastDailyClaimTime: number;
   dailyQuests: { id: string; name: string; desc: string; target: number; current: number; rewardCoins: number; rewardGems: number; claimed: boolean }[];
+  levelModeUnlockedLevel?: number;
+  levelModeStars?: Record<number, number>;
 }
 
 export class ProgressManager {
@@ -479,7 +481,9 @@ export class ProgressManager {
           selectedZone: loadedState.selectedZone || 'classic',
           selectedDifficulty: loadedState.selectedDifficulty || 'medium',
           lastDailyClaimTime: loadedState.lastDailyClaimTime || 0,
-          dailyQuests: loadedState.dailyQuests || this.initDefaultQuests()
+          dailyQuests: loadedState.dailyQuests || this.initDefaultQuests(),
+          levelModeUnlockedLevel: loadedState.levelModeUnlockedLevel || 1,
+          levelModeStars: loadedState.levelModeStars || {}
         };
 
         // Sync skins unlocked state and levels
@@ -527,7 +531,9 @@ export class ProgressManager {
       selectedZone: 'classic',
       selectedDifficulty: 'medium',
       lastDailyClaimTime: 0,
-      dailyQuests: this.initDefaultQuests()
+      dailyQuests: this.initDefaultQuests(),
+      levelModeUnlockedLevel: 1,
+      levelModeStars: {}
     };
     
     // Reset skins
@@ -604,6 +610,18 @@ export class ProgressManager {
     this.state.lastDailyClaimTime = now;
     this.save();
     return { success: true, msg: `Day ${day} Claimed! Received +${reward.coins}🟡 and +${reward.gems}💎!` };
+  }
+
+  public setLevelComplete(levelNum: number, stars: number) {
+    if (!this.state.levelModeStars) this.state.levelModeStars = {};
+    const oldStars = this.state.levelModeStars[levelNum] || 0;
+    if (stars > oldStars) {
+      this.state.levelModeStars[levelNum] = stars;
+    }
+    if (levelNum === this.state.levelModeUnlockedLevel && this.state.levelModeUnlockedLevel < 30) {
+      this.state.levelModeUnlockedLevel = levelNum + 1;
+    }
+    this.save();
   }
 
   public save() {

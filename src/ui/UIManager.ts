@@ -1,11 +1,12 @@
 import { GameEngine } from '../engine/GameEngine.ts';
 import type { GameState } from '../engine/GameEngine.ts';
 import type { Skin, BattlePassTier, Achievement } from '../systems/ProgressManager.ts';
+import { LevelManager } from '../systems/LevelManager.ts';
 
 export class UIManager {
   private engine: GameEngine;
   private container: HTMLElement;
-  private activeTab: 'main' | 'skins' | 'worlds' | 'bp' | 'achievements' | 'photo' | 'rewards' | 'zones' = 'main';
+  private activeTab: 'main' | 'skins' | 'worlds' | 'bp' | 'achievements' | 'photo' | 'rewards' | 'zones' | 'levels' = 'main';
   private lastEngineState: GameState = 'MENU';
   private activeRewardsSubTab: 'daily' | 'trophies' | 'bp' = 'daily';
 
@@ -32,14 +33,22 @@ export class UIManager {
     this.render();
   }
 
-  public getActiveTab(): 'main' | 'skins' | 'worlds' | 'bp' | 'achievements' | 'photo' | 'rewards' | 'zones' {
+  public getActiveTab(): 'main' | 'skins' | 'worlds' | 'bp' | 'achievements' | 'photo' | 'rewards' | 'zones' | 'levels' {
     return this.activeTab;
   }
 
   private setupGlobalEvents() {
     // Listen to custom engine alerts
     window.addEventListener('game_over_state', () => {
-      this.activeTab = 'main';
+      if (this.engine.gameMode === 'level') {
+        this.activeTab = 'levels';
+      } else {
+        this.activeTab = 'main';
+      }
+      this.render();
+    });
+
+    window.addEventListener('level_complete_state', () => {
       this.render();
     });
 
@@ -98,6 +107,8 @@ export class UIManager {
       this.renderPhotoModePanel();
     } else if (state === 'REVIVE_CHOICE') {
       this.renderReviveScreen();
+    } else if (state as any === 'LEVEL_COMPLETE') {
+      this.renderLevelComplete();
     }
   }
 
@@ -409,10 +420,16 @@ export class UIManager {
               <span class="world-chip-info-icon">ℹ</span>
             </div>
 
-            <button class="start-fly-btn" id="btn-start-game">
-              <span>START FLY</span>
-              <span class="start-fly-wing">🪶</span>
-            </button>
+            <div style="display: flex; gap: 8px; width: 100%; margin-bottom: 6px;">
+              <button class="start-fly-btn" id="btn-start-game" style="flex: 1; padding: 12px 10px; font-size: 16px;">
+                <span>ENDLESS</span>
+                <span class="start-fly-wing">🪶</span>
+              </button>
+              <button class="start-fly-btn" id="btn-open-levels" style="flex: 1; padding: 12px 10px; font-size: 16px; background: linear-gradient(180deg, #b35dfb 0%, #7b2fff 50%, #5200b3 100%); box-shadow: 0 6px 0 #3a0082, 0 8px 20px rgba(123,47,255,0.4);">
+                <span>LEVELS</span>
+                <span class="start-fly-wing">🏆</span>
+              </button>
+            </div>
             <button class="spectator-btn-small" id="btn-spectator">🤖 SPECTATOR AUTO-PILOT</button>
           </div>
         </div>
@@ -434,6 +451,7 @@ export class UIManager {
       achievements: { icon: '🏆', title: 'HALL OF TROPHIES',     color: '#ffd700', heroIcon: '🏅', heroSubtitle: 'Track your legendary feats' },
       rewards:      { icon: '🎁', title: 'REWARDS & PROGRESSION HUB', color: '#ffaa00', heroIcon: '🎁', heroSubtitle: 'Claim your daily logs, trophies, and battle pass!' },
       zones:        { icon: '🎯', title: 'GAMEPLAY ZONE & DIFFICULTY', color: '#00ff88', heroIcon: '🎯', heroSubtitle: 'Configure your campaign zone and flight difficulty' },
+      levels:       { icon: '🏆', title: 'LEVEL SELECT MODE',    color: '#7b2fff', heroIcon: '🏆', heroSubtitle: 'Complete all 30 transforming levels!' },
     };
     const meta = tabMeta[this.activeTab] || tabMeta['skins'];
 
@@ -766,6 +784,52 @@ export class UIManager {
         }
       }
 
+      case 'levels': {
+        const allLevels = LevelManager.getAllLevels();
+        const unlockedLvl = progress.levelModeUnlockedLevel || 1;
+        const starsMap = progress.levelModeStars || {};
+
+        const levelCards = allLevels.map(lvl => {
+          const isLocked = lvl.levelNum > unlockedLvl;
+          const starsCount = starsMap[lvl.levelNum] || 0;
+          
+          let starHtml = '';
+          for (let s = 1; s <= 3; s++) {
+            starHtml += `<span class="level-select-star ${s <= starsCount ? 'filled' : ''}">★</span>`;
+          }
+
+          const worldEmojis: Record<string, string> = {
+            jungle: '🌴', jungle_temple: '🛕', ice: '❄️', cyberpunk: '🏙️', volcano: '🌋'
+          };
+          const emoji = worldEmojis[lvl.worldId] || '🐦';
+
+          return `
+            <div class="level-select-card glass-card ${isLocked ? 'locked' : 'unlocked'}" 
+                 data-level-num="${lvl.levelNum}"
+            >
+              ${isLocked 
+                ? `<div class="level-lock-icon">🔒</div>`
+                : `
+                  <div class="level-num-label">${lvl.levelNum}</div>
+                  <div class="level-emoji-label">${emoji}</div>
+                  <div class="level-select-stars">${starHtml}</div>
+                  <div class="level-target-label">Target: ${lvl.targetScore}</div>
+                `
+              }
+            </div>
+          `;
+        }).join('');
+
+        return `
+          <div class="tab-sheet-title">🏆 SELECT A LEVEL TO START</div>
+          <div class="level-select-grid-container">
+            <div class="level-select-grid">
+              ${levelCards}
+            </div>
+          </div>
+        `;
+      }
+
       case 'zones': {
         return `
           <div class="tab-sheet-title">🎯 CONFIGURE ZONE & DIFFICULTY</div>
@@ -910,14 +974,32 @@ export class UIManager {
 
     // Game start & spectator
     bindClick('btn-start-game', () => {
+      this.engine.gameMode = 'endless';
       this.engine.isSpectatorMode = false;
       this.engine.startGame();
       this.render();
     });
+    bindClick('btn-open-levels', () => {
+      this.activeTab = 'levels';
+      this.render();
+    });
     bindClick('btn-spectator', () => {
+      this.engine.gameMode = 'endless';
       this.engine.isSpectatorMode = true;
       this.engine.startGame();
       this.render();
+    });
+
+    // Level Select click events
+    const unlockedLevelCards = this.container.querySelectorAll('.level-select-card.unlocked');
+    unlockedLevelCards.forEach(card => {
+      card.addEventListener('click', () => {
+        const lvlNum = parseInt(card.getAttribute('data-level-num') || '1');
+        this.engine.gameMode = 'level';
+        this.engine.currentLevelNum = lvlNum;
+        this.engine.startGame();
+        this.render();
+      });
     });
 
     // Photo mode
@@ -1213,7 +1295,10 @@ export class UIManager {
 
     document.getElementById('btn-quit')?.addEventListener('click', () => {
       this.engine.state = 'MENU';
-      this.soundManager.stopMusic();
+      this.engine.soundManager.stopMusic();
+      if (this.engine.gameMode === 'level') {
+        this.activeTab = 'levels';
+      }
       this.render();
     });
   }
@@ -1266,6 +1351,9 @@ export class UIManager {
 
     document.getElementById('btn-hangar')?.addEventListener('click', () => {
       this.engine.state = 'MENU';
+      if (this.engine.gameMode === 'level') {
+        this.activeTab = 'levels';
+      }
       this.render();
     });
   }
@@ -1348,6 +1436,81 @@ export class UIManager {
     };
 
     requestAnimationFrame(updateCountdownUI);
+  }
+
+  private renderLevelComplete() {
+    const levelNum = this.engine.currentLevelNum;
+    const levelConfig = LevelManager.getLevel(levelNum);
+    const starsMap = this.engine.progressManager.getState().levelModeStars || {};
+    const stars = starsMap[levelNum] || 0;
+    
+    let starsHtml = '';
+    for (let s = 1; s <= 3; s++) {
+      starsHtml += `<span class="complete-screen-star ${s <= stars ? 'filled' : ''} star-anim-${s}">★</span>`;
+    }
+
+    const winHTML = `
+      <div class="overlay-screen fade-in glass-modal">
+        <div class="modal-card win-card animate-slide-up" style="background: rgba(8, 5, 26, 0.95); border: 2px solid rgba(0, 255, 136, 0.25); box-shadow: 0 0 25px rgba(0, 255, 136, 0.15);">
+          <div class="trophy-badge" style="font-size: 55px; filter: drop-shadow(0 0 10px rgba(255,215,0,0.5)); margin-bottom: 5px;">🏆</div>
+          <h2 class="modal-title success-text" style="color: #00ff88; text-shadow: 0 0 10px rgba(0,255,136,0.4); font-size: 26px; font-weight: 800; text-transform: uppercase;">LEVEL COMPLETE!</h2>
+          <p class="modal-subtitle" style="font-weight: 800; font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 2px;">${levelConfig?.name || `Level ${levelNum}`}</p>
+
+          <div class="complete-stars-box" style="display: flex; justify-content: center; gap: 12px; margin: 15px 0; font-size: 38px;">
+            ${starsHtml}
+          </div>
+
+          <div class="rewards-summary" style="margin-top: 15px; width: 100%; display: flex; flex-direction: column; gap: 8px;">
+            <div class="reward-row" style="display: flex; justify-content: space-between; padding: 6px 12px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+              <span>Score Reached</span>
+              <strong style="color: #ffd700;">${this.engine.score} / ${levelConfig?.targetScore} 🎯</strong>
+            </div>
+            <div class="reward-row" style="display: flex; justify-content: space-between; padding: 6px 12px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+              <span>Gold Collected</span>
+              <strong>+${this.engine.coinsCollectedThisRun} 🟡</strong>
+            </div>
+            <div class="reward-row" style="display: flex; justify-content: space-between; padding: 6px 12px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+              <span>Gems Collected</span>
+              <strong>+${this.engine.gemsCollectedThisRun} 💎</strong>
+            </div>
+          </div>
+
+          <div class="vertical-actions" style="margin-top: 20px; display: flex; flex-direction: column; gap: 8px; width: 100%;">
+            ${levelNum < 30 
+              ? `<button class="btn btn-primary btn-glow-green" id="btn-next-level" style="background: linear-gradient(180deg, #00ff88 0%, #00c853 100%); box-shadow: 0 6px 0 #007e33, 0 8px 20px rgba(0,200,83,0.4); width: 100%; padding: 14px; border-radius: 12px; font-weight: 800; border: none; cursor: pointer; color: #04240e; font-size: 15px;">NEXT LEVEL ➡</button>`
+              : `<button class="btn btn-primary" id="btn-quit-levels" style="background: linear-gradient(180deg, #ffd700 0%, #ffaa00 100%); width: 100%; padding: 14px; border-radius: 12px; font-weight: 800; border: none; cursor: pointer; color: #3d2c00; font-size: 15px;">ALL LEVELS BEATEN! 🎉</button>`
+            }
+            <button class="btn btn-secondary" id="btn-retry-level" style="width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; cursor: pointer; font-weight: 800; font-size: 13px;">REPLAY LEVEL</button>
+            <button class="btn btn-secondary" id="btn-quit-levels-back" style="width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; cursor: pointer; font-weight: 800; font-size: 13px;">RETURN TO LEVELS</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    this.container.innerHTML = winHTML;
+
+    document.getElementById('btn-next-level')?.addEventListener('click', () => {
+      this.engine.currentLevelNum++;
+      this.engine.startGame();
+      this.render();
+    });
+
+    document.getElementById('btn-retry-level')?.addEventListener('click', () => {
+      this.engine.startGame();
+      this.render();
+    });
+
+    document.getElementById('btn-quit-levels')?.addEventListener('click', () => {
+      this.engine.state = 'MENU';
+      this.activeTab = 'levels';
+      this.render();
+    });
+
+    document.getElementById('btn-quit-levels-back')?.addEventListener('click', () => {
+      this.engine.state = 'MENU';
+      this.activeTab = 'levels';
+      this.render();
+    });
   }
 
   private renderPhotoModePanel() {
@@ -1506,7 +1669,4 @@ export class UIManager {
     }
   }
 
-  private get soundManager() {
-    return this.engine.soundManager;
-  }
 }
