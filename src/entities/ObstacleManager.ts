@@ -343,16 +343,16 @@ export class ObstacleManager {
           const progress = Math.max(0, Math.min(1, obs.animTimer! / obs.animDuration!));
 
           if (obs.levelNum === 4) {
-            // Slam-and-Spring Gate
+            // Smooth Slam-and-Slide Gate
             if (progress < 0.3) {
               const slamProgress = progress / 0.3;
               const slamOffset = 20 * Math.sin(slamProgress * Math.PI / 2);
               obs.topHeight = obs.closedTopHeight! + slamOffset;
               obs.bottomHeight = obs.closedBottomHeight! + slamOffset;
-              obs.shakeX = (Math.random() - 0.5) * 8;
+              obs.shakeX = 0;
             } else {
               const openProgress = (progress - 0.3) / 0.7;
-              const easedOpen = this.easeOutBack(openProgress);
+              const easedOpen = this.easeOutCubic(openProgress);
               const startTop = obs.closedTopHeight! + 20;
               const startBottom = obs.closedBottomHeight! + 20;
               obs.topHeight = startTop + (obs.targetTopHeight! - startTop) * easedOpen;
@@ -361,7 +361,7 @@ export class ObstacleManager {
             }
           } else if (obs.levelNum === 5) {
             // Horizontal Slide-Lock Gate
-            const eased = this.easeOutBack(progress);
+            const eased = this.easeOutCubic(progress);
             obs.topHeight = obs.closedTopHeight! + (obs.targetTopHeight! - obs.closedTopHeight!) * eased;
             obs.bottomHeight = obs.closedBottomHeight! + (obs.targetBottomHeight! - obs.closedBottomHeight!) * eased;
             obs.shakeX = -90 * (1 - eased);
@@ -464,7 +464,7 @@ export class ObstacleManager {
       // Determine next spawn distance (reduced wave spawn distance as well)
       if (this.isLevelMode && this.activeLevelConfig) {
         const levelNum = this.activeLevelConfig.levelNum;
-        if (levelNum >= 1 && levelNum <= 50) {
+        if (levelNum >= 1 && levelNum <= 30) {
           this.nextSpawnDistance = this.obstacleWidth;
         } else {
           this.nextSpawnDistance = 330;
@@ -746,7 +746,7 @@ export class ObstacleManager {
       }
 
       let triggerDistance = 200 + Math.random() * 20;
-      if (levelNum >= 1 && levelNum <= 50) {
+      if (levelNum >= 1 && levelNum <= 30) {
         triggerDistance = 220;
       }
       if (patternType === 'reactive_14') {
@@ -2697,11 +2697,6 @@ export class ObstacleManager {
     ctx.stroke();
   }
 
-  private easeOutBack(x: number): number {
-    const c1 = 1.2;
-    const c3 = c1 + 1;
-    return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
-  }
 
   private easeOutCubic(x: number): number {
     return 1 - Math.pow(1 - x, 3);

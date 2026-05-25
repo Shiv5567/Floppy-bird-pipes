@@ -12,7 +12,7 @@ export class LevelManager {
   private static levels: LevelConfig[] = [];
 
   static {
-    // Generate 50 unique levels
+    // Generate 30 unique levels
     const worlds = ['jungle', 'jungle_temple', 'ice', 'cyberpunk', 'volcano'];
     const worldNames = ['Grass Hangar', 'Ancient Ruins', 'Glacial Ridge', 'Neon Sector', 'Magma Abyss'];
 
@@ -24,16 +24,16 @@ export class LevelManager {
       'spiral_motion', 'wave_corridor'
     ];
 
-    for (let levelNum = 1; levelNum <= 50; levelNum++) {
-      // Determine world group (10 levels per world)
-      const worldIdx = Math.min(4, Math.floor((levelNum - 1) / 10));
+    for (let levelNum = 1; levelNum <= 30; levelNum++) {
+      // Determine world group (6 levels per world)
+      const worldIdx = Math.min(4, Math.floor((levelNum - 1) / 6));
       const worldId = worlds[worldIdx];
       const worldName = worldNames[worldIdx];
 
       // Progressive difficulty values
       const targetScore = 50; // Level complete requires 50 obstacles crossed
       const scrollSpeed = (3.3 + (levelNum * 0.06)) * 0.8; // Decreased by 20%
-      const gapHeight = Math.max(195, 260 - (levelNum * 1.3)); // 260 down to 195px
+      const gapHeight = Math.max(195, 260 - (levelNum * 2.2)); // 260 down to 195px
 
       // Distribute patterns based on level brackets
       let patterns: string[] = [];
@@ -101,20 +101,14 @@ export class LevelManager {
       } else if (levelNum <= 20) {
         // Levels 16-20: fast motion flow
         patterns = ['w_shape', 'm_shape', 'diamond_gate', 'wave_corridor', 'mechanical_claw', 'temple_door'];
-      } else if (levelNum <= 30) {
-        // Levels 21-30: high complexity standard patterns & custom reactive mix
-        patterns = ['wave_corridor', 'mechanical_claw', 'temple_door', 'scissor_gate', 'spiral_motion', 'wave_10', 'breathing_12', 'moving_stair_15', 'hybrid_20'];
-      } else if (levelNum <= 40) {
-        // Levels 31-40: advanced patterns mix
-        patterns = [...allPatterns, 'rotating_17', 'dynamic_w_18', 'exp_shrink_19'];
       } else {
-        // Levels 41-50: master levels combining all obstacle systems
+        // Levels 21-30: master levels combining all obstacle systems
         patterns = [...allPatterns, 'wave_10', 'zigzag_11', 'breathing_12', 'diagonal_13', 'reactive_14', 'moving_stair_15', 'alternating_16', 'rotating_17', 'dynamic_w_18', 'exp_shrink_19', 'hybrid_20'];
       }
 
       this.levels.push({
         levelNum,
-        name: `${worldName} - Zone ${((levelNum - 1) % 10) + 1}`,
+        name: `${worldName} - Zone ${((levelNum - 1) % 6) + 1}`,
         worldId,
         targetScore,
         scrollSpeed,
