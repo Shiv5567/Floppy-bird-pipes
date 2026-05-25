@@ -201,28 +201,47 @@ export class ObstacleManager {
           }
         }
 
-        if (obs.isTriggered) {
+        if (!obs.isTriggered) {
+          obs.topHeight = obs.closedTopHeight!;
+          obs.bottomHeight = obs.closedBottomHeight!;
+          obs.shakeX = (obs.levelNum === 5) ? -90 : 0;
+        } else {
           obs.animTimer! += deltaTime * timeScale;
           if (obs.animTimer! > obs.animDuration!) {
             obs.animTimer = obs.animDuration!;
           }
-        }
 
-        const progress = Math.max(0, Math.min(1, obs.animTimer! / obs.animDuration!));
-        const eased = this.easeOutBack(progress);
+          const progress = Math.max(0, Math.min(1, obs.animTimer! / obs.animDuration!));
+          const eased = this.easeOutBack(progress);
 
-        obs.topHeight = obs.closedTopHeight! + (obs.targetTopHeight! - obs.closedTopHeight!) * eased;
-        obs.bottomHeight = obs.closedBottomHeight! + (obs.targetBottomHeight! - obs.closedBottomHeight!) * eased;
-
-        // Apply engaging horizontal rumble shake for Level 4 & 5
-        if (obs.levelNum === 4 || obs.levelNum === 5) {
-          if (progress < 1.0) {
-            obs.shakeX = Math.sin(obs.animTimer! * 55) * 7.5 * (1 - progress);
+          if (obs.levelNum === 4) {
+            // Slam-and-Spring Gate
+            if (progress < 0.3) {
+              const slamProgress = progress / 0.3;
+              const slamOffset = 20 * Math.sin(slamProgress * Math.PI / 2);
+              obs.topHeight = obs.closedTopHeight! + slamOffset;
+              obs.bottomHeight = obs.closedBottomHeight! + slamOffset;
+              obs.shakeX = (Math.random() - 0.5) * 8;
+            } else {
+              const openProgress = (progress - 0.3) / 0.7;
+              const easedOpen = this.easeOutBack(openProgress);
+              const startTop = obs.closedTopHeight! + 20;
+              const startBottom = obs.closedBottomHeight! + 20;
+              obs.topHeight = startTop + (obs.targetTopHeight! - startTop) * easedOpen;
+              obs.bottomHeight = startBottom + (obs.targetBottomHeight! - startBottom) * easedOpen;
+              obs.shakeX = 0;
+            }
+          } else if (obs.levelNum === 5) {
+            // Horizontal Slide-Lock Gate
+            obs.topHeight = obs.closedTopHeight! + (obs.targetTopHeight! - obs.closedTopHeight!) * eased;
+            obs.bottomHeight = obs.closedBottomHeight! + (obs.targetBottomHeight! - obs.closedBottomHeight!) * eased;
+            obs.shakeX = -90 * (1 - eased);
           } else {
+            // Standard smooth open
+            obs.topHeight = obs.closedTopHeight! + (obs.targetTopHeight! - obs.closedTopHeight!) * eased;
+            obs.bottomHeight = obs.closedBottomHeight! + (obs.targetBottomHeight! - obs.closedBottomHeight!) * eased;
             obs.shakeX = 0;
           }
-        } else {
-          obs.shakeX = 0;
         }
 
         if (obs.isLaser) {
