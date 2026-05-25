@@ -370,7 +370,7 @@ export class ObstacleManager {
       // Determine next spawn distance (reduced wave spawn distance as well)
       if (this.isLevelMode && this.activeLevelConfig) {
         const levelNum = this.activeLevelConfig.levelNum;
-        if ((levelNum >= 1 && levelNum <= 3) || levelNum === 7 || levelNum === 8 || (levelNum >= 10 && levelNum <= 20)) {
+        if (levelNum >= 1 && levelNum <= 50) {
           this.nextSpawnDistance = this.obstacleWidth;
         } else {
           this.nextSpawnDistance = 330;
@@ -612,7 +612,7 @@ export class ObstacleManager {
       }
 
       let triggerDistance = 200 + Math.random() * 20;
-      if ((levelNum >= 1 && levelNum <= 3) || levelNum === 7 || levelNum === 8 || (levelNum >= 10 && levelNum <= 20)) {
+      if (levelNum >= 1 && levelNum <= 50) {
         triggerDistance = 220;
       }
       if (patternType === 'reactive_14') {

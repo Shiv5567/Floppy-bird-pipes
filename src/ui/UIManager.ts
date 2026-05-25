@@ -451,7 +451,7 @@ export class UIManager {
       achievements: { icon: '🏆', title: 'HALL OF TROPHIES',     color: '#ffd700', heroIcon: '🏅', heroSubtitle: 'Track your legendary feats' },
       rewards:      { icon: '🎁', title: 'REWARDS & PROGRESSION HUB', color: '#ffaa00', heroIcon: '🎁', heroSubtitle: 'Claim your daily logs, trophies, and battle pass!' },
       zones:        { icon: '🎯', title: 'GAMEPLAY ZONE & DIFFICULTY', color: '#00ff88', heroIcon: '🎯', heroSubtitle: 'Configure your campaign zone and flight difficulty' },
-      levels:       { icon: '🏆', title: 'LEVEL SELECT MODE',    color: '#7b2fff', heroIcon: '🏆', heroSubtitle: 'Complete all 30 transforming levels!' },
+      levels:       { icon: '🏆', title: 'LEVEL SELECT MODE',    color: '#7b2fff', heroIcon: '🏆', heroSubtitle: 'Complete all 50 transforming levels!' },
     };
     const meta = tabMeta[this.activeTab] || tabMeta['skins'];
 
@@ -786,11 +786,10 @@ export class UIManager {
 
       case 'levels': {
         const allLevels = LevelManager.getAllLevels();
-        const unlockedLvl = progress.levelModeUnlockedLevel || 1;
         const starsMap = progress.levelModeStars || {};
 
         const levelCards = allLevels.map(lvl => {
-          const isLocked = lvl.levelNum > unlockedLvl;
+          const isLocked = false; // All levels unlocked!
           const starsCount = starsMap[lvl.levelNum] || 0;
           
           let starHtml = '';
@@ -1476,7 +1475,7 @@ export class UIManager {
           </div>
 
           <div class="vertical-actions" style="margin-top: 20px; display: flex; flex-direction: column; gap: 8px; width: 100%;">
-            ${levelNum < 30 
+            ${levelNum < 50 
               ? `<button class="btn btn-primary btn-glow-green" id="btn-next-level" style="background: linear-gradient(180deg, #00ff88 0%, #00c853 100%); box-shadow: 0 6px 0 #007e33, 0 8px 20px rgba(0,200,83,0.4); width: 100%; padding: 14px; border-radius: 12px; font-weight: 800; border: none; cursor: pointer; color: #04240e; font-size: 15px;">NEXT LEVEL ➡</button>`
               : `<button class="btn btn-primary" id="btn-quit-levels" style="background: linear-gradient(180deg, #ffd700 0%, #ffaa00 100%); width: 100%; padding: 14px; border-radius: 12px; font-weight: 800; border: none; cursor: pointer; color: #3d2c00; font-size: 15px;">ALL LEVELS BEATEN! 🎉</button>`
             }

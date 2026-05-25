@@ -618,7 +618,7 @@ export class ProgressManager {
     if (stars > oldStars) {
       this.state.levelModeStars[levelNum] = stars;
     }
-    if (levelNum === this.state.levelModeUnlockedLevel && this.state.levelModeUnlockedLevel < 30) {
+    if (levelNum === this.state.levelModeUnlockedLevel && this.state.levelModeUnlockedLevel < 50) {
       this.state.levelModeUnlockedLevel = levelNum + 1;
     }
     this.save();
