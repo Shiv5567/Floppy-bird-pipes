@@ -334,7 +334,7 @@ export class ObstacleManager {
       // Determine next spawn distance (reduced wave spawn distance as well)
       if (this.isLevelMode && this.activeLevelConfig) {
         const levelNum = this.activeLevelConfig.levelNum;
-        if (levelNum === 2 || levelNum === 3 || levelNum === 7 || levelNum === 8) {
+        if (levelNum === 1 || levelNum === 2 || levelNum === 3 || levelNum === 7 || levelNum === 8) {
           this.nextSpawnDistance = this.obstacleWidth;
         } else {
           this.nextSpawnDistance = 330;
@@ -382,6 +382,18 @@ export class ObstacleManager {
       const marginL = 75; // Safe padding from top/bottom screen edges
       
       switch (patternType) {
+        case 'stair_30': {
+          const offsets = [83, 41.5, 0, -41.5, -83, -83, -41.5, 0, 41.5, 83];
+          const step = obstacleIdx % offsets.length;
+          targetCenterY = height / 2 + offsets[step];
+          break;
+        }
+        case 'w_30': {
+          const offsets = [-83, -41.5, 0, 41.5, 83, 41.5, 0, -41.5, -83, -41.5, 0, 41.5, 83, 41.5, 0, -41.5];
+          const step = obstacleIdx % offsets.length;
+          targetCenterY = height / 2 + offsets[step];
+          break;
+        }
         case 'stair_up': {
           const step = obstacleIdx % 4;
           targetCenterY = height / 2 + 80 - step * 55; // Steps up
@@ -507,7 +519,7 @@ export class ObstacleManager {
         isTriggered: false,
         animTimer: 0,
         animDuration: (levelNum === 4 || levelNum === 5) ? 0.28 : 0.38, // Fast snap for Levels 4 & 5
-        triggerDistance: (levelNum === 2 || levelNum === 3 || levelNum === 7 || levelNum === 8) ? 220 : (200 + Math.random() * 20), // Constant 220px trigger for Levels 2, 3, 7, 8
+        triggerDistance: (levelNum === 1 || levelNum === 2 || levelNum === 3 || levelNum === 7 || levelNum === 8) ? 220 : (200 + Math.random() * 20), // Constant 220px trigger for Levels 1, 2, 3, 7, 8
         closedTopHeight,
         closedBottomHeight,
         targetTopHeight,

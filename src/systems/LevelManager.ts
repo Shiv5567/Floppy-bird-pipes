@@ -37,8 +37,10 @@ export class LevelManager {
 
       // Distribute patterns based on level brackets
       let patterns: string[] = [];
-      if (levelNum === 2) {
-        patterns = ['w_shape'];
+      if (levelNum === 1) {
+        patterns = ['stair_30'];
+      } else if (levelNum === 2) {
+        patterns = ['w_30'];
       } else if (levelNum === 3) {
         patterns = ['stair_loop'];
       } else if (levelNum === 7) {
