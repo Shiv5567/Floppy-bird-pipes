@@ -313,7 +313,7 @@ export class UIManager {
       const dur = 6 + (i % 5) * 2;
       const delay = -(i * 1.1);
       const color = particleColors[i % particleColors.length];
-      particlesHtml += `<div class="menu-particle" style="left:${x}%;width:${size}px;height:${size}px;background:${color};animation-duration:${dur}s;animation-delay:${delay}s;filter:blur(${size > 6 ? 1 : 0}px)"></div>`;
+      particlesHtml += `<div class="menu-particle" style="left:${x}%;width:${size}px;height:${size}px;background:${color};animation-duration:${dur}s;animation-delay:${delay}s"></div>`;
     }
 
     // Floating items around bird

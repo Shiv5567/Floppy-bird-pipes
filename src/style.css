@@ -496,7 +496,6 @@ body, html {
   border-radius: 50%;
   background: radial-gradient(circle, rgba(80,150,255,0.45) 0%, rgba(100,0,255,0.2) 50%, transparent 75%);
   animation: auraGlow 2.5s ease-in-out infinite;
-  filter: blur(6px);
 }
 
 .bird-aura-outer {
@@ -2659,8 +2658,8 @@ body, html {
 .hud-ultimate-container,
 .boss-alert-container,
 .glass-card {
-  backdrop-filter: blur(3px) !important;
-  -webkit-backdrop-filter: blur(3px) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 /* High-performance throttles for mobile screens (deactivates expensive layout blurs) */
