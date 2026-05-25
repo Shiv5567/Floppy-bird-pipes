@@ -31,8 +31,8 @@ export class LevelManager {
       const worldName = worldNames[worldIdx];
 
       // Progressive difficulty values
-      const targetScore = 8 + Math.floor(levelNum * 0.5); // 8 up to 23 points
-      const scrollSpeed = 3.3 + (levelNum * 0.06); // 3.3 up to 5.1
+      const targetScore = 50; // Level complete requires 50 obstacles crossed
+      const scrollSpeed = (3.3 + (levelNum * 0.06)) * 0.8; // Decreased by 20%
       const gapHeight = Math.max(195, 260 - (levelNum * 2.2)); // 260 down to 195px
 
       // Distribute patterns based on level brackets

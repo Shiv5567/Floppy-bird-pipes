@@ -247,7 +247,6 @@ export class ObstacleManager {
           }
 
           const progress = Math.max(0, Math.min(1, obs.animTimer! / obs.animDuration!));
-          const eased = this.easeOutBack(progress);
 
           if (obs.levelNum === 4) {
             // Slam-and-Spring Gate
@@ -268,11 +267,13 @@ export class ObstacleManager {
             }
           } else if (obs.levelNum === 5) {
             // Horizontal Slide-Lock Gate
+            const eased = this.easeOutBack(progress);
             obs.topHeight = obs.closedTopHeight! + (obs.targetTopHeight! - obs.closedTopHeight!) * eased;
             obs.bottomHeight = obs.closedBottomHeight! + (obs.targetBottomHeight! - obs.closedBottomHeight!) * eased;
             obs.shakeX = -90 * (1 - eased);
           } else {
-            // Standard smooth open
+            // Standard smooth open using easeOutCubic
+            const eased = this.easeOutCubic(progress);
             obs.topHeight = obs.closedTopHeight! + (obs.targetTopHeight! - obs.closedTopHeight!) * eased;
             obs.bottomHeight = obs.closedBottomHeight! + (obs.targetBottomHeight! - obs.closedBottomHeight!) * eased;
             obs.shakeX = 0;
@@ -603,11 +604,11 @@ export class ObstacleManager {
       const isMutated = (levelNum % 2 === 0);
       const isStructured = (levelNum % 3 === 0);
 
-      let animDuration = 0.38;
+      let animDuration = 0.45;
       if (levelNum === 4 || levelNum === 5) {
         animDuration = 0.28;
       } else if (patternType === 'reactive_14') {
-        animDuration = 0.22;
+        animDuration = 0.26;
       }
 
       let triggerDistance = 200 + Math.random() * 20;
@@ -2504,5 +2505,9 @@ export class ObstacleManager {
     const c1 = 1.2;
     const c3 = c1 + 1;
     return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+  }
+
+  private easeOutCubic(x: number): number {
+    return 1 - Math.pow(1 - x, 3);
   }
 }
