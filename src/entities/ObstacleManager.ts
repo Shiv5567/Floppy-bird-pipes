@@ -47,6 +47,7 @@ export interface Obstacle {
   closedBottomHeight?: number;
   levelNum?: number;
   shakeX?: number;
+  shakeX2?: number;
   gapHeight?: number;
   spawnCenterY?: number;
   obstacleIdx?: number;
@@ -156,6 +157,17 @@ export class ObstacleManager {
       obs.x -= actualScrollSpeed;
 
       if (obs.patternType) {
+        if (obs.levelNum === 1) {
+          obs.shakeX = Math.sin(this.waveTime * 1.5) * 15;
+        } else if (obs.levelNum === 2) {
+          obs.shakeX = Math.sin(this.waveTime * 1.8) * 22;
+          obs.shakeX2 = -obs.shakeX;
+        } else if (obs.levelNum === 3) {
+          obs.shakeX = Math.sin(this.waveTime * 1.6) * 35;
+        } else if (obs.levelNum === 4) {
+          obs.shakeX = Math.sin(this.waveTime * 2.2 - obs.obstacleIdx! * 0.55) * 30;
+        }
+
         if (obs.patternType === 'breathing_12') {
           const centerY = height / 2 + Math.sin(this.waveTime * 2.5) * 60;
           obs.closedTopHeight = centerY - 15;
@@ -949,29 +961,34 @@ export class ObstacleManager {
     for (let i = 0; i < this.list.length; i++) {
       const obs = this.list[i];
 
-      const left = obs.x;
-      const right = obs.x + obs.width;
+      const topShift = obs.shakeX || 0;
+      const bottomShift = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
+
+      const leftTop = obs.x + topShift;
+      const rightTop = obs.x + obs.width + topShift;
+      const leftBottom = obs.x + bottomShift;
+      const rightBottom = obs.x + obs.width + bottomShift;
 
       // Range check: Skip heavy math if bird is horizontally nowhere near this obstacle!
       const maxRad = bird.radius;
-      if (right < bird.x - maxRad || left > bird.x + maxRad) {
+      const minLeft = Math.min(leftTop, leftBottom);
+      const maxRight = Math.max(rightTop, rightBottom);
+      if (maxRight < bird.x - maxRad || minLeft > bird.x + maxRad) {
         continue;
       }
-
-
 
       const topPipeBottom = obs.topHeight;
       const bottomPipeTop = height - obs.bottomHeight;
 
       // Mathematically check exact circle-to-rectangle collision for top pipe
-      const closestTopX = Math.max(left, Math.min(bird.x, right));
+      const closestTopX = Math.max(leftTop, Math.min(bird.x, rightTop));
       const closestTopY = Math.max(-2000, Math.min(bird.y, topPipeBottom));
       const distTopX = bird.x - closestTopX;
       const distTopY = bird.y - closestTopY;
       const isCollidingTop = (distTopX * distTopX + distTopY * distTopY) <= effectiveRadius * effectiveRadius;
 
       // Mathematically check exact circle-to-rectangle collision for bottom pipe
-      const closestBottomX = Math.max(left, Math.min(bird.x, right));
+      const closestBottomX = Math.max(leftBottom, Math.min(bird.x, rightBottom));
       const closestBottomY = Math.max(bottomPipeTop, Math.min(bird.y, height + 2000));
       const distBottomX = bird.x - closestBottomX;
       const distBottomY = bird.y - closestBottomY;
@@ -980,73 +997,73 @@ export class ObstacleManager {
       if (isCollidingTop || isCollidingBottom) {
         // Enforce physical blocking / clamping with the new hitboxes
         if (isCollidingTop) {
-          if (bird.x >= left && bird.x <= right) {
+          if (bird.x >= leftTop && bird.x <= rightTop) {
             // Directly under the top pipe - clamp vertically
             bird.y = topPipeBottom + effectiveRadius;
             if (bird.vy < 0) bird.vy = 0;
-          } else if (bird.x < left) {
+          } else if (bird.x < leftTop) {
             // Hitting the left side/corner
             if (bird.y <= topPipeBottom) {
               // Completely above the pipe bottom (hitting vertical face)
-              bird.x = left - effectiveRadius;
+              bird.x = leftTop - effectiveRadius;
             } else {
               // Hitting the bottom-left corner
-              const vx = bird.x - left;
+              const vx = bird.x - leftTop;
               const vy = bird.y - topPipeBottom;
               const len = Math.sqrt(vx * vx + vy * vy);
               if (len > 0 && len < effectiveRadius) {
-                bird.x = left + (vx / len) * effectiveRadius;
+                bird.x = leftTop + (vx / len) * effectiveRadius;
                 bird.y = topPipeBottom + (vy / len) * effectiveRadius;
               }
             }
-          } else if (bird.x > right) {
+          } else if (bird.x > rightTop) {
             // Hitting the right side/corner
             if (bird.y <= topPipeBottom) {
               // Hitting vertical face
-              bird.x = right + effectiveRadius;
+              bird.x = rightTop + effectiveRadius;
             } else {
               // Hitting the bottom-right corner
-              const vx = bird.x - right;
+              const vx = bird.x - rightTop;
               const vy = bird.y - topPipeBottom;
               const len = Math.sqrt(vx * vx + vy * vy);
               if (len > 0 && len < effectiveRadius) {
-                bird.x = right + (vx / len) * effectiveRadius;
+                bird.x = rightTop + (vx / len) * effectiveRadius;
                 bird.y = topPipeBottom + (vy / len) * effectiveRadius;
               }
             }
           }
         } else if (isCollidingBottom) {
-          if (bird.x >= left && bird.x <= right) {
+          if (bird.x >= leftBottom && bird.x <= rightBottom) {
             // Directly above the bottom pipe - clamp vertically
             bird.y = bottomPipeTop - effectiveRadiusBottom;
             if (bird.vy > 0) bird.vy = 0;
-          } else if (bird.x < left) {
+          } else if (bird.x < leftBottom) {
             // Hitting the left side/corner
             if (bird.y >= bottomPipeTop) {
               // Completely below bottom pipe top (hitting vertical face)
-              bird.x = left - effectiveRadiusBottom;
+              bird.x = leftBottom - effectiveRadiusBottom;
             } else {
               // Hitting the top-left corner
-              const vx = bird.x - left;
+              const vx = bird.x - leftBottom;
               const vy = bird.y - bottomPipeTop;
               const len = Math.sqrt(vx * vx + vy * vy);
               if (len > 0 && len < effectiveRadiusBottom) {
-                bird.x = left + (vx / len) * effectiveRadiusBottom;
+                bird.x = leftBottom + (vx / len) * effectiveRadiusBottom;
                 bird.y = bottomPipeTop + (vy / len) * effectiveRadiusBottom;
               }
             }
-          } else if (bird.x > right) {
+          } else if (bird.x > rightBottom) {
             // Hitting the right side/corner
             if (bird.y >= bottomPipeTop) {
               // Hitting vertical face
-              bird.x = right + effectiveRadiusBottom;
+              bird.x = rightBottom + effectiveRadiusBottom;
             } else {
               // Hitting the top-right corner
-              const vx = bird.x - right;
+              const vx = bird.x - rightBottom;
               const vy = bird.y - bottomPipeTop;
               const len = Math.sqrt(vx * vx + vy * vy);
               if (len > 0 && len < effectiveRadiusBottom) {
-                bird.x = right + (vx / len) * effectiveRadiusBottom;
+                bird.x = rightBottom + (vx / len) * effectiveRadiusBottom;
                 bird.y = bottomPipeTop + (vy / len) * effectiveRadiusBottom;
               }
             }
@@ -1078,141 +1095,163 @@ export class ObstacleManager {
     ctx.shadowBlur = 0; // Disable shadows for high performance
     for (let i = 0; i < this.list.length; i++) {
       const obs = this.list[i];
-      ctx.save();
-      
-      if (obs.shakeX) {
-        ctx.translate(obs.shakeX, 0);
-      }
-      
-      if (obs.isCavern) {
-        let colorTop = '#55a855';
-        let colorBottom = '#336633';
-        let outlineColor = '#0e240e';
+      const drawPillars = () => {
+        if (obs.isCavern) {
+          let colorTop = '#55a855';
+          let colorBottom = '#336633';
+          let outlineColor = '#0e240e';
 
-        switch (obs.worldId) {
-          case 'jungle':
-            colorTop = '#5c5d4d';
-            colorBottom = '#3c3d33';
-            outlineColor = '#181914';
-            break;
-          case 'jungle_temple':
-            colorTop = '#3a533c';
-            colorBottom = '#243325';
-            outlineColor = '#0b130c';
-            break;
-          case 'cyberpunk':
-            colorTop = '#ff007f';
-            colorBottom = '#00f3ff';
-            outlineColor = '#0b001a';
-            break;
-          case 'ice':
-            colorTop = '#e0ffff';
-            colorBottom = '#4682b4';
-            outlineColor = '#ffffff';
-            break;
-          case 'desert':
-            colorTop = '#d2b48c';
-            colorBottom = '#8b5a2b';
-            outlineColor = '#3e2723';
-            break;
-          case 'volcano':
-            colorTop = '#ff4500';
-            colorBottom = '#4a0e00';
-            outlineColor = '#ff1a00';
-            break;
-          case 'space':
-            colorTop = '#8a2be2';
-            colorBottom = '#4b0082';
-            outlineColor = '#da70d6';
-            break;
-          case 'underwater':
-            colorTop = '#20b2aa';
-            colorBottom = '#008b8b';
-            outlineColor = '#004d40';
-            break;
-          case 'heaven':
-            colorTop = '#ffffff';
-            colorBottom = '#87ceeb';
-            outlineColor = '#ffd700';
-            break;
-          case 'retro':
-            colorTop = '#73c93e';
-            colorBottom = '#387c12';
-            outlineColor = '#000000';
-            break;
-        }
+          switch (obs.worldId) {
+            case 'jungle':
+              colorTop = '#5c5d4d';
+              colorBottom = '#3c3d33';
+              outlineColor = '#181914';
+              break;
+            case 'jungle_temple':
+              colorTop = '#3a533c';
+              colorBottom = '#243325';
+              outlineColor = '#0b130c';
+              break;
+            case 'cyberpunk':
+              colorTop = '#ff007f';
+              colorBottom = '#00f3ff';
+              outlineColor = '#0b001a';
+              break;
+            case 'ice':
+              colorTop = '#e0ffff';
+              colorBottom = '#4682b4';
+              outlineColor = '#ffffff';
+              break;
+            case 'desert':
+              colorTop = '#d2b48c';
+              colorBottom = '#8b5a2b';
+              outlineColor = '#3e2723';
+              break;
+            case 'volcano':
+              colorTop = '#ff4500';
+              colorBottom = '#4a0e00';
+              outlineColor = '#ff1a00';
+              break;
+            case 'space':
+              colorTop = '#8a2be2';
+              colorBottom = '#4b0082';
+              outlineColor = '#da70d6';
+              break;
+            case 'underwater':
+              colorTop = '#20b2aa';
+              colorBottom = '#008b8b';
+              outlineColor = '#004d40';
+              break;
+            case 'heaven':
+              colorTop = '#ffffff';
+              colorBottom = '#87ceeb';
+              outlineColor = '#ffd700';
+              break;
+            case 'retro':
+              colorTop = '#73c93e';
+              colorBottom = '#387c12';
+              outlineColor = '#000000';
+              break;
+          }
 
-        this.drawCavernObstacle(ctx, obs, height, colorTop, colorBottom, outlineColor);
-      } else if (obs.isStructured) {
-        switch (obs.worldId) {
-          case 'jungle':
-            this.drawStructuredJunglePillars(ctx, obs, height);
-            break;
-          case 'jungle_temple':
-            this.drawStructuredJungleTemplePillars(ctx, obs, height);
-            break;
-          case 'cyberpunk':
-            this.drawStructuredCyberpunkPillars(ctx, obs, height);
-            break;
-          case 'ice':
-            this.drawStructuredIcePillars(ctx, obs, height);
-            break;
-          case 'desert':
-            this.drawStructuredDesertPillars(ctx, obs, height);
-            break;
-          case 'volcano':
-            this.drawStructuredVolcanoPillars(ctx, obs, height);
-            break;
-          case 'space':
-            this.drawStructuredSpaceObstacles(ctx, obs, height);
-            break;
-          case 'underwater':
-            this.drawStructuredUnderwaterPillars(ctx, obs, height);
-            break;
-          case 'heaven':
-            this.drawStructuredHeavenPillars(ctx, obs, height);
-            break;
-          case 'retro':
-            this.drawStructuredRetroPillars(ctx, obs, height);
-            break;
-          default:
-            this.drawStructuredDefaultPillars(ctx, obs, height);
+          this.drawCavernObstacle(ctx, obs, height, colorTop, colorBottom, outlineColor);
+        } else if (obs.isStructured) {
+          switch (obs.worldId) {
+            case 'jungle':
+              this.drawStructuredJunglePillars(ctx, obs, height);
+              break;
+            case 'jungle_temple':
+              this.drawStructuredJungleTemplePillars(ctx, obs, height);
+              break;
+            case 'cyberpunk':
+              this.drawStructuredCyberpunkPillars(ctx, obs, height);
+              break;
+            case 'ice':
+              this.drawStructuredIcePillars(ctx, obs, height);
+              break;
+            case 'desert':
+              this.drawStructuredDesertPillars(ctx, obs, height);
+              break;
+            case 'volcano':
+              this.drawStructuredVolcanoPillars(ctx, obs, height);
+              break;
+            case 'space':
+              this.drawStructuredSpaceObstacles(ctx, obs, height);
+              break;
+            case 'underwater':
+              this.drawStructuredUnderwaterPillars(ctx, obs, height);
+              break;
+            case 'heaven':
+              this.drawStructuredHeavenPillars(ctx, obs, height);
+              break;
+            case 'retro':
+              this.drawStructuredRetroPillars(ctx, obs, height);
+              break;
+            default:
+              this.drawStructuredDefaultPillars(ctx, obs, height);
+          }
+        } else {
+          switch (obs.worldId) {
+            case 'jungle':
+              this.drawJunglePillars(ctx, obs, height);
+              break;
+            case 'jungle_temple':
+              this.drawJungleTemplePillars(ctx, obs, height);
+              break;
+            case 'cyberpunk':
+              this.drawCyberpunkPillars(ctx, obs, height);
+              break;
+            case 'ice':
+              this.drawIcePillars(ctx, obs, height);
+              break;
+            case 'desert':
+              this.drawDesertPillars(ctx, obs, height);
+              break;
+            case 'volcano':
+              this.drawVolcanoPillars(ctx, obs, height);
+              break;
+            case 'space':
+              this.drawSpaceObstacles(ctx, obs, height);
+              break;
+            case 'underwater':
+              this.drawUnderwaterPillars(ctx, obs, height);
+              break;
+            case 'heaven':
+              this.drawHeavenPillars(ctx, obs, height);
+              break;
+            case 'retro':
+              this.drawRetroPillars(ctx, obs, height);
+              break;
+            default:
+              this.drawDefaultPillars(ctx, obs, height);
+          }
         }
+      };
+
+      if (obs.levelNum === 2) {
+        const centerY = obs.topHeight + (height - obs.bottomHeight - obs.topHeight) / 2;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, ctx.canvas.width || 1200, centerY);
+        ctx.clip();
+        ctx.translate(obs.shakeX || 0, 0);
+        drawPillars();
+        ctx.restore();
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, centerY, ctx.canvas.width || 1200, height - centerY);
+        ctx.clip();
+        ctx.translate(obs.shakeX2 || 0, 0);
+        drawPillars();
+        ctx.restore();
       } else {
-        switch (obs.worldId) {
-          case 'jungle':
-            this.drawJunglePillars(ctx, obs, height);
-            break;
-          case 'jungle_temple':
-            this.drawJungleTemplePillars(ctx, obs, height);
-            break;
-          case 'cyberpunk':
-            this.drawCyberpunkPillars(ctx, obs, height);
-            break;
-          case 'ice':
-            this.drawIcePillars(ctx, obs, height);
-            break;
-          case 'desert':
-            this.drawDesertPillars(ctx, obs, height);
-            break;
-          case 'volcano':
-            this.drawVolcanoPillars(ctx, obs, height);
-            break;
-          case 'space':
-            this.drawSpaceObstacles(ctx, obs, height);
-            break;
-          case 'underwater':
-            this.drawUnderwaterPillars(ctx, obs, height);
-            break;
-          case 'heaven':
-            this.drawHeavenPillars(ctx, obs, height);
-            break;
-          case 'retro':
-            this.drawRetroPillars(ctx, obs, height);
-            break;
-          default:
-            this.drawDefaultPillars(ctx, obs, height);
+        ctx.save();
+        if (obs.shakeX) {
+          ctx.translate(obs.shakeX, 0);
         }
+        drawPillars();
+        ctx.restore();
       }
 
       if (obs.patternType === 'rotating_24') {
