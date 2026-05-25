@@ -37,7 +37,11 @@ export class LevelManager {
 
       // Distribute patterns based on level brackets
       let patterns: string[] = [];
-      if (levelNum <= 5) {
+      if (levelNum === 2) {
+        patterns = ['w_shape'];
+      } else if (levelNum === 3) {
+        patterns = ['stair_loop'];
+      } else if (levelNum <= 5) {
         // Levels 1-5: simple reactive motion
         patterns = ['stair_up', 'stair_down', 'v_shape'];
       } else if (levelNum <= 10) {

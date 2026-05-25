@@ -284,7 +284,14 @@ export class ObstacleManager {
       this.spawnObstacle(worldId, width, height, dynamicGap, zone, difficulty, progressRatio, score);
 
       // Determine next spawn distance (reduced wave spawn distance as well)
-      if (zone === 'wave') {
+      if (this.isLevelMode && this.activeLevelConfig) {
+        const levelNum = this.activeLevelConfig.levelNum;
+        if (levelNum === 2 || levelNum === 3) {
+          this.nextSpawnDistance = this.obstacleWidth;
+        } else {
+          this.nextSpawnDistance = 330;
+        }
+      } else if (zone === 'wave') {
         if (this.tunnelSpawnCount < 3) { // 4 pipes total (0, 1, 2, 3)
           this.tunnelSpawnCount++;
           this.nextSpawnDistance = 100; // close spacing for connected section
@@ -358,8 +365,15 @@ export class ObstacleManager {
           break;
         }
         case 'w_shape': {
-          const step = obstacleIdx % 6;
-          targetCenterY = height / 2 + ((step === 0 || step === 4) ? -90 : (step === 1 || step === 3 || step === 5) ? 70 : -10);
+          const offsets = [-80, -40, 0, 40, 80, 40, 0, -40, -80, -40, 0, 40, 80, 40, 0, -40];
+          const step = obstacleIdx % offsets.length;
+          targetCenterY = height / 2 + offsets[step];
+          break;
+        }
+        case 'stair_loop': {
+          const offsets = [80, 45, 10, -25, -60, -80, -80, -60, -25, 10, 45, 80];
+          const step = obstacleIdx % offsets.length;
+          targetCenterY = height / 2 + offsets[step];
           break;
         }
         case 'm_shape': {
