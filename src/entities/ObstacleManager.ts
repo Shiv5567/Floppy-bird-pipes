@@ -278,8 +278,8 @@ export class ObstacleManager {
       }
       isCavernVal = false;
     } else {
-      // Classic Mode: Spawns flat columns or jagged caverns based on player score
-      isCavernVal = (score > 70 && score <= 100);
+      // Classic Mode: Spawns standard flat columns based on player score
+      isCavernVal = false;
 
       // Determine margin and boundaries: Hard mode has tighter margins to allow columns closer to edges
       if (difficulty === 'easy') {
@@ -1504,7 +1504,7 @@ export class ObstacleManager {
     jungleGrad.addColorStop(1, 'rgba(10, 32, 18, 0.72)');
 
     ctx.fillStyle = jungleGrad;
-    ctx.strokeStyle = 'rgba(251, 191, 36, 0.95)'; // Elegant, non-glowing amber-gold outline
+    ctx.strokeStyle = 'rgba(217, 160, 24, 0.70)'; // Dimmer, less glowing amber-gold outline
     ctx.lineWidth = 2.0;
 
     // TOP COLUMN (flat standard rectangle)
@@ -1516,14 +1516,14 @@ export class ObstacleManager {
     ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
     // Stepped gold joint collars at safe boundaries (very premium, flat and static)
-    ctx.fillStyle = 'rgba(251, 191, 36, 0.95)';
+    ctx.fillStyle = 'rgba(217, 160, 24, 0.70)';
     ctx.fillRect(rx - 2, rTop - 8, rw + 4, 8);
     ctx.strokeRect(rx - 2, rTop - 8, rw + 4, 8);
     ctx.fillRect(rx - 2, height - rBottom, rw + 4, 8);
     ctx.strokeRect(rx - 2, height - rBottom, rw + 4, 8);
 
     // Simple flat horizontal joints (ancient temple block divisions)
-    ctx.strokeStyle = 'rgba(251, 191, 36, 0.4)';
+    ctx.strokeStyle = 'rgba(217, 160, 24, 0.3)';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(rx, rTop - 45);
@@ -1537,7 +1537,7 @@ export class ObstacleManager {
     ctx.stroke();
 
     // Side gold rivets/decorations at block segments (very low performance footprint, flat graphics)
-    ctx.fillStyle = 'rgba(251, 191, 36, 0.95)';
+    ctx.fillStyle = 'rgba(217, 160, 24, 0.70)';
     ctx.beginPath();
     ctx.arc(rx + 3, rTop - 45, 2.5, 0, Math.PI * 2);
     ctx.arc(rx + rw - 3, rTop - 45, 2.5, 0, Math.PI * 2);
@@ -1547,17 +1547,6 @@ export class ObstacleManager {
     ctx.arc(rx + rw - 3, height - rBottom + 45, 2.5, 0, Math.PI * 2);
     ctx.arc(rx + 3, height - rBottom + 90, 2.5, 0, Math.PI * 2);
     ctx.arc(rx + rw - 3, height - rBottom + 90, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Hanging canopy vines (flat olive green leaves)
-    ctx.fillStyle = 'rgba(46, 125, 50, 0.85)';
-    ctx.beginPath();
-    ctx.moveTo(rx + 15, rTop);
-    ctx.lineTo(rx + 20, rTop + 15);
-    ctx.lineTo(rx + 25, rTop);
-    ctx.moveTo(rx + 40, rTop);
-    ctx.lineTo(rx + 45, rTop + 20);
-    ctx.lineTo(rx + 52, rTop);
     ctx.fill();
   }
 
