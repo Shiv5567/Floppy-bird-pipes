@@ -507,7 +507,7 @@ export class ObstacleManager {
         isTriggered: false,
         animTimer: 0,
         animDuration: (levelNum === 4 || levelNum === 5) ? 0.28 : 0.38, // Fast snap for Levels 4 & 5
-        triggerDistance: 200 + Math.random() * 20, // 200px to 220px away
+        triggerDistance: (levelNum === 2 || levelNum === 3) ? 220 : (200 + Math.random() * 20), // Constant 220px trigger for Levels 2 & 3
         closedTopHeight,
         closedBottomHeight,
         targetTopHeight,
