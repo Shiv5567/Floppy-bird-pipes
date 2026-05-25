@@ -2809,3 +2809,19 @@ body.mobile-performance .glass-card {
 .btn-glow-green:hover {
   box-shadow: 0 0 18px rgba(0, 200, 83, 0.6) !important;
 }
+
+/* Disable expensive backdrop blurs and heavy shadow effects under mobile performance mode */
+.mobile-performance .overlay-screen,
+.mobile-performance .glass-nav,
+.mobile-performance .currency,
+.mobile-performance .menu-top-bar,
+.mobile-performance .btn-dev-cheat,
+.mobile-performance .side-btn,
+.mobile-performance .world-selector-chip,
+.mobile-performance .bottom-nav-bar,
+.mobile-performance .tab-hero-header,
+.mobile-performance .bp-tier-card,
+.mobile-performance .bp-progress-bar-container {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}

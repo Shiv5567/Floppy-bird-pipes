@@ -25,7 +25,7 @@ export class ParticleEngine {
                      window.innerWidth < 1024 || 
                      ('ontouchstart' in window) || 
                      navigator.maxTouchPoints > 0;
-    this.maxParticles = isMobile ? 120 : 1000;
+    this.maxParticles = isMobile ? 150 : 1000;
     this.initPool();
   }
 
@@ -117,7 +117,7 @@ export class ParticleEngine {
       if (!p.active) continue;
 
       // Direct draw mode for performance!
-      if ((p.shape === 'circle' || p.shape === 'square' || p.shape === 'bubble') && (!p.glow || disableShadows)) {
+      if (!p.glow || disableShadows) {
         ctx.globalAlpha = p.alpha;
 
         if (p.glow && p.glowColor) {
@@ -148,6 +148,50 @@ export class ParticleEngine {
           ctx.beginPath();
           ctx.arc(p.x - p.size * 0.3, p.y - p.size * 0.3, p.size * 0.25, 0, Math.PI * 2);
           ctx.fill();
+        } else if (p.shape === 'spark') {
+          const cos = Math.cos(p.angle);
+          const sin = Math.sin(p.angle);
+          ctx.beginPath();
+          ctx.moveTo(p.x - cos * p.size, p.y - sin * p.size);
+          ctx.lineTo(p.x + cos * p.size, p.y + sin * p.size);
+          ctx.moveTo(p.x - sin * p.size, p.y + cos * p.size);
+          ctx.lineTo(p.x + sin * p.size, p.y - cos * p.size);
+          ctx.lineWidth = p.size * 0.3;
+          ctx.stroke();
+        } else if (p.shape === 'star') {
+          ctx.beginPath();
+          for (let k = 0; k < 5; k++) {
+            const angleOuter = ((18 + k * 72) * Math.PI) / 180 + p.angle;
+            ctx.lineTo(
+              p.x + Math.cos(angleOuter) * p.size,
+              p.y + Math.sin(angleOuter) * p.size
+            );
+            const angleInner = ((54 + k * 72) * Math.PI) / 180 + p.angle;
+            ctx.lineTo(
+              p.x + Math.cos(angleInner) * (p.size * 0.4),
+              p.y + Math.sin(angleInner) * (p.size * 0.4)
+            );
+          }
+          ctx.closePath();
+          ctx.fill();
+        } else if (p.shape === 'snowflake') {
+          ctx.beginPath();
+          ctx.lineWidth = 1.2;
+          for (let m = 0; m < 6; m++) {
+            const armAngle = m * Math.PI / 3 + p.angle;
+            const dx = Math.cos(armAngle);
+            const dy = Math.sin(armAngle);
+            const px = -dy;
+            const py = dx;
+
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p.x + dx * p.size, p.y + dy * p.size);
+
+            ctx.moveTo(p.x + dx * p.size * 0.5 - px * p.size * 0.3, p.y + dy * p.size * 0.5 - py * p.size * 0.3);
+            ctx.lineTo(p.x + dx * p.size * 0.8, p.y + dy * p.size * 0.8);
+            ctx.lineTo(p.x + dx * p.size * 0.5 + px * p.size * 0.3, p.y + dy * p.size * 0.5 + py * p.size * 0.3);
+          }
+          ctx.stroke();
         }
         continue;
       }
@@ -162,7 +206,6 @@ export class ParticleEngine {
           ctx.shadowBlur = p.size * 2;
           ctx.shadowColor = p.glowColor;
         } else {
-          // High-performance double-drawn glowing aura
           ctx.fillStyle = p.glowColor;
           ctx.globalAlpha = p.alpha * 0.25;
           ctx.beginPath();
@@ -188,7 +231,6 @@ export class ParticleEngine {
           break;
 
         case 'spark':
-          // Cross hair spark
           ctx.beginPath();
           ctx.moveTo(-p.size, 0);
           ctx.lineTo(p.size, 0);
@@ -219,7 +261,6 @@ export class ParticleEngine {
           ctx.arc(0, 0, p.size, 0, Math.PI * 2);
           ctx.lineWidth = 1;
           ctx.stroke();
-          // Subtle highlight reflection inside the bubble
           ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
           ctx.beginPath();
           ctx.arc(-p.size * 0.3, -p.size * 0.3, p.size * 0.25, 0, Math.PI * 2);

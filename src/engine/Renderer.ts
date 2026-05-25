@@ -49,7 +49,8 @@ export class Renderer {
 
   public resize() {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const maxDpr = isMobile ? 1.5 : 2.0;
+    // Increase mobile maxDpr to 2.0 for maximum sharpness on modern mobile retina/high-DPI screens
+    const maxDpr = isMobile ? 2.0 : 2.0;
     this.dpr = Math.min(maxDpr, window.devicePixelRatio || 1);
     const rect = this.canvas.getBoundingClientRect();
     this.canvas.width = rect.width * this.dpr;
@@ -252,7 +253,9 @@ export class Renderer {
       return;
     }
 
-    const rateCoeff = deltaTime * this.weather.density;
+    // Cap the spawn delta-time at 60fps (~0.016s) to completely avoid lag death spirals and particle bursts during performance spikes
+    const spawnDelta = Math.min(0.016, deltaTime);
+    const rateCoeff = spawnDelta * this.weather.density;
     const isPerformanceMode = (window as any).gameDisableShadows;
     const spawnRate = isPerformanceMode ? rateCoeff * 0.12 : rateCoeff * 0.3;
     if (Math.random() < spawnRate) {
