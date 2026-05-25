@@ -41,6 +41,10 @@ export interface Obstacle {
   isTriggered?: boolean;
   triggerDistance?: number;
   animDuration?: number;
+  targetTopHeight?: number;
+  targetBottomHeight?: number;
+  closedTopHeight?: number;
+  closedBottomHeight?: number;
 }
 
 export class ObstacleManager {
@@ -155,7 +159,7 @@ export class ObstacleManager {
             if (particleEngine) {
               for (let k = 0; k < 12; k++) {
                 const px = obs.x + Math.random() * obs.width;
-                const py = obs.topHeight + (Math.random() - 0.5) * 40;
+                const py = height / 2 + (Math.random() - 0.5) * 40;
                 let pColor = '#ffd700';
                 let pType = 'spark';
                 if (obs.worldId === 'jungle') { pColor = '#4caf50'; pType = 'circle'; }
@@ -181,24 +185,23 @@ export class ObstacleManager {
 
         if (obs.isTriggered) {
           obs.animTimer! += deltaTime * timeScale;
-          if (obs.animTimer! > obs.animDuration! * 2) {
-            obs.animTimer = obs.animDuration! * 2;
+          if (obs.animTimer! > obs.animDuration!) {
+            obs.animTimer = obs.animDuration!;
           }
         }
 
-        for (let j = 0; j < 4; j++) {
-          let delay = j * 0.05;
-          if (obs.patternType === 'reverse_stair') {
-            delay = (3 - j) * 0.05;
-          }
-          const progress = Math.max(0, Math.min(1, (obs.animTimer! - delay) / obs.animDuration!));
-          const eased = this.easeOutBack(progress);
-          const [targetTop, targetBottom] = this.getPatternOffsets(obs.patternType, j, this.waveTime);
-          const calmTop = 45;
-          const calmBottom = 45;
+        const progress = Math.max(0, Math.min(1, obs.animTimer! / obs.animDuration!));
+        const eased = this.easeOutBack(progress);
 
-          obs.segmentOffsets![j] = calmTop * (1 - eased) + targetTop * eased;
-          obs.segmentOffsets![j + 4] = calmBottom * (1 - eased) + targetBottom * eased;
+        obs.topHeight = obs.closedTopHeight! + (obs.targetTopHeight! - obs.closedTopHeight!) * eased;
+        obs.bottomHeight = obs.closedBottomHeight! + (obs.targetBottomHeight! - obs.closedBottomHeight!) * eased;
+
+        if (obs.isLaser) {
+          obs.laserTimer += deltaTime * timeScale;
+          if (obs.laserTimer >= 1.6) {
+            obs.laserActive = !obs.laserActive;
+            obs.laserTimer = 0;
+          }
         }
         continue;
       }
@@ -317,36 +320,136 @@ export class ObstacleManager {
     if (this.isLevelMode && this.activeLevelConfig) {
       const patternsList = this.activeLevelConfig.patterns;
       const patternType = patternsList[this.currentPatternIdx % patternsList.length];
+      const obstacleIdx = this.currentPatternIdx;
       this.currentPatternIdx++;
 
-      const marginL = 60;
-      const playableHeight = height - gapHeight - marginL * 2;
-      const topHeight = marginL + playableHeight * 0.25 + Math.random() * 0.5 * playableHeight;
-      const bottomHeight = height - topHeight - gapHeight;
+      let targetCenterY = height / 2;
+      const marginL = 75; // Safe padding from top/bottom screen edges
       
+      switch (patternType) {
+        case 'stair_up': {
+          const step = obstacleIdx % 4;
+          targetCenterY = height / 2 + 80 - step * 55; // Steps up
+          break;
+        }
+        case 'stair_down': {
+          const step = obstacleIdx % 4;
+          targetCenterY = height / 2 - 80 + step * 55; // Steps down
+          break;
+        }
+        case 'reverse_stair': {
+          const step = obstacleIdx % 4;
+          targetCenterY = height / 2 - 60 + ((step * 3) % 4) * 40;
+          break;
+        }
+        case 'zigzag_stair': {
+          const step = obstacleIdx % 4;
+          targetCenterY = height / 2 + ((step === 0) ? -80 : (step === 1) ? 40 : (step === 2) ? -40 : 80);
+          break;
+        }
+        case 'v_shape': {
+          const step = obstacleIdx % 5;
+          targetCenterY = height / 2 + ((step === 0 || step === 4) ? -90 : (step === 1 || step === 3) ? -10 : 70);
+          break;
+        }
+        case 'arrow_shape': {
+          const step = obstacleIdx % 5;
+          targetCenterY = height / 2 + ((step === 0 || step === 4) ? 70 : (step === 1 || step === 3) ? -10 : -90);
+          break;
+        }
+        case 'w_shape': {
+          const step = obstacleIdx % 6;
+          targetCenterY = height / 2 + ((step === 0 || step === 4) ? -90 : (step === 1 || step === 3 || step === 5) ? 70 : -10);
+          break;
+        }
+        case 'm_shape': {
+          const step = obstacleIdx % 6;
+          targetCenterY = height / 2 + ((step === 0 || step === 4) ? 70 : (step === 1 || step === 3 || step === 5) ? -90 : 10);
+          break;
+        }
+        case 'n_shape': {
+          const step = obstacleIdx % 4;
+          targetCenterY = height / 2 + ((step === 0) ? 80 : (step === 1) ? -20 : (step === 2) ? 20 : -80);
+          break;
+        }
+        case 'diamond_gate': {
+          const step = obstacleIdx % 4;
+          targetCenterY = height / 2 + ((step === 0 || step === 3) ? 0 : (step === 1) ? -80 : 80);
+          break;
+        }
+        case 'mechanical_claw': {
+          const step = obstacleIdx % 2;
+          targetCenterY = height / 2 + ((step === 0) ? -95 : 95);
+          break;
+        }
+        case 'temple_door': {
+          targetCenterY = height / 2;
+          break;
+        }
+        case 'scissor_gate': {
+          const step = obstacleIdx % 3;
+          targetCenterY = height / 2 + ((step === 0) ? -75 : (step === 1) ? 75 : 0);
+          break;
+        }
+        case 'spiral_motion': {
+          const step = obstacleIdx % 8;
+          targetCenterY = height / 2 + Math.sin(step * Math.PI / 4) * 90;
+          break;
+        }
+        case 'wave_corridor': {
+          const step = obstacleIdx % 6;
+          targetCenterY = height / 2 + Math.sin(step * Math.PI / 3) * 85;
+          break;
+        }
+        default:
+          targetCenterY = height / 2;
+          break;
+      }
+
+      // Ensure the gap is completely visible and safe
+      const minCenterY = marginL + gapHeight / 2;
+      const maxCenterY = height - marginL - gapHeight / 2;
+      targetCenterY = Math.max(minCenterY, Math.min(maxCenterY, targetCenterY));
+
+      const targetTopHeight = targetCenterY - gapHeight / 2;
+      const targetBottomHeight = height - targetCenterY - gapHeight / 2;
+
+      // Close the gaps initially with a small visual warning slit (30px gap)
+      const closedTopHeight = height / 2 - 15;
+      const closedBottomHeight = height / 2 - 15;
+
+      const levelNum = this.activeLevelConfig.levelNum;
+      const isMutated = (levelNum % 2 === 0);
+      const isStructured = (levelNum % 3 === 0);
+
       this.list.push({
         x: width + 50,
         width: this.obstacleWidth,
-        topHeight,
-        bottomHeight,
+        topHeight: closedTopHeight,
+        bottomHeight: closedBottomHeight,
         passed: false,
         worldId,
         isMoving: false,
         movingDir: 1,
         speedY: 0,
         rangeY: 0,
-        initialTopHeight: topHeight,
-        initialBottomHeight: bottomHeight,
-        isLaser: false,
-        laserActive: false,
+        initialTopHeight: closedTopHeight,
+        initialBottomHeight: closedBottomHeight,
+        isLaser: (worldId === 'cyberpunk' && Math.random() < 0.35),
+        laserActive: true,
         laserTimer: 0,
+        isMutated,
+        isStructured,
         
         patternType,
         isTriggered: false,
         animTimer: 0,
-        animDuration: 0.25 + Math.random() * 0.15,
-        triggerDistance: 190 + Math.random() * 25,
-        segmentOffsets: [45, 45, 45, 45, 45, 45, 45, 45]
+        animDuration: 0.38, // Dynamic smooth open duration (380ms)
+        triggerDistance: 200 + Math.random() * 20, // 200px to 220px away
+        closedTopHeight,
+        closedBottomHeight,
+        targetTopHeight,
+        targetBottomHeight
       });
       return;
     }
@@ -531,52 +634,7 @@ export class ObstacleManager {
         continue;
       }
 
-      if (obs.patternType) {
-        const segW = obs.width / 4;
-        for (let j = 0; j < 4; j++) {
-          const segLeft = obs.x + j * segW;
-          const segRight = segLeft + segW;
-          
-          if (segRight < bird.x - maxRad || segLeft > bird.x + maxRad) {
-            continue;
-          }
-          
-          const segTopHeight = obs.topHeight + obs.segmentOffsets![j];
-          const segBottomHeight = height - (obs.bottomHeight + obs.segmentOffsets![j + 4]);
-          
-          const closestTopX = Math.max(segLeft, Math.min(bird.x, segRight));
-          const closestTopY = Math.max(-2000, Math.min(bird.y, segTopHeight));
-          const distTopX = bird.x - closestTopX;
-          const distTopY = bird.y - closestTopY;
-          const isCollidingTop = (distTopX * distTopX + distTopY * distTopY) <= effectiveRadius * effectiveRadius;
-          
-          const closestBottomX = Math.max(segLeft, Math.min(bird.x, segRight));
-          const closestBottomY = Math.max(segBottomHeight, Math.min(bird.y, height + 2000));
-          const distBottomX = bird.x - closestBottomX;
-          const distBottomY = bird.y - closestBottomY;
-          const isCollidingBottom = (distBottomX * distBottomX + distBottomY * distBottomY) <= effectiveRadiusBottom * effectiveRadiusBottom;
-          
-          if (isCollidingTop || isCollidingBottom) {
-            if (isCollidingTop) {
-              if (bird.x >= segLeft && bird.x <= segRight) {
-                bird.y = segTopHeight + effectiveRadius;
-                if (bird.vy < 0) bird.vy = 0;
-              } else {
-                bird.x = (bird.x < segLeft) ? segLeft - effectiveRadius : segRight + effectiveRadius;
-              }
-            } else {
-              if (bird.x >= segLeft && bird.x <= segRight) {
-                bird.y = segBottomHeight - effectiveRadiusBottom;
-                if (bird.vy > 0) bird.vy = 0;
-              } else {
-                bird.x = (bird.x < segLeft) ? segLeft - effectiveRadiusBottom : segRight + effectiveRadiusBottom;
-              }
-            }
-            return obs;
-          }
-        }
-        continue;
-      }
+
 
       const topPipeBottom = obs.topHeight;
       const bottomPipeTop = height - obs.bottomHeight;
@@ -698,9 +756,7 @@ export class ObstacleManager {
       const obs = this.list[i];
       ctx.save();
       
-      if (obs.patternType) {
-        this.drawReactiveSegmentedPillars(ctx, obs, height);
-      } else if (obs.isCavern) {
+      if (obs.isCavern) {
         let colorTop = '#55a855';
         let colorBottom = '#336633';
         let outlineColor = '#0e240e';
@@ -2239,101 +2295,9 @@ export class ObstacleManager {
     ctx.stroke();
   }
 
-  private drawReactiveSegmentedPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const segW = obs.width / 4;
-    const colors: Record<string, { top: string; mid: string; bot: string; stroke: string; glow?: string }> = {
-      jungle: { top: '#102a19', mid: '#264b2d', bot: '#0a2012', stroke: 'rgba(217, 160, 24, 0.70)' },
-      jungle_temple: { top: '#384339', mid: '#5c6b5d', bot: '#1e241f', stroke: '#0e120f' },
-      ice: { top: 'rgba(0, 243, 255, 0.85)', mid: 'rgba(255, 255, 255, 0.95)', bot: 'rgba(0, 150, 255, 0.85)', stroke: '#ffffff', glow: '#00f3ff' },
-      cyberpunk: { top: '#0e0b1c', mid: '#1b1435', bot: '#0e0b1c', stroke: '#00f3ff', glow: '#00f3ff' },
-      volcano: { top: '#110505', mid: '#1e0a0a', bot: '#110505', stroke: '#ff4500', glow: '#ff4500' }
-    };
-    
-    const theme = colors[obs.worldId] || colors['jungle'];
-    
-    ctx.lineWidth = 1.8;
-    if (theme.glow && !(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = theme.glow;
-    } else {
-      ctx.shadowBlur = 0;
-    }
-
-    for (let j = 0; j < 4; j++) {
-      const segX = obs.x + j * segW;
-      const segTopHeight = obs.topHeight + obs.segmentOffsets![j];
-      const segBottomHeight = obs.bottomHeight + obs.segmentOffsets![j + 4];
-
-      // Draw Top segment
-      const topGrad = ctx.createLinearGradient(segX, 0, segX + segW, 0);
-      topGrad.addColorStop(0, theme.top);
-      topGrad.addColorStop(0.5, theme.mid);
-      topGrad.addColorStop(1, theme.bot);
-      ctx.fillStyle = topGrad;
-      ctx.strokeStyle = theme.stroke;
-
-      ctx.fillRect(segX, -1000, segW, segTopHeight + 1000);
-      ctx.strokeRect(segX, -1000, segW, segTopHeight + 1000);
-
-      // Draw Bottom segment
-      const botGrad = ctx.createLinearGradient(segX, 0, segX + segW, 0);
-      botGrad.addColorStop(0, theme.top);
-      botGrad.addColorStop(0.5, theme.mid);
-      botGrad.addColorStop(1, theme.bot);
-      ctx.fillStyle = botGrad;
-
-      ctx.fillRect(segX, height - segBottomHeight, segW, segBottomHeight + 1000);
-      ctx.strokeRect(segX, height - segBottomHeight, segW, segBottomHeight + 1000);
-
-      // Add a nice joint cap matching border
-      ctx.fillStyle = theme.stroke;
-      ctx.fillRect(segX, segTopHeight - 5, segW, 5);
-      ctx.fillRect(segX, height - segBottomHeight, segW, 5);
-    }
-    
-    ctx.shadowBlur = 0; // reset
-  }
-
   private easeOutBack(x: number): number {
     const c1 = 1.2;
     const c3 = c1 + 1;
     return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
-  }
-
-  private getPatternOffsets(pattern: string, j: number, time: number): [number, number] {
-    switch (pattern) {
-      case 'stair_up':
-        return [-30 + j * 20, 30 + j * 20];
-      case 'stair_down':
-        return [30 - j * 20, -30 - j * 20];
-      case 'reverse_stair':
-        return [-30 + j * 20, 30 + j * 20];
-      case 'zigzag_stair':
-        return [(j % 2 === 0) ? -35 : 15, (j % 2 === 0) ? 35 : -15];
-      case 'v_shape':
-        return [(j === 0 || j === 3) ? -45 : -15, (j === 0 || j === 3) ? 45 : 15];
-      case 'arrow_shape':
-        return [(j === 0 || j === 3) ? -15 : -45, (j === 0 || j === 3) ? 15 : 45];
-      case 'w_shape':
-        return [(j % 2 === 0) ? -40 : -10, (j % 2 === 0) ? 40 : 10];
-      case 'm_shape':
-        return [(j % 2 === 0) ? -10 : -40, (j % 2 === 0) ? 10 : 40];
-      case 'n_shape':
-        return [-10 - j * 15, 10 - j * 15];
-      case 'diamond_gate':
-        return [(j === 0 || j === 3) ? -10 : -50, (j === 0 || j === 3) ? 10 : 50];
-      case 'mechanical_claw':
-        return [(j === 0 || j === 3) ? -55 : -25, (j === 0 || j === 3) ? 55 : 25];
-      case 'temple_door':
-        return [-45, 45];
-      case 'scissor_gate':
-        return [(j === 0 || j === 3) ? -20 : -55, (j === 0 || j === 3) ? 20 : 55];
-      case 'spiral_motion':
-        return [-30 + Math.sin(time * 5 + j * 0.8) * 20, 30 + Math.cos(time * 5 + j * 0.8) * 20];
-      case 'wave_corridor':
-        return [-30 + Math.sin(time * 6 - j * 1.0) * 25, 30 + Math.sin(time * 6 - j * 1.0) * 25];
-      default:
-        return [0, 0];
-    }
   }
 }
