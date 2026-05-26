@@ -65,7 +65,6 @@ export class ObstacleManager {
 
   private isLevelMode = false;
   private activeLevelConfig: any = null;
-  private currentPatternIdx = 0;
 
   constructor() {}
 
@@ -119,7 +118,6 @@ export class ObstacleManager {
   public setLevelMode(enabled: boolean, config: any) {
     this.isLevelMode = enabled;
     this.activeLevelConfig = config;
-    this.currentPatternIdx = 0;
   }
 
   public getList(): Obstacle[] {
@@ -499,11 +497,12 @@ export class ObstacleManager {
 
       // Determine next spawn distance (reduced wave spawn distance as well)
       if (this.isLevelMode && this.activeLevelConfig) {
-        const levelNum = this.activeLevelConfig.levelNum;
-        if (levelNum >= 1 && levelNum <= 30) {
-          this.nextSpawnDistance = this.obstacleWidth;
+        if (this.tunnelSpawnCount < 3) { // 4 pipes total (0, 1, 2, 3)
+          this.tunnelSpawnCount++;
+          this.nextSpawnDistance = 100; // close spacing for connected section
         } else {
-          this.nextSpawnDistance = 330;
+          this.tunnelSpawnCount = 0;
+          this.nextSpawnDistance = 330; // larger smooth gap section
         }
       } else if (zone === 'wave') {
         if (this.tunnelSpawnCount < 3) { // 4 pipes total (0, 1, 2, 3)
@@ -539,290 +538,49 @@ export class ObstacleManager {
     score = 0
   ) {
     if (this.isLevelMode && this.activeLevelConfig) {
-      const patternsList = this.activeLevelConfig.patterns;
-      const patternType = patternsList[this.currentPatternIdx % patternsList.length];
-      const obstacleIdx = this.currentPatternIdx;
-      this.currentPatternIdx++;
+      const margin = 85;
+      const playableHeight = height - gapHeight - margin * 2;
+      // perfectly center the winding tunnel so it can oscillate nicely
+      const topHeight = margin + playableHeight / 2;
+      const bottomHeight = height - topHeight - gapHeight;
+      const isMoving = true;
 
-      let targetCenterY = height / 2;
-      const marginL = 75; // Safe padding from top/bottom screen edges
-      
-      switch (patternType) {
-        case 'stair_30': {
-          const offsets = [83, 41.5, 0, -41.5, -83, -83, -41.5, 0, 41.5, 83];
-          const step = obstacleIdx % offsets.length;
-          targetCenterY = height / 2 + offsets[step];
-          break;
-        }
-        case 'w_30': {
-          const offsets = [-83, -41.5, 0, 41.5, 83, 41.5, 0, -41.5, -83, -41.5, 0, 41.5, 83, 41.5, 0, -41.5];
-          const step = obstacleIdx % offsets.length;
-          targetCenterY = height / 2 + offsets[step];
-          break;
-        }
-        case 'stair_up': {
-          const step = obstacleIdx % 4;
-          targetCenterY = height / 2 + 80 - step * 55; // Steps up
-          break;
-        }
-        case 'stair_down': {
-          const step = obstacleIdx % 4;
-          targetCenterY = height / 2 - 80 + step * 55; // Steps down
-          break;
-        }
-        case 'reverse_stair': {
-          const step = obstacleIdx % 4;
-          targetCenterY = height / 2 - 60 + ((step * 3) % 4) * 40;
-          break;
-        }
-        case 'zigzag_stair': {
-          const step = obstacleIdx % 4;
-          targetCenterY = height / 2 + ((step === 0) ? -80 : (step === 1) ? 40 : (step === 2) ? -40 : 80);
-          break;
-        }
-        case 'v_shape': {
-          const step = obstacleIdx % 5;
-          targetCenterY = height / 2 + ((step === 0 || step === 4) ? -90 : (step === 1 || step === 3) ? -10 : 70);
-          break;
-        }
-        case 'arrow_shape': {
-          const step = obstacleIdx % 5;
-          targetCenterY = height / 2 + ((step === 0 || step === 4) ? 70 : (step === 1 || step === 3) ? -10 : -90);
-          break;
-        }
-        case 'w_shape': {
-          const offsets = [-80, -40, 0, 40, 80, 40, 0, -40, -80, -40, 0, 40, 80, 40, 0, -40];
-          const step = obstacleIdx % offsets.length;
-          targetCenterY = height / 2 + offsets[step];
-          break;
-        }
-        case 'stair_loop': {
-          const offsets = [80, 45, 10, -25, -60, -80, -80, -60, -25, 10, 45, 80];
-          const step = obstacleIdx % offsets.length;
-          targetCenterY = height / 2 + offsets[step];
-          break;
-        }
-        case 'm_shape': {
-          const step = obstacleIdx % 6;
-          targetCenterY = height / 2 + ((step === 0 || step === 4) ? 70 : (step === 1 || step === 3 || step === 5) ? -90 : 10);
-          break;
-        }
-        case 'n_shape': {
-          const step = obstacleIdx % 4;
-          targetCenterY = height / 2 + ((step === 0) ? 80 : (step === 1) ? -20 : (step === 2) ? 20 : -80);
-          break;
-        }
-        case 'diamond_gate': {
-          const step = obstacleIdx % 4;
-          targetCenterY = height / 2 + ((step === 0 || step === 3) ? 0 : (step === 1) ? -80 : 80);
-          break;
-        }
-        case 'mechanical_claw': {
-          const step = obstacleIdx % 2;
-          targetCenterY = height / 2 + ((step === 0) ? -95 : 95);
-          break;
-        }
-        case 'temple_door': {
-          targetCenterY = height / 2;
-          break;
-        }
-        case 'scissor_gate': {
-          const step = obstacleIdx % 3;
-          targetCenterY = height / 2 + ((step === 0) ? -75 : (step === 1) ? 75 : 0);
-          break;
-        }
-        case 'spiral_motion': {
-          const step = obstacleIdx % 8;
-          targetCenterY = height / 2 + Math.sin(step * Math.PI / 4) * 90;
-          break;
-        }
-        case 'wave_corridor': {
-          const step = obstacleIdx % 6;
-          targetCenterY = height / 2 + Math.sin(step * Math.PI / 3) * 85;
-          break;
-        }
-        case 'wave_10': {
-          const step = obstacleIdx % 12;
-          targetCenterY = height / 2 + Math.sin(step * (Math.PI * 2 / 12)) * 80;
-          break;
-        }
-        case 'zigzag_11': {
-          const offsets = [-75, 75];
-          const step = obstacleIdx % offsets.length;
-          targetCenterY = height / 2 + offsets[step];
-          break;
-        }
-        case 'breathing_12': {
-          targetCenterY = height / 2;
-          break;
-        }
-        case 'diagonal_13': {
-          const offsets = [-83, -41.5, 0, 41.5, 83, 41.5, 0, -41.5];
-          const step = obstacleIdx % offsets.length;
-          targetCenterY = height / 2 + offsets[step];
-          break;
-        }
-        case 'reactive_14': {
-          const offsets = [-65, 65];
-          const step = obstacleIdx % offsets.length;
-          targetCenterY = height / 2 + offsets[step];
-          break;
-        }
-        case 'moving_stair_15': {
-          const offsets = [80, 40, 0, -40, -80, -40, 0, 40];
-          const step = obstacleIdx % offsets.length;
-          targetCenterY = height / 2 + offsets[step];
-          break;
-        }
-        case 'alternating_16': {
-          const offsets = [-70, -70, 70, 70];
-          const step = obstacleIdx % offsets.length;
-          targetCenterY = height / 2 + offsets[step];
-          break;
-        }
-        case 'rotating_17': {
-          const offsets = [0, 0, 0, 0, 0, 0];
-          const step = obstacleIdx % offsets.length;
-          targetCenterY = height / 2 + offsets[step];
-          break;
-        }
-        case 'dynamic_w_18': {
-          const offsets = [-80, -40, 0, 40, 80, 40, 0, -40];
-          const step = obstacleIdx % offsets.length;
-          targetCenterY = height / 2 + offsets[step];
-          break;
-        }
-        case 'exp_shrink_19': {
-          targetCenterY = height / 2;
-          break;
-        }
-        case 'hybrid_20': {
-          const segIdx = Math.floor((obstacleIdx % 18) / 6);
-          const localIdx = obstacleIdx % 6;
-          if (segIdx === 0) {
-            targetCenterY = height / 2 + Math.sin(localIdx * (Math.PI * 2 / 6)) * 75;
-          } else if (segIdx === 1) {
-            targetCenterY = height / 2 + (80 - localIdx * 32);
-          } else {
-            const diagOffsets = [-83, -41.5, 0, 41.5, 83, 41.5];
-            targetCenterY = height / 2 + diagOffsets[localIdx];
-          }
-          break;
-        }
-        case 'snake_21': {
-          targetCenterY = height / 2;
-          break;
-        }
-        case 'pulse_22': {
-          targetCenterY = height / 2;
-          break;
-        }
-        case 'gravity_23': {
-          targetCenterY = height / 2 + ((obstacleIdx % 4) * 45 - 90);
-          break;
-        }
-        case 'rotating_24': {
-          targetCenterY = height / 2;
-          break;
-        }
-        case 'waterfall_25': {
-          targetCenterY = height / 2;
-          break;
-        }
-        case 'elevator_26': {
-          targetCenterY = height / 2;
-          break;
-        }
-        case 'magnetic_27': {
-          targetCenterY = height / 2 + ((obstacleIdx % 3) * 50 - 50);
-          break;
-        }
-        case 'pendulum_28': {
-          targetCenterY = height / 2;
-          break;
-        }
-        case 'sliding_29': {
-          targetCenterY = height / 2;
-          break;
-        }
-        case 'boss_30': {
-          targetCenterY = height / 2;
-          break;
-        }
-        default:
-          targetCenterY = height / 2;
-          break;
+      // Wave Zone sine wave amplitude scaled by difficulty
+      let rangeY = 65;
+      if (difficulty === 'easy') {
+        rangeY = 40;
+      } else if (difficulty === 'hard') {
+        rangeY = 100;
       }
 
-      // Ensure the gap is completely visible and safe
-      const minCenterY = marginL + gapHeight / 2;
-      const maxCenterY = height - marginL - gapHeight / 2;
-      targetCenterY = Math.max(minCenterY, Math.min(maxCenterY, targetCenterY));
-
-      const targetTopHeight = targetCenterY - gapHeight / 2;
-      const targetBottomHeight = height - targetCenterY - gapHeight / 2;
-
-      // Close the gaps initially with a small visual warning slit (30px gap)
-      let closedTopHeight = height / 2 - 15;
-      let closedBottomHeight = height / 2 - 15;
-      if (patternType === 'reactive_14') {
-        closedTopHeight = height / 2;
-        closedBottomHeight = height / 2;
-      }
+      const oscillationFrequency = 2.4 + 1.6 * progressRatio;
+      const oscillationRange = rangeY * (0.6 + 0.4 * progressRatio);
 
       const levelNum = this.activeLevelConfig.levelNum;
       const isMutated = (levelNum % 2 === 0);
       const isStructured = (levelNum % 3 === 0);
 
-      let animDuration = 0.45;
-      if (levelNum === 4 || levelNum === 5) {
-        animDuration = 0.28;
-      } else if (patternType === 'reactive_14') {
-        animDuration = 0.26;
-      }
-
-      let triggerDistance = 200 + Math.random() * 20;
-      if (levelNum >= 1 && levelNum <= 30) {
-        triggerDistance = 220;
-      }
-      if (patternType === 'reactive_14') {
-        triggerDistance = 160;
-      }
-
       this.list.push(this.acquireObstacle({
         x: width + 50,
         width: this.obstacleWidth,
-        topHeight: targetTopHeight,
-        bottomHeight: targetBottomHeight,
+        topHeight,
+        bottomHeight,
         passed: false,
         worldId,
-        isMoving: false,
-        movingDir: 1,
-        speedY: 0,
-        rangeY: 0,
-        initialTopHeight: targetTopHeight,
-        initialBottomHeight: targetBottomHeight,
+        isMoving,
+        movingDir: Math.random() > 0.5 ? 1 : -1,
+        speedY: 0.4 + Math.random() * 0.6,
+        rangeY,
+        initialTopHeight: topHeight,
+        initialBottomHeight: bottomHeight,
         isLaser: (worldId === 'cyberpunk' && Math.random() < 0.35),
         laserActive: true,
         laserTimer: 0,
         isMutated,
         isStructured,
-        
-        patternType,
-        isTriggered: true,
-        animTimer: animDuration,
-        animDuration,
-        triggerDistance,
-        closedTopHeight,
-        closedBottomHeight,
-        targetTopHeight,
-        targetBottomHeight,
-        levelNum,
-        shakeX: 0,
-        shakeX2: 0,
-        gapHeight,
-        spawnCenterY: targetCenterY,
-        obstacleIdx
+        oscillationFrequency,
+        oscillationRange,
+        levelNum
       }));
       return;
     }
