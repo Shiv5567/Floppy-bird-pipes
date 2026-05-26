@@ -10,7 +10,7 @@ export class SoundManager {
     // AudioContext will be initialized on first user interaction (click/touch/key) to respect browser safety rules
   }
 
-  private init() {
+  public init() {
     if (this.ctx) return;
     try {
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;

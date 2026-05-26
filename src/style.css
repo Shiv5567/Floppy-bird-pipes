@@ -2825,3 +2825,108 @@ body.mobile-performance .glass-card {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
+
+/* Preloader Screen Styling */
+.preloading-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  background: rgba(12, 8, 29, 0.7);
+  backdrop-filter: blur(8px);
+}
+
+.preloader-content {
+  width: 85%;
+  max-width: 340px;
+  text-align: center;
+  padding: 30px 24px;
+  border-radius: 24px;
+  background: var(--glass-bg-dark);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 243, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.preloader-spinner-container {
+  position: relative;
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 20px auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.preloader-spinner {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 3px solid rgba(0, 243, 255, 0.1);
+  border-top-color: #00f3ff;
+  animation: spin 1.0s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.preloader-icon {
+  font-size: 28px;
+  animation: preloaderPulse 1.2s infinite ease-in-out;
+}
+
+@keyframes preloaderPulse {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.18); opacity: 1.0; }
+  100% { transform: scale(1); opacity: 0.8; }
+}
+
+.preloader-title {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.preloader-subtitle {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 25px;
+}
+
+.preloader-bar-container {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.preloader-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #00f3ff, #ffd700);
+  transition: width 0.1s ease-out;
+  box-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+}
+
+.preloader-message {
+  font-size: 9px;
+  font-weight: 800;
+  color: #00f3ff;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  min-height: 12px;
+}

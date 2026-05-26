@@ -38,6 +38,11 @@ export class UIManager {
   }
 
   private setupGlobalEvents() {
+    // Listen to preloader completion to redraw UI HUD
+    window.addEventListener('preloading_ui_done', () => {
+      this.render();
+    });
+
     // Listen to custom engine alerts
     window.addEventListener('game_over_state', () => {
       if (this.engine.gameMode === 'level') {
@@ -97,6 +102,8 @@ export class UIManager {
 
     if (state === 'MENU') {
       this.renderMenu();
+    } else if (state === 'PRELOADING') {
+      this.renderPreloader();
     } else if (state === 'PLAYING' || state === 'BOSS_FIGHT' || state === 'BOSS_WARNING') {
       this.renderHUD();
     } else if (state === 'PAUSED') {
@@ -265,6 +272,73 @@ export class UIManager {
       this.bossHealthFill = null;
       this.renderHUD();
     }
+  }
+
+  private renderPreloader() {
+    const progress = this.engine.progressManager.getState();
+    const worldId = progress.activeWorld;
+
+    const worldNames: Record<string, string> = {
+      jungle:     'TROPICAL JUNGLE',
+      jungle_temple: 'JUNGLE TEMPLE',
+      cyberpunk:  'NEON CYBERPUNK',
+      ice:        'FROZEN KINGDOM',
+      desert:     'DESERT RUINS',
+      volcano:    'VOLCANIC ABYSS',
+      space:      'COSMIC SPACE VOID',
+      underwater: 'DEEP UNDERWATER',
+      heaven:     'HEAVENLY REALM',
+      retro:      'RETRO WORLD'
+    };
+
+    const worldName = worldNames[worldId] || 'THE WORLD';
+
+    this.container.innerHTML = `
+      <div class="screen preloading-screen fade-in">
+        <div class="menu-world-bg world-bg-${worldId}" style="filter: blur(8px); opacity: 0.6;"></div>
+        <div class="preloader-content glass-card">
+          <div class="preloader-spinner-container">
+            <div class="preloader-spinner"></div>
+            <div class="preloader-icon">⚡</div>
+          </div>
+          <div class="preloader-title">WARMING ENGINES...</div>
+          <div class="preloader-subtitle">PREPARING TO ENTER ${worldName}</div>
+          <div class="preloader-bar-container">
+            <div class="preloader-bar-fill" id="preloader-fill" style="width: 0%"></div>
+          </div>
+          <div class="preloader-message" id="preloader-message">SYNTHESIZING SOUND WAVES...</div>
+        </div>
+      </div>
+    `;
+
+    const fillEl = document.getElementById('preloader-fill');
+    const msgEl = document.getElementById('preloader-message');
+
+    const messages = [
+      'SYNTHESIZING SOUND SYNTHS...',
+      'CALIBRATING TURBO JET THRUST...',
+      'ORGANIZING ASSET CACHES...',
+      'POOLING GAME OBSTACLES...',
+      'SYNCING AMBIENT WEATHER RAYS...',
+      'JET-ENGINES READY FOR TAKEOFF! ⚡'
+    ];
+
+    const progressListener = (e: any) => {
+      const pct = Math.floor(e.detail.progress * 100);
+      if (fillEl) fillEl.style.width = `${pct}%`;
+      if (msgEl) {
+        const msgIdx = Math.min(messages.length - 1, Math.floor(e.detail.progress * messages.length));
+        msgEl.innerText = messages[msgIdx];
+      }
+    };
+
+    window.addEventListener('preloading_progress', progressListener);
+
+    window.addEventListener('preloading_complete', function completeHandler() {
+      window.removeEventListener('preloading_progress', progressListener);
+      window.removeEventListener('preloading_complete', completeHandler);
+      window.dispatchEvent(new CustomEvent('preloading_ui_done'));
+    });
   }
 
   private renderMenu() {
@@ -838,7 +912,6 @@ export class UIManager {
               <div class="segment-label" style="font-size: 11px; font-weight: 800; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 10px; text-transform: uppercase;">GAMEPLAY ZONE</div>
               <div class="segmented-control" style="display: flex; gap: 8px; background: rgba(0,0,0,0.25); padding: 4px; border-radius: 14px;">
                 <button class="segment-btn ${progress.selectedZone === 'classic' ? 'active' : ''}" data-zone="classic" style="flex: 1; padding: 10px; border: none; border-radius: 10px; font-family: var(--font-family); font-weight: 800; font-size: 12px; cursor: pointer; color: #fff; background: transparent; transition: all 0.2s ease;">Classic</button>
-                <button class="segment-btn ${progress.selectedZone === 'vertical' ? 'active' : ''}" data-zone="vertical" style="flex: 1; padding: 10px; border: none; border-radius: 10px; font-family: var(--font-family); font-weight: 800; font-size: 12px; cursor: pointer; color: #fff; background: transparent; transition: all 0.2s ease;">Vertical</button>
                 <button class="segment-btn ${progress.selectedZone === 'wave' ? 'active' : ''}" data-zone="wave" style="flex: 1; padding: 10px; border: none; border-radius: 10px; font-family: var(--font-family); font-weight: 800; font-size: 12px; cursor: pointer; color: #fff; background: transparent; transition: all 0.2s ease;">Wave</button>
               </div>
             </div>
@@ -884,7 +957,7 @@ export class UIManager {
     const zoneBtns = this.container.querySelectorAll('.segmented-control [data-zone]');
     zoneBtns.forEach(btn => {
       btn.addEventListener('click', () => {
-        const zone = (btn as HTMLElement).getAttribute('data-zone') as 'classic' | 'vertical' | 'wave';
+        const zone = (btn as HTMLElement).getAttribute('data-zone') as 'classic' | 'wave';
         if (zone) {
           this.engine.progressManager.getState().selectedZone = zone;
           this.engine.progressManager.save();

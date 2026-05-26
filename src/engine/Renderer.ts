@@ -520,6 +520,8 @@ export class Renderer {
   }
 
   private drawSkyDetails(worldId: string, width: number, height: number) {
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) return;
     this.ctx.save();
     switch (worldId) {
       case 'space':
@@ -681,7 +683,7 @@ export class Renderer {
         baseStepX = 25;
       }
       
-      const stepX = isMobile ? baseStepX * 2.2 : baseStepX;
+      const stepX = isMobile ? baseStepX * 3.8 : baseStepX;
 
       const profile = this.cachedProfiles[layer];
       const hasProfile = profile && profile.length > 0;

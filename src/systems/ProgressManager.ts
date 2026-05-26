@@ -45,7 +45,7 @@ export interface PlayerProgressState {
   skinUpgrades: Record<string, number>; // skinId -> level
   achievements: Record<string, number>; // achievementId -> progress value
   unlockedAchievements: string[]; // list of unlocked achievement IDs
-  selectedZone: 'classic' | 'vertical' | 'wave';
+  selectedZone: 'classic' | 'wave';
   selectedDifficulty: 'easy' | 'medium' | 'hard';
   lastDailyClaimTime: number;
   dailyQuests: { id: string; name: string; desc: string; target: number; current: number; rewardCoins: number; rewardGems: number; claimed: boolean }[];
@@ -478,7 +478,7 @@ export class ProgressManager {
           skinUpgrades: loadedState.skinUpgrades || {},
           achievements: loadedState.achievements || {},
           unlockedAchievements: loadedState.unlockedAchievements || [],
-          selectedZone: loadedState.selectedZone || 'classic',
+          selectedZone: (loadedState.selectedZone as any) === 'vertical' ? 'classic' : (loadedState.selectedZone || 'classic'),
           selectedDifficulty: loadedState.selectedDifficulty || 'medium',
           lastDailyClaimTime: loadedState.lastDailyClaimTime || 0,
           dailyQuests: loadedState.dailyQuests || this.initDefaultQuests(),

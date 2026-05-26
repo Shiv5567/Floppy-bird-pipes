@@ -9,7 +9,7 @@ import { BossManager } from '../entities/BossManager.ts';
 import { LevelManager } from '../systems/LevelManager.ts';
 import type { LevelConfig } from '../systems/LevelManager.ts';
 
-export type GameState = 'MENU' | 'PLAYING' | 'PAUSED' | 'BOSS_WARNING' | 'BOSS_FIGHT' | 'GAMEOVER' | 'PHOTO_MODE' | 'REVIVE_CHOICE';
+export type GameState = 'PRELOADING' | 'MENU' | 'PLAYING' | 'PAUSED' | 'BOSS_WARNING' | 'BOSS_FIGHT' | 'GAMEOVER' | 'PHOTO_MODE' | 'REVIVE_CHOICE';
 
 export interface ActivePowerup {
   type: string;
@@ -76,6 +76,7 @@ export class GameEngine {
   private bossWarningTimer = 0;
   private bossScoreMilestone = 50; // Spawn a boss every 50 points!
   private fpsLowFrameStreak = 0;
+  private preloadingTimer = 0.0;
 
 
   constructor(
@@ -104,7 +105,9 @@ export class GameEngine {
   }
 
   public startGame() {
-    this.state = 'PLAYING';
+    this.state = 'PRELOADING';
+    this.preloadingTimer = 0.4;
+    this.soundManager.init(); // Warm up Web Audio context on user gesture
     this.hasRevivedThisRun = false;
     this.revivesUsedThisRun = 0;
     this.shieldBrokenThisRun = false;
@@ -157,7 +160,6 @@ export class GameEngine {
     this.powerupManager.clear();
     
     this.soundManager.stopMusic();
-    this.soundManager.startMusic(this.progressManager.getState().activeWorld);
   }
 
   public update(deltaTime: number) {
@@ -188,6 +190,26 @@ export class GameEngine {
 
     // 1. Update visual engines
     this.particleEngine.update(dt);
+
+    if (this.state === 'PRELOADING') {
+      this.preloadingTimer -= dt;
+      this.renderer.update(dt, this.scrollSpeed * 0.1, this.bird.y, 1.0, this.state);
+      
+      // Dispatch preloading progress event
+      window.dispatchEvent(new CustomEvent('preloading_progress', {
+        detail: {
+          progress: Math.max(0, Math.min(1.0, (0.4 - this.preloadingTimer) / 0.4))
+        }
+      }));
+
+      if (this.preloadingTimer <= 0) {
+        this.state = 'PLAYING';
+        this.soundManager.stopMusic();
+        this.soundManager.startMusic(this.progressManager.getState().activeWorld);
+        window.dispatchEvent(new CustomEvent('preloading_complete'));
+      }
+      return;
+    }
 
     if (this.state === 'REVIVE_CHOICE') {
       this.reviveCountdown -= dt;

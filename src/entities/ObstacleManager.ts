@@ -55,6 +55,7 @@ export interface Obstacle {
 
 export class ObstacleManager {
   private list: Obstacle[] = [];
+  private freePool: Obstacle[] = [];
   private spawnTimer = 0;
   private obstacleWidth = 72;
   private waveTime = 0;
@@ -68,6 +69,53 @@ export class ObstacleManager {
 
   constructor() {}
 
+  private acquireObstacle(props: Partial<Obstacle>): Obstacle {
+    let obs = this.freePool.pop();
+    if (!obs) {
+      obs = {} as Obstacle;
+    }
+    Object.assign(obs, {
+      x: 0,
+      width: 72,
+      topHeight: 0,
+      bottomHeight: 0,
+      passed: false,
+      grazed: false,
+      isCavern: false,
+      isMutated: false,
+      isStructured: false,
+      worldId: 'jungle',
+      isMoving: false,
+      movingDir: 1,
+      speedY: 0,
+      rangeY: 0,
+      initialTopHeight: 0,
+      initialBottomHeight: 0,
+      isLaser: false,
+      laserActive: false,
+      laserTimer: 0,
+      hasSpawnedRewards: false,
+      oscillationFrequency: 0,
+      oscillationRange: 0,
+      patternType: undefined,
+      isTriggered: false,
+      animTimer: 0,
+      animDuration: 0,
+      triggerDistance: 0,
+      closedTopHeight: 0,
+      closedBottomHeight: 0,
+      targetTopHeight: 0,
+      targetBottomHeight: 0,
+      levelNum: undefined,
+      shakeX: 0,
+      shakeX2: 0,
+      gapHeight: 0,
+      spawnCenterY: 0,
+      obstacleIdx: undefined
+    }, props);
+    return obs;
+  }
+
   public setLevelMode(enabled: boolean, config: any) {
     this.isLevelMode = enabled;
     this.activeLevelConfig = config;
@@ -79,7 +127,9 @@ export class ObstacleManager {
   }
 
   public clear() {
-    this.list = [];
+    while (this.list.length > 0) {
+      this.freePool.push(this.list.pop()!);
+    }
     this.spawnTimer = 0;
     this.waveTime = 0;
     this.tunnelSpawnCount = 0;
@@ -95,7 +145,7 @@ export class ObstacleManager {
     width: number,
     height: number,
     timeScale: number,
-    zone: 'classic' | 'vertical' | 'wave' = 'classic',
+    zone: 'classic' | 'wave' = 'classic',
     difficulty: 'easy' | 'medium' | 'hard' = 'medium',
     birdX?: number,
     particleEngine?: any
@@ -140,9 +190,8 @@ export class ObstacleManager {
       } else {
         targetDistance = defaultDistance;
       }
-    } else if (zone === 'vertical') {
-      targetDistance = (baseDistance - (baseDistance - minDistance) * progressRatio) * 1.25 * 0.60;
     } else {
+      // Wave Zone spacing
       targetDistance = (baseDistance - (baseDistance - minDistance) * progressRatio) * 0.60;
     }
 
@@ -157,16 +206,9 @@ export class ObstacleManager {
       obs.x -= actualScrollSpeed;
 
       if (obs.patternType) {
-        if (obs.levelNum === 1) {
-          obs.shakeX = Math.sin(this.waveTime * 1.5) * 15;
-        } else if (obs.levelNum === 2) {
-          obs.shakeX = Math.sin(this.waveTime * 1.8) * 22;
-          obs.shakeX2 = -obs.shakeX;
-        } else if (obs.levelNum === 3) {
-          obs.shakeX = Math.sin(this.waveTime * 1.6) * 35;
-        } else if (obs.levelNum === 4) {
-          obs.shakeX = Math.sin(this.waveTime * 2.2 - obs.obstacleIdx! * 0.55) * 30;
-        }
+        // Horizontally pipe shaking animations removed completely
+        obs.shakeX = 0;
+        obs.shakeX2 = 0;
 
         if (obs.patternType === 'breathing_12') {
           const centerY = height / 2 + Math.sin(this.waveTime * 2.5) * 60;
@@ -255,7 +297,7 @@ export class ObstacleManager {
           obs.targetBottomHeight = height - obs.spawnCenterY! - currentGap / 2;
         } else if (obs.patternType === 'pendulum_28') {
           const angle = Math.sin(this.waveTime * 2.5 + obs.obstacleIdx! * 0.5) * 0.45;
-          obs.shakeX = Math.sin(angle) * 70;
+          obs.shakeX = 0;
           const drop = (1 - Math.cos(angle)) * 70;
           const centerY = obs.spawnCenterY! + drop;
           obs.closedTopHeight = centerY - 15;
@@ -263,7 +305,7 @@ export class ObstacleManager {
           obs.targetTopHeight = centerY - obs.gapHeight! / 2;
           obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
         } else if (obs.patternType === 'sliding_29') {
-          obs.shakeX = Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 1.1) * 45;
+          obs.shakeX = 0;
           const centerY = height / 2 + Math.sin(this.waveTime * 1.5 + obs.obstacleIdx! * 0.6) * 35;
           obs.closedTopHeight = centerY - 15;
           obs.closedBottomHeight = height - centerY - 15;
@@ -279,7 +321,7 @@ export class ObstacleManager {
           obs.closedBottomHeight = height - centerY - 15;
           obs.targetTopHeight = centerY - currentGap / 2;
           obs.targetBottomHeight = height - centerY - currentGap / 2;
-          obs.shakeX = Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.8) * 20;
+          obs.shakeX = 0;
         }
 
         if (birdX !== undefined) {
@@ -333,7 +375,7 @@ export class ObstacleManager {
         if (!obs.isTriggered) {
           obs.topHeight = obs.closedTopHeight!;
           obs.bottomHeight = obs.closedBottomHeight!;
-          obs.shakeX = (obs.levelNum === 5) ? -90 : 0;
+          obs.shakeX = 0;
         } else {
           obs.animTimer! += deltaTime * timeScale;
           if (obs.animTimer! > obs.animDuration!) {
@@ -360,11 +402,11 @@ export class ObstacleManager {
               obs.shakeX = 0;
             }
           } else if (obs.levelNum === 5) {
-            // Horizontal Slide-Lock Gate
+            // Horizontal Slide-Lock Gate (Horizontal slides removed as requested)
             const eased = this.easeOutCubic(progress);
             obs.topHeight = obs.closedTopHeight! + (obs.targetTopHeight! - obs.closedTopHeight!) * eased;
             obs.bottomHeight = obs.closedBottomHeight! + (obs.targetBottomHeight! - obs.closedBottomHeight!) * eased;
-            obs.shakeX = -90 * (1 - eased);
+            obs.shakeX = 0;
           } else {
             // Standard smooth open using easeOutCubic
             const eased = this.easeOutCubic(progress);
@@ -408,13 +450,6 @@ export class ObstacleManager {
           obs.topHeight = obs.initialTopHeight + Math.sign(topDiff) * obs.rangeY * 1.5;
           obs.bottomHeight = obs.initialBottomHeight - Math.sign(topDiff) * obs.rangeY * 1.5;
         }
-      } else if (zone === 'vertical') {
-        // Use stored frequency and range to prevent on-screen jitter/jump on score increment
-        const frequency = obs.oscillationFrequency !== undefined ? obs.oscillationFrequency : (0.8 + 1.0 * progressRatio);
-        const range = obs.oscillationRange !== undefined ? obs.oscillationRange : (obs.rangeY * (0.5 + 0.5 * progressRatio));
-        const offset = Math.sin(this.waveTime * frequency + obs.initialTopHeight * 0.05) * range;
-        obs.topHeight = obs.initialTopHeight + offset;
-        obs.bottomHeight = obs.initialBottomHeight - offset;
       } else if (zone === 'wave') {
         const frequency = obs.oscillationFrequency !== undefined ? obs.oscillationFrequency : (2.4 + 1.6 * progressRatio);
         const range = obs.oscillationRange !== undefined ? obs.oscillationRange : (obs.rangeY * (0.6 + 0.4 * progressRatio));
@@ -444,8 +479,9 @@ export class ObstacleManager {
         }
       }
 
-      // Remove offscreen obstacles
+      // Remove offscreen obstacles & recycle them back to the free pool for Object Pooling!
       if (obs.x + obs.width < -50) {
+        this.freePool.push(obs);
         this.list.splice(i, 1);
       }
     }
@@ -753,7 +789,7 @@ export class ObstacleManager {
         triggerDistance = 160;
       }
 
-      this.list.push({
+      this.list.push(this.acquireObstacle({
         x: width + 50,
         width: this.obstacleWidth,
         topHeight: closedTopHeight,
@@ -783,10 +819,11 @@ export class ObstacleManager {
         targetBottomHeight,
         levelNum,
         shakeX: 0,
+        shakeX2: 0,
         gapHeight,
         spawnCenterY: targetCenterY,
         obstacleIdx
-      });
+      }));
       return;
     }
 
@@ -798,23 +835,7 @@ export class ObstacleManager {
     let rangeY = difficulty === 'hard' ? 50 + Math.random() * 40 : 30 + Math.random() * 30;
     let isCavernVal = false;
 
-    if (zone === 'vertical') {
-      margin = 85;
-      const playableHeight = height - gapHeight - margin * 2;
-      topHeight = margin + 0.25 * playableHeight + Math.random() * 0.5 * playableHeight;
-      bottomHeight = height - topHeight - gapHeight;
-      isMoving = true;
-      
-      // Vertical Zone oscillation range scaled by difficulty
-      if (difficulty === 'easy') {
-        rangeY = 30 + Math.random() * 15;
-      } else if (difficulty === 'hard') {
-        rangeY = 85 + Math.random() * 35;
-      } else {
-        rangeY = 55 + Math.random() * 20;
-      }
-      isCavernVal = false;
-    } else if (zone === 'wave') {
+    if (zone === 'wave') {
       margin = 85;
       const playableHeight = height - gapHeight - margin * 2;
       // perfectly center the winding tunnel so it can oscillate nicely
@@ -901,15 +922,12 @@ export class ObstacleManager {
 
     let oscillationFrequency = 0;
     let oscillationRange = 0;
-    if (zone === 'vertical') {
-      oscillationFrequency = 0.8 + 1.0 * progressRatio;
-      oscillationRange = rangeY * (0.5 + 0.5 * progressRatio);
-    } else if (zone === 'wave') {
+    if (zone === 'wave') {
       oscillationFrequency = 2.4 + 1.6 * progressRatio;
       oscillationRange = rangeY * (0.6 + 0.4 * progressRatio);
     }
 
-    this.list.push({
+    this.list.push(this.acquireObstacle({
       x: width + 50,
       width: this.obstacleWidth,
       topHeight,
@@ -930,7 +948,7 @@ export class ObstacleManager {
       laserTimer: 0,
       oscillationFrequency,
       oscillationRange
-    });
+    }));
   }
 
   // Enforces invisible vertical boundaries and evaluates collisions
@@ -1298,16 +1316,22 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
 
     if (obs.isMutated) {
-      // Royal blue and polished gold
-      const grad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      grad.addColorStop(0, '#0f172a');
-      grad.addColorStop(0.3, '#1e3a8a');
-      grad.addColorStop(0.7, '#1e40af');
-      grad.addColorStop(1, '#0f172a');
-      ctx.fillStyle = grad;
-      ctx.strokeStyle = '#fbbf24'; // Gold outline
+      if (isPerformance) {
+        ctx.fillStyle = '#1e3a8a';
+        ctx.strokeStyle = '#fbbf24';
+      } else {
+        // Royal blue and polished gold
+        const grad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+        grad.addColorStop(0, '#0f172a');
+        grad.addColorStop(0.3, '#1e3a8a');
+        grad.addColorStop(0.7, '#1e40af');
+        grad.addColorStop(1, '#0f172a');
+        ctx.fillStyle = grad;
+        ctx.strokeStyle = '#fbbf24'; // Gold outline
+      }
       ctx.lineWidth = 3.5;
 
       ctx.fillRect(rx, -1000, rw, rTop + 1000);
@@ -1316,24 +1340,32 @@ export class ObstacleManager {
       ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
       // Shiny gold caps
-      const goldGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      goldGrad.addColorStop(0, '#d97706');
-      goldGrad.addColorStop(0.5, '#fef08a');
-      goldGrad.addColorStop(1, '#b45309');
-      ctx.fillStyle = goldGrad;
+      if (isPerformance) {
+        ctx.fillStyle = '#d97706';
+      } else {
+        const goldGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+        goldGrad.addColorStop(0, '#d97706');
+        goldGrad.addColorStop(0.5, '#fef08a');
+        goldGrad.addColorStop(1, '#b45309');
+        ctx.fillStyle = goldGrad;
+      }
       ctx.fillRect(rx, rTop - 20, rw, 20);
       ctx.strokeRect(rx, rTop - 20, rw, 20);
       ctx.fillRect(rx, height - rBottom, rw, 20);
       ctx.strokeRect(rx, height - rBottom, rw, 20);
     } else {
-      const grad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      grad.addColorStop(0, '#55a855');
-      grad.addColorStop(0.3, '#88d888');
-      grad.addColorStop(0.7, '#336633');
-      grad.addColorStop(1, '#1b3d1b');
-
-      ctx.fillStyle = grad;
-      ctx.strokeStyle = '#0e240e';
+      if (isPerformance) {
+        ctx.fillStyle = '#336633';
+        ctx.strokeStyle = '#0e240e';
+      } else {
+        const grad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+        grad.addColorStop(0, '#55a855');
+        grad.addColorStop(0.3, '#88d888');
+        grad.addColorStop(0.7, '#336633');
+        grad.addColorStop(1, '#1b3d1b');
+        ctx.fillStyle = grad;
+        ctx.strokeStyle = '#0e240e';
+      }
       ctx.lineWidth = 3;
 
       // Top column (Unified with offscreen extension)
@@ -1344,7 +1376,11 @@ export class ObstacleManager {
       ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
       // Pillar ridges caps (standardized to obs.width)
-      ctx.fillStyle = '#88d888';
+      if (isPerformance) {
+        ctx.fillStyle = '#55a855';
+      } else {
+        ctx.fillStyle = '#88d888';
+      }
       ctx.fillRect(rx, rTop - 20, rw, 20);
       ctx.strokeRect(rx, rTop - 20, rw, 20);
 
@@ -1358,6 +1394,17 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) {
+      ctx.fillStyle = obs.isMutated ? '#ec4899' : '#73c93e';
+      ctx.strokeStyle = obs.isMutated ? '#06b6d4' : '#000000';
+      ctx.lineWidth = obs.isMutated ? 3.5 : 3;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      return;
+    }
 
     if (obs.isMutated) {
       // Retro pink
@@ -1410,6 +1457,17 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) {
+      ctx.fillStyle = obs.isMutated ? '#083722' : '#4f5043';
+      ctx.strokeStyle = obs.isMutated ? '#00e676' : '#1b1c16';
+      ctx.lineWidth = 2.0;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      return;
+    }
 
     if (obs.isMutated) {
       // Vibrant semi-transparent exotic emerald forest gradient (very attractive and environment matching)
@@ -1504,6 +1562,34 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) {
+      ctx.fillStyle = obs.isMutated ? '#05050a' : '#120f26';
+      ctx.strokeStyle = obs.isMutated ? '#39ff14' : '#00f3ff';
+      ctx.lineWidth = 2.0;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      if (obs.isLaser) {
+        if (obs.laserActive) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(rx + rw * 0.45, rTop, rw * 0.1, height - rTop - rBottom);
+          ctx.fillStyle = obs.isMutated ? 'rgba(57, 255, 20, 0.9)' : 'rgba(255, 0, 85, 0.85)';
+          ctx.fillRect(rx + rw * 0.42, rTop, rw * 0.16, height - rTop - rBottom);
+        } else {
+          ctx.strokeStyle = obs.isMutated ? 'rgba(57, 255, 20, 0.4)' : 'rgba(255, 0, 50, 0.35)';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([5, 5]);
+          ctx.beginPath();
+          ctx.moveTo(rx + rw * 0.5, rTop);
+          ctx.lineTo(rx + rw * 0.5, height - rBottom);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      }
+      return;
+    }
 
     if (obs.isMutated) {
       // Matrix code columns
@@ -1599,6 +1685,17 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) {
+      ctx.fillStyle = obs.isMutated ? '#3b82f6' : 'rgba(173, 216, 230, 0.75)';
+      ctx.strokeStyle = obs.isMutated ? '#ffffff' : 'rgba(255, 255, 255, 0.9)';
+      ctx.lineWidth = obs.isMutated ? 3 : 2;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      return;
+    }
 
     if (obs.isMutated) {
       // Aurora prism gradient
@@ -1657,6 +1754,17 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) {
+      ctx.fillStyle = obs.isMutated ? '#fbbf24' : '#ab8e60';
+      ctx.strokeStyle = obs.isMutated ? '#ef4444' : '#3e2c14';
+      ctx.lineWidth = 2.0;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      return;
+    }
 
     if (obs.isMutated) {
       // Jeweled sandstone
@@ -1718,6 +1826,22 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) {
+      ctx.fillStyle = obs.isMutated ? '#0a0505' : '#100505';
+      ctx.strokeStyle = obs.isMutated ? '#f97316' : '#ff3c00';
+      ctx.lineWidth = 2.5;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      if (obs.isMutated) {
+        ctx.fillStyle = '#f97316';
+        ctx.fillRect(rx + rw * 0.38, -1000, rw * 0.24, rTop + 1000);
+        ctx.fillRect(rx + rw * 0.38, height - rBottom, rw * 0.24, rBottom + 1000);
+      }
+      return;
+    }
 
     if (obs.isMutated) {
       // Darkest obsidian
@@ -1774,6 +1898,17 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) {
+      ctx.fillStyle = obs.isMutated ? '#030008' : '#2e0854';
+      ctx.strokeStyle = obs.isMutated ? '#a855f7' : '#da70d6';
+      ctx.lineWidth = 2.0;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      return;
+    }
 
     if (obs.isMutated) {
       // Deep cosmic black
@@ -1839,6 +1974,17 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) {
+      ctx.fillStyle = obs.isMutated ? '#081e26' : '#004d40';
+      ctx.strokeStyle = obs.isMutated ? '#ec4899' : '#00695c';
+      ctx.lineWidth = 2.0;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      return;
+    }
 
     if (obs.isMutated) {
       // Deep sea navy
@@ -1890,6 +2036,17 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) {
+      ctx.fillStyle = obs.isMutated ? '#ffffff' : '#f5f5f0';
+      ctx.strokeStyle = obs.isMutated ? '#fcd34d' : '#ffd700';
+      ctx.lineWidth = 2.5;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      return;
+    }
 
     if (obs.isMutated) {
       // Divine white marble
@@ -1950,6 +2107,38 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) {
+      ctx.fillStyle = colorTop;
+      ctx.strokeStyle = outlineColor;
+      ctx.lineWidth = 3.5;
+
+      ctx.beginPath();
+      ctx.moveTo(rx, -1000);
+      ctx.lineTo(rx, rTop - 12);
+      ctx.lineTo(rx + rw * 0.2, rTop - 25 + Math.sin(rx * 0.05) * 8);
+      ctx.lineTo(rx + rw * 0.45, rTop + 10);
+      ctx.lineTo(rx + rw * 0.75, rTop - 20 + Math.cos(rx * 0.03) * 6);
+      ctx.lineTo(rx + rw, rTop - 8);
+      ctx.lineTo(rx + rw, -1000);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      const floorY = height - rBottom;
+      ctx.beginPath();
+      ctx.moveTo(rx, height + 1000);
+      ctx.lineTo(rx, floorY + 12);
+      ctx.lineTo(rx + rw * 0.25, floorY + 20 + Math.cos(rx * 0.04) * 8);
+      ctx.lineTo(rx + rw * 0.55, floorY - 12);
+      ctx.lineTo(rx + rw * 0.8, floorY + 18 + Math.sin(rx * 0.06) * 6);
+      ctx.lineTo(rx + rw, floorY + 8);
+      ctx.lineTo(rx + rw, height + 1000);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      return;
+    }
 
     // Draw Jagged Top Stalactite Cavern Wall
     ctx.save();
@@ -2018,6 +2207,17 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) {
+      ctx.fillStyle = '#1e3a8a';
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 3;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      return;
+    }
 
     // Deep royal blue gradient columns with golden joints
     const grad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
@@ -2071,6 +2271,17 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) {
+      ctx.fillStyle = '#ec4899';
+      ctx.strokeStyle = '#06b6d4';
+      ctx.lineWidth = 3;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      return;
+    }
 
     // Stacked pixel blocks with isometric 3D-shaded borders
     ctx.fillStyle = '#ec4899'; // Hot pink
@@ -2118,6 +2329,17 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) {
+      ctx.fillStyle = '#102a12';
+      ctx.strokeStyle = 'rgba(217, 160, 24, 0.70)';
+      ctx.lineWidth = 2.0;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      return;
+    }
 
     // Semi-transparent deep mossy jade-olive gradient (environment friendly and slightly transparent)
     const jungleGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
@@ -2177,6 +2399,34 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) {
+      ctx.fillStyle = '#0e0b1c';
+      ctx.strokeStyle = '#8a2be2';
+      ctx.lineWidth = 2.0;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      if (obs.isLaser) {
+        if (obs.laserActive) {
+          ctx.fillStyle = 'rgba(255, 0, 127, 0.85)';
+          ctx.fillRect(rx + rw * 0.42, rTop, rw * 0.16, height - rTop - rBottom);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(rx + rw * 0.46, rTop, rw * 0.08, height - rTop - rBottom);
+        } else {
+          ctx.strokeStyle = 'rgba(255, 0, 127, 0.45)';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([5, 5]);
+          ctx.beginPath();
+          ctx.moveTo(rx + rw * 0.5, rTop);
+          ctx.lineTo(rx + rw * 0.5, height - rBottom);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      }
+      return;
+    }
 
     // Simple background-friendly dark metallic chassis (static linear gradient)
     const chassisGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
@@ -2241,6 +2491,17 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) {
+      ctx.fillStyle = '#3b82f6';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2.5;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      return;
+    }
 
     // Aurora prism gradient and sharp, jagged crystalline facets instead of rectangles!
     const prismGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
@@ -2299,6 +2560,17 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) {
+      ctx.fillStyle = '#fbbf24';
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 2.5;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      return;
+    }
 
     // Egyptian Tapered Sandstone Pylons!
     const sandGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
@@ -2354,6 +2626,17 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) {
+      ctx.fillStyle = '#0a0505';
+      ctx.strokeStyle = '#f97316';
+      ctx.lineWidth = 2.5;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      return;
+    }
 
     // Basalt staggered columnar joints (bundle of vertical hexagonal joints of different heights)
     ctx.strokeStyle = '#f97316'; // Lava orange
@@ -2404,6 +2687,17 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) {
+      ctx.fillStyle = '#15062b';
+      ctx.strokeStyle = '#a855f7';
+      ctx.lineWidth = 2.5;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      return;
+    }
 
     // Dark space-alloy obelisk body
     const spaceGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
@@ -2462,6 +2756,17 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) {
+      ctx.fillStyle = '#081e26';
+      ctx.strokeStyle = '#ec4899';
+      ctx.lineWidth = 2.5;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      return;
+    }
 
     // Atlantis fluted ruins columns: Broken Greek columns shifted horizontally!
     ctx.fillStyle = '#081e26';
@@ -2497,6 +2802,17 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) {
+      ctx.fillStyle = '#ffffff';
+      ctx.strokeStyle = '#fcd34d';
+      ctx.lineWidth = 3;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      return;
+    }
 
     // Winged angelic marble columns with flaring gold wing-arches
     const heavGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
@@ -2550,6 +2866,17 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) {
+      ctx.fillStyle = '#434e44';
+      ctx.strokeStyle = '#0e120f';
+      ctx.lineWidth = 3.0;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      return;
+    }
 
     const stoneGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
     stoneGrad.addColorStop(0, '#384339');
@@ -2637,6 +2964,17 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
+    const isPerformance = (window as any).gameDisableShadows;
+    if (isPerformance) {
+      ctx.fillStyle = '#344237';
+      ctx.strokeStyle = '#0a0d0b';
+      ctx.lineWidth = 3.0;
+      ctx.fillRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      return;
+    }
 
     const stoneGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
     stoneGrad.addColorStop(0, '#2d382f');
