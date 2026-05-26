@@ -37,6 +37,7 @@ export class Renderer {
   private shakeDuration = 0;
   private zoomFactor = 0.90;
   public scale = 1.0;
+  private jungleTempleBgImg: HTMLImageElement | null = null;
 
   constructor(canvas: HTMLCanvasElement, particleEngine: ParticleEngine) {
     this.canvas = canvas;
@@ -45,6 +46,10 @@ export class Renderer {
     this.ctx = context;
     this.particleEngine = particleEngine;
     this.resize();
+
+    // Preload the custom sunset background for Jungle Temple ruins world
+    this.jungleTempleBgImg = new Image();
+    this.jungleTempleBgImg.src = '/jungle_temple_bg.jpg';
   }
 
   public resize() {
@@ -466,6 +471,12 @@ export class Renderer {
     const height = this.canvas.height / this.dpr;
 
     ctxSaveApplyShake(this.ctx, this.shakeIntensity, this.shakeDuration);
+
+    // If active world is Jungle Temple and custom image is loaded, draw it directly
+    if (worldId === 'jungle_temple' && this.jungleTempleBgImg && this.jungleTempleBgImg.complete) {
+      this.ctx.drawImage(this.jungleTempleBgImg, 0, 0, width, height);
+      return;
+    }
 
     // Draw solid color backdrop depending on active world
     const skyGrad = this.ctx.createLinearGradient(0, 0, 0, height);
