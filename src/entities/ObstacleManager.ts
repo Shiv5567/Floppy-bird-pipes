@@ -59,11 +59,9 @@ export class ObstacleManager {
   private spawnTimer = 0;
   private obstacleWidth = 72;
   private waveTime = 0;
-  private tunnelSpawnCount = 0;
   private nextSpawnDistance = 350;
   private lastTopHeight: number | null = null;
 
-  private isLevelMode = false;
   private activeLevelConfig: any = null;
 
   constructor() {}
@@ -115,8 +113,7 @@ export class ObstacleManager {
     return obs;
   }
 
-  public setLevelMode(enabled: boolean, config: any) {
-    this.isLevelMode = enabled;
+  public setLevelMode(_enabled: boolean, config: any) {
     this.activeLevelConfig = config;
   }
 
@@ -130,7 +127,6 @@ export class ObstacleManager {
     }
     this.spawnTimer = 0;
     this.waveTime = 0;
-    this.tunnelSpawnCount = 0;
     this.nextSpawnDistance = 350;
     this.lastTopHeight = null;
   }
@@ -145,8 +141,8 @@ export class ObstacleManager {
     timeScale: number,
     zone: 'classic' | 'wave' = 'classic',
     difficulty: 'easy' | 'medium' | 'hard' = 'medium',
-    birdX?: number,
-    particleEngine?: any
+    _birdX?: number,
+    _particleEngine?: any
   ) {
     const dtCoeff = deltaTime * 60 * timeScale;
     this.waveTime += deltaTime * timeScale;
@@ -203,271 +199,6 @@ export class ObstacleManager {
       const obs = this.list[i];
       obs.x -= actualScrollSpeed;
 
-      if (obs.patternType) {
-        // Horizontally pipe shaking animations removed completely
-        obs.shakeX = 0;
-        obs.shakeX2 = 0;
-
-        if (obs.patternType === 'breathing_12') {
-          const centerY = height / 2 + Math.sin(this.waveTime * 2.5) * 60;
-          obs.closedTopHeight = centerY - 15;
-          obs.closedBottomHeight = height - centerY - 15;
-          obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-          obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-        } else if (obs.patternType === 'moving_stair_15') {
-          const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 3.0) * 35;
-          obs.closedTopHeight = centerY - 15;
-          obs.closedBottomHeight = height - centerY - 15;
-          obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-          obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-        } else if (obs.patternType === 'rotating_17') {
-          const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 4.0 + obs.obstacleIdx! * 0.8) * 75;
-          obs.closedTopHeight = centerY - 15;
-          obs.closedBottomHeight = height - centerY - 15;
-          obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-          obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-        } else if (obs.patternType === 'dynamic_w_18') {
-          const centerY = obs.spawnCenterY! + Math.cos(this.waveTime * 2.8) * 30;
-          obs.closedTopHeight = centerY - 15;
-          obs.closedBottomHeight = height - centerY - 15;
-          obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-          obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-        } else if (obs.patternType === 'exp_shrink_19') {
-          obs.closedTopHeight = obs.spawnCenterY! - 15;
-          obs.closedBottomHeight = height - obs.spawnCenterY! - 15;
-          const currentGap = obs.gapHeight! + Math.sin(this.waveTime * 4.0) * 30;
-          obs.targetTopHeight = obs.spawnCenterY! - currentGap / 2;
-          obs.targetBottomHeight = height - obs.spawnCenterY! - currentGap / 2;
-        } else if (obs.patternType === 'hybrid_20') {
-          const stair = (obs.obstacleIdx! % 8) * 16 - 64;
-          const centerY = height / 2 + stair + Math.sin(this.waveTime * 3.0 + obs.obstacleIdx! * 0.5) * 45;
-          obs.closedTopHeight = centerY - 15;
-          obs.closedBottomHeight = height - centerY - 15;
-          obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-          obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-        } else if (obs.patternType === 'snake_21') {
-          const centerY = height / 2 + Math.sin(this.waveTime * 3.5 - obs.x * 0.008) * 75;
-          obs.closedTopHeight = centerY - 15;
-          obs.closedBottomHeight = height - centerY - 15;
-          obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-          obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-        } else if (obs.patternType === 'pulse_22') {
-          const centerY = height / 2 + Math.sin(this.waveTime * 1.5) * 30;
-          obs.closedTopHeight = centerY - 15;
-          obs.closedBottomHeight = height - centerY - 15;
-          const currentGap = obs.gapHeight! + Math.sin(this.waveTime * 4.0) * 25;
-          obs.targetTopHeight = centerY - currentGap / 2;
-          obs.targetBottomHeight = height - centerY - currentGap / 2;
-        } else if (obs.patternType === 'gravity_23') {
-          const shift = Math.sin(this.waveTime * 2.0) * 55;
-          obs.closedTopHeight = obs.spawnCenterY! - 15;
-          obs.closedBottomHeight = height - obs.spawnCenterY! - 15;
-          obs.targetTopHeight = (obs.spawnCenterY! - obs.gapHeight! / 2) + shift;
-          obs.targetBottomHeight = (height - obs.spawnCenterY! - obs.gapHeight! / 2) - shift;
-        } else if (obs.patternType === 'rotating_24') {
-          const centerY = height / 2 + Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.7) * 45;
-          obs.closedTopHeight = centerY - 15;
-          obs.closedBottomHeight = height - centerY - 15;
-          obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-          obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-        } else if (obs.patternType === 'waterfall_25') {
-          const speed = 70;
-          const totalSpan = 240;
-          const rawOffset = (obs.obstacleIdx! * 50 - this.waveTime * speed) % totalSpan;
-          const offset = rawOffset - totalSpan / 2;
-          const centerY = height / 2 + offset;
-          obs.closedTopHeight = centerY - 15;
-          obs.closedBottomHeight = height - centerY - 15;
-          obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-          obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-        } else if (obs.patternType === 'elevator_26') {
-          const centerY = height / 2 + Math.sin(this.waveTime * 3.0 + (obs.obstacleIdx! % 2) * Math.PI) * 70;
-          obs.closedTopHeight = centerY - 15;
-          obs.closedBottomHeight = height - centerY - 15;
-          obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-          obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-        } else if (obs.patternType === 'magnetic_27') {
-          const gapChange = Math.sin(this.waveTime * 3.5 + obs.obstacleIdx! * 1.0) * 35;
-          const currentGap = obs.gapHeight! + gapChange;
-          obs.closedTopHeight = obs.spawnCenterY! - 15;
-          obs.closedBottomHeight = height - obs.spawnCenterY! - 15;
-          obs.targetTopHeight = obs.spawnCenterY! - currentGap / 2;
-          obs.targetBottomHeight = height - obs.spawnCenterY! - currentGap / 2;
-        } else if (obs.patternType === 'pendulum_28') {
-          const angle = Math.sin(this.waveTime * 2.5 + obs.obstacleIdx! * 0.5) * 0.45;
-          obs.shakeX = 0;
-          const drop = (1 - Math.cos(angle)) * 70;
-          const centerY = obs.spawnCenterY! + drop;
-          obs.closedTopHeight = centerY - 15;
-          obs.closedBottomHeight = height - centerY - 15;
-          obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-          obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-        } else if (obs.patternType === 'sliding_29') {
-          obs.shakeX = 0;
-          const centerY = height / 2 + Math.sin(this.waveTime * 1.5 + obs.obstacleIdx! * 0.6) * 35;
-          obs.closedTopHeight = centerY - 15;
-          obs.closedBottomHeight = height - centerY - 15;
-          obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-          obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-        } else if (obs.patternType === 'boss_30') {
-          const waveVal = Math.sin(this.waveTime * 3.5 + obs.obstacleIdx! * 0.4) * 40;
-          const pulseVal = Math.sin(this.waveTime * 5.0) * 20;
-          const stairVal = (obs.obstacleIdx! % 6) * 15 - 45;
-          const centerY = height / 2 + waveVal + stairVal;
-          const currentGap = obs.gapHeight! + pulseVal;
-          obs.closedTopHeight = centerY - 15;
-          obs.closedBottomHeight = height - centerY - 15;
-          obs.targetTopHeight = centerY - currentGap / 2;
-          obs.targetBottomHeight = height - centerY - currentGap / 2;
-          obs.shakeX = 0;
-        }
-
-        if (birdX !== undefined) {
-          const dx = obs.x - birdX;
-          if (!obs.isTriggered && dx <= obs.triggerDistance!) {
-            obs.isTriggered = true;
-            obs.animTimer = 0;
-            if (particleEngine) {
-              const particleCount = (obs.levelNum === 4 || obs.levelNum === 5) ? 24 : 12;
-              for (let k = 0; k < particleCount; k++) {
-                const px = obs.x + Math.random() * obs.width;
-                const py = height / 2 + (Math.random() - 0.5) * 40;
-                let pColor = '#ffd700';
-                let pType = 'spark';
-                
-                if (obs.levelNum === 4 || obs.levelNum === 5) {
-                  const rand = Math.random();
-                  if (rand < 0.4) {
-                    pColor = '#4caf50'; // Leaf green
-                    pType = 'circle';
-                  } else if (rand < 0.75) {
-                    pColor = '#9e9e9e'; // Gray stone chips
-                    pType = 'circle';
-                  } else {
-                    pColor = '#ffd700'; // Spark energy glow
-                    pType = 'spark';
-                  }
-                } else {
-                  if (obs.worldId === 'jungle') { pColor = '#4caf50'; pType = 'circle'; }
-                  else if (obs.worldId === 'jungle_temple') { pColor = '#8b5a2b'; pType = 'circle'; }
-                  else if (obs.worldId === 'ice') { pColor = '#e0ffff'; pType = 'snowflake'; }
-                  else if (obs.worldId === 'cyberpunk') { pColor = '#00f3ff'; pType = 'neon'; }
-                  else if (obs.worldId === 'volcano') { pColor = '#ff4500'; pType = 'fire'; }
-                }
-                
-                particleEngine.spawn(
-                  px, py,
-                  -scrollSpeed * 0.5 + (Math.random() - 0.5) * 2.5,
-                  (Math.random() - 0.5) * 4.5,
-                  pColor,
-                  2.0 + Math.random() * 3.5,
-                  1.0,
-                  0.02,
-                  pType as any
-                );
-              }
-            }
-          }
-        }
-
-        if (!obs.isTriggered) {
-          obs.topHeight = obs.closedTopHeight!;
-          obs.bottomHeight = obs.closedBottomHeight!;
-          obs.shakeX = 0;
-        } else {
-          obs.animTimer! += deltaTime * timeScale;
-          if (obs.animTimer! > obs.animDuration!) {
-            obs.animTimer = obs.animDuration!;
-          }
-
-          const progress = Math.max(0, Math.min(1, obs.animTimer! / obs.animDuration!));
-
-          if (obs.levelNum === 4) {
-            // Smooth Slam-and-Slide Gate
-            if (progress < 0.3) {
-              const slamProgress = progress / 0.3;
-              const slamOffset = 20 * Math.sin(slamProgress * Math.PI / 2);
-              obs.topHeight = obs.closedTopHeight! + slamOffset;
-              obs.bottomHeight = obs.closedBottomHeight! + slamOffset;
-              obs.shakeX = 0;
-            } else {
-              const openProgress = (progress - 0.3) / 0.7;
-              const easedOpen = this.easeOutCubic(openProgress);
-              const startTop = obs.closedTopHeight! + 20;
-              const startBottom = obs.closedBottomHeight! + 20;
-              obs.topHeight = startTop + (obs.targetTopHeight! - startTop) * easedOpen;
-              obs.bottomHeight = startBottom + (obs.targetBottomHeight! - startBottom) * easedOpen;
-              obs.shakeX = 0;
-            }
-          } else if (obs.levelNum === 5) {
-            // Horizontal Slide-Lock Gate (Horizontal slides removed as requested)
-            const eased = this.easeOutCubic(progress);
-            obs.topHeight = obs.closedTopHeight! + (obs.targetTopHeight! - obs.closedTopHeight!) * eased;
-            obs.bottomHeight = obs.closedBottomHeight! + (obs.targetBottomHeight! - obs.closedBottomHeight!) * eased;
-            obs.shakeX = 0;
-          } else {
-            // Standard smooth open using easeOutCubic
-            const eased = this.easeOutCubic(progress);
-            obs.topHeight = obs.closedTopHeight! + (obs.targetTopHeight! - obs.closedTopHeight!) * eased;
-            obs.bottomHeight = obs.closedBottomHeight! + (obs.targetBottomHeight! - obs.closedBottomHeight!) * eased;
-            obs.shakeX = 0;
-          }
-        }
-
-        if (obs.isLaser) {
-          obs.laserTimer += deltaTime * timeScale;
-          if (obs.laserTimer >= 1.6) {
-            obs.laserActive = !obs.laserActive;
-            obs.laserTimer = 0;
-          }
-        }
-        continue;
-      }
-
-      // Handle vertical moving pillars per Zone with progressive speed & range scaling
-      if (difficulty === 'hard' && obs.isMoving) {
-        // Chaotic unpredictable "flying" behavior: instant up and down jumps, no continuous pattern
-        if (Math.random() < 0.05 * dtCoeff) {
-          obs.movingDir = Math.random() > 0.5 ? 1 : -1;
-        }
-        const chaoticStep = (1.5 + Math.random() * 3.5) * obs.speedY * obs.movingDir * dtCoeff;
-        obs.topHeight += chaoticStep;
-        obs.bottomHeight -= chaoticStep;
-
-        // 3% chance per frame for sudden instant vertical teleport/jitter
-        if (Math.random() < 0.03 * dtCoeff) {
-          const teleportAmt = (Math.random() - 0.5) * obs.rangeY * 1.5;
-          obs.topHeight = obs.initialTopHeight + teleportAmt;
-          obs.bottomHeight = obs.initialBottomHeight - teleportAmt;
-        }
-
-        // Clamp to physical ranges
-        const topDiff = obs.topHeight - obs.initialTopHeight;
-        if (Math.abs(topDiff) > obs.rangeY * 1.5) {
-          obs.movingDir *= -1;
-          obs.topHeight = obs.initialTopHeight + Math.sign(topDiff) * obs.rangeY * 1.5;
-          obs.bottomHeight = obs.initialBottomHeight - Math.sign(topDiff) * obs.rangeY * 1.5;
-        }
-      } else if (obs.oscillationRange !== undefined && obs.oscillationRange > 0) {
-        const frequency = obs.oscillationFrequency !== undefined ? obs.oscillationFrequency : (2.4 + 1.6 * progressRatio);
-        const range = obs.oscillationRange;
-        // Smooth tunnel: obstacles shift heights dynamically based on spatial coordinate
-        const offset = Math.sin((obs.x * 0.0038) - this.waveTime * frequency) * range;
-        obs.topHeight = obs.initialTopHeight + offset;
-        obs.bottomHeight = obs.initialBottomHeight - offset;
-      } else if (obs.isMoving) {
-        // Standard linear bounce (Classic Zone - reserved for future use or custom worlds)
-        const moveAmt = obs.speedY * obs.movingDir * dtCoeff;
-        obs.topHeight += moveAmt;
-        obs.bottomHeight -= moveAmt;
-
-        // Bounce back if moving exceeds ranges
-        const topDiff = obs.topHeight - obs.initialTopHeight;
-        if (Math.abs(topDiff) > obs.rangeY) {
-          obs.movingDir *= -1; // Reverse direction
-        }
-      }
-
       // Handle Cyberpunk pulsing lasers
       if (obs.isLaser) {
         obs.laserTimer += deltaTime * timeScale;
@@ -476,6 +207,7 @@ export class ObstacleManager {
           obs.laserTimer = 0;
         }
       }
+
 
       // Remove offscreen obstacles & recycle them back to the free pool for Object Pooling!
       if (obs.x + obs.width < -50) {
@@ -495,34 +227,13 @@ export class ObstacleManager {
         : (startGap - (startGap - minGap) * progressRatio);
       this.spawnObstacle(worldId, width, height, dynamicGap, zone, difficulty, progressRatio, score);
 
-      // Determine next spawn distance (reduced wave spawn distance as well)
-      if (this.isLevelMode && this.activeLevelConfig) {
-        if (this.tunnelSpawnCount < 3) { // 4 pipes total (0, 1, 2, 3)
-          this.tunnelSpawnCount++;
-          this.nextSpawnDistance = 100; // close spacing for connected section
-        } else {
-          this.tunnelSpawnCount = 0;
-          this.nextSpawnDistance = 330; // larger smooth gap section
-        }
-      } else if (zone === 'wave') {
-        if (this.tunnelSpawnCount < 3) { // 4 pipes total (0, 1, 2, 3)
-          this.tunnelSpawnCount++;
-          this.nextSpawnDistance = 100; // close spacing for connected section
-        } else {
-          this.tunnelSpawnCount = 0;
-          this.nextSpawnDistance = 330; // larger smooth gap section
-        }
-      } else if (zone === 'classic') {
-        // Standard spacious classic distance for all Classic Mode obstacles
-        const baseDistanceClassic = (width / 1.35) * 0.80;
-        const defaultDistance = baseDistanceClassic * 1.15;
-        if (difficulty === 'easy') {
-          this.nextSpawnDistance = defaultDistance * 1.20;
-        } else {
-          this.nextSpawnDistance = defaultDistance;
-        }
+      // Determine next spawn distance: Standard spacious classic distance for all obstacles
+      const baseDistanceClassic = (width / 1.35) * 0.80;
+      const defaultDistance = baseDistanceClassic * 1.15;
+      if (difficulty === 'easy') {
+        this.nextSpawnDistance = defaultDistance * 1.20;
       } else {
-        this.nextSpawnDistance = targetDistance;
+        this.nextSpawnDistance = defaultDistance;
       }
     }
   }
@@ -534,57 +245,9 @@ export class ObstacleManager {
     gapHeight: number,
     _zone: 'classic' | 'vertical' | 'wave' = 'classic',
     difficulty: 'easy' | 'medium' | 'hard' = 'medium',
-    progressRatio = 0,
+    _progressRatio = 0,
     score = 0
   ) {
-    if (this.isLevelMode && this.activeLevelConfig) {
-      const margin = 85;
-      const playableHeight = height - gapHeight - margin * 2;
-      // perfectly center the winding tunnel so it can oscillate nicely
-      const topHeight = margin + playableHeight / 2;
-      const bottomHeight = height - topHeight - gapHeight;
-      const isMoving = true;
-
-      // Wave Zone sine wave amplitude scaled by difficulty
-      let rangeY = 65;
-      if (difficulty === 'easy') {
-        rangeY = 40;
-      } else if (difficulty === 'hard') {
-        rangeY = 100;
-      }
-
-      const oscillationFrequency = 2.4 + 1.6 * progressRatio;
-      const oscillationRange = rangeY * (0.6 + 0.4 * progressRatio);
-
-      const levelNum = this.activeLevelConfig.levelNum;
-      const isMutated = (levelNum % 2 === 0);
-      const isStructured = (levelNum % 3 === 0);
-
-      this.list.push(this.acquireObstacle({
-        x: width + 50,
-        width: this.obstacleWidth,
-        topHeight,
-        bottomHeight,
-        passed: false,
-        worldId,
-        isMoving,
-        movingDir: Math.random() > 0.5 ? 1 : -1,
-        speedY: 0.4 + Math.random() * 0.6,
-        rangeY,
-        initialTopHeight: topHeight,
-        initialBottomHeight: bottomHeight,
-        isLaser: (worldId === 'cyberpunk' && Math.random() < 0.35),
-        laserActive: true,
-        laserTimer: 0,
-        isMutated,
-        isStructured,
-        oscillationFrequency,
-        oscillationRange,
-        levelNum
-      }));
-      return;
-    }
-
     let margin = 60;
     let topHeight = 0;
     let bottomHeight = 0;
@@ -650,43 +313,9 @@ export class ObstacleManager {
 
     isLaser = worldId === 'cyberpunk' && Math.random() < 0.35;
 
-    // Endless Mode progression rules:
-    // Score < 100: Standard static classic obstacles ONLY (no movement, no sine oscillation)
-    // Score >= 100: Transition to a dynamic combination of:
-    //   - 50% chance of standard vertical bouncing (linear)
-    //   - 50% chance of sine-oscillating wave obstacles
-    let oscillationFrequency = 0;
-    let oscillationRange = 0;
-
-    if (score >= 100) {
-      isMoving = true;
-      if (Math.random() < 0.5) {
-        // Standard linear bounce
-        oscillationFrequency = 0;
-        oscillationRange = 0;
-        if (difficulty === 'easy') {
-          rangeY = 30 + Math.random() * 20;
-        } else if (difficulty === 'hard') {
-          rangeY = 60 + Math.random() * 40;
-        } else {
-          rangeY = 40 + Math.random() * 30;
-        }
-      } else {
-        // Spatial sine-oscillating wave
-        if (difficulty === 'easy') {
-          rangeY = 40;
-        } else if (difficulty === 'hard') {
-          rangeY = 100;
-        } else {
-          rangeY = 65;
-        }
-        // Center the initial heights of wave tunnel obstacles to let them oscillate beautifully
-        topHeight = margin + playableHeight / 2;
-        bottomHeight = height - topHeight - gapHeight;
-        oscillationFrequency = 2.4 + 1.6 * progressRatio;
-        oscillationRange = rangeY * (0.6 + 0.4 * progressRatio);
-      }
-    }
+    const levelNum = this.activeLevelConfig ? this.activeLevelConfig.levelNum : undefined;
+    const isMutated = this.activeLevelConfig ? (this.activeLevelConfig.levelNum % 2 === 0) : (score >= 20 && score < 50);
+    const isStructured = this.activeLevelConfig ? (this.activeLevelConfig.levelNum % 3 === 0) : (score >= 50 && score <= 70);
 
     this.list.push(this.acquireObstacle({
       x: width + 50,
@@ -695,8 +324,8 @@ export class ObstacleManager {
       bottomHeight,
       passed: false,
       isCavern: isCavernVal,
-      isMutated: (score >= 20 && score < 50),
-      isStructured: (score >= 50 && score <= 70),
+      isMutated,
+      isStructured,
       worldId,
       isMoving,
       movingDir: Math.random() > 0.5 ? 1 : -1,
@@ -707,8 +336,9 @@ export class ObstacleManager {
       isLaser,
       laserActive: true,
       laserTimer: 0,
-      oscillationFrequency,
-      oscillationRange
+      oscillationFrequency: 0,
+      oscillationRange: 0,
+      levelNum
     }));
   }
 
@@ -2798,7 +2428,4 @@ export class ObstacleManager {
   }
 
 
-  private easeOutCubic(x: number): number {
-    return 1 - Math.pow(1 - x, 3);
-  }
 }
