@@ -5,6 +5,7 @@ export class SoundManager {
   private beatStep = 0;
   private isMusicPlaying = false;
   private masterVolumeNode: GainNode | null = null;
+  private customAudioElement: HTMLAudioElement | null = null;
 
   constructor() {
     // AudioContext will be initialized on first user interaction (click/touch/key) to respect browser safety rules
@@ -27,6 +28,9 @@ export class SoundManager {
     this.isMuted = muted;
     if (this.masterVolumeNode && this.ctx) {
       this.masterVolumeNode.gain.setValueAtTime(muted ? 0 : 0.3, this.ctx.currentTime);
+    }
+    if (this.customAudioElement) {
+      this.customAudioElement.volume = muted ? 0 : 0.25;
     }
   }
 
@@ -179,6 +183,22 @@ export class SoundManager {
     if (this.isMusicPlaying) this.stopMusic();
 
     this.isMusicPlaying = true;
+
+    // Check if the world is Cyberpunk to play your custom public MP3 audio track
+    if (worldId === 'cyberpunk') {
+      if (this.customAudioElement) {
+        this.customAudioElement.pause();
+        this.customAudioElement = null;
+      }
+      this.customAudioElement = new Audio('/audio [music] (3)-2.mp3');
+      this.customAudioElement.loop = true;
+      this.customAudioElement.volume = this.isMuted ? 0 : 0.25;
+      this.customAudioElement.play().catch(e => {
+        console.warn('Failed to play custom cyberpunk background music:', e);
+      });
+      return;
+    }
+
     this.beatStep = 0;
 
     let tempo = 110;
@@ -251,6 +271,11 @@ export class SoundManager {
   }
 
   public stopMusic() {
+    if (this.customAudioElement) {
+      this.customAudioElement.pause();
+      this.customAudioElement.currentTime = 0;
+      this.customAudioElement = null;
+    }
     if (this.musicInterval) {
       clearInterval(this.musicInterval);
       this.musicInterval = null;
