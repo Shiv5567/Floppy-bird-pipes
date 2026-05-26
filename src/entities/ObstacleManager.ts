@@ -450,9 +450,9 @@ export class ObstacleManager {
           obs.topHeight = obs.initialTopHeight + Math.sign(topDiff) * obs.rangeY * 1.5;
           obs.bottomHeight = obs.initialBottomHeight - Math.sign(topDiff) * obs.rangeY * 1.5;
         }
-      } else if (zone === 'wave') {
+      } else if (obs.oscillationRange !== undefined && obs.oscillationRange > 0) {
         const frequency = obs.oscillationFrequency !== undefined ? obs.oscillationFrequency : (2.4 + 1.6 * progressRatio);
-        const range = obs.oscillationRange !== undefined ? obs.oscillationRange : (obs.rangeY * (0.6 + 0.4 * progressRatio));
+        const range = obs.oscillationRange;
         // Smooth tunnel: obstacles shift heights dynamically based on spatial coordinate
         const offset = Math.sin((obs.x * 0.0038) - this.waveTime * frequency) * range;
         obs.topHeight = obs.initialTopHeight + offset;
@@ -533,7 +533,7 @@ export class ObstacleManager {
     width: number,
     height: number,
     gapHeight: number,
-    zone: 'classic' | 'vertical' | 'wave' = 'classic',
+    _zone: 'classic' | 'vertical' | 'wave' = 'classic',
     difficulty: 'easy' | 'medium' | 'hard' = 'medium',
     progressRatio = 0,
     score = 0
@@ -835,96 +835,99 @@ export class ObstacleManager {
     let rangeY = difficulty === 'hard' ? 50 + Math.random() * 40 : 30 + Math.random() * 30;
     let isCavernVal = false;
 
-    if (zone === 'wave') {
-      margin = 85;
-      const playableHeight = height - gapHeight - margin * 2;
-      // perfectly center the winding tunnel so it can oscillate nicely
-      topHeight = margin + playableHeight / 2;
-      bottomHeight = height - topHeight - gapHeight;
-      isMoving = true;
-      
-      // Wave Zone sine wave amplitude scaled by difficulty
-      if (difficulty === 'easy') {
-        rangeY = 40;
-      } else if (difficulty === 'hard') {
-        rangeY = 100;
-      } else {
-        rangeY = 65;
-      }
-      isCavernVal = false;
+    // Classic/Standard Spawning logic for height/margin calculations
+    if (difficulty === 'easy') {
+      margin = 75;
+    } else if (difficulty === 'hard') {
+      margin = 40;
     } else {
-      // Classic Mode: Spawns standard flat columns based on player score
-      isCavernVal = false;
-
-      // Determine margin and boundaries: Hard mode has tighter margins to allow columns closer to edges
-      if (difficulty === 'easy') {
-        margin = 75;
-      } else if (difficulty === 'hard') {
-        margin = 40;
-      } else {
-        margin = 60;
-      }
-
-      const playableHeight = height - gapHeight - margin * 2;
-      let targetTopHeight = margin + Math.random() * playableHeight;
-
-      if (this.lastTopHeight !== null) {
-        const scoreTier = Math.floor(score / 50);
-        let zigzagFactor = 0.65;
-        let forceAlternateChance = 0.68;
-        
-        if (difficulty === 'easy') {
-          // Smooth, shallow paths with low step variation
-          zigzagFactor = Math.min(0.45, 0.25 + scoreTier * 0.05);
-          forceAlternateChance = 0.30;
-        } else if (difficulty === 'hard') {
-          // Extreme hard mode jumps and shifts closer to edges
-          zigzagFactor = Math.min(0.98, 0.85 + scoreTier * 0.05);
-          forceAlternateChance = 0.90;
-        } else {
-          // Standard medium mode paths
-          zigzagFactor = Math.min(0.85, 0.60 + scoreTier * 0.08);
-          forceAlternateChance = 0.68;
-        }
-
-        const maxStep = playableHeight * zigzagFactor;
-        const forceAlternate = Math.random() < forceAlternateChance;
-        let minVal = Math.max(margin, this.lastTopHeight - maxStep);
-        let maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
-        
-        if (forceAlternate) {
-          const isHigh = this.lastTopHeight > margin + playableHeight * 0.5;
-          if (isHigh) {
-            const lowBiasLimit = difficulty === 'easy' ? 0.35 : (difficulty === 'hard' ? 0.48 : 0.45);
-            maxVal = Math.min(maxVal, margin + playableHeight * lowBiasLimit);
-          } else {
-            const highBiasLimit = difficulty === 'easy' ? 0.65 : (difficulty === 'hard' ? 0.52 : 0.55);
-            minVal = Math.max(minVal, margin + playableHeight * highBiasLimit);
-          }
-          // Safeguard bounds validity
-          if (minVal > maxVal) {
-            minVal = Math.max(margin, this.lastTopHeight - maxStep);
-            maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
-          }
-        }
-
-        targetTopHeight = minVal + Math.random() * (maxVal - minVal);
-      }
-
-      topHeight = targetTopHeight;
-      this.lastTopHeight = topHeight;
-      bottomHeight = height - topHeight - gapHeight;
-
-      // Keep walls static on screen in Classic Zone
-      isMoving = false;
-      isLaser = worldId === 'cyberpunk' && Math.random() < 0.35;
+      margin = 60;
     }
 
+    const playableHeight = height - gapHeight - margin * 2;
+    let targetTopHeight = margin + Math.random() * playableHeight;
+
+    if (this.lastTopHeight !== null) {
+      const scoreTier = Math.floor(score / 50);
+      let zigzagFactor = 0.65;
+      let forceAlternateChance = 0.68;
+      
+      if (difficulty === 'easy') {
+        zigzagFactor = Math.min(0.45, 0.25 + scoreTier * 0.05);
+        forceAlternateChance = 0.30;
+      } else if (difficulty === 'hard') {
+        zigzagFactor = Math.min(0.98, 0.85 + scoreTier * 0.05);
+        forceAlternateChance = 0.90;
+      } else {
+        zigzagFactor = Math.min(0.85, 0.60 + scoreTier * 0.08);
+        forceAlternateChance = 0.68;
+      }
+
+      const maxStep = playableHeight * zigzagFactor;
+      const forceAlternate = Math.random() < forceAlternateChance;
+      let minVal = Math.max(margin, this.lastTopHeight - maxStep);
+      let maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
+      
+      if (forceAlternate) {
+        const isHigh = this.lastTopHeight > margin + playableHeight * 0.5;
+        if (isHigh) {
+          const lowBiasLimit = difficulty === 'easy' ? 0.35 : (difficulty === 'hard' ? 0.48 : 0.45);
+          maxVal = Math.min(maxVal, margin + playableHeight * lowBiasLimit);
+        } else {
+          const highBiasLimit = difficulty === 'easy' ? 0.65 : (difficulty === 'hard' ? 0.52 : 0.55);
+          minVal = Math.max(minVal, margin + playableHeight * highBiasLimit);
+        }
+        if (minVal > maxVal) {
+          minVal = Math.max(margin, this.lastTopHeight - maxStep);
+          maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
+        }
+      }
+
+      targetTopHeight = minVal + Math.random() * (maxVal - minVal);
+    }
+
+    topHeight = targetTopHeight;
+    this.lastTopHeight = topHeight;
+    bottomHeight = height - topHeight - gapHeight;
+
+    isLaser = worldId === 'cyberpunk' && Math.random() < 0.35;
+
+    // Endless Mode progression rules:
+    // Score < 100: Standard static classic obstacles ONLY (no movement, no sine oscillation)
+    // Score >= 100: Transition to a dynamic combination of:
+    //   - 50% chance of standard vertical bouncing (linear)
+    //   - 50% chance of sine-oscillating wave obstacles
     let oscillationFrequency = 0;
     let oscillationRange = 0;
-    if (zone === 'wave') {
-      oscillationFrequency = 2.4 + 1.6 * progressRatio;
-      oscillationRange = rangeY * (0.6 + 0.4 * progressRatio);
+
+    if (score >= 100) {
+      isMoving = true;
+      if (Math.random() < 0.5) {
+        // Standard linear bounce
+        oscillationFrequency = 0;
+        oscillationRange = 0;
+        if (difficulty === 'easy') {
+          rangeY = 30 + Math.random() * 20;
+        } else if (difficulty === 'hard') {
+          rangeY = 60 + Math.random() * 40;
+        } else {
+          rangeY = 40 + Math.random() * 30;
+        }
+      } else {
+        // Spatial sine-oscillating wave
+        if (difficulty === 'easy') {
+          rangeY = 40;
+        } else if (difficulty === 'hard') {
+          rangeY = 100;
+        } else {
+          rangeY = 65;
+        }
+        // Center the initial heights of wave tunnel obstacles to let them oscillate beautifully
+        topHeight = margin + playableHeight / 2;
+        bottomHeight = height - topHeight - gapHeight;
+        oscillationFrequency = 2.4 + 1.6 * progressRatio;
+        oscillationRange = rangeY * (0.6 + 0.4 * progressRatio);
+      }
     }
 
     this.list.push(this.acquireObstacle({

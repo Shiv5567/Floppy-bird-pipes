@@ -6,7 +6,7 @@ import { LevelManager } from '../systems/LevelManager.ts';
 export class UIManager {
   private engine: GameEngine;
   private container: HTMLElement;
-  private activeTab: 'main' | 'skins' | 'worlds' | 'bp' | 'achievements' | 'photo' | 'rewards' | 'zones' | 'levels' = 'main';
+  private activeTab: 'main' | 'skins' | 'worlds' | 'bp' | 'achievements' | 'photo' | 'rewards' | 'settings' | 'levels' = 'main';
   private lastEngineState: GameState = 'MENU';
   private activeRewardsSubTab: 'daily' | 'trophies' | 'bp' = 'daily';
 
@@ -33,7 +33,7 @@ export class UIManager {
     this.render();
   }
 
-  public getActiveTab(): 'main' | 'skins' | 'worlds' | 'bp' | 'achievements' | 'photo' | 'rewards' | 'zones' | 'levels' {
+  public getActiveTab(): 'main' | 'skins' | 'worlds' | 'bp' | 'achievements' | 'photo' | 'rewards' | 'settings' | 'levels' {
     return this.activeTab;
   }
 
@@ -426,6 +426,7 @@ export class UIManager {
             <div class="top-bar-gem">
               <span class="top-bar-gem-icon">💎</span>${progress.gems.toLocaleString()}
             </div>
+            <button class="top-bar-settings-btn" id="btn-open-settings" style="background: none; border: none; font-size: 20px; cursor: pointer; color: white; margin-left: 8px; display: flex; align-items: center; justify-content: center;">⚙️</button>
           </div>
         </div>
 
@@ -465,11 +466,7 @@ export class UIManager {
 
           <!-- Right side panel -->
           <div class="side-panel-right">
-            <button class="side-btn" id="side-btn-zones">
-              <span class="side-btn-icon">🎯</span>
-              <span class="side-btn-label">ZONE</span>
-            </button>
-            <button class="side-btn" id="side-btn-rewards">
+            <button class="side-btn" id="side-btn-rewards" style="width: 100%;">
               <div class="side-btn-badge">!</div>
               <span class="side-btn-icon">🎁</span>
               <span class="side-btn-label">REWARDS</span>
@@ -488,13 +485,7 @@ export class UIManager {
               <span class="world-chip-info-icon">ℹ</span>
             </div>
 
-            <div class="world-selector-chip" id="btn-open-zones" style="border-color: rgba(0, 255, 136, 0.35); box-shadow: 0 0 10px rgba(0, 255, 136, 0.15); margin-top: 4px;">
-              <span class="world-chip-icon">🎯</span>
-              <span>Zone: ${progress.selectedZone.charAt(0).toUpperCase() + progress.selectedZone.slice(1)} (${progress.selectedDifficulty.toUpperCase()})</span>
-              <span class="world-chip-info-icon">ℹ</span>
-            </div>
-
-            <div style="display: flex; gap: 8px; width: 100%; margin-bottom: 6px;">
+            <div style="display: flex; gap: 8px; width: 100%; margin-bottom: 6px; margin-top: 8px;">
               <button class="start-fly-btn" id="btn-start-game" style="flex: 1; padding: 12px 10px; font-size: 16px;">
                 <span>ENDLESS</span>
                 <span class="start-fly-wing">🪶</span>
@@ -524,7 +515,7 @@ export class UIManager {
       bp:           { icon: '🎫', title: 'SEASON 1 BATTLE PASS', color: '#ff007f', heroIcon: '⚔️', heroSubtitle: 'Unlock exclusive rewards' },
       achievements: { icon: '🏆', title: 'HALL OF TROPHIES',     color: '#ffd700', heroIcon: '🏅', heroSubtitle: 'Track your legendary feats' },
       rewards:      { icon: '🎁', title: 'REWARDS & PROGRESSION HUB', color: '#ffaa00', heroIcon: '🎁', heroSubtitle: 'Claim your daily logs, trophies, and battle pass!' },
-      zones:        { icon: '🎯', title: 'GAMEPLAY ZONE & DIFFICULTY', color: '#00ff88', heroIcon: '🎯', heroSubtitle: 'Configure your campaign zone and flight difficulty' },
+      settings:     { icon: '⚙️', title: 'GAME CONFIGURATION',   color: '#00ff88', heroIcon: '⚙️', heroSubtitle: 'Configure your flight difficulty mode' },
       levels:       { icon: '🏆', title: 'LEVEL SELECT MODE',    color: '#7b2fff', heroIcon: '🏆', heroSubtitle: 'Complete all 30 transforming levels!' },
     };
     const meta = tabMeta[this.activeTab] || tabMeta['skins'];
@@ -903,22 +894,13 @@ export class UIManager {
         `;
       }
 
-      case 'zones': {
+      case 'settings': {
         return `
-          <div class="tab-sheet-title">🎯 CONFIGURE ZONE & DIFFICULTY</div>
+          <div class="tab-sheet-title">⚙️ SELECT DIFFICULTY MODE</div>
           <div class="zones-configuration-card glass-card" style="padding: 24px; border-radius: 20px; background: rgba(13, 10, 28, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); max-width: 420px; margin: 0 auto;">
-            <!-- Gameplay Zone segmented control -->
-            <div class="control-group" style="margin-bottom: 24px;">
-              <div class="segment-label" style="font-size: 11px; font-weight: 800; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 10px; text-transform: uppercase;">GAMEPLAY ZONE</div>
-              <div class="segmented-control" style="display: flex; gap: 8px; background: rgba(0,0,0,0.25); padding: 4px; border-radius: 14px;">
-                <button class="segment-btn ${progress.selectedZone === 'classic' ? 'active' : ''}" data-zone="classic" style="flex: 1; padding: 10px; border: none; border-radius: 10px; font-family: var(--font-family); font-weight: 800; font-size: 12px; cursor: pointer; color: #fff; background: transparent; transition: all 0.2s ease;">Classic</button>
-                <button class="segment-btn ${progress.selectedZone === 'wave' ? 'active' : ''}" data-zone="wave" style="flex: 1; padding: 10px; border: none; border-radius: 10px; font-family: var(--font-family); font-weight: 800; font-size: 12px; cursor: pointer; color: #fff; background: transparent; transition: all 0.2s ease;">Wave</button>
-              </div>
-            </div>
-
             <!-- Difficulty segmented control -->
             <div class="control-group">
-              <div class="segment-label" style="font-size: 11px; font-weight: 800; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 10px; text-transform: uppercase;">DIFFICULTY</div>
+              <div class="segment-label" style="font-size: 11px; font-weight: 800; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 10px; text-transform: uppercase;">SELECT DIFFICULTY</div>
               <div class="segmented-control" style="display: flex; gap: 8px; background: rgba(0,0,0,0.25); padding: 4px; border-radius: 14px;">
                 <button class="segment-btn diff-easy ${progress.selectedDifficulty === 'easy' ? 'active' : ''}" data-diff="easy" style="flex: 1; padding: 10px; border: none; border-radius: 10px; font-family: var(--font-family); font-weight: 800; font-size: 12px; cursor: pointer; color: #fff; background: transparent; transition: all 0.2s ease;">Easy</button>
                 <button class="segment-btn diff-medium ${progress.selectedDifficulty === 'medium' ? 'active' : ''}" data-diff="medium" style="flex: 1; padding: 10px; border: none; border-radius: 10px; font-family: var(--font-family); font-weight: 800; font-size: 12px; cursor: pointer; color: #fff; background: transparent; transition: all 0.2s ease;">Medium</button>
@@ -950,22 +932,7 @@ export class UIManager {
     bindClick('side-btn-rewards',      () => { this.activeTab = 'rewards';      this.render(); });
     bindClick('side-btn-skins',        () => { this.activeTab = 'skins';        this.render(); });
     bindClick('side-btn-worlds',       () => { this.activeTab = 'worlds';       this.render(); });
-    bindClick('side-btn-zones',        () => { this.activeTab = 'zones';        this.render(); });
-    bindClick('btn-open-zones',        () => { this.activeTab = 'zones';        this.render(); });
-
-    // Gameplay Zone selection buttons
-    const zoneBtns = this.container.querySelectorAll('.segmented-control [data-zone]');
-    zoneBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const zone = (btn as HTMLElement).getAttribute('data-zone') as 'classic' | 'wave';
-        if (zone) {
-          this.engine.progressManager.getState().selectedZone = zone;
-          this.engine.progressManager.save();
-          this.showToastNotification('ZONE SELECTED', `Gameplay set to ${zone.toUpperCase()} Mode!`);
-          this.render();
-        }
-      });
-    });
+    bindClick('btn-open-settings',     () => { this.activeTab = 'settings';     this.render(); });
 
     // Difficulty selection buttons
     const diffBtns = this.container.querySelectorAll('.segmented-control [data-diff]');

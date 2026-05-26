@@ -16,12 +16,13 @@ export class LevelManager {
     const worlds = ['jungle', 'jungle_temple', 'ice', 'cyberpunk', 'volcano'];
     const worldNames = ['Grass Hangar', 'Ancient Ruins', 'Glacial Ridge', 'Neon Sector', 'Magma Abyss'];
 
-    // All available reactive patterns
-    const allPatterns = [
-      'stair_up', 'stair_down', 'reverse_stair', 'zigzag_stair',
-      'v_shape', 'arrow_shape', 'w_shape', 'm_shape', 'n_shape',
-      'diamond_gate', 'mechanical_claw', 'temple_door', 'scissor_gate',
-      'spiral_motion', 'wave_corridor'
+    // All available active moving/oscillating wave patterns
+    const wavePatterns = [
+      'wave_10', 'breathing_12', 'moving_stair_15', 'rotating_17',
+      'dynamic_w_18', 'exp_shrink_19', 'hybrid_20', 'snake_21',
+      'pulse_22', 'gravity_23', 'rotating_24', 'waterfall_25',
+      'elevator_26', 'magnetic_27', 'pendulum_28', 'sliding_29',
+      'boss_30'
     ];
 
     for (let levelNum = 1; levelNum <= 30; levelNum++) {
@@ -35,75 +36,53 @@ export class LevelManager {
       const scrollSpeed = (3.3 + (levelNum * 0.06)) * 0.8; // Decreased by 20%
       const gapHeight = Math.max(195, 260 - (levelNum * 2.2)); // 260 down to 195px
 
-      // Distribute patterns based on level brackets
+      // Distribute patterns based on level brackets using active wave/moving patterns ONLY
       let patterns: string[] = [];
       if (levelNum === 1) {
-        patterns = ['stair_30'];
-      } else if (levelNum === 2) {
-        patterns = ['w_30'];
-      } else if (levelNum === 3) {
-        patterns = ['stair_loop'];
-      } else if (levelNum === 7) {
-        patterns = ['w_shape'];
-      } else if (levelNum === 8) {
-        patterns = ['stair_loop'];
-      } else if (levelNum === 10) {
         patterns = ['wave_10'];
-      } else if (levelNum === 11) {
-        patterns = ['zigzag_11'];
-      } else if (levelNum === 12) {
+      } else if (levelNum === 2) {
         patterns = ['breathing_12'];
-      } else if (levelNum === 13) {
-        patterns = ['diagonal_13'];
-      } else if (levelNum === 14) {
-        patterns = ['reactive_14'];
-      } else if (levelNum === 15) {
+      } else if (levelNum === 3) {
         patterns = ['moving_stair_15'];
-      } else if (levelNum === 16) {
-        patterns = ['alternating_16'];
-      } else if (levelNum === 17) {
+      } else if (levelNum === 4) {
         patterns = ['rotating_17'];
-      } else if (levelNum === 18) {
+      } else if (levelNum === 5) {
         patterns = ['dynamic_w_18'];
-      } else if (levelNum === 19) {
+      } else if (levelNum === 6) {
         patterns = ['exp_shrink_19'];
-      } else if (levelNum === 20) {
+      } else if (levelNum === 7) {
         patterns = ['hybrid_20'];
-      } else if (levelNum === 21) {
+      } else if (levelNum === 8) {
         patterns = ['snake_21'];
-      } else if (levelNum === 22) {
+      } else if (levelNum === 9) {
         patterns = ['pulse_22'];
-      } else if (levelNum === 23) {
+      } else if (levelNum === 10) {
         patterns = ['gravity_23'];
-      } else if (levelNum === 24) {
+      } else if (levelNum === 11) {
         patterns = ['rotating_24'];
-      } else if (levelNum === 25) {
+      } else if (levelNum === 12) {
         patterns = ['waterfall_25'];
-      } else if (levelNum === 26) {
+      } else if (levelNum === 13) {
         patterns = ['elevator_26'];
-      } else if (levelNum === 27) {
+      } else if (levelNum === 14) {
         patterns = ['magnetic_27'];
-      } else if (levelNum === 28) {
+      } else if (levelNum === 15) {
         patterns = ['pendulum_28'];
-      } else if (levelNum === 29) {
+      } else if (levelNum === 16) {
         patterns = ['sliding_29'];
-      } else if (levelNum === 30) {
+      } else if (levelNum === 17) {
         patterns = ['boss_30'];
       } else if (levelNum <= 5) {
-        // Levels 1-5: simple reactive motion
-        patterns = ['stair_up', 'stair_down', 'v_shape'];
+        patterns = ['wave_10', 'breathing_12', 'moving_stair_15'];
       } else if (levelNum <= 10) {
-        // Levels 6-10: rhythm-based patterns
-        patterns = ['stair_up', 'stair_down', 'zigzag_stair', 'reverse_stair', 'arrow_shape'];
+        patterns = ['rotating_17', 'dynamic_w_18', 'exp_shrink_19', 'hybrid_20'];
       } else if (levelNum <= 15) {
-        // Levels 11-15: advanced transformations
-        patterns = ['v_shape', 'arrow_shape', 'w_shape', 'm_shape', 'n_shape', 'diamond_gate'];
+        patterns = ['snake_21', 'pulse_22', 'gravity_23', 'rotating_24'];
       } else if (levelNum <= 20) {
-        // Levels 16-20: fast motion flow
-        patterns = ['w_shape', 'm_shape', 'diamond_gate', 'wave_corridor', 'mechanical_claw', 'temple_door'];
+        patterns = ['waterfall_25', 'elevator_26', 'magnetic_27', 'pendulum_28', 'sliding_29'];
       } else {
-        // Levels 21-30: master levels combining all obstacle systems
-        patterns = [...allPatterns, 'wave_10', 'zigzag_11', 'breathing_12', 'diagonal_13', 'reactive_14', 'moving_stair_15', 'alternating_16', 'rotating_17', 'dynamic_w_18', 'exp_shrink_19', 'hybrid_20'];
+        // Master Levels (21-30): mix of all 17 wave patterns!
+        patterns = [...wavePatterns];
       }
 
       this.levels.push({
