@@ -49,6 +49,10 @@ body, html {
   height: 100%;
   display: block;
   z-index: 1;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
 /* UI responsive frame wrapper */
@@ -2821,7 +2825,8 @@ body.mobile-performance .glass-card {
 .mobile-performance .bottom-nav-bar,
 .mobile-performance .tab-hero-header,
 .mobile-performance .bp-tier-card,
-.mobile-performance .bp-progress-bar-container {
+.mobile-performance .bp-progress-bar-container,
+.mobile-performance .preloading-screen {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }

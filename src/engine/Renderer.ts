@@ -56,6 +56,13 @@ export class Renderer {
     this.canvas.width = rect.width * this.dpr;
     this.canvas.height = rect.height * this.dpr;
     this.ctx.scale(this.dpr, this.dpr);
+    
+    // Disable canvas bilinear interpolation smoothing to enforce pixel-sharp contours
+    this.ctx.imageSmoothingEnabled = false;
+    (this.ctx as any).mozImageSmoothingEnabled = false;
+    (this.ctx as any).webkitImageSmoothingEnabled = false;
+    (this.ctx as any).msImageSmoothingEnabled = false;
+
     // Base scale based on standard height
     this.scale = rect.height / 720;
   }
@@ -185,17 +192,27 @@ export class Renderer {
     this.cameraY += (targetCameraY - this.cameraY) * 0.12 * (deltaTime * 60);
 
     // Dynamic micro-camera zoom based on gameplay state (zoomed out by 10%)
-    let targetZoom = 0.90;
-    if (gameState === 'BOSS_FIGHT') {
-      targetZoom = 0.77; // Zoom out for grand scale modular boss fight
-    } else if (timeScale < 0.9) {
-      targetZoom = 1.09; // Micro zoom-in during epic matrix slow-mo grazes
-    } else if (isTurbo) {
-      targetZoom = 1.14; // Zoom in during turbo speed blast
+    let targetZoom = 1.0; // standard native 1:1 scale to avoid hardware blur
+    const isPerformanceMode = (window as any).gameDisableShadows;
+    if (isPerformanceMode) {
+      targetZoom = 1.0; // Enforce native pixel grid on low-graphics/mobile
+    } else {
+      targetZoom = 0.90;
+      if (gameState === 'BOSS_FIGHT') {
+        targetZoom = 0.77; // Zoom out for grand scale modular boss fight
+      } else if (timeScale < 0.9) {
+        targetZoom = 1.09; // Micro zoom-in during epic matrix slow-mo grazes
+      } else if (isTurbo) {
+        targetZoom = 1.14; // Zoom in during turbo speed blast
+      }
     }
 
-    // Smoothly interpolate zoomFactor
-    this.zoomFactor += (targetZoom - this.zoomFactor) * 0.08 * (deltaTime * 60);
+    // Hard-lock zoom to 1.0 in performance mode, otherwise smoothly interpolate
+    if (isPerformanceMode) {
+      this.zoomFactor = 1.0;
+    } else {
+      this.zoomFactor += (targetZoom - this.zoomFactor) * 0.08 * (deltaTime * 60);
+    }
 
     // Day/Night progression
     this.timeOfDay = (this.timeOfDay + this.timeSpeed * (deltaTime * 60)) % 24;
@@ -697,9 +714,10 @@ export class Renderer {
           y += profile[lookupX];
         }
 
-        // Subtract camera height tracker with sub-pixel precision
-        const finalY = y - this.cameraY * (layer * 0.25);
-        this.ctx.lineTo(x, finalY);
+        // Subtract camera height tracker with pixel-perfect integer precision
+        const finalY = Math.round(y - this.cameraY * (layer * 0.25));
+        const finalX = Math.round(x);
+        this.ctx.lineTo(finalX, finalY);
       }
 
       this.ctx.lineTo(width, height);
@@ -882,8 +900,9 @@ export class Renderer {
     this.ctx.scale(this.zoomFactor, this.zoomFactor);
     this.ctx.translate(-width / 2, -height / 2);
 
-    // Translate standard coordinate space downwards by active cameraY with sub-pixel precision
-    this.ctx.translate(0, -this.cameraY);
+    // Translate standard coordinate space downwards by active cameraY with pixel-perfect rounding to avoid sub-pixel blur
+    const roundedCameraY = Math.round(this.cameraY);
+    this.ctx.translate(0, -roundedCameraY);
   }
 
   public endCamera() {
@@ -900,8 +919,8 @@ export class Renderer {
 function ctxSaveApplyShake(ctx: CanvasRenderingContext2D, intensity: number, duration: number) {
   ctx.save();
   if (duration > 0 && intensity > 0) {
-    const dx = (Math.random() - 0.5) * intensity;
-    const dy = (Math.random() - 0.5) * intensity;
+    const dx = Math.round((Math.random() - 0.5) * intensity);
+    const dy = Math.round((Math.random() - 0.5) * intensity);
     ctx.translate(dx, dy);
   }
 }

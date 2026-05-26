@@ -1113,6 +1113,19 @@ export class ObstacleManager {
     ctx.shadowBlur = 0; // Disable shadows for high performance
     for (let i = 0; i < this.list.length; i++) {
       const obs = this.list[i];
+      
+      // Store original float values to keep physics update clean and drift-free
+      const origX = obs.x;
+      const origTopHeight = obs.topHeight;
+      const origBottomHeight = obs.bottomHeight;
+      const origWidth = obs.width;
+
+      // Wrap drawing values in Math.round to force perfect alignment to screen pixels
+      obs.x = Math.round(obs.x);
+      obs.topHeight = Math.round(obs.topHeight);
+      obs.bottomHeight = Math.round(obs.bottomHeight);
+      obs.width = Math.round(obs.width);
+
       const drawPillars = () => {
         if (obs.isCavern) {
           let colorTop = '#55a855';
@@ -1246,32 +1259,13 @@ export class ObstacleManager {
         }
       };
 
-      if (obs.levelNum === 2) {
-        const centerY = obs.topHeight + (height - obs.bottomHeight - obs.topHeight) / 2;
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(0, 0, ctx.canvas.width || 1200, centerY);
-        ctx.clip();
-        ctx.translate(obs.shakeX || 0, 0);
-        drawPillars();
-        ctx.restore();
+      // Save context state for drawing this obstacle
+      ctx.save();
 
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(0, centerY, ctx.canvas.width || 1200, height - centerY);
-        ctx.clip();
-        ctx.translate(obs.shakeX2 || 0, 0);
-        drawPillars();
-        ctx.restore();
-      } else {
-        ctx.save();
-        if (obs.shakeX) {
-          ctx.translate(obs.shakeX, 0);
-        }
-        drawPillars();
-        ctx.restore();
-      }
+      // Draw the main obstacle pillars
+      drawPillars();
 
+      // Draw custom overlays for level patterns
       if (obs.patternType === 'rotating_24') {
         const centerY = obs.topHeight + (height - obs.bottomHeight - obs.topHeight) / 2;
         ctx.save();
@@ -1306,7 +1300,14 @@ export class ObstacleManager {
         ctx.restore();
       }
 
+      // Restore context state back to standard
       ctx.restore();
+
+      // Restore original float values for smooth physics simulation
+      obs.x = origX;
+      obs.topHeight = origTopHeight;
+      obs.bottomHeight = origBottomHeight;
+      obs.width = origWidth;
     }
   }
 
