@@ -123,10 +123,12 @@ export class GameEngine {
         this.baseScrollSpeed = levelConfig.scrollSpeed;
         this.progressManager.setWorld(levelConfig.worldId);
         this.renderer.setWeather(levelConfig.worldId);
+        this.renderer.activeLevelNum = this.currentLevelNum;
       }
     } else {
       this.activeLevelConfig = null;
       this.scrollSpeed = this.baseScrollSpeed;
+      this.renderer.activeLevelNum = 1;
     }
 
     this.timeScale = 1.0;

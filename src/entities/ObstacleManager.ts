@@ -59,10 +59,12 @@ export class ObstacleManager {
   private spawnTimer = 0;
   private obstacleWidth = 72;
   private waveTime = 0;
+  private tunnelSpawnCount = 0;
   private nextSpawnDistance = 350;
   private lastTopHeight: number | null = null;
 
   private activeLevelConfig: any = null;
+  private currentPatternIdx = 0;
 
   constructor() {}
 
@@ -115,6 +117,7 @@ export class ObstacleManager {
 
   public setLevelMode(_enabled: boolean, config: any) {
     this.activeLevelConfig = config;
+    this.currentPatternIdx = 0;
   }
 
   public getList(): Obstacle[] {
@@ -129,6 +132,8 @@ export class ObstacleManager {
     this.waveTime = 0;
     this.nextSpawnDistance = 350;
     this.lastTopHeight = null;
+    this.currentPatternIdx = 0;
+    this.tunnelSpawnCount = 0;
   }
 
   public update(
@@ -199,6 +204,204 @@ export class ObstacleManager {
       const obs = this.list[i];
       obs.x -= actualScrollSpeed;
 
+      // LEVEL 20–30 CREATIVE PIPE ANIMATION SYSTEM
+      if (obs.levelNum !== undefined && obs.levelNum >= 20 && obs.patternType) {
+        obs.shakeX = 0;
+        obs.shakeX2 = 0;
+
+        // Proximity & Anticipation check
+        if (_birdX !== undefined) {
+          const dx = obs.x - _birdX;
+          if (!obs.isTriggered) {
+            if (dx <= obs.triggerDistance!) {
+              obs.isTriggered = true;
+              obs.animTimer = 0;
+              // Spawn entry theme particles
+              if (_particleEngine) {
+                const particleCount = (obs.levelNum === 22 || obs.levelNum === 30) ? 20 : 10;
+                for (let k = 0; k < particleCount; k++) {
+                  const px = obs.x + Math.random() * obs.width;
+                  const py = height / 2 + (Math.random() - 0.5) * 40;
+                  const pColor = obs.worldId === 'cyberpunk' ? '#ff007f' : obs.worldId === 'ice' ? '#e0ffff' : '#ffaa00';
+                  _particleEngine.spawn(
+                    px, py,
+                    -scrollSpeed * 0.5 + (Math.random() - 0.5) * 2,
+                    (Math.random() - 0.5) * 3,
+                    pColor,
+                    2.0 + Math.random() * 2.5,
+                    1.0,
+                    0.03,
+                    'spark'
+                  );
+                }
+              }
+            } else if (dx <= obs.triggerDistance! + 100) {
+              // Anticipation nudge warning: slight horizontal visual compression
+              const anticipationRatio = (obs.triggerDistance! + 100 - dx) / 100;
+              const nudge = Math.sin(anticipationRatio * Math.PI) * 4;
+              obs.topHeight = obs.closedTopHeight! + nudge;
+              obs.bottomHeight = obs.closedBottomHeight! + nudge;
+            } else {
+              obs.topHeight = obs.closedTopHeight!;
+              obs.bottomHeight = obs.closedBottomHeight!;
+            }
+          }
+        }
+
+        if (obs.isTriggered) {
+          obs.animTimer! += deltaTime * timeScale;
+          if (obs.animTimer! > obs.animDuration!) {
+            obs.animTimer = obs.animDuration!;
+          }
+
+          const progress = obs.animTimer! / obs.animDuration!;
+          // Soft elastic easing open
+          const c4 = (2 * Math.PI) / 3;
+          const easedOpen = progress === 0 ? 0 : progress === 1 ? 1 : Math.pow(2, -10 * progress) * Math.sin((progress * 10 - 0.75) * c4) + 1;
+
+          // Choreographed patterns
+          if (obs.patternType === 'hybrid_20') {
+            const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.4) * 45;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'snake_21') {
+            const centerY = height / 2 + Math.sin((obs.x * 0.008) - this.waveTime * 3.5) * 75;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'pulse_22') {
+            const centerY = obs.spawnCenterY!;
+            const currentGap = obs.gapHeight! + Math.sin(this.waveTime * 3.0) * 35;
+            obs.targetTopHeight = centerY - currentGap / 2;
+            obs.targetBottomHeight = height - centerY - currentGap / 2;
+          } else if (obs.patternType === 'gravity_23') {
+            const shiftCycle = Math.floor(this.waveTime / 3.0);
+            const shiftProgress = (this.waveTime % 3.0) / 3.0;
+            const shiftEase = Math.sin(shiftProgress * Math.PI / 2);
+            const dir = shiftCycle % 2 === 0 ? 1 : -1;
+            const shiftAmt = 55 * dir * shiftEase;
+            obs.targetTopHeight = (obs.spawnCenterY! - obs.gapHeight! / 2) + shiftAmt;
+            obs.targetBottomHeight = (height - obs.spawnCenterY! - obs.gapHeight! / 2) - shiftAmt;
+          } else if (obs.patternType === 'rotating_24') {
+            const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 1.5 + obs.obstacleIdx! * 0.6) * 30;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'waterfall_25') {
+            const totalSpan = 240;
+            const offset = ((obs.obstacleIdx! * 45 - this.waveTime * 80) % totalSpan) - totalSpan / 2;
+            const centerY = height / 2 + offset;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'elevator_26') {
+            const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 2.8 + (obs.obstacleIdx! % 2) * Math.PI) * 65;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'magnetic_27') {
+            const pulseVal = Math.sin(this.waveTime * 3.5 + obs.obstacleIdx! * 0.8) * 30;
+            const currentGap = obs.gapHeight! + pulseVal;
+            obs.targetTopHeight = obs.spawnCenterY! - currentGap / 2;
+            obs.targetBottomHeight = height - obs.spawnCenterY! - currentGap / 2;
+          } else if (obs.patternType === 'pendulum_28') {
+            const angle = Math.sin(this.waveTime * 2.2 + obs.obstacleIdx! * 0.4) * 0.40;
+            const swingDrop = (1 - Math.cos(angle)) * 60;
+            const centerY = obs.spawnCenterY! + swingDrop;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            obs.shakeX = Math.sin(angle) * 35;
+            obs.shakeX2 = Math.sin(angle) * 35;
+          } else if (obs.patternType === 'sliding_29') {
+            const slideVal = Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.5) * 40;
+            obs.shakeX = slideVal;
+            obs.shakeX2 = slideVal;
+            const centerY = obs.spawnCenterY!;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'boss_30') {
+            const waveVal = Math.sin(this.waveTime * 3.2) * 35;
+            const pulseVal = Math.sin(this.waveTime * 5.0) * 15;
+            const stairVal = (obs.obstacleIdx! % 6) * 12 - 36;
+            const centerY = height / 2 + waveVal + stairVal;
+            const currentGap = obs.gapHeight! + pulseVal;
+            obs.targetTopHeight = centerY - currentGap / 2;
+            obs.targetBottomHeight = height - centerY - currentGap / 2;
+          }
+
+          // Smooth reveal interpolation
+          obs.topHeight = obs.closedTopHeight! + (obs.targetTopHeight! - obs.closedTopHeight!) * easedOpen;
+          obs.bottomHeight = obs.closedBottomHeight! + (obs.targetBottomHeight! - obs.closedBottomHeight!) * easedOpen;
+
+          // Spawn active movement particle trails
+          if (_particleEngine && Math.random() < 0.12) {
+            const pxTop = obs.x + Math.random() * obs.width;
+            const pyTop = obs.topHeight;
+            const pxBot = obs.x + Math.random() * obs.width;
+            const pyBot = height - obs.bottomHeight;
+
+            let pColor = '#ff5a00';
+            let pShape: 'circle' | 'square' | 'snowflake' | 'star' | 'bubble' | 'spark' = 'spark';
+            let pGlow = false;
+            let pGlowColor = undefined;
+
+            if (obs.worldId === 'jungle' || obs.worldId === 'jungle_temple') {
+              pColor = Math.random() < 0.5 ? '#228b22' : '#39ff14';
+              pShape = 'spark';
+            } else if (obs.worldId === 'cyberpunk') {
+              pColor = Math.random() < 0.5 ? '#ff007f' : '#00f3ff';
+              pShape = 'spark';
+              pGlow = true;
+              pGlowColor = 'rgba(255, 0, 127, 0.4)';
+            } else if (obs.worldId === 'ice') {
+              pColor = '#ffffff';
+              pShape = 'snowflake';
+            } else if (obs.worldId === 'desert') {
+              pColor = '#d2b48c';
+              pShape = 'spark';
+            } else if (obs.worldId === 'volcano') {
+              pColor = '#ff4500';
+              pShape = 'circle';
+              pGlow = true;
+              pGlowColor = 'rgba(255, 69, 0, 0.4)';
+            } else if (obs.worldId === 'space') {
+              pColor = '#da70d6';
+              pShape = 'star';
+            } else if (obs.worldId === 'heaven') {
+              pColor = '#ffd700';
+              pShape = 'star';
+              pGlow = true;
+              pGlowColor = 'rgba(255, 215, 0, 0.3)';
+            } else if (obs.worldId === 'retro') {
+              pColor = '#73c93e';
+              pShape = 'square';
+            }
+
+            _particleEngine.spawn(
+              pxTop, pyTop,
+              -scrollSpeed * 0.4 + (Math.random() - 0.5) * 1.0,
+              (Math.random() - 0.5) * 1.5,
+              pColor,
+              2.0 + Math.random() * 2.0,
+              0.9,
+              0.02 + Math.random() * 0.02,
+              pShape,
+              pGlow,
+              pGlowColor
+            );
+
+            _particleEngine.spawn(
+              pxBot, pyBot,
+              -scrollSpeed * 0.4 + (Math.random() - 0.5) * 1.0,
+              (Math.random() - 0.5) * 1.5,
+              pColor,
+              2.0 + Math.random() * 2.0,
+              0.9,
+              0.02 + Math.random() * 0.02,
+              pShape,
+              pGlow,
+              pGlowColor
+            );
+          }
+        }
+      }
+
       // Handle Cyberpunk pulsing lasers
       if (obs.isLaser) {
         obs.laserTimer += deltaTime * timeScale;
@@ -227,13 +430,23 @@ export class ObstacleManager {
         : (startGap - (startGap - minGap) * progressRatio);
       this.spawnObstacle(worldId, width, height, dynamicGap, zone, difficulty, progressRatio, score);
 
-      // Determine next spawn distance: Standard spacious classic distance for all obstacles
-      const baseDistanceClassic = (width / 1.35) * 0.80;
-      const defaultDistance = baseDistanceClassic * 1.15;
-      if (difficulty === 'easy') {
-        this.nextSpawnDistance = defaultDistance * 1.20;
+      // Determine next spawn distance: Connected cavern spacing segments (100px / 330px) for Levels 20-30
+      if (this.activeLevelConfig && this.activeLevelConfig.levelNum >= 20) {
+        if (this.tunnelSpawnCount < 3) { // 4 pipes total (0, 1, 2, 3)
+          this.tunnelSpawnCount++;
+          this.nextSpawnDistance = 100; // close spacing for connected section
+        } else {
+          this.tunnelSpawnCount = 0;
+          this.nextSpawnDistance = 330; // larger smooth gap section
+        }
       } else {
-        this.nextSpawnDistance = defaultDistance;
+        const baseDistanceClassic = (width / 1.35) * 0.80;
+        const defaultDistance = baseDistanceClassic * 1.15;
+        if (difficulty === 'easy') {
+          this.nextSpawnDistance = defaultDistance * 1.20;
+        } else {
+          this.nextSpawnDistance = defaultDistance;
+        }
       }
     }
   }
@@ -248,6 +461,81 @@ export class ObstacleManager {
     _progressRatio = 0,
     score = 0
   ) {
+    if (this.activeLevelConfig && this.activeLevelConfig.levelNum >= 20) {
+      const levelNum = this.activeLevelConfig.levelNum;
+      const patternsList = this.activeLevelConfig.patterns;
+      const patternType = patternsList[this.currentPatternIdx % patternsList.length];
+      const obstacleIdx = this.currentPatternIdx;
+      this.currentPatternIdx++;
+
+      let targetCenterY = height / 2;
+      
+      if (patternType === 'hybrid_20') {
+        const offsets = [-60, -30, 0, 30, 60, 30, 0, -30];
+        targetCenterY = height / 2 + offsets[obstacleIdx % offsets.length];
+      } else if (patternType === 'waterfall_25') {
+        const offsets = [-80, -40, 0, 40, 80, 80, 40, 0, -40, -80];
+        targetCenterY = height / 2 + offsets[obstacleIdx % offsets.length];
+      } else if (patternType === 'elevator_26') {
+        targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -70 : 70);
+      } else if (patternType === 'sliding_29') {
+        const offsets = [-50, 0, 50, 0];
+        targetCenterY = height / 2 + offsets[obstacleIdx % offsets.length];
+      }
+
+      // Safeguard boundaries
+      const minCenterY = 75 + gapHeight / 2;
+      const maxCenterY = height - 75 - gapHeight / 2;
+      targetCenterY = Math.max(minCenterY, Math.min(maxCenterY, targetCenterY));
+
+      const targetTopHeight = targetCenterY - gapHeight / 2;
+      const targetBottomHeight = height - targetCenterY - gapHeight / 2;
+
+      // Close the gaps initially with a 30px visual slit
+      const closedTopHeight = targetCenterY - 15;
+      const closedBottomHeight = height - targetCenterY - 15;
+
+      const isMutated = (levelNum % 2 === 0);
+      const isStructured = (levelNum % 3 === 0);
+
+      this.list.push(this.acquireObstacle({
+        x: width + 50,
+        width: this.obstacleWidth,
+        topHeight: closedTopHeight, // starts closed
+        bottomHeight: closedBottomHeight,
+        passed: false,
+        worldId,
+        isMoving: true, // active dynamic pattern
+        movingDir: Math.random() > 0.5 ? 1 : -1,
+        speedY: 0.4 + Math.random() * 0.6,
+        rangeY: difficulty === 'hard' ? 70 : (difficulty === 'easy' ? 30 : 50),
+        initialTopHeight: closedTopHeight,
+        initialBottomHeight: closedBottomHeight,
+        isLaser: (worldId === 'cyberpunk' && Math.random() < 0.35),
+        laserActive: true,
+        laserTimer: 0,
+        isMutated,
+        isStructured,
+        
+        patternType,
+        isTriggered: false, // starts closed, reactive approach opens it
+        animTimer: 0,
+        animDuration: 0.45,
+        triggerDistance: 220,
+        closedTopHeight,
+        closedBottomHeight,
+        targetTopHeight,
+        targetBottomHeight,
+        levelNum,
+        shakeX: 0,
+        shakeX2: 0,
+        gapHeight,
+        spawnCenterY: targetCenterY,
+        obstacleIdx
+      }));
+      return;
+    }
+
     let margin = 60;
     let topHeight = 0;
     let bottomHeight = 0;
@@ -655,6 +943,51 @@ export class ObstacleManager {
 
       // Draw the main obstacle pillars
       drawPillars();
+
+      // Pulsing neon gap-border glow along inner lips of moving Level 20+ columns
+      if (obs.levelNum !== undefined && obs.levelNum >= 20 && obs.isMoving) {
+        const topShift = obs.shakeX || 0;
+        const bottomShift = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
+        const leftTop = obs.x + topShift;
+        const rightTop = obs.x + obs.width + topShift;
+        const leftBottom = obs.x + bottomShift;
+        const rightBottom = obs.x + obs.width + bottomShift;
+
+        // Pulsing glow width and blur
+        const pulse = 3.5 + Math.sin(this.waveTime * 5.0) * 1.5;
+        const isPerformance = (window as any).gameDisableShadows;
+
+        let glowColor = '#39ff14';
+        if (obs.worldId === 'cyberpunk') glowColor = '#ff007f';
+        else if (obs.worldId === 'ice') glowColor = '#00f3ff';
+        else if (obs.worldId === 'desert') glowColor = '#fbbf24';
+        else if (obs.worldId === 'volcano') glowColor = '#ff4500';
+        else if (obs.worldId === 'space') glowColor = '#da70d6';
+        else if (obs.worldId === 'heaven') glowColor = '#ffd700';
+        else if (obs.worldId === 'retro') glowColor = '#73c93e';
+
+        ctx.save();
+        if (!isPerformance) {
+          ctx.shadowBlur = 12 + Math.sin(this.waveTime * 5.0) * 4;
+          ctx.shadowColor = glowColor;
+        }
+        ctx.strokeStyle = glowColor;
+        ctx.lineWidth = pulse;
+        ctx.lineCap = 'round';
+
+        // Draw top lip inner border line
+        ctx.beginPath();
+        ctx.moveTo(leftTop, obs.topHeight);
+        ctx.lineTo(rightTop, obs.topHeight);
+        ctx.stroke();
+
+        // Draw bottom lip inner border line
+        ctx.beginPath();
+        ctx.moveTo(leftBottom, height - obs.bottomHeight);
+        ctx.lineTo(rightBottom, height - obs.bottomHeight);
+        ctx.stroke();
+        ctx.restore();
+      }
 
       // Draw custom overlays for level patterns
       if (obs.patternType === 'rotating_24') {

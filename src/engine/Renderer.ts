@@ -13,6 +13,7 @@ export class Renderer {
   private particleEngine: ParticleEngine;
   private cachedProfiles: number[][] = [];
   public dpr = 1.0;
+  public activeLevelNum = 1;
 
   // Parallax background offsets
   private offsets: number[] = [0, 0, 0, 0, 0];
@@ -723,6 +724,12 @@ export class Renderer {
 
         if (hasProfile) {
           y += profile[lookupX];
+        }
+
+        // Connect minor wave oscillation swaying the hill heights for Levels 20+
+        if (this.activeLevelNum >= 20) {
+          const sway = Math.sin(this.weatherTime * 2.0 + x * 0.003) * (8 * (4 - layer));
+          y += sway;
         }
 
         // Subtract camera height tracker with pixel-perfect integer precision

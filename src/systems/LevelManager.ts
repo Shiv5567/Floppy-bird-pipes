@@ -72,6 +72,28 @@ export class LevelManager {
         patterns = ['sliding_29'];
       } else if (levelNum === 17) {
         patterns = ['boss_30'];
+      } else if (levelNum === 20) {
+        patterns = ['hybrid_20'];
+      } else if (levelNum === 21) {
+        patterns = ['snake_21'];
+      } else if (levelNum === 22) {
+        patterns = ['pulse_22'];
+      } else if (levelNum === 23) {
+        patterns = ['gravity_23'];
+      } else if (levelNum === 24) {
+        patterns = ['rotating_24'];
+      } else if (levelNum === 25) {
+        patterns = ['waterfall_25'];
+      } else if (levelNum === 26) {
+        patterns = ['elevator_26'];
+      } else if (levelNum === 27) {
+        patterns = ['magnetic_27'];
+      } else if (levelNum === 28) {
+        patterns = ['pendulum_28'];
+      } else if (levelNum === 29) {
+        patterns = ['sliding_29'];
+      } else if (levelNum === 30) {
+        patterns = ['boss_30'];
       } else if (levelNum <= 5) {
         patterns = ['wave_10', 'breathing_12', 'moving_stair_15'];
       } else if (levelNum <= 10) {
@@ -81,7 +103,7 @@ export class LevelManager {
       } else if (levelNum <= 20) {
         patterns = ['waterfall_25', 'elevator_26', 'magnetic_27', 'pendulum_28', 'sliding_29'];
       } else {
-        // Master Levels (21-30): mix of all 17 wave patterns!
+        // Fallback for Master Levels
         patterns = [...wavePatterns];
       }
 
