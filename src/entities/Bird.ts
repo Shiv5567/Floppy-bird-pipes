@@ -194,7 +194,10 @@ export class Bird {
   // Draw procedural birds depending on active skin
   public render(ctx: CanvasRenderingContext2D) {
     ctx.save();
-    ctx.translate(this.x, this.y);
+    
+    // Add organic airbeat body bobbing (lift-push response)
+    const yBob = !this.isCrashing ? Math.sin(this.flapCycle) * 2.2 : 0;
+    ctx.translate(this.x, this.y + yBob);
     ctx.rotate(this.angle);
 
     // Apply scaling
@@ -917,6 +920,36 @@ export class Bird {
       ctx.shadowColor = '#00f3ff';
     }
 
+    // 2.5D Face shift offset
+    const faceX = Math.cos(this.angle) * 2.0;
+    const faceY = Math.sin(this.angle) * 1.5 - this.vy * 0.2;
+
+    // Glowing thruster/engine exhaust at back
+    ctx.save();
+    ctx.translate(-14, 2);
+    const thrusterGlow = 4 + Math.sin(this.flapCycle * 2) * 2;
+    ctx.fillStyle = '#071626';
+    ctx.strokeStyle = '#00f3ff';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.rect(-3, -6, 4, 12);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Pulse flame
+    const flameGrad = ctx.createLinearGradient(-3, 0, -16, 0);
+    flameGrad.addColorStop(0, '#ffffff');
+    flameGrad.addColorStop(0.3, '#00f3ff');
+    flameGrad.addColorStop(1, 'rgba(0, 243, 255, 0)');
+    ctx.fillStyle = flameGrad;
+    ctx.beginPath();
+    ctx.moveTo(-3, -3);
+    ctx.lineTo(-3 - thrusterGlow * 1.5, 0);
+    ctx.lineTo(-3, 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
     // Futuristic mechanical metallic body
     const bodyGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, 16);
     bodyGrad.addColorStop(0, '#092540');
@@ -927,75 +960,162 @@ export class Bird {
     ctx.arc(0, 0, 16, 0, Math.PI * 2);
     ctx.fill();
 
-    // Circuits lines on face
+    // Circuits lines on face (2.5D shift)
     ctx.strokeStyle = '#00f3ff';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(-10, -5);
-    ctx.lineTo(-4, 0);
-    ctx.lineTo(-10, 5);
-    ctx.moveTo(10, -5);
-    ctx.lineTo(4, 0);
-    ctx.lineTo(10, 5);
+    ctx.moveTo(-10 + faceX, -5 + faceY);
+    ctx.lineTo(-4 + faceX, faceY);
+    ctx.lineTo(-10 + faceX, 5 + faceY);
+    ctx.moveTo(10 + faceX, -5 + faceY);
+    ctx.lineTo(4 + faceX, faceY);
+    ctx.lineTo(10 + faceX, 5 + faceY);
     ctx.stroke();
 
-    // Glowing Neon Cyan Owl circular eyes
+    // Glowing Neon Cyan Owl circular eyes (2.5D shift)
     ctx.strokeStyle = '#00f3ff';
     ctx.lineWidth = 2.5;
-    ctx.fillStyle = '#050c18';
     
     // Left eye
+    ctx.fillStyle = '#050c18';
     ctx.beginPath();
-    ctx.arc(-6, -2, 4.5, 0, Math.PI * 2);
+    ctx.arc(-6 + faceX, -2 + faceY, 4.5, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(-6, -2, 1.5, 0, Math.PI * 2);
+    ctx.arc(-6 + faceX, -2 + faceY, 1.5, 0, Math.PI * 2);
     ctx.fill();
 
     // Right eye
     ctx.fillStyle = '#050c18';
     ctx.beginPath();
-    ctx.arc(6, -2, 4.5, 0, Math.PI * 2);
+    ctx.arc(6 + faceX, -2 + faceY, 4.5, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(6, -2, 1.5, 0, Math.PI * 2);
+    ctx.arc(6 + faceX, -2 + faceY, 1.5, 0, Math.PI * 2);
     ctx.fill();
 
-    // Cyber pointed beak
+    // Cyber pointed beak (2.5D shift)
     ctx.fillStyle = '#00f3ff';
     ctx.beginPath();
-    ctx.moveTo(0, 2);
-    ctx.lineTo(-3, 8);
-    ctx.lineTo(3, 8);
+    ctx.moveTo(faceX, 2 + faceY);
+    ctx.lineTo(-3 + faceX, 8 + faceY);
+    ctx.lineTo(3 + faceX, 8 + faceY);
     ctx.closePath();
     ctx.fill();
 
-    // Cyber owl ear tufts
+    // Cyber owl ear tufts (2.5D shift)
     ctx.fillStyle = '#071626';
     ctx.strokeStyle = '#00f3ff';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(-12, -10);
-    ctx.lineTo(-18, -18);
-    ctx.lineTo(-6, -15);
+    ctx.moveTo(-12 + faceX, -10 + faceY);
+    ctx.lineTo(-18 + faceX * 1.3, -18 + faceY * 1.3);
+    ctx.lineTo(-6 + faceX, -15 + faceY);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.moveTo(12, -10);
-    ctx.lineTo(18, -18);
-    ctx.lineTo(6, -15);
+    ctx.moveTo(12 + faceX, -10 + faceY);
+    ctx.lineTo(18 + faceX * 1.3, -18 + faceY * 1.3);
+    ctx.lineTo(6 + faceX, -15 + faceY);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Sleek cyan mechanical wings
-    this.drawFlappingWing(ctx, '#071626', '#00f3ff', true);
+    // Reactive mechanical tail stabilizer (sways on climb/dive & beats)
+    ctx.save();
+    ctx.translate(-13, 8);
+    const tailSway = Math.sin(this.flapCycle) * 0.15 - this.vy * 0.05;
+    ctx.rotate(tailSway);
+    ctx.fillStyle = '#02070e';
+    ctx.strokeStyle = '#00f3ff';
+    ctx.lineWidth = 1.2;
+    
+    ctx.beginPath();
+    ctx.moveTo(0, -2);
+    ctx.lineTo(-12, -4);
+    ctx.lineTo(-10, 0);
+    ctx.lineTo(-12, 4);
+    ctx.lineTo(0, 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    // Vane lines
+    ctx.strokeStyle = '#00f3ff';
+    ctx.beginPath();
+    ctx.moveTo(-3, -1);
+    ctx.lineTo(-8, -1);
+    ctx.moveTo(-3, 1);
+    ctx.lineTo(-8, 1);
+    ctx.stroke();
+    ctx.restore();
+
+    // Multi-layered mechanical wings (shoulder, elbow, wrist segments)
+    ctx.save();
+    ctx.translate(-4, 1);
+    
+    const shoulderAngle = Math.sin(this.flapCycle) * 0.55;
+    const elbowAngle = Math.sin(this.flapCycle + 0.4) * 0.4;
+    const wristAngle = Math.sin(this.flapCycle + 0.8) * 0.3;
+    
+    // Panel 1: Shoulder main armor casing
+    ctx.save();
+    ctx.rotate(shoulderAngle);
+    ctx.fillStyle = '#071626';
+    ctx.strokeStyle = '#00f3ff';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-12, -8);
+    ctx.lineTo(-18, 2);
+    ctx.lineTo(-8, 6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    // Panel 2: Inner wing panels sliding under the main casing
+    ctx.save();
+    ctx.translate(-10, -2);
+    ctx.rotate(elbowAngle);
+    const midWingGrad = ctx.createLinearGradient(0, 0, -15, 4);
+    midWingGrad.addColorStop(0, '#092540');
+    midWingGrad.addColorStop(1, '#00f3ff');
+    ctx.fillStyle = midWingGrad;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-15, -6);
+    ctx.lineTo(-20, 3);
+    ctx.lineTo(-6, 7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    // Panel 3: High-energy blade feathers extending under the midwing
+    ctx.save();
+    ctx.translate(-12, -1);
+    ctx.rotate(wristAngle);
+    ctx.fillStyle = 'rgba(0, 243, 255, 0.85)';
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-14, -4);
+    ctx.lineTo(-17, 2);
+    ctx.lineTo(-8, 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    ctx.restore(); // wrist
+    ctx.restore(); // elbow
+    ctx.restore(); // shoulder
+    ctx.restore(); // wing main
   }
 
   private drawNeonCrow(ctx: CanvasRenderingContext2D) {
@@ -1004,61 +1124,168 @@ export class Bird {
       ctx.shadowColor = '#ff007f';
     }
 
-    // Sleek black body with crest
+    // 2.5D Face shift offset
+    const faceX = Math.cos(this.angle) * 2.2;
+    const faceY = Math.sin(this.angle) * 1.8 - this.vy * 0.15;
+
+    // Sleek black body
     ctx.fillStyle = '#0a0a0f';
     ctx.beginPath();
     ctx.arc(0, 0, 16, 0, Math.PI * 2);
     ctx.fill();
 
-    // Punk mohawk crest feathers
+    // Punk mohawk crest feathers (folds back based on velocity vy & sways on beat)
+    ctx.save();
+    ctx.translate(-2, -12);
+    const crestTilt = -this.vy * 0.08 + Math.sin(this.flapCycle * 2.0) * 0.06;
+    ctx.rotate(crestTilt);
     ctx.fillStyle = '#ff007f'; // Neon magenta mohawk
     ctx.beginPath();
-    ctx.moveTo(-10, -12);
-    ctx.quadraticCurveTo(-18, -26, -22, -20);
-    ctx.quadraticCurveTo(-12, -12, -2, -15);
+    ctx.moveTo(-8, 0);
+    ctx.quadraticCurveTo(-16, -14, -20, -8);
+    ctx.quadraticCurveTo(-10, 0, 0, -3);
     ctx.closePath();
     ctx.fill();
+    ctx.restore();
 
-    // Blue rogue jacket collar details
+    // Blue rogue jacket collar details - reacts to velocity drag
+    ctx.save();
+    ctx.translate(-10, 8);
+    const collarSway = this.vy * 0.08;
+    ctx.rotate(collarSway);
     ctx.fillStyle = '#1e3a8a';
+    ctx.strokeStyle = '#00f3ff';
+    ctx.lineWidth = 1.0;
     ctx.beginPath();
-    ctx.moveTo(-14, 4);
-    ctx.lineTo(-4, 15);
-    ctx.lineTo(-12, 12);
+    ctx.moveTo(-4, -4);
+    ctx.lineTo(6, 7);
+    ctx.lineTo(-2, 4);
     ctx.closePath();
     ctx.fill();
+    ctx.stroke();
+    ctx.restore();
 
-    // Rogue bird glowing pink cheek patch
+    // Dual long tail feathers tilting reactively in opposition to wing beats
+    ctx.save();
+    ctx.translate(-14, 5);
+    const tailFlap = -Math.sin(this.flapCycle) * 0.25 - this.vy * 0.08;
+    ctx.rotate(tailFlap);
+    
+    // Top feather
+    ctx.fillStyle = '#0a0a0f';
+    ctx.strokeStyle = '#ff007f';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(0, -2);
+    ctx.quadraticCurveTo(-15, -8, -24, -4);
+    ctx.quadraticCurveTo(-10, 2, 0, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Bottom feather
+    ctx.strokeStyle = '#00f3ff';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(-18, 2, -26, 6);
+    ctx.quadraticCurveTo(-10, 4, 0, 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // Rogue bird glowing pink cheek patch (2.5D shift)
     ctx.fillStyle = '#ff007f';
     ctx.beginPath();
-    ctx.arc(4, 2, 2.5, 0, Math.PI * 2);
+    ctx.arc(4 + faceX, 2 + faceY, 2.5, 0, Math.PI * 2);
     ctx.fill();
 
-    // Cool rogue raven beak (large & sharp)
+    // Cool rogue raven beak (large & sharp; 2.5D shift)
     ctx.fillStyle = '#1e1b29';
     ctx.strokeStyle = '#ff007f';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(8, -5);
-    ctx.lineTo(26, 0);
-    ctx.lineTo(8, 8);
+    ctx.moveTo(8 + faceX, -5 + faceY);
+    ctx.lineTo(26 + faceX * 1.3, faceY);
+    ctx.lineTo(8 + faceX, 8 + faceY);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Angry glowing eyes
+    // Angry glowing eyes (2.5D shift)
     ctx.strokeStyle = '#00f3ff'; // neon cyan glowing eye
     ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.moveTo(3, -4);
-    ctx.lineTo(10, -2);
+    ctx.moveTo(3 + faceX, -4 + faceY);
+    ctx.lineTo(10 + faceX, -2 + faceY);
     ctx.stroke();
 
-    // Cyberpunk dual wings (magenta / cyan)
-    this.drawFlappingWing(ctx, '#ff007f', '#00f3ff', true);
+    // Organic multi-segmented crow wings
+    ctx.save();
+    ctx.translate(-4, 2);
+    const baseWingAngle = Math.sin(this.flapCycle) * 0.6;
+    ctx.rotate(baseWingAngle);
+    
+    // We draw 3 layers of overlapping feathers that expand and contract.
+    // Feather 1 (Longest outer wing tip, glowing cyan)
+    ctx.save();
+    const f1Angle = Math.sin(this.flapCycle + 0.3) * 0.2;
+    ctx.rotate(f1Angle);
+    const gradF1 = ctx.createLinearGradient(0, 0, -26, -5);
+    gradF1.addColorStop(0, '#0a0a0f');
+    gradF1.addColorStop(1, '#00f3ff');
+    ctx.fillStyle = gradF1;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(-15, -12, -24, -5, -28, 2);
+    ctx.bezierCurveTo(-18, 5, -8, 2, 0, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // Feather 2 (Middle feather, neon pink)
+    ctx.save();
+    const f2Angle = Math.sin(this.flapCycle + 0.6) * 0.1;
+    ctx.rotate(f2Angle);
+    const gradF2 = ctx.createLinearGradient(0, 0, -22, 0);
+    gradF2.addColorStop(0, '#0a0a0f');
+    gradF2.addColorStop(1, '#ff007f');
+    ctx.fillStyle = gradF2;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(-12, -8, -20, 2, -24, 8);
+    ctx.bezierCurveTo(-15, 9, -6, 4, 0, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // Feather 3 (Shortest inner fluff, dark purple)
+    ctx.save();
+    const f3Angle = Math.sin(this.flapCycle + 0.9) * 0.05;
+    ctx.rotate(f3Angle);
+    ctx.fillStyle = '#4a0e4e';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(-8, -4, -15, 6, -18, 12);
+    ctx.bezierCurveTo(-12, 10, -5, 5, 0, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    ctx.restore();
   }
 
   private drawGoofyPilot(ctx: CanvasRenderingContext2D) {
+    // 2.5D Face shift offset
+    const faceX = Math.cos(this.angle) * 1.5;
+    const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.1;
+
+    // Body squash/stretch scaling (squashes when jumping, stretches when diving)
+    ctx.save();
+    const stretchX = 1 - Math.max(-0.12, Math.min(0.12, this.vy * 0.015));
+    const stretchY = 1 + Math.max(-0.12, Math.min(0.12, this.vy * 0.015));
+    ctx.scale(stretchX, stretchY);
+
     // Goofy brown round body
     ctx.fillStyle = '#c68a4c';
     ctx.beginPath();
@@ -1071,83 +1298,118 @@ export class Bird {
     ctx.arc(0, -2, 17, Math.PI, 0); // Helmet dome
     ctx.fill();
 
-    // Hanging ear flaps of helmet
+    // Hanging ear flaps of helmet - flutters reactively to G-force drag (vy)
+    // Left ear flap
+    ctx.save();
+    ctx.translate(-15, 2);
+    const leftFlapDrag = -this.vy * 0.07 + Math.sin(this.flapCycle * 1.5) * 0.15;
+    ctx.rotate(leftFlapDrag);
     ctx.fillStyle = '#4b3621';
     ctx.beginPath();
-    ctx.rect(-17, -2, 4, 12);
-    ctx.rect(13, -2, 4, 12);
+    ctx.rect(-2, -4, 4, 15);
     ctx.fill();
+    ctx.restore();
 
-    // Googly cartoon eyes
+    // Right ear flap
+    ctx.save();
+    ctx.translate(15, 2);
+    const rightFlapDrag = -this.vy * 0.07 + Math.sin(this.flapCycle * 1.5 + Math.PI) * 0.15;
+    ctx.rotate(rightFlapDrag);
+    ctx.fillStyle = '#4b3621';
+    ctx.beginPath();
+    ctx.rect(-2, -4, 4, 15);
+    ctx.fill();
+    ctx.restore();
+
+    // Googly cartoon eyes (2.5D shift)
     ctx.fillStyle = '#ffffff';
     ctx.strokeStyle = '#000000';
     ctx.lineWidth = 1;
     
     // Left goofy eye
     ctx.beginPath();
-    ctx.arc(-5, -6, 5.5, 0, Math.PI * 2);
+    ctx.arc(-5 + faceX, -6 + faceY, 5.5, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
-    // Pupil looking funny
+    // Pupil looking funny (panicked shake under rise speed)
     ctx.fillStyle = '#000000';
     ctx.beginPath();
-    ctx.arc(-4, -6, 2, 0, Math.PI * 2);
+    const shake = Math.sin(this.flapCycle * 4) * (this.vy < 0 ? 0.8 : 0.2);
+    ctx.arc(-4 + faceX + shake, -6 + faceY, 2, 0, Math.PI * 2);
     ctx.fill();
 
     // Right goofy eye
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(4, -6, 5.5, 0, Math.PI * 2);
+    ctx.arc(4 + faceX, -6 + faceY, 5.5, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     // Pupil looking funny (cross-eyed)
     ctx.fillStyle = '#000000';
     ctx.beginPath();
-    ctx.arc(2, -6, 2, 0, Math.PI * 2);
+    ctx.arc(2 + faceX - shake, -6 + faceY, 2, 0, Math.PI * 2);
     ctx.fill();
 
-    // Aviator goggles pushed up
+    // Aviator goggles pushed up (tilt and lag behind)
+    ctx.save();
+    ctx.translate(faceX, faceY - 12);
+    const goggleTilt = this.vy * 0.05;
+    ctx.rotate(goggleTilt);
     ctx.fillStyle = '#222222';
     ctx.beginPath();
-    ctx.rect(-12, -15, 24, 5); // Strap
+    ctx.rect(-12, -2, 24, 4); // Strap
     ctx.fill();
     ctx.fillStyle = '#87ceeb';
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.rect(-10, -17, 8, 7); // Left goggle glass
-    ctx.rect(2, -17, 8, 7);  // Right goggle glass
+    ctx.rect(-10, -5, 8, 7); // Left goggle glass
+    ctx.rect(2, -5, 8, 7);  // Right goggle glass
     ctx.fill();
     ctx.stroke();
+    ctx.restore();
 
-    // Wide funny orange smiling beak with teeth
+    // Wide funny orange smiling beak with teeth (2.5D shift)
     ctx.fillStyle = '#ff8800';
     ctx.beginPath();
-    ctx.moveTo(8, 0);
-    ctx.quadraticCurveTo(18, 5, 22, 0);
-    ctx.quadraticCurveTo(18, -5, 8, 0);
+    ctx.moveTo(8 + faceX, faceY);
+    ctx.quadraticCurveTo(18 + faceX, 5 + faceY, 22 + faceX * 1.2, faceY);
+    ctx.quadraticCurveTo(18 + faceX, -5 + faceY, 8 + faceX, faceY);
     ctx.fill();
 
-    // Big happy smile cheeks
+    // Big happy smile cheeks (2.5D shift)
     ctx.fillStyle = '#ffaa00';
     ctx.beginPath();
-    ctx.arc(6, 1, 4, 0, Math.PI * 2);
+    ctx.arc(6 + faceX, 1 + faceY, 4, 0, Math.PI * 2);
     ctx.fill();
 
-    // Flapping brown panicked wing
+    // Goofy aviator wing bending at elbow joint
     ctx.save();
-    // Flaps faster in panic!
-    const fastFlapAngle = Math.sin(this.flapCycle * 1.5) * 0.8;
+    const wingSpeed = this.vy < 0 ? 1.8 : 1.4;
+    const mainAngle = Math.sin(this.flapCycle * wingSpeed) * 0.7;
     ctx.translate(-4, 2);
-    ctx.rotate(fastFlapAngle);
+    ctx.rotate(mainAngle);
+    
+    // Draw upper wing bone
     ctx.fillStyle = '#8b5a2b';
     ctx.beginPath();
-    ctx.moveTo(0,0);
-    ctx.bezierCurveTo(-12, -15, -22, -4, -25, 4);
-    ctx.bezierCurveTo(-18, 8, -8, 3, 0, 0);
+    ctx.ellipse(-6, -2, 8, 4, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Draw lower wing bending at joint
+    ctx.translate(-10, -2);
+    const elbowBend = Math.sin(this.flapCycle * wingSpeed + 0.6) * 0.5;
+    ctx.rotate(elbowBend);
+    ctx.fillStyle = '#c68a4c';
+    ctx.beginPath();
+    ctx.moveTo(0, -3);
+    ctx.bezierCurveTo(-10, -8, -16, 2, -18, 6);
+    ctx.bezierCurveTo(-12, 8, -4, 4, 0, 3);
     ctx.closePath();
     ctx.fill();
     ctx.restore();
+
+    ctx.restore(); // Body scale restore
   }
 
   private drawWhiteDragon(ctx: CanvasRenderingContext2D) {
@@ -1156,82 +1418,153 @@ export class Bird {
       ctx.shadowColor = 'rgba(224, 180, 255, 0.7)';
     }
 
+    // 2.5D Face shift offset
+    const faceX = Math.cos(this.angle) * 2.0;
+    const faceY = Math.sin(this.angle) * 1.5 - this.vy * 0.1;
+
     // Cute white/pastel scale body
     ctx.fillStyle = '#f8fafc';
     ctx.beginPath();
     ctx.arc(0, 0, 16, 0, Math.PI * 2);
     ctx.fill();
 
-    // Cute baby dragon horns (lilac/pastel purple)
+    // Cute baby dragon horns (lilac/pastel purple; 2.5D shift)
     ctx.fillStyle = '#c084fc';
     ctx.beginPath();
-    ctx.moveTo(-4, -13);
-    ctx.quadraticCurveTo(-10, -22, -15, -18);
-    ctx.quadraticCurveTo(-7, -11, -2, -10);
+    ctx.moveTo(-4 + faceX, -13 + faceY);
+    ctx.quadraticCurveTo(-10 + faceX * 1.2, -22 + faceY, -15 + faceX * 1.4, -18 + faceY);
+    ctx.quadraticCurveTo(-7 + faceX, -11 + faceY, -2 + faceX, -10 + faceY);
     ctx.closePath();
     ctx.fill();
 
     ctx.beginPath();
-    ctx.moveTo(4, -13);
-    ctx.quadraticCurveTo(10, -22, 15, -18);
-    ctx.quadraticCurveTo(7, -11, 2, -10);
+    ctx.moveTo(4 + faceX, -13 + faceY);
+    ctx.quadraticCurveTo(10 + faceX * 1.2, -22 + faceY, 15 + faceX * 1.4, -18 + faceY);
+    ctx.quadraticCurveTo(7 + faceX, -11 + faceY, 2 + faceX, -10 + faceY);
     ctx.closePath();
     ctx.fill();
 
-    // Cute big purple eyes
+    // Cute big purple eyes (2.5D shift)
     ctx.fillStyle = '#7c3aed';
     ctx.beginPath();
-    ctx.arc(6, -2, 5.5, 0, Math.PI * 2);
+    ctx.arc(6 + faceX, -2 + faceY, 5.5, 0, Math.PI * 2);
     ctx.fill();
     // White eye highlights
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(7.5, -3.5, 1.8, 0, Math.PI * 2);
-    ctx.arc(5.0, -1.0, 0.8, 0, Math.PI * 2);
+    ctx.arc(7.5 + faceX, -3.5 + faceY, 1.8, 0, Math.PI * 2);
+    ctx.arc(5.0 + faceX, -1.0 + faceY, 0.8, 0, Math.PI * 2);
     ctx.fill();
 
-    // Cute pink baby snout
+    // Cute pink baby snout (2.5D shift)
     ctx.fillStyle = '#fbcfe8';
     ctx.beginPath();
-    ctx.ellipse(10, 4, 5, 3, 0, 0, Math.PI * 2);
+    ctx.ellipse(10 + faceX * 1.2, 4 + faceY, 5, 3, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Swaying cute tail
+    // Cute little dragon feet/claws tucked in underneath the body sways reactively
     ctx.save();
-    const tailSway = Math.sin(this.flapCycle) * 6;
-    ctx.translate(-15, 4);
-    ctx.rotate(tailSway * 0.05);
-    ctx.fillStyle = '#f8fafc';
+    ctx.translate(2, 13);
+    const legSway = Math.sin(this.flapCycle + Math.PI / 2) * 0.15;
+    ctx.rotate(legSway);
+    
+    // Front leg
+    ctx.fillStyle = '#fbcfe8';
     ctx.beginPath();
-    ctx.moveTo(0, -3);
-    ctx.quadraticCurveTo(-15, -5, -20, tailSway);
-    ctx.quadraticCurveTo(-10, 8, 0, 3);
-    ctx.closePath();
+    ctx.ellipse(-2, 0, 2.5, 4, 0.2, 0, Math.PI * 2);
     ctx.fill();
-    // Lilac tail spade
     ctx.fillStyle = '#c084fc';
     ctx.beginPath();
-    ctx.arc(-20, tailSway, 4.5, 0, Math.PI * 2);
+    ctx.arc(-2, 4, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Back leg
+    ctx.translate(-6, -1);
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath();
+    ctx.ellipse(-2, 0, 2.5, 4, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#c084fc';
+    ctx.beginPath();
+    ctx.arc(-2, 4, 1.2, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
-    // Cute webbed white wings
+    // Multi-jointed undulating scaly tail spade swaying like a smooth snake
+    ctx.save();
+    ctx.translate(-14, 4);
+    let prevX = 0;
+    let prevY = 0;
+    ctx.strokeStyle = '#f8fafc';
+    ctx.lineWidth = 5.5;
+    ctx.lineCap = 'round';
+    
+    ctx.beginPath();
+    ctx.moveTo(prevX, prevY);
+    for (let i = 1; i <= 5; i++) {
+      const tailSegLength = 4.5;
+      const angleOffset = i * 0.45;
+      const waveAngle = Math.sin(this.flapCycle * 1.3 - angleOffset) * 0.35 + (this.vy * 0.05);
+      
+      prevX -= Math.cos(waveAngle) * tailSegLength;
+      prevY += Math.sin(waveAngle) * tailSegLength;
+      ctx.lineTo(prevX, prevY);
+    }
+    ctx.stroke();
+    
+    // Spade tail tip
+    ctx.fillStyle = '#c084fc';
+    ctx.beginPath();
+    ctx.arc(prevX, prevY, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Webbed dragon wings showing realistic bone frame with lavender webbing
     ctx.save();
     ctx.translate(-4, 1);
-    const flapAngle = Math.sin(this.flapCycle) * 0.65;
-    ctx.rotate(flapAngle);
-    ctx.fillStyle = '#f8fafc';
-    ctx.strokeStyle = '#c084fc';
-    ctx.lineWidth = 1;
+    const wingFlap = Math.sin(this.flapCycle) * 0.65;
+    ctx.rotate(wingFlap);
+    
+    // Draw Webbing first
+    ctx.fillStyle = 'rgba(192, 132, 252, 0.45)';
     ctx.beginPath();
     ctx.moveTo(0, 0);
-    ctx.lineTo(-24, -12);
-    ctx.lineTo(-14, 2);
-    ctx.lineTo(-20, 8);
+    
+    const bone1X = -24, bone1Y = -12;
+    const bone2X = -15, bone2Y = 6;
+    const bone3X = -8, bone3Y = 14;
+    
+    ctx.lineTo(bone1X, bone1Y);
+    ctx.quadraticCurveTo(-20, -2, bone2X, bone2Y);
+    ctx.quadraticCurveTo(-11, 10, bone3X, bone3Y);
     ctx.lineTo(0, 0);
     ctx.closePath();
     ctx.fill();
+    
+    // Draw bone structure
+    ctx.strokeStyle = '#f8fafc';
+    ctx.lineWidth = 2.0;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-8, -4);
+    const wristX = -8, wristY = -4;
+    
+    ctx.moveTo(wristX, wristY);
+    ctx.lineTo(bone1X, bone1Y);
+    ctx.moveTo(wristX, wristY);
+    ctx.lineTo(bone2X, bone2Y);
+    ctx.moveTo(wristX, wristY);
+    ctx.lineTo(bone3X, bone3Y);
     ctx.stroke();
+    
+    // Small wrist claw
+    ctx.fillStyle = '#c084fc';
+    ctx.beginPath();
+    ctx.arc(wristX, wristY, 2, 0, Math.PI * 2);
+    ctx.fill();
     ctx.restore();
   }
 }
