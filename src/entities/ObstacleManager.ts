@@ -194,7 +194,7 @@ export class ObstacleManager {
 
     // If not set or invalid, initialize nextSpawnDistance
     if (this.nextSpawnDistance <= 150 && zone !== 'wave') {
-      this.nextSpawnDistance = targetDistance;
+      this.nextSpawnDistance = this.activeLevelConfig ? this.obstacleWidth : targetDistance;
     }
 
     // Update existing obstacles
@@ -454,9 +454,9 @@ export class ObstacleManager {
         : (startGap - (startGap - minGap) * progressRatio);
       this.spawnObstacle(worldId, width, height, dynamicGap, zone, difficulty, progressRatio, score);
 
-      // Determine next spawn distance: Connected cavern spacing segments (100px) for all Levels in Level Mode
+      // Determine next spawn distance: Connected cavern spacing segments (0 distance horizontally) for all Levels in Level Mode
       if (this.activeLevelConfig) {
-        this.nextSpawnDistance = 100; // close spacing for horizontally joined pillars
+        this.nextSpawnDistance = this.obstacleWidth; // 0 horizontal distance between pipes!
       } else {
         const baseDistanceClassic = (width / 1.35) * 0.80;
         const defaultDistance = baseDistanceClassic * 1.15;
