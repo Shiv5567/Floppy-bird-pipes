@@ -722,37 +722,234 @@ export class Bird {
   private drawDragon(ctx: CanvasRenderingContext2D) {
     if (!(window as any).gameDisableShadows) {
       ctx.shadowBlur = 18;
-      ctx.shadowColor = 'rgba(255, 0, 255, 0.8)';
+      ctx.shadowColor = 'rgba(0, 255, 204, 0.8)';
     }
 
-    // Neon scale body
-    const dragonGrad = ctx.createLinearGradient(-15, -15, 15, 15);
-    dragonGrad.addColorStop(0, '#9400d3');
-    dragonGrad.addColorStop(0.5, '#4b0082');
-    dragonGrad.addColorStop(1, '#000000');
+    // 2.5D Face shift offset
+    const faceX = Math.cos(this.angle) * 2.0;
+    const faceY = Math.sin(this.angle) * 1.5 - this.vy * 0.1;
 
-    ctx.fillStyle = dragonGrad;
+    const headX = 10 + faceX;
+    const headY = -8 + faceY;
+
+    // --- 1. DRAGON TAIL (Undulating, starts at -16, 6) ---
+    ctx.save();
+    ctx.translate(-16, 6);
+    let prevX = 0;
+    let prevY = 0;
+    ctx.strokeStyle = '#4b0082';
+    ctx.lineWidth = 5.5;
+    ctx.lineCap = 'round';
+    
     ctx.beginPath();
-    ctx.arc(0, 0, 16, 0, Math.PI * 2);
+    ctx.moveTo(prevX, prevY);
+    for (let i = 1; i <= 6; i++) {
+      const tailSegLength = 5.0;
+      const angleOffset = i * 0.4;
+      const waveAngle = Math.sin(this.flapCycle * 1.3 - angleOffset) * 0.35 + (this.vy * 0.05);
+      
+      prevX -= Math.cos(waveAngle) * tailSegLength;
+      prevY += Math.sin(waveAngle) * tailSegLength;
+      ctx.lineTo(prevX, prevY);
+    }
+    ctx.stroke();
+    
+    // Tail spade (neon glowing spade)
+    ctx.fillStyle = '#00ffcc';
+    ctx.beginPath();
+    ctx.moveTo(prevX, prevY);
+    ctx.bezierCurveTo(prevX - 6, prevY - 6, prevX - 12, prevY, prevX - 14, prevY + 2);
+    ctx.bezierCurveTo(prevX - 12, prevY + 4, prevX - 6, prevY + 10, prevX, prevY);
+    ctx.closePath();
     ctx.fill();
+    ctx.restore();
 
-    // Majestic horn horns
+    // --- 2. DRAGON LEGS ---
+    // Hind leg
+    ctx.save();
+    ctx.translate(-10, 10);
+    ctx.rotate(Math.sin(this.flapCycle) * 0.15);
+    ctx.fillStyle = '#4b0082';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 3, 6, 0.4, 0, Math.PI * 2);
+    ctx.fill();
+    // Talons
     ctx.fillStyle = '#ff00ff';
     ctx.beginPath();
-    ctx.moveTo(-5, -14);
-    ctx.quadraticCurveTo(-14, -24, -20, -18);
-    ctx.quadraticCurveTo(-11, -12, -2, -11);
+    ctx.moveTo(-1, 5);
+    ctx.lineTo(-4, 9);
+    ctx.lineTo(-1, 8);
+    ctx.lineTo(2, 9);
+    ctx.lineTo(1, 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // Fore leg
+    ctx.save();
+    ctx.translate(2, 10);
+    ctx.rotate(Math.sin(this.flapCycle + Math.PI/2) * 0.15);
+    ctx.fillStyle = '#310062';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 3, 6, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    // Talons
+    ctx.fillStyle = '#ff00ff';
+    ctx.beginPath();
+    ctx.moveTo(-1, 5);
+    ctx.lineTo(-3, 9);
+    ctx.lineTo(0, 8);
+    ctx.lineTo(3, 9);
+    ctx.lineTo(1, 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // --- 3. SERPENTINE TORSO & NECK ---
+    const bodyGrad = ctx.createLinearGradient(-18, -5, 12, 12);
+    bodyGrad.addColorStop(0, '#9400d3');
+    bodyGrad.addColorStop(0.5, '#4b0082');
+    bodyGrad.addColorStop(1, '#1a0033');
+
+    ctx.fillStyle = bodyGrad;
+    ctx.strokeStyle = '#ff00ff';
+    ctx.lineWidth = 1.2;
+
+    ctx.beginPath();
+    ctx.moveTo(headX - 3, headY + 3);
+    ctx.quadraticCurveTo(8, 0, 4, 8);
+    ctx.bezierCurveTo(0, 14, -12, 12, -18, 5);
+    ctx.lineTo(-16, 1);
+    ctx.bezierCurveTo(-10, -4, -2, -1, headX - 8, headY + 6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // --- 4. BACK SPIKES / DORSAL RIDGE ---
+    ctx.fillStyle = '#ff00ff';
+    ctx.beginPath();
+    ctx.moveTo(-14, 2);
+    ctx.lineTo(-18, -4);
+    ctx.lineTo(-9, 0);
+    ctx.moveTo(-8, -1);
+    ctx.lineTo(-11, -8);
+    ctx.lineTo(-3, -2);
+    ctx.moveTo(-2, -3);
+    ctx.lineTo(-4, -10);
+    ctx.lineTo(2, -4);
     ctx.closePath();
     ctx.fill();
 
-    // Dragon glowing eye
-    ctx.fillStyle = '#00ffcc';
+    // --- 5. OVERLAY NEON DRAGON SCALES ---
+    ctx.strokeStyle = 'rgba(0, 255, 204, 0.4)';
+    ctx.lineWidth = 1;
+    const scalePoints = [
+      {x: -12, y: 4}, {x: -8, y: 5}, {x: -4, y: 6}, {x: 0, y: 7},
+      {x: -10, y: 1}, {x: -6, y: 2}, {x: -2, y: 3}, {x: 2, y: 4},
+      {x: -4, y: -1}, {x: 0, y: 0}, {x: 4, y: 1}
+    ];
+    scalePoints.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2.5, 0, Math.PI);
+      ctx.stroke();
+    });
+
+    // --- 6. DRAGON HEAD ---
+    ctx.fillStyle = '#4b0082';
+    ctx.strokeStyle = '#ff00ff';
+    ctx.lineWidth = 1.2;
+
     ctx.beginPath();
-    ctx.arc(7, -3, 2.5, 0, Math.PI * 2);
+    ctx.moveTo(headX - 8, headY - 4);
+    ctx.lineTo(headX + 2, headY - 6);
+    ctx.lineTo(headX + 12, headY - 1);
+    ctx.lineTo(headX + 11, headY + 3);
+    ctx.lineTo(headX + 4, headY + 4);
+    ctx.lineTo(headX - 6, headY + 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Neon glowing snout detail
+    ctx.fillStyle = '#ff00ff';
+    ctx.beginPath();
+    ctx.arc(headX + 8, headY + 1, 1.5, 0, Math.PI * 2);
     ctx.fill();
 
-    // Dragon wing
-    this.drawFlappingWing(ctx, '#4b0082', '#ff00ff', true);
+    // Majestic back horns (Neon Green / Cyan)
+    ctx.fillStyle = '#00ffcc';
+    ctx.beginPath();
+    ctx.moveTo(headX - 5, headY - 5);
+    ctx.quadraticCurveTo(headX - 14, headY - 16, headX - 20, headY - 12);
+    ctx.quadraticCurveTo(headX - 10, headY - 6, headX - 3, headY - 3);
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.moveTo(headX - 6, headY + 1);
+    ctx.quadraticCurveTo(headX - 12, headY - 6, headX - 16, headY - 4);
+    ctx.quadraticCurveTo(headX - 9, headY + 2, headX - 4, headY + 3);
+    ctx.closePath();
+    ctx.fill();
+
+    // Fierce glowing eyes
+    ctx.fillStyle = '#ff00ff';
+    ctx.beginPath();
+    ctx.arc(headX + 1, headY - 1, 4.0, 0, Math.PI * 2);
+    ctx.fill();
+    // Slit pupil
+    ctx.fillStyle = '#00ffcc';
+    ctx.beginPath();
+    ctx.ellipse(headX + 1, headY - 1, 1.0, 3.0, 0.1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // --- 7. WEBBED WINGS ---
+    ctx.save();
+    ctx.translate(-2, 2);
+    const wingFlap = Math.sin(this.flapCycle) * 0.65;
+    ctx.rotate(wingFlap);
+    
+    // Webbing
+    ctx.fillStyle = 'rgba(255, 0, 255, 0.45)';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    
+    const bone1X = -26, bone1Y = -14;
+    const bone2X = -17, bone2Y = 6;
+    const bone3X = -8, bone3Y = 15;
+    
+    ctx.lineTo(bone1X, bone1Y);
+    ctx.quadraticCurveTo(-22, -3, bone2X, bone2Y);
+    ctx.quadraticCurveTo(-12, 11, bone3X, bone3Y);
+    ctx.lineTo(0, 0);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Bones
+    ctx.strokeStyle = '#4b0082';
+    ctx.lineWidth = 2.0;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-8, -4);
+    const wristX = -8, wristY = -4;
+    
+    ctx.moveTo(wristX, wristY);
+    ctx.lineTo(bone1X, bone1Y);
+    ctx.moveTo(wristX, wristY);
+    ctx.lineTo(bone2X, bone2Y);
+    ctx.moveTo(wristX, wristY);
+    ctx.lineTo(bone3X, bone3Y);
+    ctx.stroke();
+    
+    // Small wrist claw
+    ctx.fillStyle = '#00ffcc';
+    ctx.beginPath();
+    ctx.arc(wristX, wristY, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
   }
 
   private drawNebula(ctx: CanvasRenderingContext2D) {
@@ -1418,92 +1615,28 @@ export class Bird {
       ctx.shadowColor = 'rgba(224, 180, 255, 0.7)';
     }
 
-    // 2.5D Face shift offset
+    // 2.5D Face shift offset (for head features only)
     const faceX = Math.cos(this.angle) * 2.0;
     const faceY = Math.sin(this.angle) * 1.5 - this.vy * 0.1;
 
-    // Cute white/pastel scale body
-    ctx.fillStyle = '#f8fafc';
-    ctx.beginPath();
-    ctx.arc(0, 0, 16, 0, Math.PI * 2);
-    ctx.fill();
+    // Head position relative to center: (10, -8)
+    const headX = 10 + faceX;
+    const headY = -8 + faceY;
 
-    // Cute baby dragon horns (lilac/pastel purple; 2.5D shift)
-    ctx.fillStyle = '#c084fc';
-    ctx.beginPath();
-    ctx.moveTo(-4 + faceX, -13 + faceY);
-    ctx.quadraticCurveTo(-10 + faceX * 1.2, -22 + faceY, -15 + faceX * 1.4, -18 + faceY);
-    ctx.quadraticCurveTo(-7 + faceX, -11 + faceY, -2 + faceX, -10 + faceY);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.moveTo(4 + faceX, -13 + faceY);
-    ctx.quadraticCurveTo(10 + faceX * 1.2, -22 + faceY, 15 + faceX * 1.4, -18 + faceY);
-    ctx.quadraticCurveTo(7 + faceX, -11 + faceY, 2 + faceX, -10 + faceY);
-    ctx.closePath();
-    ctx.fill();
-
-    // Cute big purple eyes (2.5D shift)
-    ctx.fillStyle = '#7c3aed';
-    ctx.beginPath();
-    ctx.arc(6 + faceX, -2 + faceY, 5.5, 0, Math.PI * 2);
-    ctx.fill();
-    // White eye highlights
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(7.5 + faceX, -3.5 + faceY, 1.8, 0, Math.PI * 2);
-    ctx.arc(5.0 + faceX, -1.0 + faceY, 0.8, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Cute pink baby snout (2.5D shift)
-    ctx.fillStyle = '#fbcfe8';
-    ctx.beginPath();
-    ctx.ellipse(10 + faceX * 1.2, 4 + faceY, 5, 3, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Cute little dragon feet/claws tucked in underneath the body sways reactively
+    // --- 1. DRAGON TAIL (Undulating, starts at rear of torso: -16, 6) ---
     ctx.save();
-    ctx.translate(2, 13);
-    const legSway = Math.sin(this.flapCycle + Math.PI / 2) * 0.15;
-    ctx.rotate(legSway);
-    
-    // Front leg
-    ctx.fillStyle = '#fbcfe8';
-    ctx.beginPath();
-    ctx.ellipse(-2, 0, 2.5, 4, 0.2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#c084fc';
-    ctx.beginPath();
-    ctx.arc(-2, 4, 1.2, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Back leg
-    ctx.translate(-6, -1);
-    ctx.fillStyle = '#f8fafc';
-    ctx.beginPath();
-    ctx.ellipse(-2, 0, 2.5, 4, 0.2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#c084fc';
-    ctx.beginPath();
-    ctx.arc(-2, 4, 1.2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // Multi-jointed undulating scaly tail spade swaying like a smooth snake
-    ctx.save();
-    ctx.translate(-14, 4);
+    ctx.translate(-16, 6);
     let prevX = 0;
     let prevY = 0;
     ctx.strokeStyle = '#f8fafc';
-    ctx.lineWidth = 5.5;
+    ctx.lineWidth = 6;
     ctx.lineCap = 'round';
     
     ctx.beginPath();
     ctx.moveTo(prevX, prevY);
-    for (let i = 1; i <= 5; i++) {
-      const tailSegLength = 4.5;
-      const angleOffset = i * 0.45;
+    for (let i = 1; i <= 6; i++) {
+      const tailSegLength = 5.0;
+      const angleOffset = i * 0.4;
       const waveAngle = Math.sin(this.flapCycle * 1.3 - angleOffset) * 0.35 + (this.vy * 0.05);
       
       prevX -= Math.cos(waveAngle) * tailSegLength;
@@ -1512,16 +1645,176 @@ export class Bird {
     }
     ctx.stroke();
     
-    // Spade tail tip
+    // Tail spade (flaming lavender tip)
     ctx.fillStyle = '#c084fc';
     ctx.beginPath();
-    ctx.arc(prevX, prevY, 4.5, 0, Math.PI * 2);
+    ctx.moveTo(prevX, prevY);
+    ctx.bezierCurveTo(prevX - 6, prevY - 6, prevX - 12, prevY, prevX - 14, prevY + 2);
+    ctx.bezierCurveTo(prevX - 12, prevY + 4, prevX - 6, prevY + 10, prevX, prevY);
+    ctx.closePath();
     ctx.fill();
     ctx.restore();
 
-    // Webbed dragon wings showing realistic bone frame with lavender webbing
+    // --- 2. DRAGON LEGS (Tucked claw legs) ---
+    // Hind leg
     ctx.save();
-    ctx.translate(-4, 1);
+    ctx.translate(-10, 10);
+    ctx.rotate(Math.sin(this.flapCycle) * 0.15);
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 3, 6, 0.4, 0, Math.PI * 2);
+    ctx.fill();
+    // Talons
+    ctx.fillStyle = '#c084fc';
+    ctx.beginPath();
+    ctx.moveTo(-1, 5);
+    ctx.lineTo(-4, 9);
+    ctx.lineTo(-1, 8);
+    ctx.lineTo(2, 9);
+    ctx.lineTo(1, 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // Fore leg
+    ctx.save();
+    ctx.translate(2, 10);
+    ctx.rotate(Math.sin(this.flapCycle + Math.PI/2) * 0.15);
+    ctx.fillStyle = '#fbcfe8';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 3, 6, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    // Talons
+    ctx.fillStyle = '#c084fc';
+    ctx.beginPath();
+    ctx.moveTo(-1, 5);
+    ctx.lineTo(-3, 9);
+    ctx.lineTo(0, 8);
+    ctx.lineTo(3, 9);
+    ctx.lineTo(1, 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // --- 3. MAJESTIC SERPENTINE TORSO & NECK ---
+    // Torso gradient
+    const bodyGrad = ctx.createLinearGradient(-18, -5, 12, 12);
+    bodyGrad.addColorStop(0, '#f1f5f9'); // Pastel slate/white
+    bodyGrad.addColorStop(0.5, '#f8fafc');
+    bodyGrad.addColorStop(1, '#e2e8f0');
+
+    ctx.fillStyle = bodyGrad;
+    ctx.strokeStyle = '#c084fc';
+    ctx.lineWidth = 1.2;
+
+    // Draw main body shape (neck curving up to head, thick chest, tapering back to tail)
+    ctx.beginPath();
+    // Start at head connection point (top of neck)
+    ctx.moveTo(headX - 3, headY + 3);
+    // Outer neck curve down to chest
+    ctx.quadraticCurveTo(8, 0, 4, 8);
+    // Underbelly to rear
+    ctx.bezierCurveTo(0, 14, -12, 12, -18, 5);
+    // Rear transition to tail
+    ctx.lineTo(-16, 1);
+    // Back ridge line curving up to neck
+    ctx.bezierCurveTo(-10, -4, -2, -1, headX - 8, headY + 6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // --- 4. BACK SPIKES / DORSAL RIDGE ---
+    ctx.fillStyle = '#c084fc';
+    ctx.beginPath();
+    // Spike 1 (Back)
+    ctx.moveTo(-14, 2);
+    ctx.lineTo(-18, -4);
+    ctx.lineTo(-9, 0);
+    // Spike 2 (Mid-back)
+    ctx.moveTo(-8, -1);
+    ctx.lineTo(-11, -8);
+    ctx.lineTo(-3, -2);
+    // Spike 3 (Lower neck)
+    ctx.moveTo(-2, -3);
+    ctx.lineTo(-4, -10);
+    ctx.lineTo(2, -4);
+    ctx.closePath();
+    ctx.fill();
+
+    // --- 5. OVERLAY PROCEDURAL DRAGON SCALES ---
+    ctx.strokeStyle = 'rgba(192, 132, 252, 0.4)';
+    ctx.lineWidth = 1;
+    // Draw rows of mini scales along torso
+    const scalePoints = [
+      {x: -12, y: 4}, {x: -8, y: 5}, {x: -4, y: 6}, {x: 0, y: 7},
+      {x: -10, y: 1}, {x: -6, y: 2}, {x: -2, y: 3}, {x: 2, y: 4},
+      {x: -4, y: -1}, {x: 0, y: 0}, {x: 4, y: 1}
+    ];
+    scalePoints.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2.5, 0, Math.PI);
+      ctx.stroke();
+    });
+
+    // --- 6. DRAGON HEAD (Reptilian snout, defined jaw, and back horns) ---
+    ctx.fillStyle = '#f8fafc';
+    ctx.strokeStyle = '#c084fc';
+    ctx.lineWidth = 1.2;
+
+    // Draw majestic head shape
+    ctx.beginPath();
+    ctx.moveTo(headX - 8, headY - 4); // Back of head
+    ctx.lineTo(headX + 2, headY - 6);  // Brow line
+    ctx.lineTo(headX + 12, headY - 1); // Top of snout
+    ctx.lineTo(headX + 11, headY + 3); // Snout tip
+    ctx.lineTo(headX + 4, headY + 4);  // Jaw curve
+    ctx.lineTo(headX - 6, headY + 5);  // Back jaw
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Cute pink baby snout nostril (2.5D shift)
+    ctx.fillStyle = '#fbcfe8';
+    ctx.beginPath();
+    ctx.arc(headX + 8, headY + 1, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Majestic horns (Lilac/Purple)
+    ctx.fillStyle = '#c084fc';
+    // Horn 1 (Top horn)
+    ctx.beginPath();
+    ctx.moveTo(headX - 5, headY - 5);
+    ctx.quadraticCurveTo(headX - 14, headY - 16, headX - 20, headY - 12);
+    ctx.quadraticCurveTo(headX - 10, headY - 6, headX - 3, headY - 3);
+    ctx.closePath();
+    ctx.fill();
+    // Horn 2 (Lower horn)
+    ctx.beginPath();
+    ctx.moveTo(headX - 6, headY + 1);
+    ctx.quadraticCurveTo(headX - 12, headY - 6, headX - 16, headY - 4);
+    ctx.quadraticCurveTo(headX - 9, headY + 2, headX - 4, headY + 3);
+    ctx.closePath();
+    ctx.fill();
+
+    // Cute big purple eyes (with sharp reptilian slit and white highlights)
+    ctx.fillStyle = '#7c3aed';
+    ctx.beginPath();
+    ctx.arc(headX + 1, headY - 1, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    // Pupil slit
+    ctx.fillStyle = '#1e1b29';
+    ctx.beginPath();
+    ctx.ellipse(headX + 1, headY - 1, 1.2, 3.5, 0.1, 0, Math.PI * 2);
+    ctx.fill();
+    // Highlights
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(headX + 2.2, headY - 2.2, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // --- 7. WEBBED WINGS (Centered at shoulder: -2, 2) ---
+    ctx.save();
+    ctx.translate(-2, 2);
     const wingFlap = Math.sin(this.flapCycle) * 0.65;
     ctx.rotate(wingFlap);
     
@@ -1530,7 +1823,7 @@ export class Bird {
     ctx.beginPath();
     ctx.moveTo(0, 0);
     
-    const bone1X = -24, bone1Y = -12;
+    const bone1X = -26, bone1Y = -12;
     const bone2X = -15, bone2Y = 6;
     const bone3X = -8, bone3Y = 14;
     
@@ -1563,7 +1856,7 @@ export class Bird {
     // Small wrist claw
     ctx.fillStyle = '#c084fc';
     ctx.beginPath();
-    ctx.arc(wristX, wristY, 2, 0, Math.PI * 2);
+    ctx.arc(wristX, wristY, 2.2, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
