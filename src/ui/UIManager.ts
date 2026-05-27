@@ -461,7 +461,8 @@ export class UIManager {
             <div class="bird-aura-outer"></div>
             <div class="bird-aura"></div>
             <div class="bird-floaties">${floatiesHtml}</div>
-            <div class="bird-mascot" id="bird-mascot-tap">${birdEmoji}</div>
+            <div class="bird-mascot" id="bird-mascot-tap" style="cursor: pointer;">${birdEmoji}</div>
+            <div class="bird-select-character-pill" id="btn-mascot-skins-quick" style="position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); background: rgba(0, 243, 255, 0.25); border: 1px solid rgba(0, 243, 255, 0.6); padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; color: #fff; cursor: pointer; text-shadow: 0 0 5px #00f3ff; box-shadow: 0 0 10px rgba(0, 243, 255, 0.3); white-space: nowrap; transition: all 0.2s ease; z-index: 10;">🔄 SELECT CHARACTER</div>
           </div>
 
           <!-- Right side panel -->
@@ -598,7 +599,8 @@ export class UIManager {
           const upgradeCost = Math.floor(s.costCoins * 0.4 * s.upgradeLevel) || (s.id === 'default' ? 200 * s.upgradeLevel : 500);
           const emojiMap: Record<string, string> = {
             default: '🦅', phoenix: '🔥', cyber: '🤖', ice: '❄️',
-            shadow: '👿', dragon: '🐲', nebula: '🌌', bubble: '🐳'
+            shadow: '👿', dragon: '🐲', nebula: '🌌', bubble: '🐳',
+            cyber_owl: '🦉', neon_crow: '🐦‍⬛', goofy_pilot: '🦜', white_dragon: '🐉'
           };
           const rarityColors: Record<string, string> = {
             common: '#aaa', rare: '#00f3ff', epic: '#a855f7', legendary: '#ffd700'
@@ -1006,9 +1008,14 @@ export class UIManager {
     // World selector chip on main → open worlds page
     bindClick('btn-open-worlds', () => { this.activeTab = 'worlds'; this.render(); });
 
-    // Bird mascot tap
+    // Bird mascot tap opens Skins hangar directly!
     bindClick('bird-mascot-tap', () => {
-      this.showToastNotification('READY TO FLY!', 'Tap START FLY to begin your legendary adventure! 🐦');
+      this.activeTab = 'skins';
+      this.render();
+    });
+    bindClick('btn-mascot-skins-quick', () => {
+      this.activeTab = 'skins';
+      this.render();
     });
 
     // Game start & spectator

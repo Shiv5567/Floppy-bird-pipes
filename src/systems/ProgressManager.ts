@@ -164,6 +164,54 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5
+      },
+      {
+        id: 'cyber_owl',
+        name: 'Cyber Owl',
+        rarity: 'Epic',
+        glowColor: 'rgba(0, 243, 255, 0.7)',
+        particleType: 'neon_cyan',
+        costCoins: 4000,
+        costGems: 0,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5
+      },
+      {
+        id: 'neon_crow',
+        name: 'Neon Rogue Crow',
+        rarity: 'Epic',
+        glowColor: 'rgba(255, 0, 127, 0.7)',
+        particleType: 'neon_pink',
+        costCoins: 4500,
+        costGems: 0,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5
+      },
+      {
+        id: 'goofy_pilot',
+        name: 'Goofy Aviator',
+        rarity: 'Rare',
+        glowColor: 'rgba(255, 170, 0, 0.4)',
+        particleType: 'feathers',
+        costCoins: 1500,
+        costGems: 0,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5
+      },
+      {
+        id: 'white_dragon',
+        name: 'White Dragon',
+        rarity: 'Legendary',
+        glowColor: 'rgba(224, 180, 255, 0.7)',
+        particleType: 'purple_sparkle',
+        costCoins: 0,
+        costGems: 300,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5
       }
     ];
   }

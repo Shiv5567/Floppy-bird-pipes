@@ -139,6 +139,22 @@ export class Bird {
     const ry = (Math.random() - 0.5) * 4;
 
     switch (type) {
+      case 'neon_cyan':
+        particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -2 - Math.random() * 1.5, (Math.random() - 0.5) * 1.5, '#00f3ff', 3 + Math.random() * 2, 1.0, 0.025, 'spark', true, 'rgba(0, 243, 255, 0.8)');
+        break;
+
+      case 'neon_pink':
+        particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -2 - Math.random() * 1.5, (Math.random() - 0.5) * 1.5, '#ff007f', 3 + Math.random() * 2, 1.0, 0.025, 'spark', true, 'rgba(255, 0, 127, 0.8)');
+        break;
+
+      case 'feathers':
+        particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -0.6 - Math.random() * 1, (Math.random() - 0.5) * 1, '#d2b48c', 2.5 + Math.random() * 3, 0.8, 0.02, 'circle');
+        break;
+
+      case 'purple_sparkle':
+        particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -1 - Math.random() * 2, (Math.random() - 0.5) * 1.5, '#e0b4ff', 3 + Math.random() * 3, 1.0, 0.02, 'star', true, 'rgba(192, 132, 252, 0.7)');
+        break;
+
       case 'fire':
         particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -1 - Math.random() * 2, (Math.random() - 0.5) * 1.5, 'rgba(255, 69, 0, 0.9)', 3 + Math.random() * 4, 1.0, 0.03, 'circle', true, 'rgba(255, 120, 0, 0.8)', -0.05);
         particleEngine.spawn(offsetBackX, offsetBackY, -0.5 - Math.random() * 1, (Math.random() - 0.5) * 1.0, 'rgba(255, 215, 0, 0.9)', 2 + Math.random() * 3, 1.0, 0.04, 'circle', true, '#ff4500');
@@ -235,6 +251,18 @@ export class Bird {
         break;
       case 'bubble':
         this.drawBubbleSiren(ctx);
+        break;
+      case 'cyber_owl':
+        this.drawCyberOwl(ctx);
+        break;
+      case 'neon_crow':
+        this.drawNeonCrow(ctx);
+        break;
+      case 'goofy_pilot':
+        this.drawGoofyPilot(ctx);
+        break;
+      case 'white_dragon':
+        this.drawWhiteDragon(ctx);
         break;
       default:
         this.drawEagle(ctx); // Default Eagle
@@ -421,6 +449,57 @@ export class Bird {
         ctx.beginPath();
         ctx.arc(-baseRadius * 0.6, -baseRadius * 0.6, 3, 0, Math.PI * 2);
         ctx.fill();
+        break;
+      }
+
+      case 'cyber_owl': {
+        ctx.strokeStyle = '#00f3ff';
+        ctx.save();
+        ctx.rotate(this.auraAngle);
+        ctx.beginPath();
+        ctx.arc(0, 0, baseRadius * 1.2, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.setLineDash([6, 8]);
+        ctx.arc(0, 0, baseRadius * 1.35, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+        break;
+      }
+
+      case 'neon_crow': {
+        ctx.strokeStyle = '#ff007f';
+        ctx.save();
+        ctx.rotate(-this.auraAngle * 1.4);
+        ctx.setLineDash([10, 6]);
+        ctx.beginPath();
+        ctx.arc(0, 0, baseRadius * 1.25, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+        break;
+      }
+
+      case 'goofy_pilot': {
+        ctx.strokeStyle = 'rgba(255, 170, 0, 0.65)';
+        ctx.save();
+        ctx.rotate(this.auraAngle * 0.5);
+        ctx.setLineDash([4, 10]);
+        ctx.beginPath();
+        ctx.arc(0, 0, baseRadius * 1.2, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+        break;
+      }
+
+      case 'white_dragon': {
+        ctx.strokeStyle = '#e0b4ff';
+        ctx.save();
+        ctx.rotate(-this.auraAngle * 0.8);
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.arc(0, 0, baseRadius * 1.3, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
         break;
       }
 
@@ -829,6 +908,330 @@ export class Bird {
     ctx.fill();
     ctx.stroke();
 
+    ctx.restore();
+  }
+
+  private drawCyberOwl(ctx: CanvasRenderingContext2D) {
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = '#00f3ff';
+    }
+
+    // Futuristic mechanical metallic body
+    const bodyGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, 16);
+    bodyGrad.addColorStop(0, '#092540');
+    bodyGrad.addColorStop(0.7, '#071626');
+    bodyGrad.addColorStop(1, '#02070e');
+    ctx.fillStyle = bodyGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Circuits lines on face
+    ctx.strokeStyle = '#00f3ff';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-10, -5);
+    ctx.lineTo(-4, 0);
+    ctx.lineTo(-10, 5);
+    ctx.moveTo(10, -5);
+    ctx.lineTo(4, 0);
+    ctx.lineTo(10, 5);
+    ctx.stroke();
+
+    // Glowing Neon Cyan Owl circular eyes
+    ctx.strokeStyle = '#00f3ff';
+    ctx.lineWidth = 2.5;
+    ctx.fillStyle = '#050c18';
+    
+    // Left eye
+    ctx.beginPath();
+    ctx.arc(-6, -2, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(-6, -2, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Right eye
+    ctx.fillStyle = '#050c18';
+    ctx.beginPath();
+    ctx.arc(6, -2, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(6, -2, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cyber pointed beak
+    ctx.fillStyle = '#00f3ff';
+    ctx.beginPath();
+    ctx.moveTo(0, 2);
+    ctx.lineTo(-3, 8);
+    ctx.lineTo(3, 8);
+    ctx.closePath();
+    ctx.fill();
+
+    // Cyber owl ear tufts
+    ctx.fillStyle = '#071626';
+    ctx.strokeStyle = '#00f3ff';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-12, -10);
+    ctx.lineTo(-18, -18);
+    ctx.lineTo(-6, -15);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(12, -10);
+    ctx.lineTo(18, -18);
+    ctx.lineTo(6, -15);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Sleek cyan mechanical wings
+    this.drawFlappingWing(ctx, '#071626', '#00f3ff', true);
+  }
+
+  private drawNeonCrow(ctx: CanvasRenderingContext2D) {
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = '#ff007f';
+    }
+
+    // Sleek black body with crest
+    ctx.fillStyle = '#0a0a0f';
+    ctx.beginPath();
+    ctx.arc(0, 0, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Punk mohawk crest feathers
+    ctx.fillStyle = '#ff007f'; // Neon magenta mohawk
+    ctx.beginPath();
+    ctx.moveTo(-10, -12);
+    ctx.quadraticCurveTo(-18, -26, -22, -20);
+    ctx.quadraticCurveTo(-12, -12, -2, -15);
+    ctx.closePath();
+    ctx.fill();
+
+    // Blue rogue jacket collar details
+    ctx.fillStyle = '#1e3a8a';
+    ctx.beginPath();
+    ctx.moveTo(-14, 4);
+    ctx.lineTo(-4, 15);
+    ctx.lineTo(-12, 12);
+    ctx.closePath();
+    ctx.fill();
+
+    // Rogue bird glowing pink cheek patch
+    ctx.fillStyle = '#ff007f';
+    ctx.beginPath();
+    ctx.arc(4, 2, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cool rogue raven beak (large & sharp)
+    ctx.fillStyle = '#1e1b29';
+    ctx.strokeStyle = '#ff007f';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(8, -5);
+    ctx.lineTo(26, 0);
+    ctx.lineTo(8, 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Angry glowing eyes
+    ctx.strokeStyle = '#00f3ff'; // neon cyan glowing eye
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(3, -4);
+    ctx.lineTo(10, -2);
+    ctx.stroke();
+
+    // Cyberpunk dual wings (magenta / cyan)
+    this.drawFlappingWing(ctx, '#ff007f', '#00f3ff', true);
+  }
+
+  private drawGoofyPilot(ctx: CanvasRenderingContext2D) {
+    // Goofy brown round body
+    ctx.fillStyle = '#c68a4c';
+    ctx.beginPath();
+    ctx.arc(0, 0, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Retro pilot leather helmet
+    ctx.fillStyle = '#5c4033';
+    ctx.beginPath();
+    ctx.arc(0, -2, 17, Math.PI, 0); // Helmet dome
+    ctx.fill();
+
+    // Hanging ear flaps of helmet
+    ctx.fillStyle = '#4b3621';
+    ctx.beginPath();
+    ctx.rect(-17, -2, 4, 12);
+    ctx.rect(13, -2, 4, 12);
+    ctx.fill();
+
+    // Googly cartoon eyes
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 1;
+    
+    // Left goofy eye
+    ctx.beginPath();
+    ctx.arc(-5, -6, 5.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // Pupil looking funny
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.arc(-4, -6, 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Right goofy eye
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(4, -6, 5.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // Pupil looking funny (cross-eyed)
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.arc(2, -6, 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Aviator goggles pushed up
+    ctx.fillStyle = '#222222';
+    ctx.beginPath();
+    ctx.rect(-12, -15, 24, 5); // Strap
+    ctx.fill();
+    ctx.fillStyle = '#87ceeb';
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.rect(-10, -17, 8, 7); // Left goggle glass
+    ctx.rect(2, -17, 8, 7);  // Right goggle glass
+    ctx.fill();
+    ctx.stroke();
+
+    // Wide funny orange smiling beak with teeth
+    ctx.fillStyle = '#ff8800';
+    ctx.beginPath();
+    ctx.moveTo(8, 0);
+    ctx.quadraticCurveTo(18, 5, 22, 0);
+    ctx.quadraticCurveTo(18, -5, 8, 0);
+    ctx.fill();
+
+    // Big happy smile cheeks
+    ctx.fillStyle = '#ffaa00';
+    ctx.beginPath();
+    ctx.arc(6, 1, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Flapping brown panicked wing
+    ctx.save();
+    // Flaps faster in panic!
+    const fastFlapAngle = Math.sin(this.flapCycle * 1.5) * 0.8;
+    ctx.translate(-4, 2);
+    ctx.rotate(fastFlapAngle);
+    ctx.fillStyle = '#8b5a2b';
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.bezierCurveTo(-12, -15, -22, -4, -25, 4);
+    ctx.bezierCurveTo(-18, 8, -8, 3, 0, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  private drawWhiteDragon(ctx: CanvasRenderingContext2D) {
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = 'rgba(224, 180, 255, 0.7)';
+    }
+
+    // Cute white/pastel scale body
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath();
+    ctx.arc(0, 0, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cute baby dragon horns (lilac/pastel purple)
+    ctx.fillStyle = '#c084fc';
+    ctx.beginPath();
+    ctx.moveTo(-4, -13);
+    ctx.quadraticCurveTo(-10, -22, -15, -18);
+    ctx.quadraticCurveTo(-7, -11, -2, -10);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(4, -13);
+    ctx.quadraticCurveTo(10, -22, 15, -18);
+    ctx.quadraticCurveTo(7, -11, 2, -10);
+    ctx.closePath();
+    ctx.fill();
+
+    // Cute big purple eyes
+    ctx.fillStyle = '#7c3aed';
+    ctx.beginPath();
+    ctx.arc(6, -2, 5.5, 0, Math.PI * 2);
+    ctx.fill();
+    // White eye highlights
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(7.5, -3.5, 1.8, 0, Math.PI * 2);
+    ctx.arc(5.0, -1.0, 0.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cute pink baby snout
+    ctx.fillStyle = '#fbcfe8';
+    ctx.beginPath();
+    ctx.ellipse(10, 4, 5, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Swaying cute tail
+    ctx.save();
+    const tailSway = Math.sin(this.flapCycle) * 6;
+    ctx.translate(-15, 4);
+    ctx.rotate(tailSway * 0.05);
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath();
+    ctx.moveTo(0, -3);
+    ctx.quadraticCurveTo(-15, -5, -20, tailSway);
+    ctx.quadraticCurveTo(-10, 8, 0, 3);
+    ctx.closePath();
+    ctx.fill();
+    // Lilac tail spade
+    ctx.fillStyle = '#c084fc';
+    ctx.beginPath();
+    ctx.arc(-20, tailSway, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Cute webbed white wings
+    ctx.save();
+    ctx.translate(-4, 1);
+    const flapAngle = Math.sin(this.flapCycle) * 0.65;
+    ctx.rotate(flapAngle);
+    ctx.fillStyle = '#f8fafc';
+    ctx.strokeStyle = '#c084fc';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-24, -12);
+    ctx.lineTo(-14, 2);
+    ctx.lineTo(-20, 8);
+    ctx.lineTo(0, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
     ctx.restore();
   }
 }
