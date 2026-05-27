@@ -74,7 +74,7 @@ export class GameEngine {
   };
 
   private bossWarningTimer = 0;
-  private bossScoreMilestone = 50; // Spawn a boss every 50 points!
+  // private bossScoreMilestone = 50; // Spawn a boss every 50 points!
   private fpsLowFrameStreak = 0;
   private preloadingTimer = 0.0;
 
@@ -732,19 +732,20 @@ export class GameEngine {
     }
 
     // Trigger Boss Warning sequence at milestone (Endless Mode only)
-    if (this.gameMode === 'endless' && this.score > 0 && this.score % this.bossScoreMilestone === 0 && this.state !== 'BOSS_FIGHT') {
-      this.triggerBossWarning();
-    }
+    // Disabled to prevent gameplay freezes at score 50 and allow truly endless scrolling gameplay
+    // if (this.gameMode === 'endless' && this.score > 0 && this.score % this.bossScoreMilestone === 0 && this.state !== 'BOSS_FIGHT') {
+    //   this.triggerBossWarning();
+    // }
   }
 
-  private triggerBossWarning() {
-    this.state = 'BOSS_WARNING';
-    this.bossWarningTimer = 0;
-    this.obstacleManager.clear();
-    
-    // Dispatch HUD alert custom event
-    window.dispatchEvent(new CustomEvent('hud_alert', { detail: { text: 'TITAN BOSS APPROACHING!', sub: 'COLLECT PLASMA CHARGES TO DEFEND!' } }));
-  }
+  // private triggerBossWarning() {
+  //   this.state = 'BOSS_WARNING';
+  //   this.bossWarningTimer = 0;
+  //   this.obstacleManager.clear();
+  //   
+  //   // Dispatch HUD alert custom event
+  //   window.dispatchEvent(new CustomEvent('hud_alert', { detail: { text: 'TITAN BOSS APPROACHING!', sub: 'COLLECT PLASMA CHARGES TO DEFEND!' } }));
+  // }
 
   // Activate game changing powerup mechanics
   private activatePowerup(type: string) {
