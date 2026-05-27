@@ -726,8 +726,8 @@ export class Renderer {
           y += profile[lookupX];
         }
 
-        // Connect minor wave oscillation swaying the hill heights for Levels 20+
-        if (this.activeLevelNum >= 20) {
+        // Connect minor wave oscillation swaying the hill heights for Levels Mode
+        if (this.activeLevelNum >= 1) {
           const sway = Math.sin(this.weatherTime * 2.0 + x * 0.003) * (8 * (4 - layer));
           y += sway;
         }

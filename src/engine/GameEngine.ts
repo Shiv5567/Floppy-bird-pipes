@@ -128,7 +128,7 @@ export class GameEngine {
     } else {
       this.activeLevelConfig = null;
       this.scrollSpeed = this.baseScrollSpeed;
-      this.renderer.activeLevelNum = 1;
+      this.renderer.activeLevelNum = 0;
     }
 
     this.timeScale = 1.0;

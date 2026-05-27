@@ -59,7 +59,6 @@ export class ObstacleManager {
   private spawnTimer = 0;
   private obstacleWidth = 72;
   private waveTime = 0;
-  private tunnelSpawnCount = 0;
   private nextSpawnDistance = 350;
   private lastTopHeight: number | null = null;
 
@@ -133,7 +132,6 @@ export class ObstacleManager {
     this.nextSpawnDistance = 350;
     this.lastTopHeight = null;
     this.currentPatternIdx = 0;
-    this.tunnelSpawnCount = 0;
   }
 
   public update(
@@ -204,8 +202,8 @@ export class ObstacleManager {
       const obs = this.list[i];
       obs.x -= actualScrollSpeed;
 
-      // LEVEL 20–30 CREATIVE PIPE ANIMATION SYSTEM
-      if (obs.levelNum !== undefined && obs.levelNum >= 20 && obs.patternType) {
+      // LEVEL CREATIVE PIPE ANIMATION SYSTEM
+      if (obs.levelNum !== undefined && obs.patternType) {
         obs.shakeX = 0;
         obs.shakeX2 = 0;
 
@@ -260,7 +258,33 @@ export class ObstacleManager {
           const easedOpen = progress === 0 ? 0 : progress === 1 ? 1 : Math.pow(2, -10 * progress) * Math.sin((progress * 10 - 0.75) * c4) + 1;
 
           // Choreographed patterns
-          if (obs.patternType === 'hybrid_20') {
+          if (obs.patternType === 'wave_10') {
+            const centerY = height / 2 + Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.5) * 55;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'breathing_12') {
+            const centerY = obs.spawnCenterY!;
+            const currentGap = obs.gapHeight! + Math.sin(this.waveTime * 2.5) * 30;
+            obs.targetTopHeight = centerY - currentGap / 2;
+            obs.targetBottomHeight = height - centerY - currentGap / 2;
+          } else if (obs.patternType === 'moving_stair_15') {
+            const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 1.8 + obs.obstacleIdx! * 0.3) * 40;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'rotating_17') {
+            const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 1.5 + obs.obstacleIdx! * 0.5) * 35;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'dynamic_w_18') {
+            const centerY = height / 2 + Math.sin(this.waveTime * 2.2 + obs.obstacleIdx! * 0.6) * 50;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'exp_shrink_19') {
+            const centerY = obs.spawnCenterY!;
+            const currentGap = obs.gapHeight! + Math.sin(this.waveTime * 4.0) * 25;
+            obs.targetTopHeight = centerY - currentGap / 2;
+            obs.targetBottomHeight = height - centerY - currentGap / 2;
+          } else if (obs.patternType === 'hybrid_20') {
             const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.4) * 45;
             obs.targetTopHeight = centerY - obs.gapHeight! / 2;
             obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
@@ -430,15 +454,9 @@ export class ObstacleManager {
         : (startGap - (startGap - minGap) * progressRatio);
       this.spawnObstacle(worldId, width, height, dynamicGap, zone, difficulty, progressRatio, score);
 
-      // Determine next spawn distance: Connected cavern spacing segments (100px / 330px) for Levels 20-30
-      if (this.activeLevelConfig && this.activeLevelConfig.levelNum >= 20) {
-        if (this.tunnelSpawnCount < 3) { // 4 pipes total (0, 1, 2, 3)
-          this.tunnelSpawnCount++;
-          this.nextSpawnDistance = 100; // close spacing for connected section
-        } else {
-          this.tunnelSpawnCount = 0;
-          this.nextSpawnDistance = 330; // larger smooth gap section
-        }
+      // Determine next spawn distance: Connected cavern spacing segments (100px) for all Levels in Level Mode
+      if (this.activeLevelConfig) {
+        this.nextSpawnDistance = 100; // close spacing for horizontally joined pillars
       } else {
         const baseDistanceClassic = (width / 1.35) * 0.80;
         const defaultDistance = baseDistanceClassic * 1.15;
@@ -461,7 +479,7 @@ export class ObstacleManager {
     _progressRatio = 0,
     score = 0
   ) {
-    if (this.activeLevelConfig && this.activeLevelConfig.levelNum >= 20) {
+    if (this.activeLevelConfig) {
       const levelNum = this.activeLevelConfig.levelNum;
       const patternsList = this.activeLevelConfig.patterns;
       const patternType = patternsList[this.currentPatternIdx % patternsList.length];
@@ -470,7 +488,16 @@ export class ObstacleManager {
 
       let targetCenterY = height / 2;
       
-      if (patternType === 'hybrid_20') {
+      if (patternType === 'wave_10') {
+        const step = obstacleIdx % 12;
+        targetCenterY = height / 2 + Math.sin(step * (Math.PI * 2 / 12)) * 55;
+      } else if (patternType === 'moving_stair_15') {
+        const offsets = [80, 40, 0, -40, -80, -40, 0, 40];
+        targetCenterY = height / 2 + offsets[obstacleIdx % offsets.length];
+      } else if (patternType === 'dynamic_w_18') {
+        const offsets = [-80, -40, 0, 40, 80, 40, 0, -40];
+        targetCenterY = height / 2 + offsets[obstacleIdx % offsets.length];
+      } else if (patternType === 'hybrid_20') {
         const offsets = [-60, -30, 0, 30, 60, 30, 0, -30];
         targetCenterY = height / 2 + offsets[obstacleIdx % offsets.length];
       } else if (patternType === 'waterfall_25') {
@@ -944,8 +971,8 @@ export class ObstacleManager {
       // Draw the main obstacle pillars
       drawPillars();
 
-      // Pulsing neon gap-border glow along inner lips of moving Level 20+ columns
-      if (obs.levelNum !== undefined && obs.levelNum >= 20 && obs.isMoving) {
+      // Pulsing neon gap-border glow along inner lips of moving Level columns
+      if (obs.levelNum !== undefined && obs.isMoving) {
         const topShift = obs.shakeX || 0;
         const bottomShift = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
         const leftTop = obs.x + topShift;
