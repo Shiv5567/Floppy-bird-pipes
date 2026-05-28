@@ -299,33 +299,42 @@ export class GameEngine {
           const selectedZone = this.progressManager.getState().selectedZone;
           const selectedDifficulty = this.progressManager.getState().selectedDifficulty;
           
-          // Classic mode has a much slower, gradual, and longer progressive speed curve (up to 250 score)
-          const progressiveCap = selectedZone === 'classic' ? 250.0 : 60.0;
-          const progressRatio = Math.min(1.0, this.score / progressiveCap);
-          
           let startSpeed = 1.0;
-          let maxSpeed = 1.25;
           
           if (selectedZone === 'classic') {
             startSpeed = 0.72; // Start very comfortable and slow to allow longer survival
-            maxSpeed = 1.20;
           } else if (selectedDifficulty === 'easy') {
             startSpeed = 0.75;
-            maxSpeed = 0.90;
           } else if (selectedDifficulty === 'hard') {
             startSpeed = 1.20;
-            maxSpeed = 1.50;
           }
           
-          const speedCoeff = startSpeed + (maxSpeed - startSpeed) * progressRatio;
-          
-          // Add exactly 5% speed every 25 score
-          const speedMultiplier = 1.0 + Math.floor(this.score / 25.0) * 0.05;
+          // Custom speed multiplier intervals:
+          // 1-100: Constant starting speed.
+          // 100-200: +5% speed (smoothly interpolated).
+          // 200-300: +3% speed (smoothly interpolated on top of previous).
+          // 300-400: +2% speed (smoothly interpolated on top of previous).
+          // 400+: Fixed speed, no further speed additions.
+          let speedMultiplier = 1.0;
+          if (this.score <= 100) {
+            speedMultiplier = 1.0;
+          } else if (this.score <= 200) {
+            const progress = (this.score - 100) / 100;
+            speedMultiplier = 1.0 + progress * 0.05;
+          } else if (this.score <= 300) {
+            const progress = (this.score - 200) / 100;
+            speedMultiplier = 1.05 * (1.0 + progress * 0.03);
+          } else if (this.score <= 400) {
+            const progress = (this.score - 300) / 100;
+            speedMultiplier = 1.0815 * (1.0 + progress * 0.02);
+          } else {
+            speedMultiplier = 1.05 * 1.03 * 1.02; // Fixed maximum multiplier: 1.10313
+          }
 
           if (this.activePowerupsList['turbo']) {
             this.scrollSpeed = this.baseScrollSpeed * 2.3;
           } else {
-            this.scrollSpeed = this.baseScrollSpeed * speedCoeff * speedMultiplier;
+            this.scrollSpeed = this.baseScrollSpeed * startSpeed * speedMultiplier;
           }
         }
       }
