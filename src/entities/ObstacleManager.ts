@@ -66,6 +66,7 @@ export class ObstacleManager {
   private currentPatternIdx = 0;
   private endlessPatternQueue: { centerYOffset: number, isMoving?: boolean, gapScale?: number, distScale?: number, isLaser?: boolean }[] = [];
   private currentEndlessDistScale = 1.0;
+  private endlessObstacleCount = 0;
 
   constructor() {}
 
@@ -136,6 +137,7 @@ export class ObstacleManager {
     this.currentScore = 0;
     this.endlessPatternQueue = [];
     this.currentEndlessDistScale = 1.0;
+    this.endlessObstacleCount = 0;
   }
 
   public update(
@@ -155,6 +157,18 @@ export class ObstacleManager {
     const dtCoeff = deltaTime * 60 * timeScale;
     this.waveTime += deltaTime * timeScale;
     
+    // Endless progressive difficulty scaling math based on user specifications
+    let pct = 0.0;
+    if (score > 200 && score <= 300) {
+      pct = 0.10 * ((score - 200) / 100.0);
+    } else if (score > 300 && score <= 400) {
+      pct = 0.10 + 0.05 * ((score - 300) / 100.0);
+    } else if (score > 400 && score <= 500) {
+      pct = 0.15 + 0.05 * ((score - 400) / 100.0);
+    } else if (score > 500) {
+      pct = 0.20;
+    }
+
     // Smooth, step-by-step progressive difficulty scaling ratio over 60 points
     const progressRatio = Math.min(1.0, score / 60.0);
     
@@ -199,7 +213,7 @@ export class ObstacleManager {
 
     // If not set or invalid, initialize nextSpawnDistance
     if (this.nextSpawnDistance <= 150 && zone !== 'wave') {
-      this.nextSpawnDistance = this.activeLevelConfig ? this.obstacleWidth : targetDistance;
+      this.nextSpawnDistance = this.activeLevelConfig ? this.obstacleWidth : targetDistance * (1.0 - pct);
     }
 
     // Update existing obstacles
@@ -429,6 +443,65 @@ export class ObstacleManager {
             );
           }
         }
+      } else {
+        // Endless mode obstacle movement
+        if (score >= 300) {
+          let centerY = obs.spawnCenterY !== undefined ? obs.spawnCenterY : (obs.initialTopHeight + (height - obs.initialBottomHeight - obs.initialTopHeight) / 2);
+          let currentGap = obs.gapHeight !== undefined ? obs.gapHeight : (height - obs.initialBottomHeight - obs.initialTopHeight);
+
+          // 1. Individual unique motion style based on obstacle index/position
+          const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 3;
+          
+          if (motionStyle === 0) {
+            // Style 0: Smooth sinusoidal vertical sliding
+            centerY += Math.sin(this.waveTime * 2.0 + (obs.obstacleIdx || 0) * 0.5) * 45;
+          } else if (motionStyle === 1) {
+            // Style 1: Breathing gap pulsation
+            currentGap += Math.sin(this.waveTime * 2.5) * 22;
+          } else {
+            // Style 2: Alternating elevator motion
+            const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
+            centerY += Math.sin(this.waveTime * 1.8) * 40 * elevatorDir;
+          }
+
+          // 2. Global wave motion if score is 500 or above
+          if (score >= 500) {
+            const globalWave = Math.sin(this.waveTime * 1.5 + obs.x * 0.004) * 45;
+            centerY += globalWave;
+          }
+
+          // 3. Safeguards & limits
+          // Keep gap at a safe size (minimum 165px)
+          if (currentGap < 165) {
+            currentGap = 165;
+          }
+
+          // Keep centerY within screen bounds so that both top and bottom pipes are at least 50px high
+          const minCenterY = 50 + currentGap / 2;
+          const maxCenterY = height - 50 - currentGap / 2;
+          centerY = Math.max(minCenterY, Math.min(maxCenterY, centerY));
+
+          // Apply coordinates
+          obs.topHeight = centerY - currentGap / 2;
+          obs.bottomHeight = height - centerY - currentGap / 2;
+
+          // 4. Visual effects - spawn dynamic movement particles
+          if (_particleEngine && Math.random() < 0.08) {
+            const pxTop = obs.x + Math.random() * obs.width;
+            const pyTop = obs.topHeight;
+            let pColor = obs.worldId === 'cyberpunk' ? '#ff007f' : '#39ff14';
+            _particleEngine.spawn(
+              pxTop, pyTop,
+              -scrollSpeed * 0.4 + (Math.random() - 0.5) * 1.0,
+              (Math.random() - 0.5) * 1.5,
+              pColor,
+              2.0 + Math.random() * 2.0,
+              0.8,
+              0.03,
+              'spark'
+            );
+          }
+        }
       }
 
       // Handle Cyberpunk pulsing lasers
@@ -457,7 +530,14 @@ export class ObstacleManager {
       const dynamicGap = zone === 'classic' 
         ? startGap 
         : (startGap - (startGap - minGap) * progressRatio);
-      this.spawnObstacle(worldId, width, height, dynamicGap, zone, difficulty, progressRatio, score);
+      
+      // Apply endless progressive difficulty gap scaling
+      let gapWithDifficulty = dynamicGap;
+      if (!this.activeLevelConfig) {
+        gapWithDifficulty = dynamicGap * (1.0 - pct);
+      }
+      
+      this.spawnObstacle(worldId, width, height, gapWithDifficulty, zone, difficulty, progressRatio, score);
 
       // Determine next spawn distance: Connected cavern spacing segments (0 distance horizontally) for all Levels in Level Mode
       if (this.activeLevelConfig) {
@@ -466,7 +546,8 @@ export class ObstacleManager {
         const baseDistanceClassic = (width / 1.35) * 0.80;
         const defaultDistance = baseDistanceClassic * 1.15;
         const baseDist = difficulty === 'easy' ? defaultDistance * 1.20 : defaultDistance;
-        this.nextSpawnDistance = baseDist * this.currentEndlessDistScale;
+        // Scale by endless difficulty scaling factor!
+        this.nextSpawnDistance = baseDist * this.currentEndlessDistScale * (1.0 - pct);
       }
     }
   }
@@ -632,7 +713,10 @@ export class ObstacleManager {
       laserTimer: 0,
       oscillationFrequency: 0,
       oscillationRange: 0,
-      levelNum
+      levelNum,
+      gapHeight: currentStepGap,
+      spawnCenterY: targetCenterY,
+      obstacleIdx: this.endlessObstacleCount++
     }));
   }
 
