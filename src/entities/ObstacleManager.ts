@@ -895,75 +895,41 @@ export class ObstacleManager {
           }
 
           this.drawCavernObstacle(ctx, obs, height, colorTop, colorBottom, outlineColor);
-        } else if (obs.isStructured || (this.currentScore >= 50 && this.currentScore <= 70)) {
-          switch (obs.worldId) {
-            case 'jungle':
-              this.drawStructuredJunglePillars(ctx, obs, height);
-              break;
-            case 'jungle_temple':
-              this.drawStructuredJungleTemplePillars(ctx, obs, height);
-              break;
-            case 'cyberpunk':
-              this.drawStructuredCyberpunkPillars(ctx, obs, height);
-              break;
-            case 'ice':
-              this.drawStructuredIcePillars(ctx, obs, height);
-              break;
-            case 'desert':
-              this.drawStructuredDesertPillars(ctx, obs, height);
-              break;
-            case 'volcano':
-              this.drawStructuredVolcanoPillars(ctx, obs, height);
-              break;
-            case 'space':
-              this.drawStructuredSpaceObstacles(ctx, obs, height);
-              break;
-            case 'underwater':
-              this.drawStructuredUnderwaterPillars(ctx, obs, height);
-              break;
-            case 'heaven':
-              this.drawStructuredHeavenPillars(ctx, obs, height);
-              break;
-            case 'retro':
-              this.drawStructuredRetroPillars(ctx, obs, height);
-              break;
-            default:
-              this.drawStructuredDefaultPillars(ctx, obs, height);
-          }
         } else {
+          const styleIdx = Math.floor(this.currentScore / 25) % 4;
           switch (obs.worldId) {
             case 'jungle':
-              this.drawJunglePillars(ctx, obs, height);
+              this.drawJunglePillars(ctx, obs, height, styleIdx);
               break;
             case 'jungle_temple':
-              this.drawJungleTemplePillars(ctx, obs, height);
+              this.drawJungleTemplePillars(ctx, obs, height, styleIdx);
               break;
             case 'cyberpunk':
-              this.drawCyberpunkPillars(ctx, obs, height);
+              this.drawCyberpunkPillars(ctx, obs, height, styleIdx);
               break;
             case 'ice':
-              this.drawIcePillars(ctx, obs, height);
+              this.drawIcePillars(ctx, obs, height, styleIdx);
               break;
             case 'desert':
-              this.drawDesertPillars(ctx, obs, height);
+              this.drawDesertPillars(ctx, obs, height, styleIdx);
               break;
             case 'volcano':
-              this.drawVolcanoPillars(ctx, obs, height);
+              this.drawVolcanoPillars(ctx, obs, height, styleIdx);
               break;
             case 'space':
-              this.drawSpaceObstacles(ctx, obs, height);
+              this.drawSpaceObstacles(ctx, obs, height, styleIdx);
               break;
             case 'underwater':
-              this.drawUnderwaterPillars(ctx, obs, height);
+              this.drawUnderwaterPillars(ctx, obs, height, styleIdx);
               break;
             case 'heaven':
-              this.drawHeavenPillars(ctx, obs, height);
+              this.drawHeavenPillars(ctx, obs, height, styleIdx);
               break;
             case 'retro':
-              this.drawRetroPillars(ctx, obs, height);
+              this.drawRetroPillars(ctx, obs, height, styleIdx);
               break;
             default:
-              this.drawDefaultPillars(ctx, obs, height);
+              this.drawDefaultPillars(ctx, obs, height, styleIdx);
           }
         }
       };
@@ -1066,469 +1032,269 @@ export class ObstacleManager {
   }
 
   // Visual Pillar Painters
-  private drawDefaultPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+  private drawDefaultPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number, styleIdx = 0) {
     const rx = obs.x;
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = false;
 
-    if (obs.isMutated) {
-      if (isPerformance) {
-        ctx.fillStyle = '#1e3a8a';
-        ctx.strokeStyle = '#fbbf24';
-        ctx.lineWidth = 3.5;
-        ctx.fillRect(rx, -1000, rw, rTop + 1000);
-        ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-        ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-        ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+    if (styleIdx === 2) {
+      this.drawStructuredDefaultPillars(ctx, obs, height);
+      return;
+    }
 
-        ctx.fillStyle = '#fbbf24';
-        ctx.fillRect(rx - 4, rTop - 20, rw + 8, 20);
-        ctx.strokeRect(rx - 4, rTop - 20, rw + 8, 20);
-        ctx.fillRect(rx - 4, height - rBottom, rw + 8, 20);
-        ctx.strokeRect(rx - 4, height - rBottom, rw + 8, 20);
-        return;
-      }
+    let stop0 = '#0a230a', stop3 = '#276227', stop5 = '#73e673', stop7 = '#1b4d1b', stop1 = '#051205'; // Style 1: Emerald Green
+    let borderCol = '#0e240e', lineWidth = 3;
+    let capStop0 = '#123512', capStop3 = '#3ca63c', capStop5 = '#a3ffa3', capStop7 = '#267326', capStop1 = '#091c09'; // Style 1 Caps: Green
+    let capBorderCol = '#061406', rivetCol = '#ffd700', rivetGlow = true; // gold rivets
 
-      // Premium 3D cylindrical gradient for the body
-      const bodyGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      bodyGrad.addColorStop(0, '#0b132b');
-      bodyGrad.addColorStop(0.3, '#1c2541');
-      bodyGrad.addColorStop(0.6, '#5bc0be'); // Metallic turquoise highlight
-      bodyGrad.addColorStop(0.8, '#3a506b');
-      bodyGrad.addColorStop(1, '#0b132b');
-      ctx.fillStyle = bodyGrad;
-      ctx.strokeStyle = '#3a506b';
-      ctx.lineWidth = 3;
+    if (styleIdx === 1) {
+      // Style 2: Cobalt Sapphire Metallic Blue
+      stop0 = '#0b132b'; stop3 = '#1c2541'; stop5 = '#5bc0be'; stop7 = '#3a506b'; stop1 = '#0b132b';
+      borderCol = '#1e293b'; lineWidth = 3.5;
+      capStop0 = '#1e293b'; capStop3 = '#475569'; capStop5 = '#94a3b8'; capStop7 = '#334155'; capStop1 = '#0f172a'; // Chrome silver caps
+      capBorderCol = '#0f172a'; rivetCol = '#ffffff'; rivetGlow = false; // silver rivets
+    } else if (styleIdx === 3) {
+      // Style 4: Solar Flare Golden Orange
+      stop0 = '#431407'; stop3 = '#7c2d12'; stop5 = '#ea580c'; stop7 = '#9a3412'; stop1 = '#270e04';
+      borderCol = '#431407'; lineWidth = 3.5;
+      capStop0 = '#451a03'; capStop3 = '#b45309'; capStop5 = '#fef08a'; capStop7 = '#d97706'; capStop1 = '#1a0500'; // Dark copper-gold caps
+      capBorderCol = '#1a0500'; rivetCol = '#ff4500'; rivetGlow = true; // solar orange rivets
+    }
 
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+    // Cylindrical gradient body
+    const bodyGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    bodyGrad.addColorStop(0, stop0);
+    bodyGrad.addColorStop(0.3, stop3);
+    bodyGrad.addColorStop(0.5, stop5);
+    bodyGrad.addColorStop(0.7, stop7);
+    bodyGrad.addColorStop(1, stop1);
+    ctx.fillStyle = bodyGrad;
+    ctx.strokeStyle = borderCol;
+    ctx.lineWidth = lineWidth;
 
-      // Gold-ribbon joint grooves
-      ctx.strokeStyle = '#fbbf24';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(rx + rw * 0.3, -1000);
-      ctx.lineTo(rx + rw * 0.3, rTop - 24);
-      ctx.moveTo(rx + rw * 0.7, -1000);
-      ctx.lineTo(rx + rw * 0.7, rTop - 24);
-      ctx.moveTo(rx + rw * 0.3, height - rBottom + 24);
-      ctx.lineTo(rx + rw * 0.3, height + 1000);
-      ctx.moveTo(rx + rw * 0.7, height - rBottom + 24);
-      ctx.lineTo(rx + rw * 0.7, height + 1000);
-      ctx.stroke();
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
-      // Ornate Gold Caps on upper & lower surfaces
-      const capY1 = rTop - 24;
-      const capY2 = height - rBottom;
+    // Decorative Flanged Rims/Caps
+    const capY1 = rTop - 22;
+    const capY2 = height - rBottom;
 
-      const goldGrad = ctx.createLinearGradient(rx - 6, 0, rx + rw + 6, 0);
-      goldGrad.addColorStop(0, '#b45309'); // bronze-gold shadow
-      goldGrad.addColorStop(0.3, '#d97706');
-      goldGrad.addColorStop(0.5, '#fef08a'); // golden reflection core
-      goldGrad.addColorStop(0.8, '#d97706');
-      goldGrad.addColorStop(1, '#78350f');
-      ctx.fillStyle = goldGrad;
-      ctx.strokeStyle = '#1e1b4b'; // dark blue contrast border
-      ctx.lineWidth = 3.5;
+    const capGrad = ctx.createLinearGradient(rx - 6, 0, rx + rw + 6, 0);
+    capGrad.addColorStop(0, capStop0);
+    capGrad.addColorStop(0.3, capStop3);
+    capGrad.addColorStop(0.5, capStop5);
+    capGrad.addColorStop(0.8, capStop7);
+    capGrad.addColorStop(1, capStop1);
 
-      // Top Cap
-      ctx.fillRect(rx - 6, capY1, rw + 12, 24);
-      ctx.strokeRect(rx - 6, capY1, rw + 12, 24);
-      // Bottom Cap
-      ctx.fillRect(rx - 6, capY2, rw + 12, 24);
-      ctx.strokeRect(rx - 6, capY2, rw + 12, 24);
+    ctx.fillStyle = capGrad;
+    ctx.strokeStyle = capBorderCol;
+    ctx.lineWidth = 3.5;
 
-      // Add elegant rivets on the gold caps
-      ctx.fillStyle = '#1e293b'; // Steel color rivets
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-      ctx.lineWidth = 1.0;
-      const rivetSpacing = (rw + 12) / 4;
-      for (let j = 1; j < 4; j++) {
-        const rivetX = rx - 6 + j * rivetSpacing;
-        ctx.beginPath();
-        ctx.arc(rivetX, capY1 + 12, 3, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
+    ctx.fillRect(rx - 6, capY1, rw + 12, 22);
+    ctx.strokeRect(rx - 6, capY1, rw + 12, 22);
+    ctx.fillRect(rx - 6, capY2, rw + 12, 22);
+    ctx.strokeRect(rx - 6, capY2, rw + 12, 22);
 
-        ctx.beginPath();
-        ctx.arc(rivetX, capY2 + 12, 3, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-      }
-    } else {
-      // Classic emerald forest green with bright cylindrical highlight
-      if (isPerformance) {
-        ctx.fillStyle = '#336633';
-        ctx.strokeStyle = '#0e240e';
-        ctx.lineWidth = 3;
-        ctx.fillRect(rx, -1000, rw, rTop + 1000);
-        ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-        ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-        ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-        ctx.fillStyle = '#55a855';
-        ctx.fillRect(rx - 4, rTop - 20, rw + 8, 20);
-        ctx.strokeRect(rx - 4, rTop - 20, rw + 8, 20);
-        ctx.fillRect(rx - 4, height - rBottom, rw + 8, 20);
-        ctx.strokeRect(rx - 4, height - rBottom, rw + 8, 20);
-        return;
-      }
-
-      // Smooth multi-stop green cylindrical gradient
-      const bodyGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      bodyGrad.addColorStop(0, '#0a230a');
-      bodyGrad.addColorStop(0.3, '#276227');
-      bodyGrad.addColorStop(0.5, '#73e673'); // bright cylindrical specular highlight
-      bodyGrad.addColorStop(0.7, '#1b4d1b');
-      bodyGrad.addColorStop(1, '#051205');
-      ctx.fillStyle = bodyGrad;
-      ctx.strokeStyle = '#0e240e';
-      ctx.lineWidth = 3;
-
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-      // Add vertical pipe groove lines
-      ctx.strokeStyle = '#081708';
-      ctx.lineWidth = 2.0;
-      ctx.beginPath();
-      ctx.moveTo(rx + rw * 0.25, -1000);
-      ctx.lineTo(rx + rw * 0.25, rTop - 22);
-      ctx.moveTo(rx + rw * 0.75, -1000);
-      ctx.lineTo(rx + rw * 0.75, rTop - 22);
-      ctx.moveTo(rx + rw * 0.25, height - rBottom + 22);
-      ctx.lineTo(rx + rw * 0.25, height + 1000);
-      ctx.moveTo(rx + rw * 0.75, height - rBottom + 22);
-      ctx.lineTo(rx + rw * 0.75, height + 1000);
-      ctx.stroke();
-
-      // Flanged coupling caps with bright green reflection lip
-      const capY1 = rTop - 22;
-      const capY2 = height - rBottom;
-
-      const capGrad = ctx.createLinearGradient(rx - 6, 0, rx + rw + 6, 0);
-      capGrad.addColorStop(0, '#123512');
-      capGrad.addColorStop(0.3, '#3ca63c');
-      capGrad.addColorStop(0.5, '#a3ffa3'); // bright reflection core
-      capGrad.addColorStop(0.8, '#267326');
-      capGrad.addColorStop(1, '#091c09');
-
-      ctx.fillStyle = capGrad;
-      ctx.strokeStyle = '#061406';
-      ctx.lineWidth = 3.5;
-
-      // Top Cap
-      ctx.fillRect(rx - 6, capY1, rw + 12, 22);
-      ctx.strokeRect(rx - 6, capY1, rw + 12, 22);
-      // Bottom Cap
-      ctx.fillRect(rx - 6, capY2, rw + 12, 22);
-      ctx.strokeRect(rx - 6, capY2, rw + 12, 22);
-
-      // Embedded shiny golden rivets for industrial feel
-      ctx.fillStyle = '#ffd700';
+    // Dynamic but optimized rivets
+    ctx.fillStyle = rivetCol;
+    if (rivetGlow) {
       ctx.shadowBlur = 4;
-      ctx.shadowColor = '#ffd700';
-      const rivetSpacing = (rw + 12) / 3;
-      for (let j = 1; j < 3; j++) {
-        const rxPos = rx - 6 + j * rivetSpacing;
-        ctx.beginPath();
-        ctx.arc(rxPos, capY1 + 11, 2.5, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.arc(rxPos, capY2 + 11, 2.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.shadowBlur = 0;
+      ctx.shadowColor = rivetCol;
     }
-  }
-
-  private drawRetroPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const rx = obs.x;
-    const rw = obs.width;
-    const rTop = obs.topHeight;
-    const rBottom = obs.bottomHeight;
-    const isPerformance = false;
-
-    if (isPerformance) {
-      ctx.fillStyle = obs.isMutated ? '#ec4899' : '#73c93e';
-      ctx.strokeStyle = obs.isMutated ? '#06b6d4' : '#000000';
-      ctx.lineWidth = obs.isMutated ? 3.5 : 3;
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-      ctx.fillStyle = '#fbbf24';
-      ctx.fillRect(rx - 4, rTop - 20, rw + 8, 20);
-      ctx.fillRect(rx - 4, height - rBottom, rw + 8, 20);
-      return;
-    }
-
-    if (obs.isMutated) {
-      // Vaporwave retro gradient
-      const bodyGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      bodyGrad.addColorStop(0, '#581c87'); // deep purple
-      bodyGrad.addColorStop(0.5, '#db2777'); // vibrant hot pink
-      bodyGrad.addColorStop(1, '#3b0764');
-      ctx.fillStyle = bodyGrad;
-      ctx.strokeStyle = '#06b6d4'; // Cyan outline
-      ctx.lineWidth = 3.5;
-
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-      // Vaporwave vertical grid lines
-      ctx.strokeStyle = 'rgba(6, 182, 212, 0.4)';
-      ctx.lineWidth = 2.0;
+    const rivetSpacing = (rw + 12) / 3;
+    for (let j = 1; j < 3; j++) {
+      const rxPos = rx - 6 + j * rivetSpacing;
       ctx.beginPath();
-      ctx.moveTo(rx + rw * 0.25, -1000);
-      ctx.lineTo(rx + rw * 0.25, rTop - 24);
-      ctx.moveTo(rx + rw * 0.5, -1000);
-      ctx.lineTo(rx + rw * 0.5, rTop - 24);
-      ctx.moveTo(rx + rw * 0.75, -1000);
-      ctx.lineTo(rx + rw * 0.75, rTop - 24);
-
-      ctx.moveTo(rx + rw * 0.25, height - rBottom + 24);
-      ctx.lineTo(rx + rw * 0.25, height + 1000);
-      ctx.moveTo(rx + rw * 0.5, height - rBottom + 24);
-      ctx.lineTo(rx + rw * 0.5, height + 1000);
-      ctx.moveTo(rx + rw * 0.75, height - rBottom + 24);
-      ctx.lineTo(rx + rw * 0.75, height + 1000);
-      ctx.stroke();
-
-      // Vaporwave retro horizontal gridlines
-      ctx.beginPath();
-      for (let y = rTop - 120; y < rTop - 24; y += 24) {
-        ctx.moveTo(rx, y);
-        ctx.lineTo(rx + rw, y);
-      }
-      for (let y = height - rBottom + 24; y < height - rBottom + 120; y += 24) {
-        ctx.moveTo(rx, y);
-        ctx.lineTo(rx + rw, y);
-      }
-      ctx.stroke();
-
-      // Blinking neon arcade cap on upper & lower surfaces
-      const capY1 = rTop - 24;
-      const capY2 = height - rBottom;
-
-      const capGrad = ctx.createLinearGradient(rx - 6, 0, rx + rw + 6, 0);
-      capGrad.addColorStop(0, '#06b6d4');
-      capGrad.addColorStop(0.5, '#ffffff'); // bright neon white core
-      capGrad.addColorStop(1, '#0891b2');
-
-      ctx.fillStyle = capGrad;
-      ctx.strokeStyle = '#020617';
-      ctx.lineWidth = 3.0;
-
-      // Top Cap
-      ctx.fillRect(rx - 6, capY1, rw + 12, 24);
-      ctx.strokeRect(rx - 6, capY1, rw + 12, 24);
-      // Bottom Cap
-      ctx.fillRect(rx - 6, capY2, rw + 12, 24);
-      ctx.strokeRect(rx - 6, capY2, rw + 12, 24);
-
-      // Blinking red/green neon lights on surface
-      const blinkColor = Math.sin((obs.x || 0) * 0.12) > 0 ? '#f43f5e' : '#10b981';
-      ctx.fillStyle = blinkColor;
-      ctx.fillRect(rx + rw / 2 - 6, capY1 + 7, 12, 10);
-      ctx.fillRect(rx + rw / 2 - 6, capY2 + 7, 12, 10);
-      ctx.strokeRect(rx + rw / 2 - 6, capY1 + 7, 12, 10);
-      ctx.strokeRect(rx + rw / 2 - 6, capY2 + 7, 12, 10);
-    } else {
-      // 8-bit retro green grid body with shiny cylindrical highlight
-      const bodyGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      bodyGrad.addColorStop(0, '#1b5e20');
-      bodyGrad.addColorStop(0.3, '#73c93e'); // Classic Mario green
-      bodyGrad.addColorStop(0.5, '#a3e635'); // Bright highlight band
-      bodyGrad.addColorStop(0.8, '#387c12');
-      bodyGrad.addColorStop(1, '#0f3204');
-
-      ctx.fillStyle = bodyGrad;
-      ctx.strokeStyle = '#000000'; // Classic black outline
-      ctx.lineWidth = 3.5;
-
-      // Top column
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      // Bottom column
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-      // Retro brick divisions
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
-      ctx.lineWidth = 2.0;
-      ctx.beginPath();
-      // vertical lines
-      ctx.moveTo(rx + rw * 0.33, -1000);
-      ctx.lineTo(rx + rw * 0.33, rTop - 24);
-      ctx.moveTo(rx + rw * 0.66, -1000);
-      ctx.lineTo(rx + rw * 0.66, rTop - 24);
-      ctx.moveTo(rx + rw * 0.33, height - rBottom + 24);
-      ctx.lineTo(rx + rw * 0.33, height + 1000);
-      ctx.moveTo(rx + rw * 0.66, height - rBottom + 24);
-      ctx.lineTo(rx + rw * 0.66, height + 1000);
-
-      // horizontal lines
-      for (let y = rTop - 120; y < rTop - 24; y += 30) {
-        ctx.moveTo(rx, y);
-        ctx.lineTo(rx + rw, y);
-      }
-      for (let y = height - rBottom + 24; y < height - rBottom + 120; y += 30) {
-        ctx.moveTo(rx, y);
-        ctx.lineTo(rx + rw, y);
-      }
-      ctx.stroke();
-
-      // Gorgeous stepped 8-bit golden cap
-      const capY1 = rTop - 24;
-      const capY2 = height - rBottom;
-
-      const goldGrad = ctx.createLinearGradient(rx - 6, 0, rx + rw + 6, 0);
-      goldGrad.addColorStop(0, '#b45309');
-      goldGrad.addColorStop(0.5, '#fef08a');
-      goldGrad.addColorStop(1, '#b45309');
-
-      ctx.fillStyle = goldGrad;
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 3.5;
-
-      // Top Cap
-      ctx.fillRect(rx - 6, capY1, rw + 12, 24);
-      ctx.strokeRect(rx - 6, capY1, rw + 12, 24);
-      // Bottom Cap
-      ctx.fillRect(rx - 6, capY2, rw + 12, 24);
-      ctx.strokeRect(rx - 6, capY2, rw + 12, 24);
-
-      // Red/Yellow flashing pixel bulbs on golden caps
-      const bulbColor = Math.sin((obs.x || 0) * 0.15) > 0 ? '#ef4444' : '#eab308';
-      ctx.fillStyle = bulbColor;
-      ctx.fillRect(rx + 6, capY1 + 8, 8, 8);
-      ctx.strokeRect(rx + 6, capY1 + 8, 8, 8);
-      ctx.fillRect(rx + rw - 14, capY1 + 8, 8, 8);
-      ctx.strokeRect(rx + rw - 14, capY1 + 8, 8, 8);
-
-      ctx.fillRect(rx + 6, capY2 + 8, 8, 8);
-      ctx.strokeRect(rx + 6, capY2 + 8, 8, 8);
-      ctx.fillRect(rx + rw - 14, capY2 + 8, 8, 8);
-      ctx.strokeRect(rx + rw - 14, capY2 + 8, 8, 8);
-    }
-  }
-
-  private drawJunglePillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const rx = obs.x;
-    const rw = obs.width;
-    const rTop = obs.topHeight;
-    const rBottom = obs.bottomHeight;
-    const isPerformance = false;
-
-    if (isPerformance) {
-      ctx.fillStyle = obs.isMutated ? '#083722' : '#4f5043';
-      ctx.strokeStyle = obs.isMutated ? '#00e676' : '#1b1c16';
-      ctx.lineWidth = 2.0;
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-      return;
-    }
-
-    if (obs.isMutated) {
-      // 1. Vibrant exotic emerald forest gradient body with light highlight
-      const forestGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      forestGrad.addColorStop(0, '#062616');
-      forestGrad.addColorStop(0.3, '#105232');
-      forestGrad.addColorStop(0.5, '#39ff14'); // specular neon emerald core
-      forestGrad.addColorStop(0.7, '#0c3d24');
-      forestGrad.addColorStop(1, '#03140b');
-
-      // Draw central organic wood-vine core
-      ctx.fillStyle = 'rgba(120, 80, 60, 0.7)';
-      ctx.fillRect(rx + rw * 0.4, -1000, rw * 0.2, rTop + 1000);
-      ctx.fillRect(rx + rw * 0.4, height - rBottom, rw * 0.2, rBottom + 1000);
-
-      ctx.fillStyle = forestGrad;
-      ctx.strokeStyle = '#00ff66';
-      ctx.lineWidth = 2.5;
-
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-      // Ornate copper collar lips overgrown with moss on surfaces
-      const capY1 = rTop - 22;
-      const capY2 = height - rBottom;
-
-      const copperGrad = ctx.createLinearGradient(rx - 4, 0, rx + rw + 4, 0);
-      copperGrad.addColorStop(0, '#7c2d12');
-      copperGrad.addColorStop(0.5, '#ffd700'); // Shiny golden accent
-      copperGrad.addColorStop(1, '#431407');
-      ctx.fillStyle = copperGrad;
-      ctx.strokeStyle = '#1a0500';
-      ctx.lineWidth = 3.0;
-
-      ctx.fillRect(rx - 4, capY1, rw + 8, 22);
-      ctx.strokeRect(rx - 4, capY1, rw + 8, 22);
-      ctx.fillRect(rx - 4, capY2, rw + 8, 22);
-      ctx.strokeRect(rx - 4, capY2, rw + 8, 22);
-
-      // Glowing pink wild forest blossoms on surface
-      ctx.fillStyle = '#ff3385';
-      ctx.beginPath();
-      ctx.arc(rx + rw / 2, capY1 + 11, 6, 0, Math.PI * 2);
-      ctx.arc(rx + rw / 2, capY2 + 11, 6, 0, Math.PI * 2);
+      ctx.arc(rxPos, capY1 + 11, 2.5, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = '#ffeb3b';
+
+      ctx.beginPath();
+      ctx.arc(rxPos, capY2 + 11, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+  }
+
+  private drawRetroPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number, styleIdx = 0) {
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
+
+    if (styleIdx === 2) {
+      this.drawStructuredRetroPillars(ctx, obs, height);
+      return;
+    }
+
+    let stop0 = '#1b5e20', stop3 = '#73c93e', stop5 = '#a3e635', stop7 = '#387c12', stop1 = '#0f3204'; // Style 1: Retro Green
+    let capStop0 = '#b45309', capStop5 = '#fef08a', capStop1 = '#b45309'; // Style 1 Cap: Gold stepped
+    let borderCol = '#000000', capBorder = '#000000';
+    let bulbColor = Math.sin((obs.x || 0) * 0.15) > 0 ? '#ef4444' : '#eab308'; // red/yellow pixel bulbs
+
+    if (styleIdx === 1) {
+      // Style 2: Cyber Blue/Cyan 8-Bit
+      stop0 = '#082f49'; stop3 = '#0284c7'; stop5 = '#38bdf8'; stop7 = '#0369a1'; stop1 = '#0c4a6e';
+      capStop0 = '#0c4a6e'; capStop5 = '#ffffff'; capStop1 = '#0369a1';
+      borderCol = '#020617'; capBorder = '#020617';
+      bulbColor = Math.sin((obs.x || 0) * 0.15) > 0 ? '#00f3ff' : '#06b6d4';
+    } else if (styleIdx === 3) {
+      // Style 4: Vaporwave Pink/Purple Grid
+      stop0 = '#3b0764'; stop3 = '#a21caf'; stop5 = '#f0abfc'; stop7 = '#86198f'; stop1 = '#300a24';
+      capStop0 = '#06b6d4'; capStop5 = '#ffffff'; capStop1 = '#0891b2'; // cyan caps
+      borderCol = '#db2777'; capBorder = '#020617';
+      bulbColor = Math.sin((obs.x || 0) * 0.12) > 0 ? '#ff007f' : '#00f3ff';
+    }
+
+    const bodyGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    bodyGrad.addColorStop(0, stop0);
+    bodyGrad.addColorStop(0.3, stop3);
+    bodyGrad.addColorStop(0.5, stop5);
+    bodyGrad.addColorStop(0.8, stop7);
+    bodyGrad.addColorStop(1, stop1);
+
+    ctx.fillStyle = bodyGrad;
+    ctx.strokeStyle = borderCol;
+    ctx.lineWidth = 3.5;
+
+    // Top column
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    // Bottom column
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    // Retro brick grid lines
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.45)';
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    ctx.moveTo(rx + rw * 0.33, -1000);
+    ctx.lineTo(rx + rw * 0.33, rTop - 24);
+    ctx.moveTo(rx + rw * 0.66, -1000);
+    ctx.lineTo(rx + rw * 0.66, rTop - 24);
+    ctx.moveTo(rx + rw * 0.33, height - rBottom + 24);
+    ctx.lineTo(rx + rw * 0.33, height + 1000);
+    ctx.moveTo(rx + rw * 0.66, height - rBottom + 24);
+    ctx.lineTo(rx + rw * 0.66, height + 1000);
+
+    for (let y = rTop - 120; y < rTop - 24; y += 30) {
+      ctx.moveTo(rx, y);
+      ctx.lineTo(rx + rw, y);
+    }
+    for (let y = height - rBottom + 24; y < height - rBottom + 120; y += 30) {
+      ctx.moveTo(rx, y);
+      ctx.lineTo(rx + rw, y);
+    }
+    ctx.stroke();
+
+    // Stepped Golden/Arcade Cap
+    const capY1 = rTop - 24;
+    const capY2 = height - rBottom;
+
+    const capGrad = ctx.createLinearGradient(rx - 6, 0, rx + rw + 6, 0);
+    capGrad.addColorStop(0, capStop0);
+    capGrad.addColorStop(0.5, capStop5);
+    capGrad.addColorStop(1, capStop1);
+
+    ctx.fillStyle = capGrad;
+    ctx.strokeStyle = capBorder;
+    ctx.lineWidth = 3.5;
+
+    ctx.fillRect(rx - 6, capY1, rw + 12, 24);
+    ctx.strokeRect(rx - 6, capY1, rw + 12, 24);
+    ctx.fillRect(rx - 6, capY2, rw + 12, 24);
+    ctx.strokeRect(rx - 6, capY2, rw + 12, 24);
+
+    // Flashing pixel bulbs
+    ctx.fillStyle = bulbColor;
+    ctx.fillRect(rx + 6, capY1 + 8, 8, 8);
+    ctx.strokeRect(rx + 6, capY1 + 8, 8, 8);
+    ctx.fillRect(rx + rw - 14, capY1 + 8, 8, 8);
+    ctx.strokeRect(rx + rw - 14, capY1 + 8, 8, 8);
+
+    ctx.fillRect(rx + 6, capY2 + 8, 8, 8);
+    ctx.strokeRect(rx + 6, capY2 + 8, 8, 8);
+    ctx.fillRect(rx + rw - 14, capY2 + 8, 8, 8);
+    ctx.strokeRect(rx + rw - 14, capY2 + 8, 8, 8);
+  }
+
+  private drawJunglePillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number, styleIdx = 0) {
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
+
+    if (styleIdx === 2) {
+      this.drawStructuredJunglePillars(ctx, obs, height);
+      return;
+    }
+
+    let stop0 = '#362215', stop3 = '#573d27', stop5 = '#ea580c', stop7 = '#3d2514', stop1 = '#231208'; // Style 0: Bark Brown
+    let ringStop0 = '#4e3629', ringStop5 = '#d97706', ringStop1 = '#2d1c14'; // Bronze cuff
+    let leafColor = '#22c55e', flowerColor = '', flowerCore = '';
+    
+    if (styleIdx === 1) {
+      // Style 1: Golden Teak
+      stop0 = '#45290a'; stop3 = '#8c5213'; stop5 = '#f59e0b'; stop7 = '#783d06'; stop1 = '#2e1702';
+      ringStop0 = '#064e3b'; ringStop5 = '#10b981'; ringStop1 = '#022c22'; // Emerald cuff
+      leafColor = '#34d399'; flowerColor = '#fbbf24'; flowerCore = '#ffffff'; // Amber flowers
+    } else if (styleIdx === 3) {
+      // Style 3: Dark Redwood
+      stop0 = '#3b0712'; stop3 = '#881337'; stop5 = '#fb7185'; stop7 = '#4c0519'; stop1 = '#27030c';
+      ringStop0 = '#2e1065'; ringStop5 = '#7c3aed'; ringStop1 = '#1e1b4b'; // Mystical violet cuff
+      leafColor = '#8b5cf6'; flowerColor = '#ff4081'; flowerCore = '#ffd700'; // Pink flowers
+    }
+
+    // Cylindrical wood bark gradient
+    const barkGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    barkGrad.addColorStop(0, stop0);
+    barkGrad.addColorStop(0.3, stop3);
+    barkGrad.addColorStop(0.5, stop5);
+    barkGrad.addColorStop(0.8, stop7);
+    barkGrad.addColorStop(1, stop1);
+    ctx.fillStyle = barkGrad;
+
+    // Draw wood trunks
+    this.drawStoneColumn(ctx, rx, -1000, rw, rTop + 1000);
+    this.drawStoneColumn(ctx, rx, height - rBottom, rw, rBottom + 1000);
+
+    // Collar Lips
+    const capY1 = rTop - 22;
+    const capY2 = height - rBottom;
+
+    const ringGrad = ctx.createLinearGradient(rx - 4, 0, rx + rw + 4, 0);
+    ringGrad.addColorStop(0, ringStop0);
+    ringGrad.addColorStop(0.5, ringStop5);
+    ringGrad.addColorStop(1, ringStop1);
+    ctx.fillStyle = ringGrad;
+    ctx.strokeStyle = '#1b110a';
+    ctx.lineWidth = 3.0;
+
+    ctx.fillRect(rx - 4, capY1, rw + 8, 22);
+    ctx.strokeRect(rx - 4, capY1, rw + 8, 22);
+    ctx.fillRect(rx - 4, capY2, rw + 8, 22);
+    ctx.strokeRect(rx - 4, capY2, rw + 8, 22);
+
+    // Leaves / ivy
+    ctx.fillStyle = leafColor;
+    ctx.beginPath();
+    ctx.ellipse(rx + 14, capY1 + 28, 8, 5, Math.PI / 4, 0, Math.PI * 2);
+    ctx.ellipse(rx + rw - 14, capY2 - 6, 8, 5, Math.PI / 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Flowers if styled
+    if (flowerColor) {
+      ctx.fillStyle = flowerColor;
+      ctx.beginPath();
+      ctx.arc(rx + rw / 2, capY1 + 11, 5, 0, Math.PI * 2);
+      ctx.arc(rx + rw / 2, capY2 + 11, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = flowerCore;
       ctx.beginPath();
       ctx.arc(rx + rw / 2, capY1 + 11, 2, 0, Math.PI * 2);
       ctx.arc(rx + rw / 2, capY2 + 11, 2, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      // Tree trunk bark brown base with warm orange highlights
-      const barkGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      barkGrad.addColorStop(0, '#362215');
-      barkGrad.addColorStop(0.3, '#573d27');
-      barkGrad.addColorStop(0.5, '#ea580c'); // Sunlit amber-orange highlight
-      barkGrad.addColorStop(0.8, '#3d2514');
-      barkGrad.addColorStop(1, '#231208');
-      ctx.fillStyle = barkGrad;
-
-      // Draw wood trunks
-      this.drawStoneColumn(ctx, rx, -1000, rw, rTop + 1000);
-      this.drawStoneColumn(ctx, rx, height - rBottom, rw, rBottom + 1000);
-
-      // Hanging ivy leaves and blossoms on the lips
-      const capY1 = rTop - 22;
-      const capY2 = height - rBottom;
-
-      const ringGrad = ctx.createLinearGradient(rx - 4, 0, rx + rw + 4, 0);
-      ringGrad.addColorStop(0, '#4e3629');
-      ringGrad.addColorStop(0.5, '#d97706'); // Ancient bronze-gold cuff
-      ringGrad.addColorStop(1, '#2d1c14');
-      ctx.fillStyle = ringGrad;
-      ctx.strokeStyle = '#1b110a';
-      ctx.lineWidth = 3.0;
-
-      ctx.fillRect(rx - 4, capY1, rw + 8, 22);
-      ctx.strokeRect(rx - 4, capY1, rw + 8, 22);
-      ctx.fillRect(rx - 4, capY2, rw + 8, 22);
-      ctx.strokeRect(rx - 4, capY2, rw + 8, 22);
-
-      // Draw hanging green leaves / ivy vines procedurally
-      ctx.fillStyle = '#22c55e';
-      ctx.beginPath();
-      ctx.ellipse(rx + 14, capY1 + 28, 8, 5, Math.PI / 4, 0, Math.PI * 2);
-      ctx.ellipse(rx + rw - 14, capY2 - 6, 8, 5, Math.PI / 4, 0, Math.PI * 2);
       ctx.fill();
     }
   }
@@ -1553,142 +1319,105 @@ export class ObstacleManager {
     ctx.fillRect(x + w - 15, y + 10, 13, h - 20);
   }
 
-  private drawCyberpunkPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+  private drawCyberpunkPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number, styleIdx = 0) {
     const rx = obs.x;
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = false;
 
-    if (isPerformance) {
-      ctx.fillStyle = obs.isMutated ? '#05050a' : '#120f26';
-      ctx.strokeStyle = obs.isMutated ? '#39ff14' : '#00f3ff';
-      ctx.lineWidth = 2.0;
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+    if (styleIdx === 2) {
+      this.drawStructuredCyberpunkPillars(ctx, obs, height);
       return;
     }
 
-    if (obs.isMutated) {
-      // Matrix code columns with glowing green border
-      const matrixGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      matrixGrad.addColorStop(0, '#020617');
-      matrixGrad.addColorStop(0.5, '#052e16');
-      matrixGrad.addColorStop(1, '#020617');
-      ctx.fillStyle = matrixGrad;
-      ctx.strokeStyle = '#22c55e'; // Matrix neon green outline
-      ctx.lineWidth = 3.0;
+    let stop0 = '#090714', stop3 = '#1e1b4b', stop5 = '#ff007f', stop7 = '#0f172a', stop1 = '#050308'; // Style 0: Pink/Cyan
+    let outlineCol = '#00f3ff';
+    let lineGrad0 = '#020617', lineGrad5 = '#00f3ff', lineGrad1 = '#020617';
+    let beaconCol = '#00f3ff';
 
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-      // Draw digital code grid lines
-      ctx.strokeStyle = 'rgba(34, 197, 94, 0.25)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      for (let y = rTop - 120; y < rTop; y += 20) {
-        ctx.moveTo(rx, y);
-        ctx.lineTo(rx + rw, y);
-      }
-      for (let y = height - rBottom; y < height - rBottom + 120; y += 20) {
-        ctx.moveTo(rx, y);
-        ctx.lineTo(rx + rw, y);
-      }
-      ctx.stroke();
-
-      // Cyber green cap on surfaces
-      const capY1 = rTop - 24;
-      const capY2 = height - rBottom;
-
-      ctx.fillStyle = '#052e16';
-      ctx.strokeStyle = '#22c55e';
-      ctx.lineWidth = 3.0;
-      ctx.fillRect(rx - 6, capY1, rw + 12, 24);
-      ctx.strokeRect(rx - 6, capY1, rw + 12, 24);
-      ctx.fillRect(rx - 6, capY2, rw + 12, 24);
-      ctx.strokeRect(rx - 6, capY2, rw + 12, 24);
-
-      // Flashing node light in core of cap
-      const blinkColor = Math.sin((obs.x || 0) * 0.15) > 0 ? '#39ff14' : '#052e16';
-      ctx.fillStyle = blinkColor;
-      ctx.beginPath();
-      ctx.arc(rx + rw / 2, capY1 + 12, 4, 0, Math.PI * 2);
-      ctx.arc(rx + rw / 2, capY2 + 12, 4, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      // Futuristic cyber-neon dark alloy with hot pink and electric cyan neon lines
-      const bodyGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      bodyGrad.addColorStop(0, '#090714');
-      bodyGrad.addColorStop(0.3, '#1e1b4b');
-      bodyGrad.addColorStop(0.5, '#ff007f'); // neon hot-pink cylindrical highlight
-      bodyGrad.addColorStop(0.7, '#0f172a');
-      bodyGrad.addColorStop(1, '#050308');
-
-      ctx.fillStyle = bodyGrad;
-      ctx.strokeStyle = '#00f3ff'; // Cyber electric cyan outline
-      ctx.lineWidth = 3.0;
-
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-      // Tech vertical circuits
-      ctx.strokeStyle = 'rgba(0, 243, 255, 0.4)';
-      ctx.lineWidth = 2.0;
-      ctx.beginPath();
-      ctx.moveTo(rx + rw * 0.35, -1000);
-      ctx.lineTo(rx + rw * 0.35, rTop - 24);
-      ctx.moveTo(rx + rw * 0.65, -1000);
-      ctx.lineTo(rx + rw * 0.65, rTop - 24);
-      ctx.moveTo(rx + rw * 0.35, height - rBottom + 24);
-      ctx.lineTo(rx + rw * 0.35, height + 1000);
-      ctx.moveTo(rx + rw * 0.65, height - rBottom + 24);
-      ctx.lineTo(rx + rw * 0.65, height + 1000);
-      ctx.stroke();
-
-      // High-tech glowing carbon-fiber cap brackets
-      const capY1 = rTop - 24;
-      const capY2 = height - rBottom;
-
-      const techCapGrad = ctx.createLinearGradient(rx - 6, 0, rx + rw + 6, 0);
-      techCapGrad.addColorStop(0, '#020617');
-      techCapGrad.addColorStop(0.5, '#00f3ff'); // cyan glowing bracket
-      techCapGrad.addColorStop(1, '#020617');
-
-      ctx.fillStyle = techCapGrad;
-      ctx.strokeStyle = '#ff007f'; // Hot pink border
-      ctx.lineWidth = 3.0;
-
-      ctx.fillRect(rx - 6, capY1, rw + 12, 24);
-      ctx.strokeRect(rx - 6, capY1, rw + 12, 24);
-      ctx.fillRect(rx - 6, capY2, rw + 12, 24);
-      ctx.strokeRect(rx - 6, capY2, rw + 12, 24);
-
-      // Cyan neon nodes on tech caps
-      ctx.fillStyle = '#00f3ff';
-      ctx.shadowBlur = 6;
-      ctx.shadowColor = '#00f3ff';
-      ctx.fillRect(rx + 8, capY1 + 10, 4, 4);
-      ctx.fillRect(rx + rw - 12, capY1 + 10, 4, 4);
-      ctx.fillRect(rx + 8, capY2 + 10, 4, 4);
-      ctx.fillRect(rx + rw - 12, capY2 + 10, 4, 4);
-      ctx.shadowBlur = 0;
+    if (styleIdx === 1) {
+      // Style 1: Scaffold Cyan
+      stop0 = '#0c4a6e'; stop3 = '#0284c7'; stop5 = '#38bdf8'; stop7 = '#0369a1'; stop1 = '#082f49';
+      outlineCol = '#ff007f'; // neon pink
+      lineGrad0 = '#020617'; lineGrad5 = '#ff007f'; lineGrad1 = '#020617';
+      beaconCol = '#ff007f';
+    } else if (styleIdx === 3) {
+      // Style 3: Acid Poison Green
+      stop0 = '#090d16'; stop3 = '#1e293b'; stop5 = '#4ade80'; stop7 = '#0f172a'; stop1 = '#020617';
+      outlineCol = '#22c55e'; // toxic green
+      lineGrad0 = '#020617'; lineGrad5 = '#eab308'; lineGrad1 = '#020617'; // warning yellow beacons
+      beaconCol = '#eab308';
     }
+
+    const bodyGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    bodyGrad.addColorStop(0, stop0);
+    bodyGrad.addColorStop(0.3, stop3);
+    bodyGrad.addColorStop(0.5, stop5);
+    bodyGrad.addColorStop(0.7, stop7);
+    bodyGrad.addColorStop(1, stop1);
+
+    ctx.fillStyle = bodyGrad;
+    ctx.strokeStyle = outlineCol;
+    ctx.lineWidth = 3.0;
+
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    // Tech vertical circuits
+    ctx.strokeStyle = 'rgba(0, 243, 255, 0.4)';
+    if (styleIdx === 1) ctx.strokeStyle = 'rgba(255, 0, 127, 0.4)';
+    else if (styleIdx === 3) ctx.strokeStyle = 'rgba(34, 197, 94, 0.4)';
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    ctx.moveTo(rx + rw * 0.35, -1000);
+    ctx.lineTo(rx + rw * 0.35, rTop - 24);
+    ctx.moveTo(rx + rw * 0.65, -1000);
+    ctx.lineTo(rx + rw * 0.65, rTop - 24);
+    ctx.moveTo(rx + rw * 0.35, height - rBottom + 24);
+    ctx.lineTo(rx + rw * 0.35, height + 1000);
+    ctx.moveTo(rx + rw * 0.65, height - rBottom + 24);
+    ctx.lineTo(rx + rw * 0.65, height + 1000);
+    ctx.stroke();
+
+    // High-tech glowing carbon-fiber cap brackets
+    const capY1 = rTop - 24;
+    const capY2 = height - rBottom;
+
+    const techCapGrad = ctx.createLinearGradient(rx - 6, 0, rx + rw + 6, 0);
+    techCapGrad.addColorStop(0, lineGrad0);
+    techCapGrad.addColorStop(0.5, lineGrad5);
+    techCapGrad.addColorStop(1, lineGrad1);
+
+    ctx.fillStyle = techCapGrad;
+    ctx.strokeStyle = styleIdx === 1 ? '#00f3ff' : '#ff007f';
+    ctx.lineWidth = 3.0;
+
+    ctx.fillRect(rx - 6, capY1, rw + 12, 24);
+    ctx.strokeRect(rx - 6, capY1, rw + 12, 24);
+    ctx.fillRect(rx - 6, capY2, rw + 12, 24);
+    ctx.strokeRect(rx - 6, capY2, rw + 12, 24);
+
+    // Cyan neon nodes on tech caps
+    ctx.fillStyle = beaconCol;
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = beaconCol;
+    ctx.fillRect(rx + 8, capY1 + 10, 4, 4);
+    ctx.fillRect(rx + rw - 12, capY1 + 10, 4, 4);
+    ctx.fillRect(rx + 8, capY2 + 10, 4, 4);
+    ctx.fillRect(rx + rw - 12, capY2 + 10, 4, 4);
+    ctx.shadowBlur = 0;
 
     // Render Laser warning beam if active
     if (obs.isLaser) {
       if (obs.laserActive) {
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(rx + rw * 0.45, rTop, rw * 0.1, height - rTop - rBottom);
-        ctx.fillStyle = obs.isMutated ? 'rgba(34, 197, 94, 0.9)' : 'rgba(255, 0, 85, 0.85)';
+        ctx.fillStyle = styleIdx === 3 ? 'rgba(34, 197, 94, 0.9)' : 'rgba(255, 0, 85, 0.85)';
         ctx.fillRect(rx + rw * 0.42, rTop, rw * 0.16, height - rTop - rBottom);
       } else {
-        ctx.strokeStyle = obs.isMutated ? 'rgba(34, 197, 94, 0.35)' : 'rgba(255, 0, 50, 0.35)';
+        ctx.strokeStyle = styleIdx === 3 ? 'rgba(34, 197, 94, 0.35)' : 'rgba(255, 0, 50, 0.35)';
         ctx.setLineDash([5, 5]);
         ctx.beginPath();
         ctx.moveTo(rx + rw * 0.5, rTop);
@@ -1699,304 +1428,242 @@ export class ObstacleManager {
     }
   }
 
-  private drawIcePillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+  private drawIcePillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number, styleIdx = 0) {
     const rx = obs.x;
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = false;
 
-    if (isPerformance) {
-      ctx.fillStyle = obs.isMutated ? '#3b82f6' : 'rgba(173, 216, 230, 0.75)';
-      ctx.strokeStyle = obs.isMutated ? '#ffffff' : 'rgba(255, 255, 255, 0.9)';
-      ctx.lineWidth = obs.isMutated ? 3 : 2;
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+    if (styleIdx === 2) {
+      this.drawStructuredIcePillars(ctx, obs, height);
       return;
     }
 
-    if (obs.isMutated) {
-      // Aurora light-refracting prism gradient body
-      const prismGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      prismGrad.addColorStop(0, '#4f46e5'); // Deep blue-violet
-      prismGrad.addColorStop(0.3, '#ec4899'); // Aurora pink
-      prismGrad.addColorStop(0.6, '#3b82f6'); // Electric blue
-      prismGrad.addColorStop(1, '#0891b2'); // Teal
-      ctx.fillStyle = prismGrad;
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 3.0;
+    let stop0 = '#0891b2', stop3 = '#e0f7fa', stop5 = '#0e7490', stop7 = '#0e7490', stop1 = '#164e63'; // Style 0: Aqua Ice
+    let capGrad0 = '#e0f2fe', capGrad5 = '#ffffff', capGrad1 = '#bae6fd';
+    let outlineCol = 'rgba(255, 255, 255, 0.9)';
+    let icicleColor = '#ffffff';
 
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-      // Frost cracks
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
-      ctx.lineWidth = 2.0;
-      ctx.beginPath();
-      ctx.moveTo(rx + rw * 0.4, rTop - 30);
-      ctx.lineTo(rx + rw * 0.6, rTop - 80);
-      ctx.moveTo(rx + rw * 0.6, height - rBottom + 30);
-      ctx.lineTo(rx + rw * 0.4, height - rBottom + 80);
-      ctx.stroke();
-
-      // Thick white snow crowns on lips
-      const capY1 = rTop - 22;
-      const capY2 = height - rBottom;
-
-      ctx.fillStyle = '#f8fafc'; // Snowy white
-      ctx.strokeStyle = '#e2e8f0';
-      ctx.lineWidth = 2.5;
-
-      ctx.fillRect(rx - 5, capY1, rw + 10, 22);
-      ctx.strokeRect(rx - 5, capY1, rw + 10, 22);
-      ctx.fillRect(rx - 5, capY2, rw + 10, 22);
-      ctx.strokeRect(rx - 5, capY2, rw + 10, 22);
-    } else {
-      // Aquamarine glisten prism ice column with light reflection
-      const iceGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      iceGrad.addColorStop(0, '#0891b2');
-      iceGrad.addColorStop(0.4, '#e0f7fa'); // Specular reflection band
-      iceGrad.addColorStop(0.7, '#0e7490');
-      iceGrad.addColorStop(1, '#164e63');
-
-      ctx.fillStyle = iceGrad;
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-      ctx.lineWidth = 2.5;
-
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-      // Frosty icicle snow caps with tiny spiky structures hanging down
-      const capY1 = rTop - 22;
-      const capY2 = height - rBottom;
-
-      const snowGrad = ctx.createLinearGradient(rx - 5, 0, rx + rw + 5, 0);
-      snowGrad.addColorStop(0, '#e0f2fe');
-      snowGrad.addColorStop(0.5, '#ffffff'); // pure crystal white
-      snowGrad.addColorStop(1, '#bae6fd');
-      ctx.fillStyle = snowGrad;
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 3.0;
-
-      // Top Cap
-      ctx.fillRect(rx - 5, capY1, rw + 10, 22);
-      ctx.strokeRect(rx - 5, capY1, rw + 10, 22);
-      // Bottom Cap
-      ctx.fillRect(rx - 5, capY2, rw + 10, 22);
-      ctx.strokeRect(rx - 5, capY2, rw + 10, 22);
-
-      // Draw 3 tiny hanging ice spikes on the lips
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      // Spike 1 (Top)
-      ctx.moveTo(rx + 12, capY1 + 22);
-      ctx.lineTo(rx + 16, capY1 + 34);
-      ctx.lineTo(rx + 20, capY1 + 22);
-      // Spike 2 (Top)
-      ctx.moveTo(rx + rw - 20, capY1 + 22);
-      ctx.lineTo(rx + rw - 16, capY1 + 34);
-      ctx.lineTo(rx + rw - 12, capY1 + 22);
-      // Spike 3 (Bottom)
-      ctx.moveTo(rx + rw / 2 - 4, capY2);
-      ctx.lineTo(rx + rw / 2, capY2 - 12);
-      ctx.lineTo(rx + rw / 2 + 4, capY2);
-      ctx.fill();
+    if (styleIdx === 1) {
+      // Style 1: Frozen Sapphire
+      stop0 = '#1e3a8a'; stop3 = '#3b82f6'; stop5 = '#93c5fd'; stop7 = '#1d4ed8'; stop1 = '#172554';
+      capGrad0 = '#1d4ed8'; capGrad5 = '#93c5fd'; capGrad1 = '#172554';
+      outlineCol = 'rgba(147, 197, 253, 0.9)';
+      icicleColor = '#93c5fd';
+    } else if (styleIdx === 3) {
+      // Style 3: Amethyst Purple
+      stop0 = '#3b0764'; stop3 = '#701a75'; stop5 = '#f0abfc'; stop7 = '#4a044e'; stop1 = '#2e0134';
+      capGrad0 = '#4a044e'; capGrad5 = '#f0abfc'; capGrad1 = '#2e0134';
+      outlineCol = 'rgba(240, 171, 252, 0.9)';
+      icicleColor = '#f0abfc';
     }
+
+    const iceGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    iceGrad.addColorStop(0, stop0);
+    iceGrad.addColorStop(0.3, stop3);
+    iceGrad.addColorStop(0.5, stop5);
+    iceGrad.addColorStop(0.7, stop7);
+    iceGrad.addColorStop(1, stop1);
+
+    ctx.fillStyle = iceGrad;
+    ctx.strokeStyle = outlineCol;
+    ctx.lineWidth = 2.5;
+
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    // Frosty icicle snow caps
+    const capY1 = rTop - 22;
+    const capY2 = height - rBottom;
+
+    const snowGrad = ctx.createLinearGradient(rx - 5, 0, rx + rw + 5, 0);
+    snowGrad.addColorStop(0, capGrad0);
+    snowGrad.addColorStop(0.5, capGrad5);
+    snowGrad.addColorStop(1, capGrad1);
+    ctx.fillStyle = snowGrad;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3.0;
+
+    // Top Cap
+    ctx.fillRect(rx - 5, capY1, rw + 10, 22);
+    ctx.strokeRect(rx - 5, capY1, rw + 10, 22);
+    // Bottom Cap
+    ctx.fillRect(rx - 5, capY2, rw + 10, 22);
+    ctx.strokeRect(rx - 5, capY2, rw + 10, 22);
+
+    // Draw 3 tiny hanging ice spikes on the lips
+    ctx.fillStyle = icicleColor;
+    ctx.beginPath();
+    // Spike 1 (Top)
+    ctx.moveTo(rx + 12, capY1 + 22);
+    ctx.lineTo(rx + 16, capY1 + 34);
+    ctx.lineTo(rx + 20, capY1 + 22);
+    // Spike 2 (Top)
+    ctx.moveTo(rx + rw - 20, capY1 + 22);
+    ctx.lineTo(rx + rw - 16, capY1 + 34);
+    ctx.lineTo(rx + rw - 12, capY1 + 22);
+    // Spike 3 (Bottom)
+    ctx.moveTo(rx + rw / 2 - 4, capY2);
+    ctx.lineTo(rx + rw / 2, capY2 - 12);
+    ctx.lineTo(rx + rw / 2 + 4, capY2);
+    ctx.fill();
   }
 
-  private drawDesertPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+  private drawDesertPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number, styleIdx = 0) {
     const rx = obs.x;
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = false;
 
-    if (isPerformance) {
-      ctx.fillStyle = obs.isMutated ? '#fbbf24' : '#ab8e60';
-      ctx.strokeStyle = obs.isMutated ? '#ef4444' : '#3e2c14';
-      ctx.lineWidth = 2.0;
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+    if (styleIdx === 2) {
+      this.drawStructuredDesertPillars(ctx, obs, height);
       return;
     }
 
-    if (obs.isMutated) {
-      // Jeweled terracotta sandstone obelisk body
-      const sandGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      sandGrad.addColorStop(0, '#78350f');
-      sandGrad.addColorStop(0.3, '#d97706');
-      sandGrad.addColorStop(0.5, '#fef08a'); // central shiny gold highlight
-      sandGrad.addColorStop(0.8, '#b45309');
-      sandGrad.addColorStop(1, '#451a03');
+    let stop0 = '#5c401c', stop3 = '#8e6d3c', stop5 = '#ab8e60', stop7 = '#70542b', stop1 = '#3e2c14'; // Style 0: Terracotta
+    let capGrad0 = '#78350f', capGrad5 = '#ffd700', capGrad1 = '#78350f';
+    let outlineCol = '#3e2c14';
+    let rippleColor = 'rgba(62, 44, 20, 0.4)';
+    let rubyColor = '#ef4444';
 
-      ctx.fillStyle = sandGrad;
-      ctx.strokeStyle = '#ef4444'; // Ruby red borders
-      ctx.lineWidth = 3.0;
-
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-      // Embedded turquoise jewels on sandstone body
-      ctx.fillStyle = '#06b6d4';
-      ctx.beginPath();
-      ctx.arc(rx + rw * 0.5, rTop - 40, 6, 0, Math.PI * 2);
-      ctx.arc(rx + rw * 0.5, height - rBottom + 40, 6, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Ornate Ruby Cap on upper & lower surfaces
-      const capY1 = rTop - 24;
-      const capY2 = height - rBottom;
-
-      ctx.fillStyle = '#b91c1c';
-      ctx.strokeStyle = '#ffd700';
-      ctx.lineWidth = 3.0;
-
-      ctx.fillRect(rx - 6, capY1, rw + 12, 24);
-      ctx.strokeRect(rx - 6, capY1, rw + 12, 24);
-      ctx.fillRect(rx - 6, capY2, rw + 12, 24);
-      ctx.strokeRect(rx - 6, capY2, rw + 12, 24);
-    } else {
-      // Ancient Egyptian warm terracotta sandstone obelisks with cylindrical shadow
-      const sandGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      sandGrad.addColorStop(0, '#5c401c');
-      sandGrad.addColorStop(0.3, '#8e6d3c');
-      sandGrad.addColorStop(0.5, '#ab8e60'); // bright dune highlight
-      sandGrad.addColorStop(0.8, '#70542b');
-      sandGrad.addColorStop(1, '#3e2c14');
-
-      ctx.fillStyle = sandGrad;
-      ctx.strokeStyle = '#3e2c14';
-      ctx.lineWidth = 2.0;
-
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-      // Dune ripple contour grooves
-      ctx.strokeStyle = 'rgba(62, 44, 20, 0.4)';
-      ctx.lineWidth = 2.0;
-      ctx.beginPath();
-      for (let y = rTop - 120; y < rTop - 24; y += 35) {
-        ctx.arc(rx + rw / 2, y, rw * 0.4, 0, Math.PI, false);
-      }
-      for (let y = height - rBottom + 24; y < height - rBottom + 120; y += 35) {
-        ctx.arc(rx + rw / 2, y, rw * 0.4, 0, Math.PI, false);
-      }
-      ctx.stroke();
-
-      // Sandstone fluted capitols with Egyptian winged sun disk moldings
-      const capY1 = rTop - 24;
-      const capY2 = height - rBottom;
-
-      const goldSandGrad = ctx.createLinearGradient(rx - 6, 0, rx + rw + 6, 0);
-      goldSandGrad.addColorStop(0, '#78350f');
-      goldSandGrad.addColorStop(0.5, '#ffd700'); // Shiny golden sand
-      goldSandGrad.addColorStop(1, '#78350f');
-
-      ctx.fillStyle = goldSandGrad;
-      ctx.strokeStyle = '#3e2c14';
-      ctx.lineWidth = 3.0;
-
-      ctx.fillRect(rx - 6, capY1, rw + 12, 24);
-      ctx.strokeRect(rx - 6, capY1, rw + 12, 24);
-      ctx.fillRect(rx - 6, capY2, rw + 12, 24);
-      ctx.strokeRect(rx - 6, capY2, rw + 12, 24);
-
-      // Embedded red ruby sun disk in the center of sandstone cap
-      ctx.fillStyle = '#ef4444';
-      ctx.beginPath();
-      ctx.arc(rx + rw / 2, capY1 + 12, 5, 0, Math.PI * 2);
-      ctx.arc(rx + rw / 2, capY2 + 12, 5, 0, Math.PI * 2);
-      ctx.fill();
+    if (styleIdx === 1) {
+      // Style 1: Golden Egyptian
+      stop0 = '#78350f'; stop3 = '#eab308'; stop5 = '#fef08a'; stop7 = '#d97706'; stop1 = '#451a03';
+      capGrad0 = '#1e3a8a'; capGrad5 = '#60a5fa'; capGrad1 = '#1d4ed8'; // blue lapis caps
+      outlineCol = '#1e3a8a';
+      rippleColor = 'rgba(30, 64, 175, 0.45)'; // Lapis blue ripples
+      rubyColor = '#facc15'; // yellow sun disk
+    } else if (styleIdx === 3) {
+      // Style 3: White Limestone
+      stop0 = '#cbd5e1'; stop3 = '#f1f5f9'; stop5 = '#ffffff'; stop7 = '#cbd5e1'; stop1 = '#94a3b8';
+      capGrad0 = '#78350f'; capGrad5 = '#ffd700'; capGrad1 = '#78350f';
+      outlineCol = '#475569';
+      rippleColor = 'rgba(234, 179, 8, 0.35)'; // golden ripples hieroglyphics
+      rubyColor = '#10b981'; // emerald green gem
     }
+
+    const sandGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    sandGrad.addColorStop(0, stop0);
+    sandGrad.addColorStop(0.3, stop3);
+    sandGrad.addColorStop(0.5, stop5);
+    sandGrad.addColorStop(0.8, stop7);
+    sandGrad.addColorStop(1, stop1);
+
+    ctx.fillStyle = sandGrad;
+    ctx.strokeStyle = outlineCol;
+    ctx.lineWidth = 2.0;
+
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    // Dune ripple contour grooves
+    ctx.strokeStyle = rippleColor;
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    for (let y = rTop - 120; y < rTop - 24; y += 35) {
+      ctx.arc(rx + rw / 2, y, rw * 0.4, 0, Math.PI, false);
+    }
+    for (let y = height - rBottom + 24; y < height - rBottom + 120; y += 35) {
+      ctx.arc(rx + rw / 2, y, rw * 0.4, 0, Math.PI, false);
+    }
+    ctx.stroke();
+
+    // Sandstone fluted capitols
+    const capY1 = rTop - 24;
+    const capY2 = height - rBottom;
+
+    const capGrad = ctx.createLinearGradient(rx - 6, 0, rx + rw + 6, 0);
+    capGrad.addColorStop(0, capGrad0);
+    capGrad.addColorStop(0.5, capGrad5);
+    capGrad.addColorStop(1, capGrad1);
+
+    ctx.fillStyle = capGrad;
+    ctx.strokeStyle = outlineCol;
+    ctx.lineWidth = 3.0;
+
+    ctx.fillRect(rx - 6, capY1, rw + 12, 24);
+    ctx.strokeRect(rx - 6, capY1, rw + 12, 24);
+    ctx.fillRect(rx - 6, capY2, rw + 12, 24);
+    ctx.strokeRect(rx - 6, capY2, rw + 12, 24);
+
+    // Embedded jewel center
+    ctx.fillStyle = rubyColor;
+    ctx.beginPath();
+    ctx.arc(rx + rw / 2, capY1 + 12, 5, 0, Math.PI * 2);
+    ctx.arc(rx + rw / 2, capY2 + 12, 5, 0, Math.PI * 2);
+    ctx.fill();
   }
 
-  private drawVolcanoPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+  private drawVolcanoPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number, styleIdx = 0) {
     const rx = obs.x;
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = false;
 
-    if (isPerformance) {
-      ctx.fillStyle = obs.isMutated ? '#0a0505' : '#100505';
-      ctx.strokeStyle = obs.isMutated ? '#f97316' : '#ff3c00';
-      ctx.lineWidth = 2.5;
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+    if (styleIdx === 2) {
+      this.drawStructuredVolcanoPillars(ctx, obs, height);
       return;
     }
 
-    if (obs.isMutated) {
-      // Obsidian body with superheated molten orange magma flowing core
-      ctx.fillStyle = '#0a0505';
-      ctx.strokeStyle = '#ea580c';
-      ctx.lineWidth = 3.5;
+    let stop0 = '#0c0505', stop3 = '#381108', stop5 = '#140606', stop7 = '#140606', stop1 = '#050101'; // Style 0: Basalt Lava
+    let capGrad0 = '#1e293b', capGrad5 = '#ea580c', capGrad1 = '#0f172a'; // iron cap with lava
+    let outlineCol = '#ff3c00';
+    let crackColor = '#f97316';
 
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-      // Magma vein vein flowing core
-      const magmaFlow = ctx.createLinearGradient(rx + rw * 0.38, 0, rx + rw * 0.62, 0);
-      magmaFlow.addColorStop(0, '#ea580c');
-      magmaFlow.addColorStop(0.5, '#facc15'); // glowing yellow core
-      magmaFlow.addColorStop(1, '#f97316');
-      ctx.fillStyle = magmaFlow;
-      ctx.fillRect(rx + rw * 0.38, -1000, rw * 0.24, rTop + 1000);
-      ctx.fillRect(rx + rw * 0.38, height - rBottom, rw * 0.24, rBottom + 1000);
-    } else {
-      // Dark columnar basalt igneous obsidian pillars
-      const bodyGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      bodyGrad.addColorStop(0, '#0c0505');
-      bodyGrad.addColorStop(0.4, '#381108'); // magma dark core
-      bodyGrad.addColorStop(0.7, '#140606');
-      bodyGrad.addColorStop(1, '#050101');
-
-      ctx.fillStyle = bodyGrad;
-      ctx.strokeStyle = '#ff3c00'; // fiery red outline
-      ctx.lineWidth = 3.0;
-
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-      // Magma crack lines
-      ctx.strokeStyle = '#f97316';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.moveTo(rx + rw * 0.25, 0);
-      ctx.lineTo(rx + rw * 0.4, rTop * 0.75);
-      ctx.moveTo(rx + rw * 0.75, height - rBottom);
-      ctx.lineTo(rx + rw * 0.6, height - rBottom + 70);
-      ctx.stroke();
+    if (styleIdx === 1) {
+      // Style 1: Electric Blue Basalt
+      stop0 = '#050814'; stop3 = '#111827'; stop5 = '#0f172a'; stop7 = '#020617'; stop1 = '#020617';
+      capGrad0 = '#0f172a'; capGrad5 = '#00f3ff'; capGrad1 = '#020617';
+      outlineCol = '#00f3ff';
+      crackColor = '#38bdf8';
+    } else if (styleIdx === 3) {
+      // Style 3: Radioactive Green Basalt
+      stop0 = '#020804'; stop3 = '#061c0d'; stop5 = '#022c22'; stop7 = '#020617'; stop1 = '#020617';
+      capGrad0 = '#020617'; capGrad5 = '#39ff14'; capGrad1 = '#020617';
+      outlineCol = '#39ff14';
+      crackColor = '#22c55e';
     }
 
-    // Heavy iron-alloy heat-sink caps on upper & lower surfaces
+    const bodyGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    bodyGrad.addColorStop(0, stop0);
+    bodyGrad.addColorStop(0.3, stop3);
+    bodyGrad.addColorStop(0.5, stop5);
+    bodyGrad.addColorStop(0.7, stop7);
+    bodyGrad.addColorStop(1, stop1);
+
+    ctx.fillStyle = bodyGrad;
+    ctx.strokeStyle = outlineCol;
+    ctx.lineWidth = 3.0;
+
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    // Magma crack lines
+    ctx.strokeStyle = crackColor;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(rx + rw * 0.25, 0);
+    ctx.lineTo(rx + rw * 0.4, rTop * 0.75);
+    ctx.moveTo(rx + rw * 0.75, height - rBottom);
+    ctx.lineTo(rx + rw * 0.6, height - rBottom + 70);
+    ctx.stroke();
+
+    // Heavy iron-alloy heat-sink caps
     const capY1 = rTop - 24;
     const capY2 = height - rBottom;
 
     const ironCapGrad = ctx.createLinearGradient(rx - 5, 0, rx + rw + 5, 0);
-    ironCapGrad.addColorStop(0, '#1e293b');
-    ironCapGrad.addColorStop(0.5, '#ea580c'); // glowing lava-channel center
-    ironCapGrad.addColorStop(1, '#0f172a');
+    ironCapGrad.addColorStop(0, capGrad0);
+    ironCapGrad.addColorStop(0.5, capGrad5);
+    ironCapGrad.addColorStop(1, capGrad1);
     ctx.fillStyle = ironCapGrad;
-    ctx.strokeStyle = '#ff4500';
+    ctx.strokeStyle = outlineCol;
     ctx.lineWidth = 3.5;
 
     ctx.fillRect(rx - 5, capY1, rw + 10, 24);
@@ -2005,67 +1672,60 @@ export class ObstacleManager {
     ctx.strokeRect(rx - 5, capY2, rw + 10, 24);
   }
 
-  private drawSpaceObstacles(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+  private drawSpaceObstacles(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number, styleIdx = 0) {
     const rx = obs.x;
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = false;
 
-    if (isPerformance) {
-      ctx.fillStyle = obs.isMutated ? '#030008' : '#2e0854';
-      ctx.strokeStyle = obs.isMutated ? '#a855f7' : '#da70d6';
-      ctx.lineWidth = 2.0;
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+    if (styleIdx === 2) {
+      this.drawStructuredSpaceObstacles(ctx, obs, height);
       return;
     }
 
-    if (obs.isMutated) {
-      // Cosmic deep space black with starry nebula dust body
-      ctx.fillStyle = '#020006';
-      ctx.strokeStyle = '#a855f7';
-      ctx.lineWidth = 3.0;
+    let stop0 = '#090014', stop3 = '#2e0854', stop5 = '#da70d6', stop7 = '#18022b', stop1 = '#05000c'; // Style 0: Deep Purple
+    let capGrad0 = '#0f172a', capGrad5 = '#da70d6', capGrad1 = '#0b0f19';
+    let outlineCol = '#da70d6';
+    let beaconCol1 = '#ff1493', beaconCol2 = '#00bfff';
 
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-      // Star coordinates
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(rx + rw * 0.3, rTop - 40, 2.5, 2.5);
-      ctx.fillRect(rx + rw * 0.75, rTop - 90, 2, 2);
-      ctx.fillRect(rx + rw * 0.5, height - rBottom + 60, 3, 3);
-    } else {
-      // Deep space dark purple metallic gradient body
-      const spaceGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      spaceGrad.addColorStop(0, '#090014');
-      spaceGrad.addColorStop(0.3, '#2e0854');
-      spaceGrad.addColorStop(0.5, '#da70d6'); // star-white orchid metallic reflection band
-      spaceGrad.addColorStop(0.8, '#18022b');
-      spaceGrad.addColorStop(1, '#05000c');
-
-      ctx.fillStyle = spaceGrad;
-      ctx.strokeStyle = '#da70d6';
-      ctx.lineWidth = 2.5;
-
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+    if (styleIdx === 1) {
+      // Style 1: Supernova Red
+      stop0 = '#3f0712'; stop3 = '#881337'; stop5 = '#f43f5e'; stop7 = '#4c0519'; stop1 = '#180005';
+      capGrad0 = '#4c0519'; capGrad5 = '#ea580c'; capGrad1 = '#180005';
+      outlineCol = '#ea580c';
+      beaconCol1 = '#ea580c'; beaconCol2 = '#ffd700';
+    } else if (styleIdx === 3) {
+      // Style 3: Solar Flare Gold
+      stop0 = '#78350f'; stop3 = '#ca8a04'; stop5 = '#fef08a'; stop7 = '#a16207'; stop1 = '#451a03';
+      capGrad0 = '#a16207'; capGrad5 = '#eab308'; capGrad1 = '#451a03';
+      outlineCol = '#eab308';
+      beaconCol1 = '#1e3b8a'; beaconCol2 = '#da70d6';
     }
 
-    // High-tech chrome telemetry cap pylons with blinking space beacons
+    const spaceGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    spaceGrad.addColorStop(0, stop0);
+    spaceGrad.addColorStop(0.3, stop3);
+    spaceGrad.addColorStop(0.5, stop5);
+    spaceGrad.addColorStop(0.8, stop7);
+    spaceGrad.addColorStop(1, stop1);
+
+    ctx.fillStyle = spaceGrad;
+    ctx.strokeStyle = outlineCol;
+    ctx.lineWidth = 2.5;
+
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    // High-tech cap pylons
     const capY1 = rTop - 24;
     const capY2 = height - rBottom;
 
     const chromeGrad = ctx.createLinearGradient(rx - 6, 0, rx + rw + 6, 0);
-    chromeGrad.addColorStop(0, '#0f172a');
-    chromeGrad.addColorStop(0.5, '#da70d6'); // nebula pink chrome cap
-    chromeGrad.addColorStop(1, '#0b0f19');
+    chromeGrad.addColorStop(0, capGrad0);
+    chromeGrad.addColorStop(0.5, capGrad5);
+    chromeGrad.addColorStop(1, capGrad1);
     ctx.fillStyle = chromeGrad;
     ctx.strokeStyle = '#e9d5ff';
     ctx.lineWidth = 3.5;
@@ -2075,8 +1735,8 @@ export class ObstacleManager {
     ctx.fillRect(rx - 6, capY2, rw + 12, 24);
     ctx.strokeRect(rx - 6, capY2, rw + 12, 24);
 
-    // Flashing magenta/blue telemetry lights on the space caps
-    const beaconColor = Math.sin((obs.x || 0) * 0.15) > 0 ? '#ff1493' : '#00bfff';
+    // Flashing beacons
+    const beaconColor = Math.sin((obs.x || 0) * 0.15) > 0 ? beaconCol1 : beaconCol2;
     ctx.fillStyle = beaconColor;
     ctx.shadowBlur = 8;
     ctx.shadowColor = beaconColor;
@@ -2087,84 +1747,72 @@ export class ObstacleManager {
     ctx.shadowBlur = 0;
   }
 
-  private drawUnderwaterPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+  private drawUnderwaterPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number, styleIdx = 0) {
     const rx = obs.x;
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = false;
 
-    if (isPerformance) {
-      ctx.fillStyle = obs.isMutated ? '#081e26' : '#004d40';
-      ctx.strokeStyle = obs.isMutated ? '#ec4899' : '#00695c';
-      ctx.lineWidth = 2.0;
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+    if (styleIdx === 2) {
+      this.drawStructuredUnderwaterPillars(ctx, obs, height);
       return;
     }
 
-    if (obs.isMutated) {
-      // Deep sea navy stone body
-      const navyGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      navyGrad.addColorStop(0, '#040d12');
-      navyGrad.addColorStop(0.5, '#0c2d3a');
-      navyGrad.addColorStop(1, '#02070a');
-      ctx.fillStyle = navyGrad;
-      ctx.strokeStyle = '#f472b6'; // Glowing coral pink borders
-      ctx.lineWidth = 3.0;
+    let stop0 = '#001a14', stop3 = '#004d40', stop5 = '#0d9488', stop7 = '#0d5c52', stop1 = '#000f0b'; // Style 0: Marine Moss
+    let capGrad0 = '#a16207', capGrad5 = '#fef08a', capGrad1 = '#854d0e'; // pearl crusted gold
+    let outlineCol = '#0f766e';
+    let seaweedCol = 'rgba(13, 148, 136, 0.28)';
+    let pearlColor = '#f472b6';
 
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-      // Glowing anemones polyps
-      ctx.fillStyle = '#f472b6';
-      ctx.shadowBlur = 6;
-      ctx.shadowColor = '#f472b6';
-      ctx.beginPath();
-      ctx.arc(rx + 15, rTop - 35, 5, 0, Math.PI * 2);
-      ctx.arc(rx + rw - 15, height - rBottom + 35, 5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    } else {
-      // Marine mossy teal stone with algae-crust texture
-      const marineGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      marineGrad.addColorStop(0, '#001a14');
-      marineGrad.addColorStop(0.3, '#004d40');
-      marineGrad.addColorStop(0.5, '#0d9488'); // bioluminescent aquamarine highlight core
-      marineGrad.addColorStop(0.8, '#0d5c52');
-      marineGrad.addColorStop(1, '#000f0b');
-
-      ctx.fillStyle = marineGrad;
-      ctx.strokeStyle = '#0f766e';
-      ctx.lineWidth = 2.5;
-
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-      // Seaweed leaves drawing
-      ctx.fillStyle = 'rgba(13, 148, 136, 0.28)';
-      ctx.beginPath();
-      ctx.ellipse(rx + 16, rTop - 45, 10, 5, -Math.PI / 6, 0, Math.PI * 2);
-      ctx.ellipse(rx + rw - 16, height - rBottom + 45, 10, 5, Math.PI / 6, 0, Math.PI * 2);
-      ctx.fill();
+    if (styleIdx === 1) {
+      // Style 1: Coral Pink Reef
+      stop0 = '#500724'; stop3 = '#9d174d'; stop5 = '#f43f5e'; stop7 = '#be185d'; stop1 = '#25010f';
+      capGrad0 = '#0d9488'; capGrad5 = '#fef08a'; capGrad1 = '#0f766e';
+      outlineCol = '#be185d';
+      seaweedCol = 'rgba(244, 63, 94, 0.28)';
+      pearlColor = '#e0f2fe'; // white pearl
+    } else if (styleIdx === 3) {
+      // Style 3: Abyssal Navy
+      stop0 = '#020617'; stop3 = '#0f172a'; stop5 = '#1e293b'; stop7 = '#0f172a'; stop1 = '#020617';
+      capGrad0 = '#020617'; capGrad5 = '#facc15'; capGrad1 = '#020617'; // black iron with glowing yellow
+      outlineCol = '#1e293b';
+      seaweedCol = 'rgba(250, 204, 21, 0.2)'; // glowing yellow algae
+      pearlColor = '#facc15'; // yellow bioluminescent dots
     }
 
-    // Gorgeous pearl-crusted golden crown collar caps on upper & lower surfaces
+    const marineGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    marineGrad.addColorStop(0, stop0);
+    marineGrad.addColorStop(0.3, stop3);
+    marineGrad.addColorStop(0.5, stop5);
+    marineGrad.addColorStop(0.8, stop7);
+    marineGrad.addColorStop(1, stop1);
+
+    ctx.fillStyle = marineGrad;
+    ctx.strokeStyle = outlineCol;
+    ctx.lineWidth = 2.5;
+
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    // Seaweed leaves drawing
+    ctx.fillStyle = seaweedCol;
+    ctx.beginPath();
+    ctx.ellipse(rx + 16, rTop - 45, 10, 5, -Math.PI / 6, 0, Math.PI * 2);
+    ctx.ellipse(rx + rw - 16, height - rBottom + 45, 10, 5, Math.PI / 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // pearl-crusted capitols
     const capY1 = rTop - 24;
     const capY2 = height - rBottom;
 
     const goldGrad = ctx.createLinearGradient(rx - 5, 0, rx + rw + 5, 0);
-    goldGrad.addColorStop(0, '#a16207');
-    goldGrad.addColorStop(0.5, '#fef08a'); // bright gold cap reflection
-    goldGrad.addColorStop(1, '#854d0e');
+    goldGrad.addColorStop(0, capGrad0);
+    goldGrad.addColorStop(0.5, capGrad5);
+    goldGrad.addColorStop(1, capGrad1);
     ctx.fillStyle = goldGrad;
-    ctx.strokeStyle = '#004d40';
+    ctx.strokeStyle = outlineCol;
     ctx.lineWidth = 3.5;
 
     ctx.fillRect(rx - 5, capY1, rw + 10, 24);
@@ -2172,10 +1820,10 @@ export class ObstacleManager {
     ctx.fillRect(rx - 5, capY2, rw + 10, 24);
     ctx.strokeRect(rx - 5, capY2, rw + 10, 24);
 
-    // Glowing pink pearl cores
-    ctx.fillStyle = '#f472b6';
+    // Glowing pearls
+    ctx.fillStyle = pearlColor;
     ctx.shadowBlur = 4;
-    ctx.shadowColor = '#f472b6';
+    ctx.shadowColor = pearlColor;
     ctx.beginPath();
     ctx.arc(rx + 12, capY1 + 12, 3, 0, Math.PI * 2);
     ctx.arc(rx + rw - 12, capY1 + 12, 3, 0, Math.PI * 2);
@@ -2185,85 +1833,83 @@ export class ObstacleManager {
     ctx.shadowBlur = 0;
   }
 
-  private drawHeavenPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+  private drawHeavenPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number, styleIdx = 0) {
     const rx = obs.x;
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = false;
 
-    if (isPerformance) {
-      ctx.fillStyle = obs.isMutated ? '#ffffff' : '#f5f5f0';
-      ctx.strokeStyle = obs.isMutated ? '#fcd34d' : '#ffd700';
-      ctx.lineWidth = 2.5;
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+    if (styleIdx === 2) {
+      this.drawStructuredHeavenPillars(ctx, obs, height);
       return;
     }
 
-    if (obs.isMutated) {
-      // Celestial white marble with gold veins
-      const heavGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      heavGrad.addColorStop(0, '#fef08a'); // gold vein
-      heavGrad.addColorStop(0.3, '#ffffff');
-      heavGrad.addColorStop(0.7, '#ffffff');
-      heavGrad.addColorStop(1, '#ccfbf1'); // divine teal marble vein
-      ctx.fillStyle = heavGrad;
-      ctx.strokeStyle = '#facc15';
-      ctx.lineWidth = 3.5;
+    let stop0 = '#f1f5f9', stop3 = '#ffffff', stop5 = '#e0f2fe', stop7 = '#cbd5e1', stop1 = '#cbd5e1'; // Style 0: Baby blue sky veins
+    let capGrad0 = '#ca8a04', capGrad5 = '#fef08a', capGrad1 = '#a16207'; // gold cap
+    let outlineCol = '#ffd700';
+    let fluteColor = 'rgba(253, 224, 71, 0.45)';
+    let starColorVal = '#ffffff';
 
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-    } else {
-      // Fluted Corinthian white marble column with gentle sky-blue cylindrical vein
-      const heavGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      heavGrad.addColorStop(0, '#f1f5f9');
-      heavGrad.addColorStop(0.4, '#ffffff');
-      heavGrad.addColorStop(0.7, '#e0f2fe'); // baby blue sky vein
-      heavGrad.addColorStop(1, '#cbd5e1');
-
-      ctx.fillStyle = heavGrad;
-      ctx.strokeStyle = '#ffd700'; // Pure bright gold margins
-      ctx.lineWidth = 3.0;
-
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-      // Fluted lines of Corinthian capitols
-      ctx.strokeStyle = 'rgba(253, 224, 71, 0.45)';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(rx + rw * 0.25, -1000);
-      ctx.lineTo(rx + rw * 0.25, rTop - 24);
-      ctx.moveTo(rx + rw * 0.5, -1000);
-      ctx.lineTo(rx + rw * 0.5, rTop - 24);
-      ctx.moveTo(rx + rw * 0.75, -1000);
-      ctx.lineTo(rx + rw * 0.75, rTop - 24);
-      ctx.moveTo(rx + rw * 0.25, height - rBottom + 24);
-      ctx.lineTo(rx + rw * 0.25, height + 1000);
-      ctx.moveTo(rx + rw * 0.5, height - rBottom + 24);
-      ctx.lineTo(rx + rw * 0.5, height + 1000);
-      ctx.moveTo(rx + rw * 0.75, height - rBottom + 24);
-      ctx.lineTo(rx + rw * 0.75, height + 1000);
-      ctx.stroke();
+    if (styleIdx === 1) {
+      // Style 1: Rose Quartz Pink
+      stop0 = '#fdf2f8'; stop3 = '#fbcfe8'; stop5 = '#f472b6'; stop7 = '#db2777'; stop1 = '#9d174d';
+      capGrad0 = '#ca8a04'; capGrad5 = '#fbcfe8'; capGrad1 = '#a16207'; // rose gold cap
+      outlineCol = '#f472b6';
+      fluteColor = 'rgba(244, 114, 182, 0.45)';
+      starColorVal = '#ffd700'; // yellow star
+    } else if (styleIdx === 3) {
+      // Style 3: Radiant Solid Gold
+      stop0 = '#854d0e'; stop3 = '#eab308'; stop5 = '#fef08a'; stop7 = '#ca8a04'; stop1 = '#451a03';
+      capGrad0 = '#f1f5f9'; capGrad5 = '#ffffff'; capGrad1 = '#cbd5e1'; // white platinum cap
+      outlineCol = '#fef08a';
+      fluteColor = 'rgba(255, 255, 255, 0.45)';
+      starColorVal = '#ffffff'; // diamond star
     }
 
-    // Golden fluted capitols flanked by celestial marble angelic wing ornaments
+    const heavGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    heavGrad.addColorStop(0, stop0);
+    heavGrad.addColorStop(0.3, stop3);
+    heavGrad.addColorStop(0.5, stop5);
+    heavGrad.addColorStop(0.7, stop7);
+    heavGrad.addColorStop(1, stop1);
+
+    ctx.fillStyle = heavGrad;
+    ctx.strokeStyle = outlineCol;
+    ctx.lineWidth = 3.0;
+
+    ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    // Fluted lines of Corinthian capitols
+    ctx.strokeStyle = fluteColor;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(rx + rw * 0.25, -1000);
+    ctx.lineTo(rx + rw * 0.25, rTop - 24);
+    ctx.moveTo(rx + rw * 0.5, -1000);
+    ctx.lineTo(rx + rw * 0.5, rTop - 24);
+    ctx.moveTo(rx + rw * 0.75, -1000);
+    ctx.lineTo(rx + rw * 0.75, rTop - 24);
+    ctx.moveTo(rx + rw * 0.25, height - rBottom + 24);
+    ctx.lineTo(rx + rw * 0.25, height + 1000);
+    ctx.moveTo(rx + rw * 0.5, height - rBottom + 24);
+    ctx.lineTo(rx + rw * 0.5, height + 1000);
+    ctx.moveTo(rx + rw * 0.75, height - rBottom + 24);
+    ctx.lineTo(rx + rw * 0.75, height + 1000);
+    ctx.stroke();
+
+    // capitols
     const capY1 = rTop - 24;
     const capY2 = height - rBottom;
 
     const goldGrad = ctx.createLinearGradient(rx - 8, 0, rx + rw + 8, 0);
-    goldGrad.addColorStop(0, '#ca8a04');
-    goldGrad.addColorStop(0.5, '#fef08a'); // Star-white gold flash
-    goldGrad.addColorStop(1, '#a16207');
+    goldGrad.addColorStop(0, capGrad0);
+    goldGrad.addColorStop(0.5, capGrad5);
+    goldGrad.addColorStop(1, capGrad1);
     ctx.fillStyle = goldGrad;
-    ctx.strokeStyle = '#eab308';
+    ctx.strokeStyle = outlineCol;
     ctx.lineWidth = 3.5;
 
     ctx.fillRect(rx - 8, capY1, rw + 16, 24);
@@ -2271,8 +1917,8 @@ export class ObstacleManager {
     ctx.fillRect(rx - 8, capY2, rw + 16, 24);
     ctx.strokeRect(rx - 8, capY2, rw + 16, 24);
 
-    // Blinking halo star in capital core
-    const starColor = Math.sin((obs.x || 0) * 0.12) > 0 ? '#ffd700' : '#ffffff';
+    // Blinking halo star
+    const starColor = Math.sin((obs.x || 0) * 0.12) > 0 ? starColorVal : '#ffffff';
     ctx.fillStyle = starColor;
     ctx.shadowBlur = 6;
     ctx.shadowColor = '#ffd700';
@@ -3157,32 +2803,49 @@ export class ObstacleManager {
   }
 
   // Draw Jungle Temple Pillars (Standard & Mutated)
-  private drawJungleTemplePillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+  private drawJungleTemplePillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number, styleIdx = 0) {
     const rx = obs.x;
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = false;
 
-    if (isPerformance) {
-      ctx.fillStyle = '#434e44';
-      ctx.strokeStyle = '#0e120f';
-      ctx.lineWidth = 3.0;
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+    if (styleIdx === 2) {
+      this.drawStructuredJungleTemplePillars(ctx, obs, height);
       return;
     }
 
+    let stop0 = '#101511', stop3 = '#2d3d31', stop5 = '#4ade80', stop7 = '#1f2921', stop1 = '#0b0f0b'; // Style 0: Mossy green
+    let capGrad0 = '#a16207', capGrad5 = '#fef08a', capGrad1 = '#854d0e'; // stepped gold Aztec
+    let runeCol = 'rgba(212, 175, 55, 0.75)'; // ancient gold
+    let jewelCol = '#00ffaa';
+    let ivyCol = '#166534';
+    let rubyColor = '#ef4444';
+
+    if (styleIdx === 1) {
+      // Style 1: Terracotta Clay
+      stop0 = '#431407'; stop3 = '#7c2d12'; stop5 = '#ea580c'; stop7 = '#9a3412'; stop1 = '#270e04';
+      capGrad0 = '#064e3b'; capGrad5 = '#10b981'; capGrad1 = '#022c22'; // ancient jade caps
+      runeCol = 'rgba(234, 88, 12, 0.75)';
+      jewelCol = '#fbbf24'; // yellow gem
+      ivyCol = '#b45309';
+      rubyColor = '#fbbf24';
+    } else if (styleIdx === 3) {
+      // Style 3: Slate Obsidian
+      stop0 = '#020617'; stop3 = '#0f172a'; stop5 = '#1e293b'; stop7 = '#0f172a'; stop1 = '#020617';
+      capGrad0 = '#a16207'; capGrad5 = '#facc15'; capGrad1 = '#854d0e'; // gold Aztec stepped
+      runeCol = 'rgba(0, 243, 255, 0.75)'; // neon teal rune
+      jewelCol = '#00f3ff'; // cyan gem
+      ivyCol = '#0369a1';
+      rubyColor = '#00f3ff';
+    }
+
     const drawTempleBlock = (yStart: number, h: number, isTop: boolean) => {
-      // 1. Charcoal jade moss stone cylindrical gradient body
       const stoneGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      stoneGrad.addColorStop(0, '#101511');
-      stoneGrad.addColorStop(0.3, '#2d3d31');
-      stoneGrad.addColorStop(0.5, '#4ade80'); // specular mossy green highlight
-      stoneGrad.addColorStop(0.8, '#1f2921');
-      stoneGrad.addColorStop(1, '#0b0f0b');
+      stoneGrad.addColorStop(0, stop0);
+      stoneGrad.addColorStop(0.3, stop3);
+      stoneGrad.addColorStop(0.5, stop5);
+      stoneGrad.addColorStop(0.8, stop7);
+      stoneGrad.addColorStop(1, stop1);
       ctx.fillStyle = stoneGrad;
       ctx.strokeStyle = '#0a0d0b';
       ctx.lineWidth = 3.0;
@@ -3191,7 +2854,7 @@ export class ObstacleManager {
       ctx.strokeRect(rx, yStart, rw, h);
 
       // Aztec rune carvings
-      ctx.strokeStyle = 'rgba(212, 175, 55, 0.75)'; // Ancient gold
+      ctx.strokeStyle = runeCol;
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       const rY = yStart + h / 2;
@@ -3200,21 +2863,21 @@ export class ObstacleManager {
       ctx.lineTo(rx + rw * 0.3 + 21, rY);
       ctx.stroke();
 
-      // Embedded glowing emerald gems in carvings
-      ctx.fillStyle = '#00ffaa';
+      // Embedded gems
+      ctx.fillStyle = jewelCol;
       ctx.shadowBlur = 6;
-      ctx.shadowColor = '#00ffaa';
+      ctx.shadowColor = jewelCol;
       ctx.beginPath();
       ctx.arc(rx + rw * 0.5, rY, 4, 0, Math.PI * 2);
       ctx.fill();
       ctx.shadowBlur = 0;
 
-      // Gorgeous stepped gold Aztec crown cap with central red ruby gem
+      // Stepped crown cap
       const capY = isTop ? yStart + h - 24 : yStart;
       const goldGrad = ctx.createLinearGradient(rx - 6, 0, rx + rw + 6, 0);
-      goldGrad.addColorStop(0, '#a16207');
-      goldGrad.addColorStop(0.5, '#fef08a'); // central gold flash
-      goldGrad.addColorStop(1, '#854d0e');
+      goldGrad.addColorStop(0, capGrad0);
+      goldGrad.addColorStop(0.5, capGrad5);
+      goldGrad.addColorStop(1, capGrad1);
       ctx.fillStyle = goldGrad;
       ctx.strokeStyle = '#020617';
       ctx.lineWidth = 3.0;
@@ -3222,18 +2885,18 @@ export class ObstacleManager {
       ctx.fillRect(rx - 6, capY, rw + 12, 24);
       ctx.strokeRect(rx - 6, capY, rw + 12, 24);
 
-      // Flashing ruby in Aztec stepped cap
-      const rubyColor = Math.sin((obs.x || 0) * 0.15) > 0 ? '#ef4444' : '#b91c1c';
-      ctx.fillStyle = rubyColor;
+      // Flashing ruby
+      const blinkColor = Math.sin((obs.x || 0) * 0.15) > 0 ? rubyColor : '#7f1d1d';
+      ctx.fillStyle = blinkColor;
       ctx.shadowBlur = 6;
-      ctx.shadowColor = '#ef4444';
+      ctx.shadowColor = rubyColor;
       ctx.beginPath();
       ctx.arc(rx + rw / 2, capY + 12, 4, 0, Math.PI * 2);
       ctx.fill();
       ctx.shadowBlur = 0;
 
-      // Hanging ivy leaves procedurally drawn
-      ctx.fillStyle = '#166534';
+      // Hanging ivy leaves
+      ctx.fillStyle = ivyCol;
       ctx.beginPath();
       if (isTop) {
         ctx.ellipse(rx + 14, yStart + h + 12, 8, 4, Math.PI / 6, 0, Math.PI * 2);
