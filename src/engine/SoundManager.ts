@@ -404,10 +404,18 @@ export class SoundManager {
 
       // --- LAYER 1: BASS / REVERSED TEXTURE ---
       if (worldId === 'cyberpunk') {
-        // CYBERPUNK AMBIENT: No bass, instead play slow evolving reversed-like sine textures/pads
+        // CYBERPUNK AMBIENT: Play slow evolving reversed-like sine textures/pads (Always active)
         if (barStep === 0 || barStep === 8) {
           // Evolving reversed pad frequency: rise slowly from baseFreq to baseFreq * 1.5
           this.playSynthNote(baseFreq * 0.5, 1.4, 'sine', 0.16, { type: 'lowpass', startFreq: 300, endFreq: 900, q: 1 }, true, baseFreq * 0.75);
+        }
+        
+        // ADDITIVE EXPANSION LAYER: Add deep warm sub-bass glide only when score >= 35!
+        if (score >= 35) {
+          if (barStep === 0 || barStep === 8) {
+            // Warm sub-bass note that slides to a fifth
+            this.playSynthNote(baseFreq * 0.5, 1.2, 'sine', 0.22, { type: 'lowpass', startFreq: 110, endFreq: 80, q: 1 }, false, baseFreq * 0.75);
+          }
         }
       } else {
         // Standard bassline
@@ -436,7 +444,21 @@ export class SoundManager {
 
       // --- LAYER 2: DRUMS & PERCUSSION ---
       if (worldId === 'cyberpunk') {
-        // CYBERPUNK AMBIENT: Strictly NO drums, NO beats, NO percussion
+        // CYBERPUNK AMBIENT: Add a highly subtle, soft trap beat only when score >= 5!
+        if (score >= 5) {
+          // Extremely soft, lowpass filtered sub-kick drum on beats 1 and 3 (steps 0 and 8)
+          if (barStep === 0 || barStep === 8) {
+            this.playSynthNote(45, 0.12, 'sine', 0.22, { type: 'lowpass', startFreq: 90, endFreq: 10, q: 1 }); // Deep warm trap sub-kick
+          }
+          // Extremely soft, breathy closed hihat tap on steps 4 and 12
+          if (barStep === 4 || barStep === 12) {
+            this.playSynthNote(12000, 0.02, 'triangle', 0.04, { type: 'highpass', startFreq: 8000, endFreq: 10000, q: 1 }); // Soft breathy trap click
+          }
+          // Ticking hihats on offbeats (steps 2, 6, 10, 14)
+          if (barStep % 4 === 2) {
+            this.playSynthNote(10000, 0.015, 'triangle', 0.02, { type: 'highpass', startFreq: 9000, endFreq: 11000, q: 1 });
+          }
+        }
       } else if (score >= 5 || isBossFight) {
         // Bass kick drum on beats 1 and 3 (steps 0 and 8)
         if (barStep === 0 || barStep === 8) {
@@ -488,6 +510,12 @@ export class SoundManager {
           this.playSynthNote(chordFreq1, 1.3, 'sine', 0.15, { type: 'lowpass', startFreq: 600, endFreq: 300, q: 1 }, true);
           this.playSynthNote(chordFreq2, 1.3, 'sine', 0.12, { type: 'lowpass', startFreq: 800, endFreq: 400, q: 1 }, true);
           this.playSynthNote(chordFreq3, 1.3, 'sine', 0.10, { type: 'lowpass', startFreq: 1000, endFreq: 500, q: 1 }, true);
+          
+          // ADDITIVE EXPANSION LAYER: Add emotional Rhodes-like electric piano keys only when score >= 12!
+          if (score >= 12) {
+            this.playSynthNote(chordFreq1 * 2.0, 0.5, 'triangle', 0.08, undefined, true);
+            this.playSynthNote(chordFreq3 * 2.0, 0.5, 'triangle', 0.06, undefined, true);
+          }
         }
       } else if (score >= 12 || isBossFight) {
         if (barStep === 0 || barStep === 8) {
@@ -517,14 +545,16 @@ export class SoundManager {
       // --- LAYER 4: MELODIC LEADS ---
       if (worldId === 'cyberpunk') {
         // CYBERPUNK AMBIENT: Distant emotional keys & bells with simple, moody, hypnotic repetition
-        // Play soft, gentle bells on offbeat steps 2, 6, 10, 14
-        if (barStep % 4 === 2) {
-          const melodyPattern = [0, 2, 1, 3];
-          const currentMelodyIndex = melodyPattern[Math.floor(barStep / 4) % melodyPattern.length];
-          const melodyFreq = config.melodyNotes[currentMelodyIndex % config.melodyNotes.length];
-          
-          // Spacious reverb & gentle delay effects
-          this.playSynthNote(melodyFreq, 0.4, 'sine', 0.16, undefined, true);
+        // Play soft, gentle bells on offbeat steps 2, 6, 10, 14 ONLY when score >= 22!
+        if (score >= 22 || isBossFight) {
+          if (barStep % 4 === 2) {
+            const melodyPattern = [0, 2, 1, 3];
+            const currentMelodyIndex = melodyPattern[Math.floor(barStep / 4) % melodyPattern.length];
+            const melodyFreq = config.melodyNotes[currentMelodyIndex % config.melodyNotes.length];
+            
+            // Spacious reverb & gentle delay effects
+            this.playSynthNote(melodyFreq, 0.4, 'sine', 0.16, undefined, true);
+          }
         }
       } else if (score >= 22 || isBossFight) {
         const melodyPattern = [0, 2, 4, 3, 5, 4, 2, 1, 3, 2, 4, 5, 3, 1, 0, 2];
@@ -559,15 +589,22 @@ export class SoundManager {
 
       // --- LAYER 5: ULTIMATE SPECIAL OVERDRIVE (Active during Ultimate mode) ---
       if (isUltimate) {
-        const ultArpIndex = this.beatStep % config.melodyNotes.length;
-        const ultFreq = config.melodyNotes[ultArpIndex] * 2.0; // High-frequency rapid runs
-        
-        let ultVol = 0.16;
-        if (worldId === 'retro' || worldId === 'desert') {
-          // Classic rapid arpeggiator (16th notes!)
-          this.playSynthNote(ultFreq, 0.08, config.leadOscType, ultVol, undefined, false, ultFreq * 0.8);
+        if (worldId === 'cyberpunk') {
+          // Play extremely gentle, shimmering cosmic bell washes to maintain moody, atmospheric trap loop
+          const ultArpIndex = this.beatStep % config.melodyNotes.length;
+          const ultFreq = config.melodyNotes[ultArpIndex] * 1.5;
+          this.playSynthNote(ultFreq, 0.2, 'sine', 0.08, undefined, true);
         } else {
-          this.playSynthNote(ultFreq, 0.08, 'sawtooth', ultVol, { type: 'highpass', startFreq: 1500, endFreq: 3000, q: 1 });
+          const ultArpIndex = this.beatStep % config.melodyNotes.length;
+          const ultFreq = config.melodyNotes[ultArpIndex] * 2.0; // High-frequency rapid runs
+          
+          let ultVol = 0.16;
+          if (worldId === 'retro' || worldId === 'desert') {
+            // Classic rapid arpeggiator (16th notes!)
+            this.playSynthNote(ultFreq, 0.08, config.leadOscType, ultVol, undefined, false, ultFreq * 0.8);
+          } else {
+            this.playSynthNote(ultFreq, 0.08, 'sawtooth', ultVol, { type: 'highpass', startFreq: 1500, endFreq: 3000, q: 1 });
+          }
         }
       }
 
