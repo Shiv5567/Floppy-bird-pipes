@@ -646,7 +646,7 @@ export class ObstacleManager {
       { name: 'Cross Flow', offsets: [30, -30, 30, -30], forceMoving: true },
 
       // 10 letter shapes (safe gap traces)
-      { name: 'Letter S', offsets: [-60, -30, 0, 30, 60, 30, 0, -30, -60] },
+      { name: 'Letter S', offsets: [-60, -30, 15, 60, 30, -15, -45, -60] },
       { name: 'Letter W', offsets: [-70, 50, -10, 50, -70] },
       { name: 'Letter C', offsets: [0, -60, -60, 0, 60, 60, 0] },
       { name: 'Letter M', offsets: [60, -50, 10, -50, 60] },
