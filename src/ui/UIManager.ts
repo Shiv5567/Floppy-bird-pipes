@@ -898,15 +898,42 @@ export class UIManager {
 
       case 'settings': {
         return `
-          <div class="tab-sheet-title">⚙️ SELECT DIFFICULTY MODE</div>
+          <div class="tab-sheet-title">⚙️ CONFIGURATION & SOUND SETTINGS</div>
           <div class="zones-configuration-card glass-card" style="padding: 24px; border-radius: 20px; background: rgba(13, 10, 28, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); max-width: 420px; margin: 0 auto;">
             <!-- Difficulty segmented control -->
-            <div class="control-group">
+            <div class="control-group" style="margin-bottom: 24px;">
               <div class="segment-label" style="font-size: 11px; font-weight: 800; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 10px; text-transform: uppercase;">SELECT DIFFICULTY</div>
               <div class="segmented-control" style="display: flex; gap: 8px; background: rgba(0,0,0,0.25); padding: 4px; border-radius: 14px;">
                 <button class="segment-btn diff-easy ${progress.selectedDifficulty === 'easy' ? 'active' : ''}" data-diff="easy" style="flex: 1; padding: 10px; border: none; border-radius: 10px; font-family: var(--font-family); font-weight: 800; font-size: 12px; cursor: pointer; color: #fff; background: transparent; transition: all 0.2s ease;">Easy</button>
                 <button class="segment-btn diff-medium ${progress.selectedDifficulty === 'medium' ? 'active' : ''}" data-diff="medium" style="flex: 1; padding: 10px; border: none; border-radius: 10px; font-family: var(--font-family); font-weight: 800; font-size: 12px; cursor: pointer; color: #fff; background: transparent; transition: all 0.2s ease;">Medium</button>
                 <button class="segment-btn diff-hard ${progress.selectedDifficulty === 'hard' ? 'active' : ''}" data-diff="hard" style="flex: 1; padding: 10px; border: none; border-radius: 10px; font-family: var(--font-family); font-weight: 800; font-size: 12px; cursor: pointer; color: #fff; background: transparent; transition: all 0.2s ease;">Hard</button>
+              </div>
+            </div>
+
+            <!-- Volume control sliders section -->
+            <div class="control-group" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px;">
+              <div class="segment-label" style="font-size: 11px; font-weight: 800; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 15px; text-transform: uppercase;">SOUND VOLUME CONTROLS</div>
+              
+              <!-- Background Music slider -->
+              <div class="slider-row" style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
+                  <span>🎵 BACKGROUND MUSIC</span>
+                  <span id="label-music-val" style="color: #00f3ff; font-weight: 900;">${Math.round(this.engine.soundManager.getMusicVolume() * 100)}%</span>
+                </div>
+                <input type="range" class="settings-slider" id="slide-music-vol" min="0" max="100" value="${Math.round(this.engine.soundManager.getMusicVolume() * 100)}" 
+                       style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; outline: none; -webkit-appearance: none; cursor: pointer; accent-color: #00f3ff;"
+                >
+              </div>
+
+              <!-- System SFX slider -->
+              <div class="slider-row" style="display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
+                  <span>🔊 SYSTEM SOUND EFFECTS</span>
+                  <span id="label-sfx-val" style="color: #a855f7; font-weight: 900;">${Math.round(this.engine.soundManager.getSfxVolume() * 100)}%</span>
+                </div>
+                <input type="range" class="settings-slider" id="slide-sfx-vol" min="0" max="100" value="${Math.round(this.engine.soundManager.getSfxVolume() * 100)}" 
+                       style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; outline: none; -webkit-appearance: none; cursor: pointer; accent-color: #a855f7;"
+                >
               </div>
             </div>
           </div>
@@ -953,6 +980,32 @@ export class UIManager {
         }
       });
     });
+
+    // Background Music Volume Slider Binding
+    const slideMusic = this.container.querySelector('#slide-music-vol') as HTMLInputElement;
+    if (slideMusic) {
+      slideMusic.addEventListener('input', (e) => {
+        const val = parseInt((e.target as HTMLInputElement).value);
+        this.engine.soundManager.setMusicVolume(val / 100);
+        const label = this.container.querySelector('#label-music-val');
+        if (label) label.textContent = `${val}%`;
+      });
+    }
+
+    // System SFX Volume Slider Binding
+    const slideSfx = this.container.querySelector('#slide-sfx-vol') as HTMLInputElement;
+    if (slideSfx) {
+      slideSfx.addEventListener('input', (e) => {
+        const val = parseInt((e.target as HTMLInputElement).value);
+        this.engine.soundManager.setSfxVolume(val / 100);
+        const label = this.container.querySelector('#label-sfx-val');
+        if (label) label.textContent = `${val}%`;
+      });
+      // Play a quick feedback coin sound when releasing the slider so the player can test the volume!
+      slideSfx.addEventListener('change', () => {
+        this.engine.soundManager.playCoin();
+      });
+    }
 
     // Daily login calendar claim
     const calendarDays = this.container.querySelectorAll('.calendar-day[data-day]');
