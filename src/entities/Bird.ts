@@ -61,11 +61,29 @@ export class Bird {
     // Jump lift scaled with skin upgrade level (minor bonus)
     const levelBonus = (this.activeSkin.upgradeLevel - 1) * 0.05;
     
-    // Scale jump lift dynamically based on score to counter increased gravity!
-    // Gravity scales by: 1.0 + Math.floor(score / 25.0) * 0.05
-    // Scaling jumpLift by 5% per 25 points keeps the gravity/jump physics ratio perfectly consistent
-    const physicsScale = 1.0 + Math.floor(score / 25.0) * 0.05;
-    const impulse = this.jumpLift * (1 + levelBonus) * physicsScale;
+    // Custom progressive score-based jump scaling:
+    // Score 0-100: starting displacement (1.0x)
+    // Score 100-200: +3.5% smooth increase
+    // Score 200-300: +2.5% smooth increase
+    // Score 300-400: +1.5% smooth increase
+    // Score 400+: Fixed at the capped maximum increase (1.035 * 1.025 * 1.015)
+    let jumpScale = 1.0;
+    if (score <= 100) {
+      jumpScale = 1.0;
+    } else if (score <= 200) {
+      const progress = (score - 100) / 100;
+      jumpScale = 1.0 + progress * 0.035;
+    } else if (score <= 300) {
+      const progress = (score - 200) / 100;
+      jumpScale = 1.035 * (1.0 + progress * 0.025);
+    } else if (score <= 400) {
+      const progress = (score - 300) / 100;
+      jumpScale = 1.035 * 1.025 * (1.0 + progress * 0.015);
+    } else {
+      jumpScale = 1.035 * 1.025 * 1.015; // Fixed maximum: ~1.0768
+    }
+    
+    const impulse = this.jumpLift * (1 + levelBonus) * jumpScale;
     
     // Instant, sharp, and highly responsive jump:
     // Instantly set vertical velocity to the jump impulse to give an immediate response.
@@ -84,8 +102,25 @@ export class Bird {
     const currentGravity = this.gravity * speedMultiplier;
     const currentMaxFallSpeed = this.maxFallSpeed * speedMultiplier;
     
+    // Custom progressive score-based jump scaling:
+    let jumpScale = 1.0;
+    if (score <= 100) {
+      jumpScale = 1.0;
+    } else if (score <= 200) {
+      const progress = (score - 100) / 100;
+      jumpScale = 1.0 + progress * 0.035;
+    } else if (score <= 300) {
+      const progress = (score - 200) / 100;
+      jumpScale = 1.035 * (1.0 + progress * 0.025);
+    } else if (score <= 400) {
+      const progress = (score - 300) / 100;
+      jumpScale = 1.035 * 1.025 * (1.0 + progress * 0.015);
+    } else {
+      jumpScale = 1.035 * 1.025 * 1.015;
+    }
+    
     // Scale maximum rise speed dynamically to stay fully synchronized with jump impulse scaling!
-    const currentMaxRiseSpeed = this.maxRiseSpeed * speedMultiplier;
+    const currentMaxRiseSpeed = this.maxRiseSpeed * jumpScale;
     
     if (isPlaying) {
       // Apply gravity
