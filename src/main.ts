@@ -50,25 +50,15 @@ function init() {
 }
 
 function setupInputs() {
-  let lastTapTime = 0;
-
   const onActionInput = (e: Event) => {
     const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('input') || target.closest('a') || target.closest('.hud-ultimate-container')) {
+    if (target.closest('button') || target.closest('input') || target.closest('a') || target.closest('.hud-ultimate-container') || target.closest('.hud-ult-circle-btn')) {
       return;
     }
 
     if (gameEngine.state === 'PLAYING' || gameEngine.state === 'BOSS_FIGHT') {
-      const now = performance.now();
       // ALWAYS jump instantly on every single click/tap! No blocking or delay!
       gameEngine.jump();
-      
-      if (now - lastTapTime < 250) {
-        // Trigger the Ultimate Special Ability (Option 2) on double tap/click
-        gameEngine.triggerUltimate();
-        uiManager.render();
-      }
-      lastTapTime = now;
     } else if (gameEngine.state === 'MENU' && uiManager.getActiveTab() === 'main') {
       const startBtn = document.getElementById('btn-start-game');
       if (startBtn) startBtn.click();

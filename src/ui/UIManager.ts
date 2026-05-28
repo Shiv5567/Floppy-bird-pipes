@@ -161,8 +161,10 @@ export class UIManager {
       }
 
       if (this.ultFill) {
-        this.ultFill.style.width = `${ultPercent}%`;
-        this.ultFill.style.background = ultBarBg;
+        const circumference = 157;
+        const offset = circumference - (ultPercent / 100) * circumference;
+        (this.ultFill as any).style.strokeDashoffset = `${offset}`;
+        (this.ultFill as any).style.stroke = ultBarBg;
       }
 
       if (this.ultText) {
@@ -1280,15 +1282,6 @@ export class UIManager {
             <span class="hud-val pop-scale" id="hud-score">${this.engine.score}</span>
           </div>
 
-          <!-- Ultimate Skill HUD Energy bar (Visual Upgrade Option 2) -->
-          <div class="hud-ultimate-container glass-card ${ultReady ? 'ult-ready-pulse' : ''} ${ultActive ? 'ult-active-glow' : ''}" style="pointer-events: auto; cursor: pointer;" id="btn-hud-ultimate" title="Double-Tap screen or Single-Tap here to activate Ultimate Skill!">
-            <span class="ult-icon">${ultActive ? '⚡' : ultReady ? '🔥' : '✨'}</span>
-            <div class="ult-progress-bar">
-              <div class="ult-progress-fill" style="width: ${ultPercent}%; background: ${ultBarBg}"></div>
-            </div>
-            <span class="ult-text">${ultActive ? 'ACTIVE' : ultReady ? 'READY!' : `${ultPercent}%`}</span>
-          </div>
-
           <div class="hud-actions">
             <button class="hud-circle-btn" id="btn-hud-pause">⏸️</button>
           </div>
@@ -1302,6 +1295,22 @@ export class UIManager {
           <div class="powerup-timers-holder">
             ${powerupBadges}
           </div>
+
+          <!-- Ultimate Special Ability Transparent Circular Button (Shifted from Double-Tap) -->
+          <div class="hud-ult-circle-btn glass-card ${ultReady ? 'ult-ready-pulse' : ''} ${ultActive ? 'ult-active-glow' : ''}" 
+               style="pointer-events: auto; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 62px; height: 62px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.06); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2); position: relative; margin-bottom: 6px; -webkit-tap-highlight-color: transparent;" 
+               id="btn-hud-ultimate" 
+               title="Tap to Activate Ultimate Special Ability!">
+            <div class="ult-inner-glow" style="position: absolute; inset: 2px; border-radius: 50%; background: ${ultActive ? 'rgba(255, 0, 127, 0.25)' : ultReady ? 'rgba(255, 215, 0, 0.18)' : 'transparent'}; pointer-events: none;"></div>
+            <svg class="ult-ring" width="58" height="58" viewBox="0 0 58 58" style="position: absolute; transform: rotate(-90deg); pointer-events: none;">
+              <circle cx="29" cy="29" r="25" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"></circle>
+              <circle cx="29" cy="29" r="25" fill="none" stroke="${ultBarBg}" stroke-width="4.5" 
+                      stroke-dasharray="157" stroke-dashoffset="${157 - (157 * ultPercent) / 100}" 
+                      stroke-linecap="round" class="ult-progress-fill" style="transition: stroke-dashoffset 0.15s ease-out; stroke: ${ultBarBg};"></circle>
+            </svg>
+            <span class="ult-icon" style="font-size: 24px; z-index: 2; transition: transform 0.2s ease; margin: 0; line-height: 1;">${ultActive ? '⚡' : ultReady ? '🔥' : '✨'}</span>
+          </div>
+
           <div class="run-stats">
             <span class="stat-badge">🟡 ${this.engine.coinsCollectedThisRun}</span>
             <span class="stat-badge">💎 ${this.engine.gemsCollectedThisRun}</span>

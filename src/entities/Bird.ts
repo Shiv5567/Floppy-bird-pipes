@@ -56,24 +56,31 @@ export class Bird {
   }
 
   public jump(soundManager?: any, score = 0) {
-    void score;
     if (this.isCrashing) return;
     
     // Jump lift scaled with skin upgrade level (minor bonus)
     const levelBonus = (this.activeSkin.upgradeLevel - 1) * 0.05;
-    const impulse = this.jumpLift * (1 + levelBonus);
+    
+    // Scale jump lift dynamically based on score to counter increased gravity!
+    // Gravity scales by: 1.0 + Math.floor(score / 25.0) * 0.05
+    // Scaling jumpLift by 6.2% per 25 points ensures the bird always feels snappy and responsive at high scores (300+)
+    const physicsScale = 1.0 + Math.floor(score / 25.0) * 0.062;
+    const impulse = this.jumpLift * (1 + levelBonus) * physicsScale;
+    
+    // Scale the max rise speed to allow faster rapid-tapping movement at high scores
+    const currentMaxRiseSpeed = this.maxRiseSpeed * physicsScale;
     
     // Instant, sharp, and skill-based responsiveness:
-    // If we are falling or rising slowly, instantly reset velocity to the upward jump impulse for an immediate, crisp response.
+    // If we are falling or rising slowly, instantly reset velocity to the upward jump impulse for an immediate response.
     // If we are already rising quickly and tap again, accumulate upward speed (additive) to reward fast tapping with rapid flight!
-    if (this.vy > -4) {
+    if (this.vy > -4 * physicsScale) {
       this.vy = impulse;
     } else {
-      this.vy += impulse * 0.85; // Increased additive thrust reward for rapid taps (0.85 instead of 0.7) for superior control
+      this.vy += impulse * 0.90; // Additive thrust reward for rapid taps
     }
     
     // Clamp to ensure it doesn't exceed maximum rising velocity bounds
-    if (this.vy < this.maxRiseSpeed) this.vy = this.maxRiseSpeed;
+    if (this.vy < currentMaxRiseSpeed) this.vy = currentMaxRiseSpeed;
     
     this.flapCycle = 0; // Reset wing animation cycle to start flap
     if (soundManager) soundManager.playFlap();
@@ -87,11 +94,15 @@ export class Bird {
     const currentGravity = this.gravity * speedMultiplier;
     const currentMaxFallSpeed = this.maxFallSpeed * speedMultiplier;
     
+    // Scale maximum rise speed dynamically to stay fully synchronized with jump impulse scaling!
+    const physicsScale = 1.0 + Math.floor(score / 25.0) * 0.062;
+    const currentMaxRiseSpeed = this.maxRiseSpeed * physicsScale;
+    
     if (isPlaying) {
       // Apply gravity
       this.vy += currentGravity * dtCoeff;
       if (this.vy > currentMaxFallSpeed) this.vy = currentMaxFallSpeed;
-      if (this.vy < this.maxRiseSpeed) this.vy = this.maxRiseSpeed; // Keep upward rise cap constant
+      if (this.vy < currentMaxRiseSpeed) this.vy = currentMaxRiseSpeed; // Synced upward rise cap
 
       this.y += this.vy * dtCoeff;
 

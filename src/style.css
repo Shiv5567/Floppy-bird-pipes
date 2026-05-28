@@ -2935,3 +2935,19 @@ body.mobile-performance .glass-card {
   text-transform: uppercase;
   min-height: 12px;
 }
+
+/* circular transparent ultimate button styling and responsive active animations */
+.hud-ult-circle-btn {
+  will-change: transform;
+}
+.hud-ult-circle-btn:active {
+  transform: scale(0.92) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+@media (hover: hover) {
+  .hud-ult-circle-btn:hover {
+    background: rgba(255, 255, 255, 0.10) !important;
+    border-color: rgba(255, 255, 255, 0.35) !important;
+  }
+}
+
