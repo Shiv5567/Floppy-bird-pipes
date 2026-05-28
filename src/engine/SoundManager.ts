@@ -17,7 +17,7 @@ export class SoundManager {
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
       this.ctx = new AudioCtx();
       this.masterVolumeNode = this.ctx.createGain();
-      this.masterVolumeNode.gain.setValueAtTime(0.3, this.ctx.currentTime); // Dynamic, subtle volumes
+      this.masterVolumeNode.gain.setValueAtTime(0.55, this.ctx.currentTime); // Boosted from 0.3 to 0.55 for rich volume!
       this.masterVolumeNode.connect(this.ctx.destination);
     } catch (e) {
       console.warn('Web Audio API not supported on this browser.', e);
@@ -27,10 +27,10 @@ export class SoundManager {
   public setMute(muted: boolean) {
     this.isMuted = muted;
     if (this.masterVolumeNode && this.ctx) {
-      this.masterVolumeNode.gain.setValueAtTime(muted ? 0 : 0.3, this.ctx.currentTime);
+      this.masterVolumeNode.gain.setValueAtTime(muted ? 0 : 0.55, this.ctx.currentTime);
     }
     if (this.customAudioElement) {
-      this.customAudioElement.volume = muted ? 0 : 0.25;
+      this.customAudioElement.volume = muted ? 0 : 0.45;
     }
   }
 
@@ -73,6 +73,79 @@ export class SoundManager {
       gain.connect(this.masterVolumeNode);
     } else {
       gain.connect(this.ctx.destination);
+    }
+
+    osc.start();
+    osc.stop(this.ctx.currentTime + duration);
+  }
+
+  private playSynthNote(
+    freq: number,
+    duration: number,
+    type: OscillatorType = 'sine',
+    gainVal = 0.3,
+    filterConfig?: { type: BiquadFilterType; startFreq: number; endFreq: number; q?: number },
+    delayEffect = false,
+    portamentoFreqEnd?: number
+  ) {
+    this.init();
+    if (!this.ctx || this.isMuted) return;
+
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    let lastNode: AudioNode = osc;
+
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+    
+    // Support Portamento (pitch slide)
+    if (portamentoFreqEnd && portamentoFreqEnd > 0) {
+      osc.frequency.exponentialRampToValueAtTime(portamentoFreqEnd, this.ctx.currentTime + duration);
+    }
+
+    // Support ADSR envelope (Attack-Decay-Sustain-Release approximation)
+    gain.gain.setValueAtTime(0.001, this.ctx.currentTime);
+    // Fast attack (12ms) for clicky plucks, slightly slower for space/pads
+    const attackTime = (type === 'sine' && duration > 0.4) ? 0.12 : 0.012;
+    gain.gain.linearRampToValueAtTime(gainVal, this.ctx.currentTime + attackTime);
+    // Decay and release to zero
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+
+    // Support Resonant Filter Sweeps (e.g. Acid sweeping growls or liquid bubble sweeps!)
+    if (filterConfig) {
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = filterConfig.type;
+      filter.Q.setValueAtTime(filterConfig.q || 1, this.ctx.currentTime);
+      filter.frequency.setValueAtTime(filterConfig.startFreq, this.ctx.currentTime);
+      filter.frequency.exponentialRampToValueAtTime(filterConfig.endFreq, this.ctx.currentTime + duration);
+      
+      osc.connect(filter);
+      lastNode = filter;
+    }
+
+    lastNode.connect(gain);
+
+    // Support Dynamic Feedback Delay & Echo (creates massive depth and space!)
+    if (delayEffect) {
+      const delayNode = this.ctx.createDelay(1.0);
+      const feedbackGain = this.ctx.createGain();
+      
+      delayNode.delayTime.setValueAtTime(0.28, this.ctx.currentTime);
+      feedbackGain.gain.setValueAtTime(0.42, this.ctx.currentTime);
+
+      gain.connect(delayNode);
+      delayNode.connect(feedbackGain);
+      feedbackGain.connect(delayNode); // loop feedback gain
+
+      // Connect both original dry and echoed wet signals
+      gain.connect(this.masterVolumeNode || this.ctx.destination);
+      delayNode.connect(this.masterVolumeNode || this.ctx.destination);
+    } else {
+      gain.connect(this.masterVolumeNode || this.ctx.destination);
     }
 
     osc.start();
@@ -185,7 +258,7 @@ export class SoundManager {
     this.isMusicPlaying = true;
     this.beatStep = 0;
 
-    // High-fidelity procedural configurations for all 10 worlds!
+    // High-fidelity distinct configurations for all 10 worlds!
     const worldConfigs: Record<string, {
       tempo: number;
       baseNotes: number[];
@@ -193,6 +266,9 @@ export class SoundManager {
       oscType: OscillatorType;
       leadOscType: OscillatorType;
       percussionType: 'woodblock' | 'hihat' | 'bongo' | 'retro' | 'noise' | 'none';
+      useFilterSweep: boolean;
+      useDelayEcho: boolean;
+      usePortamento: boolean;
     }> = {
       jungle: {
         tempo: 104,
@@ -200,31 +276,43 @@ export class SoundManager {
         melodyNotes: [220.00, 261.63, 293.66, 329.63, 392.00, 440.00], // Pentatonic Minor
         oscType: 'sine',
         leadOscType: 'sine',
-        percussionType: 'bongo'
+        percussionType: 'bongo',
+        useFilterSweep: false,
+        useDelayEcho: true,
+        usePortamento: false
       },
       jungle_temple: {
-        tempo: 96,
+        tempo: 88,
         baseNotes: [87.31, 98.00, 110.00, 130.81], // F2-G2-A2-C3
-        melodyNotes: [174.61, 196.00, 220.00, 261.63, 311.13, 349.23], // Mystical / Acoustic Scale
+        melodyNotes: [174.61, 196.00, 220.00, 261.63, 311.13, 349.23], // Acoustic Scale
         oscType: 'sine',
         leadOscType: 'sine',
-        percussionType: 'woodblock'
+        percussionType: 'woodblock',
+        useFilterSweep: false,
+        useDelayEcho: true, // Heavy echo for ancient temple caverns
+        usePortamento: false
       },
       cyberpunk: {
-        tempo: 125,
+        tempo: 126,
         baseNotes: [73.42, 82.41, 110.00, 97.99], // D2-E2-A2-G2
-        melodyNotes: [293.66, 329.63, 392.00, 440.00, 493.88, 587.33], // Neon cyberpunk scale
-        oscType: 'triangle',
+        melodyNotes: [293.66, 329.63, 392.00, 440.00, 493.88, 587.33], // Cyber Scale
+        oscType: 'sawtooth',
         leadOscType: 'sawtooth',
-        percussionType: 'hihat'
+        percussionType: 'hihat',
+        useFilterSweep: true, // Resonant sweep leads
+        useDelayEcho: true,
+        usePortamento: false
       },
       ice: {
-        tempo: 86,
+        tempo: 82,
         baseNotes: [130.81, 146.83, 164.81, 196.00], // C3-D3-E3-G3
-        melodyNotes: [523.25, 587.33, 659.25, 739.99, 783.99, 987.77], // Lydian Crystalline
+        melodyNotes: [523.25, 587.33, 659.25, 739.99, 783.99, 987.77], // C5-D5-E5-F#5-G5-B5 (Lydian Crystalline)
         oscType: 'sine',
-        leadOscType: 'sine',
-        percussionType: 'noise'
+        leadOscType: 'triangle',
+        percussionType: 'noise',
+        useFilterSweep: false,
+        useDelayEcho: true, // Shimmering glass chimes echoing
+        usePortamento: false
       },
       desert: {
         tempo: 92,
@@ -232,39 +320,54 @@ export class SoundManager {
         melodyNotes: [164.81, 174.61, 207.65, 220.00, 246.94, 261.63, 311.13], // Phrygian exotic
         oscType: 'triangle',
         leadOscType: 'triangle',
-        percussionType: 'bongo'
+        percussionType: 'bongo',
+        useFilterSweep: false,
+        useDelayEcho: false,
+        usePortamento: true // Pitch slides for authentic sitar pluck
       },
       volcano: {
         tempo: 136,
         baseNotes: [55.00, 65.41, 73.42, 69.30], // A1-C2-D2-C#2
-        melodyNotes: [110.00, 116.54, 138.59, 146.83, 164.81, 196.00], // Locrian panic scale
-        oscType: 'sawtooth',
+        melodyNotes: [110.00, 116.54, 138.59, 146.83, 164.81, 196.00], // Locrian heavy tension
+        oscType: 'square', // Gritty growling bass
         leadOscType: 'sawtooth',
-        percussionType: 'hihat'
+        percussionType: 'hihat',
+        useFilterSweep: true, // Sweeping acid filter sweeps
+        useDelayEcho: true,
+        usePortamento: false
       },
       space: {
-        tempo: 82,
+        tempo: 80,
         baseNotes: [146.83, 164.81, 110.00, 130.81], // D3-E3-A2-C3
         melodyNotes: [293.66, 349.23, 392.00, 440.00, 523.25], // Cosmic scale
         oscType: 'sine',
         leadOscType: 'sine',
-        percussionType: 'none'
+        percussionType: 'none',
+        useFilterSweep: true, // Lowpass sweeping ambient pad chords
+        useDelayEcho: true,
+        usePortamento: false
       },
       underwater: {
         tempo: 88,
         baseNotes: [98.00, 116.54, 130.81, 146.83], // G2-Bb2-C3-D3
-        melodyNotes: [196.00, 233.08, 261.63, 293.66, 349.23, 392.00], // Muffled bubble minor
+        melodyNotes: [196.00, 233.08, 261.63, 293.66, 349.23, 392.00], // Bubbly minor scale
         oscType: 'sine',
         leadOscType: 'sine',
-        percussionType: 'bongo'
+        percussionType: 'bongo',
+        useFilterSweep: true, // Bandpass sweeping bubbly 16th note runs
+        useDelayEcho: true,
+        usePortamento: false
       },
       heaven: {
-        tempo: 98,
+        tempo: 96,
         baseNotes: [130.81, 164.81, 196.00, 261.63], // C3-E3-G3-C4
-        melodyNotes: [523.25, 659.25, 783.99, 880.00, 987.77, 1046.50], // Celestial major
+        melodyNotes: [523.25, 659.25, 783.99, 880.00, 987.77, 1046.50], // Celestial major harp
         oscType: 'sine',
         leadOscType: 'sine',
-        percussionType: 'woodblock'
+        percussionType: 'woodblock',
+        useFilterSweep: false,
+        useDelayEcho: true, // Wet ethereal harp echo
+        usePortamento: false
       },
       retro: {
         tempo: 114,
@@ -272,7 +375,10 @@ export class SoundManager {
         melodyNotes: [261.63, 293.66, 329.63, 392.00, 440.00, 523.25], // 8-bit NES style
         oscType: 'square',
         leadOscType: 'square',
-        percussionType: 'retro'
+        percussionType: 'retro',
+        useFilterSweep: false,
+        useDelayEcho: false,
+        usePortamento: true // True classic chiptune slide bleeps
       }
     };
 
@@ -291,70 +397,99 @@ export class SoundManager {
       const baseNoteIndex = Math.floor(this.beatStep / 4) % config.baseNotes.length;
       let baseFreq = config.baseNotes[baseNoteIndex];
 
-      // Transpose up by a minor third (3 semitones) in boss fights for heightened battle tension!
+      // Transpose up by minor third (3 semitones) in boss fights for extreme drama!
       if (isBossFight) {
         baseFreq = baseFreq * 1.189;
       }
 
-      // --- LAYER 1: BASELINE (Always Active) ---
-      const arpFreqs = [baseFreq, baseFreq * 1.5, baseFreq * 2.0, baseFreq * 1.2];
-      const currentArpFreq = arpFreqs[barStep % arpFreqs.length];
-      
-      let bassVolume = 0.16;
-      if (worldId === 'underwater') bassVolume = 0.22; // underwater sine waves need boost
-      if (isUltimate) bassVolume = 0.24;
+      // --- LAYER 1: BASELINE BASSLINE (Always Active - Boosted Volume) ---
+      // Cyberpunk & Retro get energetic 8th-note octaves, others get custom arpeggiators
+      let currentBassFreq = baseFreq;
+      if ((worldId === 'cyberpunk' || worldId === 'retro') && barStep % 2 === 1) {
+        currentBassFreq = baseFreq * 2.0; // root-octave leaps
+      } else {
+        const arpFreqs = [baseFreq, baseFreq * 1.5, baseFreq * 2.0, baseFreq * 1.2];
+        currentBassFreq = arpFreqs[barStep % arpFreqs.length];
+      }
 
-      this.playTone(currentArpFreq, currentArpFreq, 0.15, config.oscType, bassVolume, 'linear');
+      let bassVolume = 0.26; // Boosted volume from 0.16 to 0.26!
+      if (worldId === 'underwater') bassVolume = 0.32; // Sub-bass needs extra push
+      if (isUltimate) bassVolume = 0.38;
+
+      if (worldId === 'underwater') {
+        // Muffled sub-bass lowpass filtered strictly
+        this.playSynthNote(currentBassFreq, 0.16, 'sine', bassVolume, { type: 'lowpass', startFreq: 180, endFreq: 120, q: 1 });
+      } else if (worldId === 'volcano') {
+        // Acid growling bassline
+        this.playSynthNote(currentBassFreq, 0.16, 'square', bassVolume, { type: 'lowpass', startFreq: 800, endFreq: 200, q: 6 });
+      } else {
+        this.playSynthNote(currentBassFreq, 0.16, config.oscType, bassVolume);
+      }
 
       // --- LAYER 2: DRUMS & PERCUSSION (Active when score >= 5 or in boss fight) ---
       if (score >= 5 || isBossFight) {
         // Bass kick drum on beats 1 and 3 (steps 0 and 8)
         if (barStep === 0 || barStep === 8) {
-          this.playTone(55, 10, 0.12, 'sine', 0.28, 'exp');
+          this.playSynthNote(55, 0.12, 'sine', 0.45, { type: 'lowpass', startFreq: 120, endFreq: 10, q: 1 }); // Deep punchy sub kick
         }
 
-        // Snare / woodblock accent on beats 2 and 4 (steps 4 and 12)
+        // Snare / woodblock / acoustic tap on beats 2 and 4 (steps 4 and 12)
         if (barStep === 4 || barStep === 12) {
           if (config.percussionType === 'hihat' || config.percussionType === 'retro') {
             this.playSnare();
           } else if (config.percussionType === 'bongo') {
-            this.playBongo(150, 0.14, 0.2);
+            this.playBongo(150, 0.14, 0.32); // Boosted bongo volume
           } else if (config.percussionType === 'woodblock') {
-            this.playWoodblock(1000, 0.08, 0.1);
+            this.playWoodblock(950, 0.08, 0.24); // Boosted woodblock volume
           } else if (config.percussionType === 'noise') {
-            this.playNoiseWind(0.1, 0.05, 800);
+            this.playNoiseWind(0.12, 0.14, 800); // Shaker/wind tap
           }
         }
 
-        // Ticking hihats on offbeats (steps 2, 6, 10, 14)
+        // Ticking hihats / bongo claps on offbeats (steps 2, 6, 10, 14)
         if (barStep % 4 === 2) {
           if (config.percussionType === 'hihat') {
             this.playHihat();
           } else if (config.percussionType === 'retro') {
-            this.playWoodblock(2000, 0.03, 0.05); // High retro synth tick
+            this.playWoodblock(1800, 0.03, 0.15); // Retro chiptune click
           } else if (config.percussionType === 'bongo') {
-            this.playBongo(300, 0.05, 0.08); // High bongo sound
+            this.playBongo(280, 0.05, 0.16); // High bongo bleep
           } else if (config.percussionType === 'woodblock') {
-            this.playWoodblock(1600, 0.03, 0.06);
+            this.playWoodblock(1600, 0.03, 0.15);
           } else if (config.percussionType === 'noise') {
             this.playHihat();
           }
         }
+
+        // Jungle Temple special: Deep gong strike on step 0
+        if (worldId === 'jungle_temple' && barStep === 0) {
+          this.playSynthNote(80, 1.5, 'sine', 0.25, { type: 'lowpass', startFreq: 400, endFreq: 50, q: 2 }, true);
+        }
       }
 
-      // --- LAYER 3: HARMONIC CELESTIAL CHORD PAD (Active when score >= 12 or in boss fight) ---
+      // --- LAYER 3: DYNAMIC CELESTIAL CHORD PAD (Active when score >= 12 or in boss fight) ---
       if (score >= 12 || isBossFight) {
         if (barStep === 0 || barStep === 8) {
-          const chordFreq1 = baseFreq * 2.0;
-          const chordFreq2 = baseFreq * 3.0;
-          const chordFreq3 = baseFreq * 4.0;
+          const chordFreq1 = baseFreq * 2.0; // root octave
+          const chordFreq2 = baseFreq * 3.0; // perfect fifth
+          const chordFreq3 = baseFreq * 4.0; // second octave
           
-          let chordVol = 0.08;
-          if (worldId === 'space' || worldId === 'heaven') chordVol = 0.12;
+          let chordVol = 0.15; // Boosted volume from 0.08!
+          if (worldId === 'space' || worldId === 'heaven') chordVol = 0.22;
 
-          this.playTone(chordFreq1, chordFreq1 * 1.01, 0.65, 'sine', chordVol, 'linear');
-          this.playTone(chordFreq2, chordFreq2 * 1.01, 0.65, 'sine', chordVol * 0.7, 'linear');
-          this.playTone(chordFreq3, chordFreq3 * 1.01, 0.65, 'sine', chordVol * 0.5, 'linear');
+          if (worldId === 'space') {
+            // Ethereal slow-sweeping interstellar chords
+            this.playSynthNote(chordFreq1, 0.8, 'sine', chordVol, { type: 'lowpass', startFreq: 1200, endFreq: 400, q: 2 }, true);
+            this.playSynthNote(chordFreq2, 0.8, 'sine', chordVol * 0.7, { type: 'lowpass', startFreq: 1500, endFreq: 500, q: 2 }, true);
+          } else if (worldId === 'heaven' || worldId === 'jungle_temple' || worldId === 'ice') {
+            // Echoing harp-like pads
+            this.playSynthNote(chordFreq1, 0.7, 'sine', chordVol, undefined, true);
+            this.playSynthNote(chordFreq2, 0.7, 'sine', chordVol * 0.7, undefined, true);
+            this.playSynthNote(chordFreq3, 0.7, 'sine', chordVol * 0.5, undefined, true);
+          } else {
+            this.playSynthNote(chordFreq1, 0.5, config.oscType, chordVol);
+            this.playSynthNote(chordFreq2, 0.5, config.oscType, chordVol * 0.7);
+          }
         }
       }
 
@@ -364,14 +499,28 @@ export class SoundManager {
         const currentMelodyIndex = melodyPattern[barStep % melodyPattern.length];
         const melodyFreq = config.melodyNotes[currentMelodyIndex % config.melodyNotes.length];
 
+        // Play melody on even steps (0, 2, 4, 6, 8, 10, 12, 14)
         if (barStep % 2 === 0) {
-          let leadVol = 0.11;
-          if (isBossFight) leadVol = 0.16;
+          let leadVol = 0.22; // Boosted volume from 0.11!
+          if (isBossFight) leadVol = 0.32;
 
           if (worldId === 'underwater') {
-            this.playTone(melodyFreq * 0.5, melodyFreq * 0.5, 0.22, 'sine', leadVol, 'linear'); // muffled filter style
+            // Muffled liquid bubbles (sweeping bandpass filters)
+            this.playSynthNote(melodyFreq * 0.5, 0.22, 'sine', leadVol, { type: 'bandpass', startFreq: 400, endFreq: 2200, q: 4 }, true);
+          } else if (worldId === 'cyberpunk') {
+            // Acid neon sweeps
+            this.playSynthNote(melodyFreq, 0.18, 'sawtooth', leadVol, { type: 'lowpass', startFreq: 3200, endFreq: 600, q: 4 }, config.useDelayEcho);
+          } else if (worldId === 'desert') {
+            // Portamento sitar plucks
+            const nextIndex = melodyPattern[(barStep + 2) % melodyPattern.length];
+            const nextFreq = config.melodyNotes[nextIndex % config.melodyNotes.length];
+            this.playSynthNote(melodyFreq, 0.25, 'triangle', leadVol, undefined, false, nextFreq);
+          } else if (worldId === 'retro') {
+            // Arcade portamento slides
+            const slideTarget = melodyFreq * 0.6; // slide downwards
+            this.playSynthNote(melodyFreq, 0.18, 'square', leadVol, undefined, false, slideTarget);
           } else {
-            this.playTone(melodyFreq, melodyFreq, 0.18, config.leadOscType, leadVol, 'linear');
+            this.playSynthNote(melodyFreq, 0.18, config.leadOscType, leadVol, undefined, config.useDelayEcho);
           }
         }
       }
@@ -379,8 +528,15 @@ export class SoundManager {
       // --- LAYER 5: ULTIMATE SPECIAL OVERDRIVE (Active during Ultimate mode) ---
       if (isUltimate) {
         const ultArpIndex = this.beatStep % config.melodyNotes.length;
-        const ultFreq = config.melodyNotes[ultArpIndex] * 2.0; // Play hyper double-octave lead runs
-        this.playTone(ultFreq, ultFreq * 1.05, 0.08, 'sawtooth', 0.08, 'linear');
+        const ultFreq = config.melodyNotes[ultArpIndex] * 2.0; // High-frequency rapid runs
+        
+        let ultVol = 0.16;
+        if (worldId === 'retro' || worldId === 'desert') {
+          // Classic rapid arpeggiator (16th notes!)
+          this.playSynthNote(ultFreq, 0.08, config.leadOscType, ultVol, undefined, false, ultFreq * 0.8);
+        } else {
+          this.playSynthNote(ultFreq, 0.08, 'sawtooth', ultVol, { type: 'highpass', startFreq: 1500, endFreq: 3000, q: 1 });
+        }
       }
 
       this.beatStep++;
@@ -412,7 +568,7 @@ export class SoundManager {
     filter.type = 'highpass';
     filter.frequency.setValueAtTime(7000, this.ctx.currentTime);
 
-    gain.gain.setValueAtTime(0.02, this.ctx.currentTime);
+    gain.gain.setValueAtTime(0.04, this.ctx.currentTime); // Boosted from 0.02
     gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.05);
 
     osc.connect(filter);
@@ -440,7 +596,7 @@ export class SoundManager {
     filter.type = 'bandpass';
     filter.frequency.setValueAtTime(1000, this.ctx.currentTime);
 
-    gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+    gain.gain.setValueAtTime(0.12, this.ctx.currentTime); // Boosted from 0.05
     gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.12);
 
     osc.connect(filter);
