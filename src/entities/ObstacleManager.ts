@@ -1071,7 +1071,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
 
     if (obs.isMutated) {
       if (isPerformance) {
@@ -1254,7 +1254,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
 
     if (isPerformance) {
       ctx.fillStyle = obs.isMutated ? '#ec4899' : '#73c93e';
@@ -1429,7 +1429,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
 
     if (isPerformance) {
       ctx.fillStyle = obs.isMutated ? '#083722' : '#4f5043';
@@ -1558,7 +1558,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
 
     if (isPerformance) {
       ctx.fillStyle = obs.isMutated ? '#05050a' : '#120f26';
@@ -1704,7 +1704,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
 
     if (isPerformance) {
       ctx.fillStyle = obs.isMutated ? '#3b82f6' : 'rgba(173, 216, 230, 0.75)';
@@ -1815,7 +1815,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
 
     if (isPerformance) {
       ctx.fillStyle = obs.isMutated ? '#fbbf24' : '#ab8e60';
@@ -1927,7 +1927,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
 
     if (isPerformance) {
       ctx.fillStyle = obs.isMutated ? '#0a0505' : '#100505';
@@ -2010,7 +2010,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
 
     if (isPerformance) {
       ctx.fillStyle = obs.isMutated ? '#030008' : '#2e0854';
@@ -2092,7 +2092,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
 
     if (isPerformance) {
       ctx.fillStyle = obs.isMutated ? '#081e26' : '#004d40';
@@ -2190,7 +2190,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
 
     if (isPerformance) {
       ctx.fillStyle = obs.isMutated ? '#ffffff' : '#f5f5f0';
@@ -2295,7 +2295,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
     if (isPerformance) {
       ctx.fillStyle = colorTop;
       ctx.strokeStyle = outlineColor;
@@ -2395,7 +2395,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
     if (isPerformance) {
       ctx.fillStyle = '#1e3a8a';
       ctx.strokeStyle = '#fbbf24';
@@ -2459,7 +2459,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
     if (isPerformance) {
       ctx.fillStyle = '#ec4899';
       ctx.strokeStyle = '#06b6d4';
@@ -2533,7 +2533,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
     if (isPerformance) {
       ctx.fillStyle = '#102a12';
       ctx.strokeStyle = 'rgba(217, 160, 24, 0.70)';
@@ -2623,7 +2623,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
     if (isPerformance) {
       ctx.fillStyle = '#0e0b1c';
       ctx.strokeStyle = '#8a2be2';
@@ -2733,7 +2733,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
     if (isPerformance) {
       ctx.fillStyle = '#3b82f6';
       ctx.strokeStyle = '#ffffff';
@@ -2802,7 +2802,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
     if (isPerformance) {
       ctx.fillStyle = '#fbbf24';
       ctx.strokeStyle = '#ef4444';
@@ -2890,7 +2890,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
     if (isPerformance) {
       ctx.fillStyle = '#0a0505';
       ctx.strokeStyle = '#f97316';
@@ -2953,7 +2953,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
     if (isPerformance) {
       ctx.fillStyle = '#15062b';
       ctx.strokeStyle = '#a855f7';
@@ -3024,7 +3024,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
     if (isPerformance) {
       ctx.fillStyle = '#081e26';
       ctx.strokeStyle = '#ec4899';
@@ -3095,7 +3095,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
     if (isPerformance) {
       ctx.fillStyle = '#ffffff';
       ctx.strokeStyle = '#fcd34d';
@@ -3162,7 +3162,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
 
     if (isPerformance) {
       ctx.fillStyle = '#434e44';
@@ -3253,7 +3253,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
+    const isPerformance = false;
     if (isPerformance) {
       ctx.fillStyle = '#344237';
       ctx.strokeStyle = '#0a0d0b';
