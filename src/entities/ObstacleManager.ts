@@ -58,6 +58,7 @@ export class ObstacleManager {
   private freePool: Obstacle[] = [];
   private spawnTimer = 0;
   private obstacleWidth = 72;
+  private currentScore = 0;
   private waveTime = 0;
   private nextSpawnDistance = 350;
   private lastTopHeight: number | null = null;
@@ -132,6 +133,7 @@ export class ObstacleManager {
     this.nextSpawnDistance = 350;
     this.lastTopHeight = null;
     this.currentPatternIdx = 0;
+    this.currentScore = 0;
   }
 
   public update(
@@ -147,6 +149,7 @@ export class ObstacleManager {
     _birdX?: number,
     _particleEngine?: any
   ) {
+    this.currentScore = score;
     const dtCoeff = deltaTime * 60 * timeScale;
     this.waveTime += deltaTime * timeScale;
     
@@ -892,7 +895,7 @@ export class ObstacleManager {
           }
 
           this.drawCavernObstacle(ctx, obs, height, colorTop, colorBottom, outlineColor);
-        } else if (obs.isStructured) {
+        } else if (obs.isStructured || (this.currentScore >= 50 && this.currentScore <= 70)) {
           switch (obs.worldId) {
             case 'jungle':
               this.drawStructuredJunglePillars(ctx, obs, height);
@@ -2093,57 +2096,67 @@ export class ObstacleManager {
       return;
     }
 
-    // Semi-transparent deep mossy jade-olive gradient (environment friendly and slightly transparent)
-    const jungleGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    jungleGrad.addColorStop(0, 'rgba(16, 42, 25, 0.72)');
-    jungleGrad.addColorStop(0.5, 'rgba(38, 75, 45, 0.78)');
-    jungleGrad.addColorStop(1, 'rgba(10, 32, 18, 0.72)');
+    const drawJungleBlock = (yStart: number, h: number, _isTop: boolean) => {
+      // Tree trunk bark brown base
+      const barkGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      barkGrad.addColorStop(0, '#3d2b1f');
+      barkGrad.addColorStop(0.3, '#5c4033');
+      barkGrad.addColorStop(0.7, '#6d4c41');
+      barkGrad.addColorStop(1, '#2b1d14');
+      ctx.fillStyle = barkGrad;
+      ctx.fillRect(rx, yStart, rw, h);
+      
+      // Draw vertical bark texture lines
+      ctx.strokeStyle = '#231812';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      for (let xOffset = 15; xOffset < rw; xOffset += 18) {
+        ctx.moveTo(rx + xOffset, yStart);
+        ctx.lineTo(rx + xOffset + Math.sin(xOffset) * 5, yStart + h);
+      }
+      ctx.stroke();
 
-    ctx.fillStyle = jungleGrad;
-    ctx.strokeStyle = 'rgba(217, 160, 24, 0.70)'; // Dimmer, less glowing amber-gold outline
-    ctx.lineWidth = 2.0;
+      // Wrapped winding green ivy vines
+      ctx.strokeStyle = '#1b5e20'; // dark forest green
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      let lastX = rx + rw / 2;
+      ctx.moveTo(lastX, yStart);
+      for (let y = yStart; y < yStart + h; y += 20) {
+        const nextX = rx + rw / 2 + Math.sin(y * 0.05) * (rw * 0.4);
+        ctx.lineTo(nextX, y);
+      }
+      ctx.stroke();
 
-    // TOP COLUMN (flat standard rectangle)
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      // Draw beautiful green leaves
+      ctx.fillStyle = '#4caf50'; // glowing green
+      for (let y = yStart; y < yStart + h; y += 35) {
+        const leafX = rx + rw / 2 + Math.sin(y * 0.05) * (rw * 0.4);
+        ctx.beginPath();
+        ctx.ellipse(leafX, y, 8, 4, Math.PI / 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#1b5e20';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
 
-    // BOTTOM COLUMN (flat standard rectangle)
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      // Glowing pink wild forest blossoms
+      ctx.fillStyle = '#ff4081'; // bright pink wild forest blossoms
+      for (let y = yStart + 20; y < yStart + h; y += 60) {
+        const flowerX = rx + rw / 2 + Math.sin(y * 0.05) * (rw * 0.4) + 5;
+        ctx.beginPath();
+        ctx.arc(flowerX, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffd700'; // gold core
+        ctx.beginPath();
+        ctx.arc(flowerX, y, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ff4081';
+      }
+    };
 
-    // Stepped gold joint collars at safe boundaries (very premium, flat and static)
-    ctx.fillStyle = 'rgba(217, 160, 24, 0.70)';
-    ctx.fillRect(rx - 2, rTop - 8, rw + 4, 8);
-    ctx.strokeRect(rx - 2, rTop - 8, rw + 4, 8);
-    ctx.fillRect(rx - 2, height - rBottom, rw + 4, 8);
-    ctx.strokeRect(rx - 2, height - rBottom, rw + 4, 8);
-
-    // Simple flat horizontal joints (ancient temple block divisions)
-    ctx.strokeStyle = 'rgba(217, 160, 24, 0.3)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(rx, rTop - 45);
-    ctx.lineTo(rx + rw, rTop - 45);
-    ctx.moveTo(rx, rTop - 90);
-    ctx.lineTo(rx + rw, rTop - 90);
-    ctx.moveTo(rx, height - rBottom + 45);
-    ctx.lineTo(rx + rw, height - rBottom + 45);
-    ctx.moveTo(rx, height - rBottom + 90);
-    ctx.lineTo(rx + rw, height - rBottom + 90);
-    ctx.stroke();
-
-    // Side gold rivets/decorations at block segments (very low performance footprint, flat graphics)
-    ctx.fillStyle = 'rgba(217, 160, 24, 0.70)';
-    ctx.beginPath();
-    ctx.arc(rx + 3, rTop - 45, 2.5, 0, Math.PI * 2);
-    ctx.arc(rx + rw - 3, rTop - 45, 2.5, 0, Math.PI * 2);
-    ctx.arc(rx + 3, rTop - 90, 2.5, 0, Math.PI * 2);
-    ctx.arc(rx + rw - 3, rTop - 90, 2.5, 0, Math.PI * 2);
-    ctx.arc(rx + 3, height - rBottom + 45, 2.5, 0, Math.PI * 2);
-    ctx.arc(rx + rw - 3, height - rBottom + 45, 2.5, 0, Math.PI * 2);
-    ctx.arc(rx + 3, height - rBottom + 90, 2.5, 0, Math.PI * 2);
-    ctx.arc(rx + rw - 3, height - rBottom + 90, 2.5, 0, Math.PI * 2);
-    ctx.fill();
+    drawJungleBlock(-1000, rTop + 1000, true);
+    drawJungleBlock(height - rBottom, rBottom + 1000, false);
   }
 
   private drawStructuredCyberpunkPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
@@ -2180,44 +2193,53 @@ export class ObstacleManager {
       return;
     }
 
-    // Simple background-friendly dark metallic chassis (static linear gradient)
-    const chassisGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    chassisGrad.addColorStop(0, '#0e0b1c');
-    chassisGrad.addColorStop(0.5, '#15102a');
-    chassisGrad.addColorStop(1, '#0e0b1c');
+    const drawCyberBlock = (yStart: number, h: number, _isTop: boolean) => {
+      // 1. Semi-transparent neon glass grid
+      ctx.save();
+      const holoGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      holoGrad.addColorStop(0, 'rgba(0, 243, 255, 0.12)');
+      holoGrad.addColorStop(0.5, 'rgba(255, 0, 127, 0.20)');
+      holoGrad.addColorStop(1, 'rgba(0, 243, 255, 0.08)');
+      ctx.fillStyle = holoGrad;
+      ctx.fillRect(rx, yStart, rw, h);
+      
+      // Cyber corner frames/brackets
+      ctx.strokeStyle = '#00f3ff';
+      ctx.lineWidth = 2.5;
+      ctx.strokeRect(rx, yStart, rw, h);
+      ctx.restore();
 
-    ctx.fillStyle = chassisGrad;
-    ctx.strokeStyle = '#8a2be2'; // Background-friendly static neon violet outline
-    ctx.lineWidth = 2.0;
+      // 2. Vertical glowing binary circuit/data stream lines
+      ctx.strokeStyle = 'rgba(0, 243, 255, 0.55)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(rx + rw * 0.3, yStart);
+      ctx.lineTo(rx + rw * 0.3, yStart + h);
+      ctx.moveTo(rx + rw * 0.7, yStart);
+      ctx.lineTo(rx + rw * 0.7, yStart + h);
+      ctx.stroke();
 
-    // Draw Top Pillar Main Chassis
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      // Glowing pink nodes
+      ctx.fillStyle = '#ff007f';
+      ctx.beginPath();
+      for (let y = yStart + 20; y < yStart + h; y += 40) {
+        ctx.arc(rx + rw * 0.3, y, 3, 0, Math.PI * 2);
+        ctx.arc(rx + rw * 0.7, y + 20, 3, 0, Math.PI * 2);
+      }
+      ctx.fill();
 
-    // Draw Bottom Pillar Main Chassis
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      // Pulsing central holographic core
+      ctx.save();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      const corePulse = 4 + Math.sin((obs.x || 0) * 0.05) * 1.5;
+      ctx.fillRect(rx + rw / 2 - corePulse / 2, yStart, corePulse, h);
+      ctx.restore();
+    };
 
-    // Simple flat structural joint caps at the safe borders
-    ctx.fillStyle = '#8a2be2';
-    ctx.fillRect(rx, rTop - 8, rw, 8);
-    ctx.fillRect(rx, height - rBottom, rw, 8);
+    drawCyberBlock(-1000, rTop + 1000, true);
+    drawCyberBlock(height - rBottom, rBottom + 1000, false);
 
-    // Simple static cyber panel divisions for "structured" look (very low performance footprint, no lights)
-    ctx.strokeStyle = 'rgba(138, 43, 226, 0.35)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(rx, rTop - 45);
-    ctx.lineTo(rx + rw, rTop - 45);
-    ctx.moveTo(rx, rTop - 90);
-    ctx.lineTo(rx + rw, rTop - 90);
-    ctx.moveTo(rx, height - rBottom + 45);
-    ctx.lineTo(rx + rw, height - rBottom + 45);
-    ctx.moveTo(rx, height - rBottom + 90);
-    ctx.lineTo(rx + rw, height - rBottom + 90);
-    ctx.stroke();
-
-    // Standard Cyberpunk Laser (simple flat rendering, no complex transparency overlays)
+    // Standard Cyberpunk Laser
     if (obs.isLaser) {
       if (obs.laserActive) {
         ctx.fillStyle = 'rgba(255, 0, 127, 0.85)'; // Solid pink laser
@@ -2255,56 +2277,67 @@ export class ObstacleManager {
       return;
     }
 
-    // Aurora prism gradient and sharp, jagged crystalline facets instead of rectangles!
-    const prismGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    prismGrad.addColorStop(0, '#ec4899'); // Pink
-    prismGrad.addColorStop(0.5, '#3b82f6'); // Blue
-    prismGrad.addColorStop(1, '#06b6d4'); // Cyan
-    ctx.fillStyle = prismGrad;
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2.5;
+    const drawIceBlock = (yStart: number, h: number, isTop: boolean) => {
+      // Translucent, light-refracting aquamarine ice crystal columns
+      const iceGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      iceGrad.addColorStop(0, 'rgba(165, 243, 252, 0.85)'); // Aquamarine
+      iceGrad.addColorStop(0.5, 'rgba(56, 189, 248, 0.95)'); // Ice blue
+      iceGrad.addColorStop(1, 'rgba(14, 116, 144, 0.90)'); // Deep glacier blue
+      ctx.fillStyle = iceGrad;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2.5;
 
-    // TOP CRYSTAL SPIRE (procedural jagged facets)
-    ctx.beginPath();
-    ctx.moveTo(rx + 8, -1000);
-    ctx.lineTo(rx + 8, rTop - 90);
-    ctx.lineTo(rx - 12, rTop - 65); // Jagged left spike
-    ctx.lineTo(rx + 16, rTop - 45); // Stepped crystal joint
-    ctx.lineTo(rx - 8, rTop - 25);  // Inner left spike
-    ctx.lineTo(rx + rw * 0.5, rTop); // Sharp tip!
-    ctx.lineTo(rx + rw + 8, rTop - 25);
-    ctx.lineTo(rx + rw - 16, rTop - 45);
-    ctx.lineTo(rx + rw + 12, rTop - 65); // Jagged right spike
-    ctx.lineTo(rx + rw - 8, rTop - 90);
-    ctx.lineTo(rx + rw - 8, -1000);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+      ctx.fillRect(rx, yStart, rw, h);
+      ctx.strokeRect(rx, yStart, rw, h);
 
-    // BOTTOM CRYSTAL SPIRE
-    ctx.beginPath();
-    ctx.moveTo(rx + 8, height + 1000);
-    ctx.lineTo(rx + 8, height - rBottom + 90);
-    ctx.lineTo(rx - 12, height - rBottom + 65); // Jagged left spike
-    ctx.lineTo(rx + 16, height - rBottom + 45);
-    ctx.lineTo(rx - 8, height - rBottom + 25);
-    ctx.lineTo(rx + rw * 0.5, height - rBottom); // Sharp tip!
-    ctx.lineTo(rx + rw + 8, height - rBottom + 25);
-    ctx.lineTo(rx + rw - 16, height - rBottom + 45);
-    ctx.lineTo(rx + rw + 12, height - rBottom + 65); // Jagged right spike
-    ctx.lineTo(rx + rw - 8, height - rBottom + 90);
-    ctx.lineTo(rx + rw - 8, height + 1000);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+      // Frosted white snow caps on safe lips
+      ctx.fillStyle = '#ffffff';
+      const capY = isTop ? yStart + h - 12 : yStart;
+      ctx.fillRect(rx - 2, capY, rw + 4, 12);
+      ctx.strokeRect(rx - 2, capY, rw + 4, 12);
 
-    // Inner ice shine lines
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(rx + rw * 0.5, rTop - 90); ctx.lineTo(rx + rw * 0.5, rTop);
-    ctx.moveTo(rx + rw * 0.5, height - rBottom + 90); ctx.lineTo(rx + rw * 0.5, height - rBottom);
-    ctx.stroke();
+      // Light-refracting diamond crystal highlights
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.65)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      // Top facet line
+      ctx.moveTo(rx + rw * 0.3, yStart);
+      ctx.lineTo(rx + rw * 0.5, yStart + h * 0.4);
+      ctx.lineTo(rx + rw * 0.7, yStart);
+      // Bottom facet line
+      ctx.moveTo(rx + rw * 0.3, yStart + h);
+      ctx.lineTo(rx + rw * 0.5, yStart + h * 0.6);
+      ctx.lineTo(rx + rw * 0.7, yStart + h);
+      ctx.stroke();
+
+      // Hanging crystal icicles
+      if (isTop) {
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        // Icicle 1
+        ctx.moveTo(rx + 10, yStart + h);
+        ctx.lineTo(rx + 15, yStart + h + 18);
+        ctx.lineTo(rx + 20, yStart + h);
+        // Icicle 2
+        ctx.moveTo(rx + rw - 25, yStart + h);
+        ctx.lineTo(rx + rw - 18, yStart + h + 24);
+        ctx.lineTo(rx + rw - 10, yStart + h);
+        ctx.fill();
+        ctx.stroke();
+      } else {
+        // Stalagmites rising from the bottom cap
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(rx + 15, yStart);
+        ctx.lineTo(rx + 22, yStart - 18);
+        ctx.lineTo(rx + 30, yStart);
+        ctx.fill();
+        ctx.stroke();
+      }
+    };
+
+    drawIceBlock(-1000, rTop + 1000, true);
+    drawIceBlock(height - rBottom, rBottom + 1000, false);
   }
 
   private drawStructuredDesertPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
@@ -2324,53 +2357,69 @@ export class ObstacleManager {
       return;
     }
 
-    // Egyptian Tapered Sandstone Pylons!
-    const sandGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    sandGrad.addColorStop(0, '#b45309');
-    sandGrad.addColorStop(0.5, '#fbbf24');
-    sandGrad.addColorStop(1, '#78350f');
-    ctx.fillStyle = sandGrad;
-    ctx.strokeStyle = '#ef4444'; // Ruby red borders
-    ctx.lineWidth = 2.5;
+    const drawDesertBlock = (yStart: number, h: number, isTop: boolean) => {
+      // Sandstone ruins gradient
+      const sandGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      sandGrad.addColorStop(0, '#c2b280'); // Sandstone gold
+      sandGrad.addColorStop(0.5, '#ab8e60'); // Deep desert sand
+      sandGrad.addColorStop(1, '#8b7355'); // Dark stone
+      ctx.fillStyle = sandGrad;
+      ctx.strokeStyle = '#3e2c14';
+      ctx.lineWidth = 2.5;
 
-    // TOP COLUMN: Tapered pylon path (slopes inward smoothly)
-    ctx.beginPath();
-    ctx.moveTo(rx - 10, -1000);
-    ctx.lineTo(rx + rw + 10, -1000);
-    ctx.lineTo(rx + rw - 8, rTop - 25);
-    ctx.lineTo(rx + 8, rTop - 25);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+      // Draw tapered pillar obelisk shape
+      ctx.beginPath();
+      if (isTop) {
+        ctx.moveTo(rx - 8, yStart);
+        ctx.lineTo(rx + rw + 8, yStart);
+        ctx.lineTo(rx + rw - 6, yStart + h);
+        ctx.lineTo(rx + 6, yStart + h);
+      } else {
+        ctx.moveTo(rx + 6, yStart);
+        ctx.lineTo(rx + rw - 6, yStart);
+        ctx.lineTo(rx + rw + 8, yStart + h);
+        ctx.lineTo(rx - 8, yStart + h);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
 
-    // BOTTOM COLUMN: Tapered pylon path
-    ctx.beginPath();
-    ctx.moveTo(rx - 10, height + 1000);
-    ctx.lineTo(rx + rw + 10, height + 1000);
-    ctx.lineTo(rx + rw - 8, height - rBottom + 25);
-    ctx.lineTo(rx + 8, height - rBottom + 25);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+      // Shiny golden capstone at safe border
+      const capY = isTop ? yStart + h - 16 : yStart;
+      const goldGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      goldGrad.addColorStop(0, '#ffd700');
+      goldGrad.addColorStop(0.5, '#fffbeb');
+      goldGrad.addColorStop(1, '#d97706');
+      ctx.fillStyle = goldGrad;
+      ctx.fillRect(rx + 4, capY, rw - 8, 16);
+      ctx.strokeRect(rx + 4, capY, rw - 8, 16);
 
-    // Flat stepped Egyptian capitals
-    ctx.fillStyle = '#fbbf24';
-    ctx.fillRect(rx + 4, rTop - 25, rw - 8, 12);
-    ctx.strokeRect(rx + 4, rTop - 25, rw - 8, 12);
-    ctx.fillRect(rx, rTop - 13, rw, 13);
-    ctx.strokeRect(rx, rTop - 13, rw, 13);
+      // Deeply carved ancient hieroglyphics glowing gold
+      ctx.strokeStyle = 'rgba(255, 215, 0, 0.85)';
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#ffd700';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      const centerY = yStart + h / 2;
+      ctx.arc(rx + rw * 0.5, centerY, 8, 0, Math.PI * 2);
+      ctx.moveTo(rx + rw * 0.5 - 12, centerY + 15);
+      ctx.lineTo(rx + rw * 0.5 + 12, centerY + 15);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
 
-    ctx.fillRect(rx + 4, height - rBottom + 13, rw - 8, 12);
-    ctx.strokeRect(rx + 4, height - rBottom + 13, rw - 8, 12);
-    ctx.fillRect(rx, height - rBottom, rw, 13);
-    ctx.strokeRect(rx, height - rBottom, rw, 13);
+      // Draw smooth sand-dune waves contour lines
+      ctx.strokeStyle = 'rgba(62, 44, 20, 0.2)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      for (let y = yStart + 30; y < yStart + h - 30; y += 45) {
+        ctx.moveTo(rx + 6, y);
+        ctx.bezierCurveTo(rx + rw * 0.3, y - 10, rx + rw * 0.7, y + 10, rx + rw - 6, y);
+      }
+      ctx.stroke();
+    };
 
-    // Embedded glowing ruby gems
-    ctx.fillStyle = '#ef4444';
-    ctx.beginPath();
-    ctx.arc(rx + rw * 0.5, rTop - 60, 6, 0, Math.PI * 2);
-    ctx.arc(rx + rw * 0.5, height - rBottom + 60, 6, 0, Math.PI * 2);
-    ctx.fill();
+    drawDesertBlock(-1000, rTop + 1000, true);
+    drawDesertBlock(height - rBottom, rBottom + 1000, false);
   }
 
   private drawStructuredVolcanoPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
@@ -2390,48 +2439,41 @@ export class ObstacleManager {
       return;
     }
 
-    // Basalt staggered columnar joints (bundle of vertical hexagonal joints of different heights)
-    ctx.strokeStyle = '#f97316'; // Lava orange
-    ctx.lineWidth = 2.5;
+    const drawVolcanoBlock = (yStart: number, h: number, isTop: boolean) => {
+      // Hexagonal basalt joints (3 staggered vertical pillars)
+      const colW = rw / 3;
+      
+      const drawJoint = (xOffset: number, heightOffset: number, baseColor: string) => {
+        ctx.fillStyle = baseColor;
+        ctx.strokeStyle = '#f97316'; // Lava orange outlines
+        ctx.lineWidth = 2.5;
+        
+        const jy = isTop ? yStart : yStart + heightOffset;
+        const jh = isTop ? h - heightOffset : h - heightOffset;
+        
+        ctx.fillRect(xOffset, jy, colW, jh);
+        ctx.strokeRect(xOffset, jy, colW, jh);
 
-    const colW = rw / 3;
+        // Magma crack lines down the middle
+        ctx.strokeStyle = '#ffd700'; // glowing gold
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = '#f97316';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(xOffset + colW / 2, jy);
+        ctx.lineTo(xOffset + colW / 2 + Math.sin(jy) * 4, jy + jh);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      };
 
-    // TOP COLUMN (3 staggered basalt joints)
-    // Left joint column (medium height)
-    ctx.fillStyle = '#0a0505';
-    ctx.fillRect(rx, -1000, colW, rTop + 1000 - 15);
-    ctx.strokeRect(rx, -1000, colW, rTop + 1000 - 15);
-    // Middle joint column (longest height)
-    ctx.fillStyle = '#110505';
-    ctx.fillRect(rx + colW, -1000, colW, rTop + 1000);
-    ctx.strokeRect(rx + colW, -1000, colW, rTop + 1000);
-    // Right joint column (shortest height)
-    ctx.fillStyle = '#050101';
-    ctx.fillRect(rx + colW * 2, -1000, colW, rTop + 1000 - 30);
-    ctx.strokeRect(rx + colW * 2, -1000, colW, rTop + 1000 - 30);
+      // Draw basalt joint bundle
+      drawJoint(rx, 15, '#0f0d0d'); // left
+      drawJoint(rx + colW, 0, '#1a1616'); // middle (longest)
+      drawJoint(rx + colW * 2, 30, '#0a0909'); // right
+    };
 
-    // BOTTOM COLUMN (staggered joints)
-    // Left joint column
-    ctx.fillStyle = '#0a0505';
-    ctx.fillRect(rx, height - rBottom + 15, colW, rBottom + 1000 - 15);
-    ctx.strokeRect(rx, height - rBottom + 15, colW, rBottom + 1000 - 15);
-    // Middle joint column (longest height closer to safe gap)
-    ctx.fillStyle = '#110505';
-    ctx.fillRect(rx + colW, height - rBottom, colW, rBottom + 1000);
-    ctx.strokeRect(rx + colW, height - rBottom, colW, rBottom + 1000);
-    // Right joint column
-    ctx.fillStyle = '#050101';
-    ctx.fillRect(rx + colW * 2, height - rBottom + 30, colW, rBottom + 1000 - 30);
-    ctx.strokeRect(rx + colW * 2, height - rBottom + 30, colW, rBottom + 1000 - 30);
-
-    // Flowing central superheated yellow magma vein inside the middle column
-    const lavaFlow = ctx.createLinearGradient(rx + colW, 0, rx + colW * 2, 0);
-    lavaFlow.addColorStop(0, '#f97316');
-    lavaFlow.addColorStop(0.5, '#facc15'); // Yellow core
-    lavaFlow.addColorStop(1, '#ea580c');
-    ctx.fillStyle = lavaFlow;
-    ctx.fillRect(rx + colW + 4, -1000, colW - 8, rTop + 1000);
-    ctx.fillRect(rx + colW + 4, height - rBottom, colW - 8, rBottom + 1000);
+    drawVolcanoBlock(-1000, rTop + 1000, true);
+    drawVolcanoBlock(height - rBottom, rBottom + 1000, false);
   }
 
   private drawStructuredSpaceObstacles(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
@@ -2451,56 +2493,47 @@ export class ObstacleManager {
       return;
     }
 
-    // Dark space-alloy obelisk body
-    const spaceGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    spaceGrad.addColorStop(0, '#020005');
-    spaceGrad.addColorStop(0.4, '#15062b');
-    spaceGrad.addColorStop(0.7, '#0d021f');
-    spaceGrad.addColorStop(1, '#000000');
+    const drawSpaceBlock = (yStart: number, h: number, _isTop: boolean) => {
+      // 1. Dark stellar carbon-alloy panel gradient
+      const carbonGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      carbonGrad.addColorStop(0, '#0c0722');
+      carbonGrad.addColorStop(0.5, '#1a103c');
+      carbonGrad.addColorStop(1, '#050211');
+      ctx.fillStyle = carbonGrad;
+      ctx.strokeStyle = '#da70d6'; // Neon cosmic purple borders
+      ctx.lineWidth = 2.5;
 
-    ctx.fillStyle = spaceGrad;
-    ctx.strokeStyle = '#a855f7'; // Neon purple outline
-    ctx.lineWidth = 2.5;
+      ctx.fillRect(rx, yStart, rw, h);
+      ctx.strokeRect(rx, yStart, rw, h);
 
-    // TOP COLUMN: Quantum Monolith (Stepped height)
-    ctx.fillRect(rx, -1000, rw, rTop + 1000 - 30);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000 - 30);
+      // 2. Pulsing stellar core (quantum warp-gate)
+      ctx.save();
+      const coreGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      coreGrad.addColorStop(0, 'rgba(218, 112, 214, 0.15)');
+      coreGrad.addColorStop(0.5, 'rgba(0, 243, 255, 0.4)'); // glowing cyan core
+      coreGrad.addColorStop(1, 'rgba(218, 112, 214, 0.15)');
+      ctx.fillStyle = coreGrad;
+      ctx.fillRect(rx + rw * 0.35, yStart, rw * 0.3, h);
+      ctx.restore();
 
-    // BOTTOM COLUMN: Quantum Monolith
-    ctx.fillRect(rx, height - rBottom + 30, rw, rBottom + 1000 - 30);
-    ctx.strokeRect(rx, height - rBottom + 30, rw, rBottom + 1000 - 30);
+      // 3. Constellation vectors (glowing starry geometric patterns)
+      ctx.strokeStyle = '#e0f2fe'; // star white
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(rx + 10, yStart + 40);
+      ctx.lineTo(rx + rw * 0.5, yStart + 80);
+      ctx.lineTo(rx + rw - 10, yStart + 40);
+      ctx.stroke();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(rx + 10, yStart + 40, 2.5, 0, Math.PI * 2);
+      ctx.arc(rx + rw * 0.5, yStart + 80, 2.5, 0, Math.PI * 2);
+      ctx.arc(rx + rw - 10, yStart + 40, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    };
 
-    // 1. Central glowing quantum energy conduits
-    ctx.save();
-    ctx.fillStyle = '#3b82f6'; // Bright blue core
-    if (!(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = '#3b82f6';
-    }
-    ctx.fillRect(rx + rw * 0.42, -1000, rw * 0.16, rTop + 1000 - 30);
-    ctx.fillRect(rx + rw * 0.42, height - rBottom + 30, rw * 0.16, rBottom + 1000 - 30);
-    ctx.restore();
-
-    // 2. Stepped warp-gate node capitals at safe boundaries
-    const nodeGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    nodeGrad.addColorStop(0, '#a855f7');
-    nodeGrad.addColorStop(0.5, '#ffffff'); // bright core
-    nodeGrad.addColorStop(1, '#3b82f6');
-    ctx.fillStyle = nodeGrad;
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 2.0;
-
-    // Top stepped nodes
-    ctx.fillRect(rx - 8, rTop - 30, rw + 16, 12);
-    ctx.strokeRect(rx - 8, rTop - 30, rw + 16, 12);
-    ctx.fillRect(rx - 4, rTop - 18, rw + 8, 18);
-    ctx.strokeRect(rx - 4, rTop - 18, rw + 8, 18);
-
-    // Bottom stepped nodes
-    ctx.fillRect(rx - 8, height - rBottom + 18, rw + 16, 12);
-    ctx.strokeRect(rx - 8, height - rBottom + 18, rw + 16, 12);
-    ctx.fillRect(rx - 4, height - rBottom, rw + 8, 18);
-    ctx.strokeRect(rx - 4, height - rBottom, rw + 8, 18);
+    drawSpaceBlock(-1000, rTop + 1000, true);
+    drawSpaceBlock(height - rBottom, rBottom + 1000, false);
   }
 
   private drawStructuredUnderwaterPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
@@ -2520,33 +2553,43 @@ export class ObstacleManager {
       return;
     }
 
-    // Atlantis fluted ruins columns: Broken Greek columns shifted horizontally!
-    ctx.fillStyle = '#081e26';
-    ctx.strokeStyle = '#ec4899'; // Coral pink
-    ctx.lineWidth = 2.5;
+    const drawUnderwaterBlock = (yStart: number, h: number, _isTop: boolean) => {
+      // 1. Mossy teal marine stone
+      const marineGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      marineGrad.addColorStop(0, '#001a14');
+      marineGrad.addColorStop(0.5, '#004d40'); // deep teal
+      marineGrad.addColorStop(1, '#00251a');
+      ctx.fillStyle = marineGrad;
+      ctx.strokeStyle = '#008b8b';
+      ctx.lineWidth = 2.5;
 
-    // TOP COLUMN: broken at rTop - 60, offset left by 8px, right by 8px
-    // 1. Far base segment (shifted left)
-    ctx.fillRect(rx - 8, -1000, rw, rTop + 1000 - 60);
-    ctx.strokeRect(rx - 8, -1000, rw, rTop + 1000 - 60);
-    // 2. Inner crown segment (shifted right)
-    ctx.fillRect(rx + 8, rTop - 60, rw, 60);
-    ctx.strokeRect(rx + 8, rTop - 60, rw, 60);
+      ctx.fillRect(rx, yStart, rw, h);
+      ctx.strokeRect(rx, yStart, rw, h);
 
-    // BOTTOM COLUMN: broken at height - rBottom + 60, offset right by 8px, left by 8px
-    // 1. Far base segment (shifted right)
-    ctx.fillRect(rx + 8, height - rBottom + 60, rw, rBottom + 1000 - 60);
-    ctx.strokeRect(rx + 8, height - rBottom + 60, rw, rBottom + 1000 - 60);
-    // 2. Inner crown segment (shifted left)
-    ctx.fillRect(rx - 8, height - rBottom, rw, 60);
-    ctx.strokeRect(rx - 8, height - rBottom, rw, 60);
+      // 2. Wavy seaweed/kelp wrapped around
+      ctx.strokeStyle = '#00c853'; // seaweed green
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.moveTo(rx + rw * 0.3, yStart);
+      for (let y = yStart; y < yStart + h; y += 25) {
+        ctx.lineTo(rx + rw * 0.3 + Math.sin(y * 0.08) * 12, y);
+      }
+      ctx.stroke();
 
-    // Bioluminescent coral polyps
-    ctx.fillStyle = '#f472b6';
-    ctx.beginPath();
-    ctx.arc(rx + 12, rTop - 25, 6, 0, Math.PI * 2);
-    ctx.arc(rx + rw - 15, height - rBottom + 35, 7, 0, Math.PI * 2);
-    ctx.fill();
+      // 3. Glowing pink coral/anemones polyps
+      ctx.fillStyle = '#f472b6'; // Coral pink
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#ff69b4';
+      ctx.beginPath();
+      ctx.arc(rx + rw * 0.5, yStart + h * 0.4, 6, 0, Math.PI * 2);
+      ctx.arc(rx + rw * 0.5 + 8, yStart + h * 0.4 + 6, 4, 0, Math.PI * 2);
+      ctx.arc(rx + rw * 0.2, yStart + h * 0.7, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    };
+
+    drawUnderwaterBlock(-1000, rTop + 1000, true);
+    drawUnderwaterBlock(height - rBottom, rBottom + 1000, false);
   }
 
   private drawStructuredHeavenPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
@@ -2566,50 +2609,54 @@ export class ObstacleManager {
       return;
     }
 
-    // Winged angelic marble columns with flaring gold wing-arches
-    const heavGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    heavGrad.addColorStop(0, '#fcd34d');
-    heavGrad.addColorStop(0.3, '#ffffff');
-    heavGrad.addColorStop(0.7, '#ffffff');
-    heavGrad.addColorStop(1, '#a7f3d0');
-    ctx.fillStyle = heavGrad;
-    ctx.strokeStyle = '#fcd34d'; // Shiny gold
-    ctx.lineWidth = 3;
+    const drawHeavenBlock = (yStart: number, h: number, isTop: boolean) => {
+      // 1. Divine white marble gradient body
+      const heavGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      heavGrad.addColorStop(0, '#fefcf0');
+      heavGrad.addColorStop(0.5, '#ffffff'); // bright marble white
+      heavGrad.addColorStop(1, '#f5f5f0');
+      ctx.fillStyle = heavGrad;
+      ctx.strokeStyle = '#ffd700'; // Pure shiny gold borders
+      ctx.lineWidth = 3;
 
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.fillRect(rx, yStart, rw, h);
+      ctx.strokeRect(rx, yStart, rw, h);
 
-    // Fluted grooved lines
-    ctx.strokeStyle = 'rgba(252, 211, 77, 0.4)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(rx + rw * 0.33, -1000); ctx.lineTo(rx + rw * 0.33, rTop);
-    ctx.moveTo(rx + rw * 0.66, -1000); ctx.lineTo(rx + rw * 0.66, rTop);
-    ctx.moveTo(rx + rw * 0.33, height - rBottom); ctx.lineTo(rx + rw * 0.33, height + 1000);
-    ctx.moveTo(rx + rw * 0.66, height - rBottom); ctx.lineTo(rx + rw * 0.66, height + 1000);
-    ctx.stroke();
+      // Fluted marble grooved vertical details
+      ctx.strokeStyle = 'rgba(255, 215, 0, 0.25)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(rx + rw * 0.33, yStart); ctx.lineTo(rx + rw * 0.33, yStart + h);
+      ctx.moveTo(rx + rw * 0.66, yStart); ctx.lineTo(rx + rw * 0.66, yStart + h);
+      ctx.stroke();
 
-    // Grand flaring semi-circular gold wing-arches at safe gap caps!
-    ctx.fillStyle = '#fcd34d';
-    ctx.beginPath();
-    // Top wing-arch flaring outwards
-    ctx.arc(rx + rw * 0.5, rTop - 12, rw * 0.7, Math.PI, 0, false);
-    ctx.lineTo(rx + rw, rTop);
-    ctx.lineTo(rx, rTop);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+      // 2. Grand flaring gold wing-arches at safe border
+      const wingY = isTop ? yStart + h - 16 : yStart;
+      ctx.fillStyle = '#ffd700';
+      ctx.beginPath();
+      if (isTop) {
+        ctx.arc(rx + rw * 0.5, wingY, rw * 0.65, Math.PI, 0, false);
+        ctx.lineTo(rx + rw, wingY + 16);
+        ctx.lineTo(rx, wingY + 16);
+      } else {
+        ctx.arc(rx + rw * 0.5, wingY + 16, rw * 0.65, 0, Math.PI, false);
+        ctx.lineTo(rx, wingY);
+        ctx.lineTo(rx + rw, wingY);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
 
-    ctx.beginPath();
-    // Bottom wing-arch flaring outwards
-    ctx.arc(rx + rw * 0.5, height - rBottom + 12, rw * 0.7, 0, Math.PI, false);
-    ctx.lineTo(rx, height - rBottom);
-    ctx.lineTo(rx + rw, height - rBottom);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+      // 3. Celestial gold filigree designs
+      ctx.strokeStyle = 'rgba(218, 165, 32, 0.4)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(rx + rw * 0.5, yStart + h * 0.5, 10, 0, Math.PI, true);
+      ctx.stroke();
+    };
+
+    drawHeavenBlock(-1000, rTop + 1000, true);
+    drawHeavenBlock(height - rBottom, rBottom + 1000, false);
   }
 
   // Draw Jungle Temple Pillars (Standard & Mutated)
@@ -2630,84 +2677,63 @@ export class ObstacleManager {
       return;
     }
 
-    const stoneGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    stoneGrad.addColorStop(0, '#384339');
-    stoneGrad.addColorStop(0.3, '#5c6b5d');
-    stoneGrad.addColorStop(0.7, '#434e44');
-    stoneGrad.addColorStop(1, '#1e241f');
+    const drawTempleBlock = (yStart: number, h: number, isTop: boolean) => {
+      // Mossy stone block slabs
+      const stoneGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+      stoneGrad.addColorStop(0, '#2d382f');
+      stoneGrad.addColorStop(0.3, '#435446');
+      stoneGrad.addColorStop(0.7, '#344237');
+      stoneGrad.addColorStop(1, '#1b241e');
+      ctx.fillStyle = stoneGrad;
+      ctx.strokeStyle = '#0a0d0b';
+      ctx.lineWidth = 3.0;
 
-    ctx.fillStyle = stoneGrad;
-    ctx.strokeStyle = '#0e120f';
-    ctx.lineWidth = 3.0;
+      ctx.fillRect(rx, yStart, rw, h);
+      ctx.strokeRect(rx, yStart, rw, h);
 
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      // Aztec rune carvings (engraved block joint lines)
+      ctx.strokeStyle = 'rgba(212, 175, 55, 0.75)'; // Ancient gold
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#ffd700';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      const rY = yStart + h / 2;
+      ctx.strokeRect(rx + rw * 0.3, rY - 12, 28, 24);
+      ctx.moveTo(rx + rw * 0.3 + 7, rY);
+      ctx.lineTo(rx + rw * 0.3 + 21, rY);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
 
-    ctx.strokeStyle = '#0e120f';
-    ctx.lineWidth = 2.0;
-    ctx.beginPath();
-    ctx.moveTo(rx, rTop - 60);
-    ctx.lineTo(rx + rw * 0.4, rTop - 45);
-    ctx.lineTo(rx + rw * 0.35, rTop - 90);
-    ctx.moveTo(rx + rw * 0.6, rTop - 120);
-    ctx.lineTo(rx + rw, rTop - 140);
-    ctx.moveTo(rx, height - rBottom + 80);
-    ctx.lineTo(rx + rw * 0.5, height - rBottom + 60);
-    ctx.lineTo(rx + rw * 0.7, height - rBottom + 110);
-    ctx.stroke();
+      // Embedded glowing emerald gems
+      ctx.fillStyle = '#00ffaa'; // glowing emerald green
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = '#00ffaa';
+      ctx.beginPath();
+      ctx.arc(rx + rw * 0.5, rY, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
 
-    ctx.save();
-    if (obs.isMutated) {
-      ctx.strokeStyle = '#00ffaa';
-      if (!(window as any).gameDisableShadows) {
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = '#00ffaa';
+      // Moss overlay
+      ctx.fillStyle = 'rgba(34, 139, 34, 0.4)';
+      ctx.fillRect(rx + 4, yStart + 4, rw - 8, 15);
+      
+      // Hanging ivy leaves
+      ctx.fillStyle = '#1b5e20';
+      ctx.beginPath();
+      if (isTop) {
+        ctx.moveTo(rx + 12, yStart + h);
+        ctx.lineTo(rx + 18, yStart + h + 18);
+        ctx.lineTo(rx + 24, yStart + h);
+      } else {
+        ctx.moveTo(rx + rw - 24, yStart);
+        ctx.lineTo(rx + rw - 18, yStart - 18);
+        ctx.lineTo(rx + rw - 12, yStart);
       }
-      ctx.lineWidth = 2.5;
-    } else {
-      ctx.strokeStyle = '#fbbf24';
-      ctx.lineWidth = 1.8;
-    }
+      ctx.fill();
+    };
 
-    ctx.beginPath();
-    ctx.arc(rx + rw * 0.5, rTop - 80, 12, 0, Math.PI * 2);
-    ctx.moveTo(rx + rw * 0.35, rTop - 80);
-    ctx.lineTo(rx + rw * 0.65, rTop - 80);
-    ctx.moveTo(rx + rw * 0.5, rTop - 95);
-    ctx.lineTo(rx + rw * 0.5, rTop - 65);
-    ctx.arc(rx + rw * 0.5, height - rBottom + 80, 12, 0, Math.PI * 2);
-    ctx.moveTo(rx + rw * 0.35, height - rBottom + 80);
-    ctx.lineTo(rx + rw * 0.65, height - rBottom + 80);
-    ctx.moveTo(rx + rw * 0.5, height - rBottom + 65);
-    ctx.lineTo(rx + rw * 0.5, height - rBottom + 95);
-    ctx.stroke();
-    ctx.restore();
-
-    ctx.strokeStyle = '#1b4d22';
-    ctx.lineWidth = 3.0;
-    ctx.beginPath();
-    ctx.moveTo(rx - 2, rTop - 10);
-    ctx.quadraticCurveTo(rx + rw * 0.4, rTop - 30, rx + rw * 0.7, rTop - 15);
-    ctx.quadraticCurveTo(rx + rw * 0.9, rTop - 2, rx + rw + 2, rTop - 25);
-    ctx.moveTo(rx - 2, height - rBottom + 25);
-    ctx.quadraticCurveTo(rx + rw * 0.3, height - rBottom + 10, rx + rw * 0.6, height - rBottom + 30);
-    ctx.quadraticCurveTo(rx + rw * 0.8, height - rBottom + 45, rx + rw + 2, height - rBottom + 15);
-    ctx.stroke();
-
-    ctx.fillStyle = '#2d7a3c';
-    ctx.beginPath();
-    ctx.arc(rx + 15, rTop - 26, 6, 0, Math.PI * 2);
-    ctx.arc(rx + 35, rTop - 22, 5, 0, Math.PI * 2);
-    ctx.arc(rx + rw - 20, rTop - 16, 6, 0, Math.PI * 2);
-    ctx.arc(rx + 25, height - rBottom + 20, 5, 0, Math.PI * 2);
-    ctx.arc(rx + rw - 30, height - rBottom + 32, 6, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#3a2212';
-    ctx.fillRect(rx, rTop - 12, rw, 12);
-    ctx.fillRect(rx, height - rBottom, rw, 12);
+    drawTempleBlock(-1000, rTop + 1000, true);
+    drawTempleBlock(height - rBottom, rBottom + 1000, false);
   }
 
   // Draw Jungle Temple Structured Stepped Pillars (Score 50-70)
