@@ -9,11 +9,11 @@ export class Bird {
   public baseRadius = 26;
   public angle = 0;
   
-  // Physics parameters (tighter, snappier responsiveness: gravity increased from 0.40 to 0.52, jumpLift increased from -7.4 to -8.8)
-  private gravity = 0.52;
-  private jumpLift = -8.8;
-  private maxFallSpeed = 14.0;
-  private maxRiseSpeed = -14.0;
+  // Physics parameters (Reduced jump height and balanced gravity for maximum precision and precise control)
+  private gravity = 0.40;
+  private jumpLift = -6.4;
+  private maxFallSpeed = 11.0;
+  private maxRiseSpeed = -8.5;
   
   // Animation variables
   private flapCycle = 0;
@@ -40,11 +40,11 @@ export class Bird {
   }
 
   public setDifficulty(difficulty: 'easy' | 'medium' | 'hard') {
-    void difficulty; // Enforce medium physics across all modes for constant tap responsiveness
-    this.gravity = 0.52;
-    this.jumpLift = -8.8;
-    this.maxFallSpeed = 14.0;
-    this.maxRiseSpeed = -14.0;
+    void difficulty; // Enforce constant medium physics for balanced predictability
+    this.gravity = 0.40;
+    this.jumpLift = -6.4;
+    this.maxFallSpeed = 11.0;
+    this.maxRiseSpeed = -8.5;
   }
 
   public setSkin(skin: Skin) {
@@ -63,24 +63,14 @@ export class Bird {
     
     // Scale jump lift dynamically based on score to counter increased gravity!
     // Gravity scales by: 1.0 + Math.floor(score / 25.0) * 0.05
-    // Scaling jumpLift by 6.2% per 25 points ensures the bird always feels snappy and responsive at high scores (300+)
-    const physicsScale = 1.0 + Math.floor(score / 25.0) * 0.062;
+    // Scaling jumpLift by 5% per 25 points keeps the gravity/jump physics ratio perfectly consistent
+    const physicsScale = 1.0 + Math.floor(score / 25.0) * 0.05;
     const impulse = this.jumpLift * (1 + levelBonus) * physicsScale;
     
-    // Scale the max rise speed to allow faster rapid-tapping movement at high scores
-    const currentMaxRiseSpeed = this.maxRiseSpeed * physicsScale;
-    
-    // Instant, sharp, and skill-based responsiveness:
-    // If we are falling or rising slowly, instantly reset velocity to the upward jump impulse for an immediate response.
-    // If we are already rising quickly and tap again, accumulate upward speed (additive) to reward fast tapping with rapid flight!
-    if (this.vy > -4 * physicsScale) {
-      this.vy = impulse;
-    } else {
-      this.vy += impulse * 0.90; // Additive thrust reward for rapid taps
-    }
-    
-    // Clamp to ensure it doesn't exceed maximum rising velocity bounds
-    if (this.vy < currentMaxRiseSpeed) this.vy = currentMaxRiseSpeed;
+    // Instant, sharp, and highly responsive jump:
+    // Instantly set vertical velocity to the jump impulse to give an immediate response.
+    // This guarantees a perfectly predictable jump height on every single tap and prevents wild speed-stacking!
+    this.vy = impulse;
     
     this.flapCycle = 0; // Reset wing animation cycle to start flap
     if (soundManager) soundManager.playFlap();
@@ -95,8 +85,7 @@ export class Bird {
     const currentMaxFallSpeed = this.maxFallSpeed * speedMultiplier;
     
     // Scale maximum rise speed dynamically to stay fully synchronized with jump impulse scaling!
-    const physicsScale = 1.0 + Math.floor(score / 25.0) * 0.062;
-    const currentMaxRiseSpeed = this.maxRiseSpeed * physicsScale;
+    const currentMaxRiseSpeed = this.maxRiseSpeed * speedMultiplier;
     
     if (isPlaying) {
       // Apply gravity
