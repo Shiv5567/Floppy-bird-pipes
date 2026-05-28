@@ -102,6 +102,7 @@ export class GameEngine {
     // Initialize global performance detector to bypass expensive shadow blurs
     // ALWAYS disable canvas shadows by default on ALL devices (PC and mobile) to solve lag completely
     (window as any).gameDisableShadows = true;
+    (window as any).gameEngine = this;
   }
 
   public startGame() {
