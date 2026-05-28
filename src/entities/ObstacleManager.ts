@@ -61,10 +61,10 @@ export class ObstacleManager {
   private currentScore = 0;
   private waveTime = 0;
   private nextSpawnDistance = 350;
-  private lastTopHeight: number | null = null;
 
   private activeLevelConfig: any = null;
   private currentPatternIdx = 0;
+  private endlessPatternQueue: { centerYOffset: number, isMoving?: boolean }[] = [];
 
   constructor() {}
 
@@ -131,9 +131,9 @@ export class ObstacleManager {
     this.spawnTimer = 0;
     this.waveTime = 0;
     this.nextSpawnDistance = 350;
-    this.lastTopHeight = null;
     this.currentPatternIdx = 0;
     this.currentScore = 0;
+    this.endlessPatternQueue = [];
   }
 
   public update(
@@ -583,53 +583,24 @@ export class ObstacleManager {
       margin = 60;
     }
 
-    const playableHeight = height - gapHeight - margin * 2;
-    let targetTopHeight = margin + Math.random() * playableHeight;
-
-    if (this.lastTopHeight !== null) {
-      const scoreTier = Math.floor(score / 50);
-      let zigzagFactor = 0.65;
-      let forceAlternateChance = 0.68;
-      
-      if (difficulty === 'easy') {
-        zigzagFactor = Math.min(0.45, 0.25 + scoreTier * 0.05);
-        forceAlternateChance = 0.30;
-      } else if (difficulty === 'hard') {
-        zigzagFactor = Math.min(0.98, 0.85 + scoreTier * 0.05);
-        forceAlternateChance = 0.90;
-      } else {
-        zigzagFactor = Math.min(0.85, 0.60 + scoreTier * 0.08);
-        forceAlternateChance = 0.68;
-      }
-
-      const maxStep = playableHeight * zigzagFactor;
-      const forceAlternate = Math.random() < forceAlternateChance;
-      let minVal = Math.max(margin, this.lastTopHeight - maxStep);
-      let maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
-      
-      if (forceAlternate) {
-        const isHigh = this.lastTopHeight > margin + playableHeight * 0.5;
-        if (isHigh) {
-          const lowBiasLimit = difficulty === 'easy' ? 0.35 : (difficulty === 'hard' ? 0.48 : 0.45);
-          maxVal = Math.min(maxVal, margin + playableHeight * lowBiasLimit);
-        } else {
-          const highBiasLimit = difficulty === 'easy' ? 0.65 : (difficulty === 'hard' ? 0.52 : 0.55);
-          minVal = Math.max(minVal, margin + playableHeight * highBiasLimit);
-        }
-        if (minVal > maxVal) {
-          minVal = Math.max(margin, this.lastTopHeight - maxStep);
-          maxVal = Math.min(margin + playableHeight, this.lastTopHeight + maxStep);
-        }
-      }
-
-      targetTopHeight = minVal + Math.random() * (maxVal - minVal);
+    // Populate the endless pattern queue if it's empty
+    if (this.endlessPatternQueue.length === 0) {
+      this.generateEndlessPattern();
     }
+    const nextPattern = this.endlessPatternQueue.shift()!;
 
-    topHeight = targetTopHeight;
-    this.lastTopHeight = topHeight;
+    let targetCenterY = height / 2 + nextPattern.centerYOffset;
+    isMoving = !!nextPattern.isMoving;
+
+    // Safeguard boundaries to keep safe gap consistent and within bounds
+    const minCenterY = margin + gapHeight / 2;
+    const maxCenterY = height - margin - gapHeight / 2;
+    targetCenterY = Math.max(minCenterY, Math.min(maxCenterY, targetCenterY));
+
+    topHeight = targetCenterY - gapHeight / 2;
     bottomHeight = height - topHeight - gapHeight;
 
-    isLaser = worldId === 'cyberpunk' && Math.random() < 0.35;
+    isLaser = worldId === 'cyberpunk' && Math.random() < 0.25; // 25% chance of warning lasers in cyberpunk
 
     const levelNum = this.activeLevelConfig ? this.activeLevelConfig.levelNum : undefined;
     const isMutated = this.activeLevelConfig ? (this.activeLevelConfig.levelNum % 2 === 0) : (score >= 20 && score < 50);
@@ -658,6 +629,58 @@ export class ObstacleManager {
       oscillationRange: 0,
       levelNum
     }));
+  }
+
+  private generateEndlessPattern() {
+    const patterns = [
+      // 10 formations
+      { name: 'Staircase', offsets: [60, 30, 0, -30, -60, -30, 0, 30] },
+      { name: 'Zigzag', offsets: [70, -70, 70, -70, 50, -50] },
+      { name: 'Wave', offsets: [0, 35, 60, 35, 0, -35, -60, -35] },
+      { name: 'Tunnel', offsets: [0, 0, 0, 0, 0] },
+      { name: 'Spiral Curve', offsets: [-60, -20, 20, 60, 40, 0, -40] },
+      { name: 'Diamond', offsets: [0, 50, 0, -50, 0] },
+      { name: 'Snake Path', offsets: [-40, 40, -20, 20, -50, 50] },
+      { name: 'Arch Bridge', offsets: [-70, -45, -20, 0, -20, -45, -70] },
+      { name: 'Vertical Shift', offsets: [-90, 90, -90, 90] },
+      { name: 'Cross Flow', offsets: [30, -30, 30, -30], forceMoving: true },
+
+      // 10 letter shapes (safe gap traces)
+      { name: 'Letter S', offsets: [-60, -30, 0, 30, 60, 30, 0, -30, -60] },
+      { name: 'Letter W', offsets: [-70, 50, -10, 50, -70] },
+      { name: 'Letter C', offsets: [0, -60, -60, 0, 60, 60, 0] },
+      { name: 'Letter M', offsets: [60, -50, 10, -50, 60] },
+      { name: 'Letter Z', offsets: [-60, -60, 0, 60, 60] },
+      { name: 'Letter U', offsets: [-60, 50, 50, -60] },
+      { name: 'Letter V', offsets: [-70, 60, -70] },
+      { name: 'Letter X', offsets: [-60, 60, 0, -60, 60] },
+      { name: 'Letter O', offsets: [0, -60, 60, 0] },
+      { name: 'Letter N', offsets: [60, -60, 60, -60] }
+    ];
+
+    // Pick a random pattern
+    const randPattern = patterns[Math.floor(Math.random() * patterns.length)];
+    
+    // Copy the offsets
+    let offsets = [...randPattern.offsets];
+
+    // Random vertical inversion to make it completely fresh (50% chance)
+    const invert = Math.random() > 0.5 ? -1 : 1;
+    offsets = offsets.map(o => o * invert);
+
+    // Random vertical shift offset (+-20px) to change spawn positions randomly
+    const shift = (Math.random() - 0.5) * 40;
+
+    // Apply moving effect randomly to standard patterns (30% chance)
+    const isMovingPattern = randPattern.forceMoving || (Math.random() < 0.3);
+
+    // Populate the queue
+    for (let i = 0; i < offsets.length; i++) {
+      this.endlessPatternQueue.push({
+        centerYOffset: offsets[i] + shift,
+        isMoving: isMovingPattern
+      });
+    }
   }
 
   // Enforces invisible vertical boundaries and evaluates collisions
