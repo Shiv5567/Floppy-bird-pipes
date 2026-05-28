@@ -293,13 +293,13 @@ export class SoundManager {
         usePortamento: false
       },
       cyberpunk: {
-        tempo: 126,
-        baseNotes: [73.42, 82.41, 110.00, 97.99], // D2-E2-A2-G2
-        melodyNotes: [293.66, 329.63, 392.00, 440.00, 493.88, 587.33], // Cyber Scale
-        oscType: 'sawtooth',
-        leadOscType: 'sawtooth',
-        percussionType: 'hihat',
-        useFilterSweep: true, // Resonant sweep leads
+        tempo: 78, // Moody slow atmospheric trap-inspired tempo
+        baseNotes: [146.83, 164.81, 220.00, 196.00], // D3-E3-A3-G3 (gentle airy chord roots)
+        melodyNotes: [587.33, 659.25, 783.99, 880.00, 987.77], // D5-E5-G5-A5-B5 (distant emotional keys and bells)
+        oscType: 'sine', // Airy synth pads
+        leadOscType: 'sine', // Emotional key bells
+        percussionType: 'none', // Strictly no drums, beats, or percussion
+        useFilterSweep: true,
         useDelayEcho: true,
         usePortamento: false
       },
@@ -402,32 +402,42 @@ export class SoundManager {
         baseFreq = baseFreq * 1.189;
       }
 
-      // --- LAYER 1: BASELINE BASSLINE (Always Active - Boosted Volume) ---
-      // Cyberpunk & Retro get energetic 8th-note octaves, others get custom arpeggiators
-      let currentBassFreq = baseFreq;
-      if ((worldId === 'cyberpunk' || worldId === 'retro') && barStep % 2 === 1) {
-        currentBassFreq = baseFreq * 2.0; // root-octave leaps
+      // --- LAYER 1: BASS / REVERSED TEXTURE ---
+      if (worldId === 'cyberpunk') {
+        // CYBERPUNK AMBIENT: No bass, instead play slow evolving reversed-like sine textures/pads
+        if (barStep === 0 || barStep === 8) {
+          // Evolving reversed pad frequency: rise slowly from baseFreq to baseFreq * 1.5
+          this.playSynthNote(baseFreq * 0.5, 1.4, 'sine', 0.16, { type: 'lowpass', startFreq: 300, endFreq: 900, q: 1 }, true, baseFreq * 0.75);
+        }
       } else {
-        const arpFreqs = [baseFreq, baseFreq * 1.5, baseFreq * 2.0, baseFreq * 1.2];
-        currentBassFreq = arpFreqs[barStep % arpFreqs.length];
+        // Standard bassline
+        let currentBassFreq = baseFreq;
+        if (worldId === 'retro' && barStep % 2 === 1) {
+          currentBassFreq = baseFreq * 2.0; // root-octave leaps
+        } else {
+          const arpFreqs = [baseFreq, baseFreq * 1.5, baseFreq * 2.0, baseFreq * 1.2];
+          currentBassFreq = arpFreqs[barStep % arpFreqs.length];
+        }
+
+        let bassVolume = 0.26; // Boosted volume from 0.16 to 0.26!
+        if (worldId === 'underwater') bassVolume = 0.32; // Sub-bass needs extra push
+        if (isUltimate) bassVolume = 0.38;
+
+        if (worldId === 'underwater') {
+          // Muffled sub-bass lowpass filtered strictly
+          this.playSynthNote(currentBassFreq, 0.16, 'sine', bassVolume, { type: 'lowpass', startFreq: 180, endFreq: 120, q: 1 });
+        } else if (worldId === 'volcano') {
+          // Acid growling bassline
+          this.playSynthNote(currentBassFreq, 0.16, 'square', bassVolume, { type: 'lowpass', startFreq: 800, endFreq: 200, q: 6 });
+        } else {
+          this.playSynthNote(currentBassFreq, 0.16, config.oscType, bassVolume);
+        }
       }
 
-      let bassVolume = 0.26; // Boosted volume from 0.16 to 0.26!
-      if (worldId === 'underwater') bassVolume = 0.32; // Sub-bass needs extra push
-      if (isUltimate) bassVolume = 0.38;
-
-      if (worldId === 'underwater') {
-        // Muffled sub-bass lowpass filtered strictly
-        this.playSynthNote(currentBassFreq, 0.16, 'sine', bassVolume, { type: 'lowpass', startFreq: 180, endFreq: 120, q: 1 });
-      } else if (worldId === 'volcano') {
-        // Acid growling bassline
-        this.playSynthNote(currentBassFreq, 0.16, 'square', bassVolume, { type: 'lowpass', startFreq: 800, endFreq: 200, q: 6 });
-      } else {
-        this.playSynthNote(currentBassFreq, 0.16, config.oscType, bassVolume);
-      }
-
-      // --- LAYER 2: DRUMS & PERCUSSION (Active when score >= 5 or in boss fight) ---
-      if (score >= 5 || isBossFight) {
+      // --- LAYER 2: DRUMS & PERCUSSION ---
+      if (worldId === 'cyberpunk') {
+        // CYBERPUNK AMBIENT: Strictly NO drums, NO beats, NO percussion
+      } else if (score >= 5 || isBossFight) {
         // Bass kick drum on beats 1 and 3 (steps 0 and 8)
         if (barStep === 0 || barStep === 8) {
           this.playSynthNote(55, 0.12, 'sine', 0.45, { type: 'lowpass', startFreq: 120, endFreq: 10, q: 1 }); // Deep punchy sub kick
@@ -467,8 +477,19 @@ export class SoundManager {
         }
       }
 
-      // --- LAYER 3: DYNAMIC CELESTIAL CHORD PAD (Active when score >= 12 or in boss fight) ---
-      if (score >= 12 || isBossFight) {
+      // --- LAYER 3: DYNAMIC CELESTIAL CHORD PAD ---
+      if (worldId === 'cyberpunk') {
+        // CYBERPUNK AMBIENT: Soft layered airy synth pads & subtle vocal ooh/ahh ambience
+        if (barStep === 0 || barStep === 8) {
+          const chordFreq1 = baseFreq * 1.5; // perfect fifth
+          const chordFreq2 = baseFreq * 2.0; // octave
+          const chordFreq3 = baseFreq * 2.5; // major third/tenth
+          // Floating dreamy space pads with slow attack (sine waves with delay)
+          this.playSynthNote(chordFreq1, 1.3, 'sine', 0.15, { type: 'lowpass', startFreq: 600, endFreq: 300, q: 1 }, true);
+          this.playSynthNote(chordFreq2, 1.3, 'sine', 0.12, { type: 'lowpass', startFreq: 800, endFreq: 400, q: 1 }, true);
+          this.playSynthNote(chordFreq3, 1.3, 'sine', 0.10, { type: 'lowpass', startFreq: 1000, endFreq: 500, q: 1 }, true);
+        }
+      } else if (score >= 12 || isBossFight) {
         if (barStep === 0 || barStep === 8) {
           const chordFreq1 = baseFreq * 2.0; // root octave
           const chordFreq2 = baseFreq * 3.0; // perfect fifth
@@ -493,8 +514,19 @@ export class SoundManager {
         }
       }
 
-      // --- LAYER 4: MELODIC LEADS (Active when score >= 22 or in boss fight) ---
-      if (score >= 22 || isBossFight) {
+      // --- LAYER 4: MELODIC LEADS ---
+      if (worldId === 'cyberpunk') {
+        // CYBERPUNK AMBIENT: Distant emotional keys & bells with simple, moody, hypnotic repetition
+        // Play soft, gentle bells on offbeat steps 2, 6, 10, 14
+        if (barStep % 4 === 2) {
+          const melodyPattern = [0, 2, 1, 3];
+          const currentMelodyIndex = melodyPattern[Math.floor(barStep / 4) % melodyPattern.length];
+          const melodyFreq = config.melodyNotes[currentMelodyIndex % config.melodyNotes.length];
+          
+          // Spacious reverb & gentle delay effects
+          this.playSynthNote(melodyFreq, 0.4, 'sine', 0.16, undefined, true);
+        }
+      } else if (score >= 22 || isBossFight) {
         const melodyPattern = [0, 2, 4, 3, 5, 4, 2, 1, 3, 2, 4, 5, 3, 1, 0, 2];
         const currentMelodyIndex = melodyPattern[barStep % melodyPattern.length];
         const melodyFreq = config.melodyNotes[currentMelodyIndex % config.melodyNotes.length];
