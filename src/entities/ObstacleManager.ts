@@ -64,7 +64,8 @@ export class ObstacleManager {
 
   private activeLevelConfig: any = null;
   private currentPatternIdx = 0;
-  private endlessPatternQueue: { centerYOffset: number, isMoving?: boolean }[] = [];
+  private endlessPatternQueue: { centerYOffset: number, isMoving?: boolean, gapScale?: number, distScale?: number, isLaser?: boolean }[] = [];
+  private currentEndlessDistScale = 1.0;
 
   constructor() {}
 
@@ -134,6 +135,7 @@ export class ObstacleManager {
     this.currentPatternIdx = 0;
     this.currentScore = 0;
     this.endlessPatternQueue = [];
+    this.currentEndlessDistScale = 1.0;
   }
 
   public update(
@@ -463,11 +465,8 @@ export class ObstacleManager {
       } else {
         const baseDistanceClassic = (width / 1.35) * 0.80;
         const defaultDistance = baseDistanceClassic * 1.15;
-        if (difficulty === 'easy') {
-          this.nextSpawnDistance = defaultDistance * 1.20;
-        } else {
-          this.nextSpawnDistance = defaultDistance;
-        }
+        const baseDist = difficulty === 'easy' ? defaultDistance * 1.20 : defaultDistance;
+        this.nextSpawnDistance = baseDist * this.currentEndlessDistScale;
       }
     }
   }
@@ -589,18 +588,24 @@ export class ObstacleManager {
     }
     const nextPattern = this.endlessPatternQueue.shift()!;
 
+    // Set the endless layout spacing scaling multiplier for the NEXT spawned pipe!
+    this.currentEndlessDistScale = nextPattern.distScale !== undefined ? nextPattern.distScale : 1.0;
+
     let targetCenterY = height / 2 + nextPattern.centerYOffset;
     isMoving = !!nextPattern.isMoving;
 
+    // Apply safe gap height scaling per step
+    const currentStepGap = gapHeight * (nextPattern.gapScale !== undefined ? nextPattern.gapScale : 1.0);
+
     // Safeguard boundaries to keep safe gap consistent and within bounds
-    const minCenterY = margin + gapHeight / 2;
-    const maxCenterY = height - margin - gapHeight / 2;
+    const minCenterY = margin + currentStepGap / 2;
+    const maxCenterY = height - margin - currentStepGap / 2;
     targetCenterY = Math.max(minCenterY, Math.min(maxCenterY, targetCenterY));
 
-    topHeight = targetCenterY - gapHeight / 2;
-    bottomHeight = height - topHeight - gapHeight;
+    topHeight = targetCenterY - currentStepGap / 2;
+    bottomHeight = height - topHeight - currentStepGap;
 
-    isLaser = worldId === 'cyberpunk' && Math.random() < 0.25; // 25% chance of warning lasers in cyberpunk
+    isLaser = (nextPattern.isLaser !== undefined) ? nextPattern.isLaser : (worldId === 'cyberpunk' && Math.random() < 0.25); // 25% chance of warning lasers in cyberpunk
 
     const levelNum = this.activeLevelConfig ? this.activeLevelConfig.levelNum : undefined;
     const isMutated = this.activeLevelConfig ? (this.activeLevelConfig.levelNum % 2 === 0) : (score >= 20 && score < 50);
@@ -632,37 +637,190 @@ export class ObstacleManager {
   }
 
   private generateEndlessPattern() {
-    const patterns = [
-      // 10 formations
-      { name: 'Staircase', offsets: [60, 30, 0, -30, -60, -30, 0, 30] },
-      { name: 'Zigzag', offsets: [70, -70, 70, -70, 50, -50] },
-      { name: 'Wave', offsets: [0, 35, 60, 35, 0, -35, -60, -35] },
-      { name: 'Tunnel', offsets: [0, 0, 0, 0, 0] },
-      { name: 'Spiral Curve', offsets: [-60, -20, 20, 60, 40, 0, -40] },
-      { name: 'Diamond', offsets: [0, 50, 0, -50, 0] },
-      { name: 'Snake Path', offsets: [-40, 40, -20, 20, -50, 50] },
-      { name: 'Arch Bridge', offsets: [-70, -45, -20, 0, -20, -45, -70] },
-      { name: 'Vertical Shift', offsets: [-90, 90, -90, 90] },
-      { name: 'Cross Flow', offsets: [30, -30, 30, -30], forceMoving: true },
+    interface EndlessPatternDef {
+      name: string;
+      offsets: number[];
+      gapScales?: number[];
+      distScales?: number[];
+      isLasers?: boolean[];
+      isMovings?: boolean[];
+      forceMoving?: boolean;
+    }
 
-      // 10 letter shapes (safe gap traces)
-      { name: 'Letter S', offsets: [-60, -30, 15, 60, 30, -15, -45, -60] },
-      { name: 'Letter W', offsets: [-70, 50, -10, 50, -70] },
-      { name: 'Letter C', offsets: [0, -60, -60, 0, 60, 60, 0] },
-      { name: 'Letter M', offsets: [60, -50, 10, -50, 60] },
-      { name: 'Letter Z', offsets: [-60, -60, 0, 60, 60] },
-      { name: 'Letter U', offsets: [-60, 50, 50, -60] },
-      { name: 'Letter V', offsets: [-70, 60, -70] },
-      { name: 'Letter X', offsets: [-60, 60, 0, -60, 60] },
-      { name: 'Letter O', offsets: [0, -60, 60, 0] },
-      { name: 'Letter N', offsets: [60, -60, 60, -60] }
+    const patterns: EndlessPatternDef[] = [
+      // 16 Spatial Hazard Formations
+      {
+        name: 'Staircase',
+        offsets: [60, 40, 20, 0, -20, -40, -60],
+        distScales: [0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55],
+        gapScales: [1.0, 0.95, 0.9, 0.9, 0.9, 0.95, 1.05],
+        isMovings: [false, false, true, false, true, false, false]
+      },
+      {
+        name: 'Zigzag',
+        offsets: [70, -70, 70, -70, 70, -70],
+        distScales: [0.75, 1.25, 0.75, 1.25, 0.75, 1.25],
+        gapScales: [1.15, 1.1, 1.15, 1.1, 1.15, 1.2],
+        isMovings: [false, true, false, true, false, false]
+      },
+      {
+        name: 'Wave',
+        offsets: [0, 40, 70, 40, 0, -40, -70, -40],
+        distScales: [0.85, 0.85, 0.85, 0.85, 0.85, 0.85, 0.85, 0.85],
+        gapScales: [1.2, 0.95, 0.85, 0.95, 1.2, 0.95, 0.85, 1.1]
+      },
+      {
+        name: 'Tunnel',
+        offsets: [0, 0, 0, 0, 0, 0],
+        distScales: [0.9, 0.8, 0.8, 0.8, 0.9, 1.0],
+        gapScales: [1.25, 1.0, 0.82, 0.82, 1.0, 1.25]
+      },
+      {
+        name: 'Spiral Curve',
+        offsets: [-60, -30, 0, 30, 60, 30, -30],
+        distScales: [0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8],
+        gapScales: [1.1, 0.95, 0.8, 0.9, 1.1, 1.0, 1.15]
+      },
+      {
+        name: 'Diamond',
+        offsets: [0, 45, 75, 45, 0, -45, 0],
+        distScales: [0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9],
+        gapScales: [1.3, 1.0, 0.8, 1.0, 1.3, 1.0, 1.2]
+      },
+      {
+        name: 'Snake Path',
+        offsets: [-50, 50, -30, 30, -50, 50, 0],
+        distScales: [0.85, 0.85, 0.85, 0.85, 0.85, 0.85, 1.0],
+        gapScales: [1.0, 1.1, 1.0, 1.1, 1.0, 1.1, 1.2]
+      },
+      {
+        name: 'Arch Bridge',
+        offsets: [-80, -50, -20, 10, -20, -50, -80],
+        distScales: [1.0, 0.8, 0.7, 0.7, 0.8, 1.0, 1.1],
+        gapScales: [1.15, 0.9, 0.85, 0.9, 1.15, 1.1, 1.2]
+      },
+      {
+        name: 'Vertical Shift',
+        offsets: [-95, 95, -95, 95],
+        distScales: [1.4, 1.4, 1.4, 1.4],
+        gapScales: [1.25, 1.25, 1.25, 1.25]
+      },
+      {
+        name: 'Cross Flow',
+        offsets: [40, -40, 40, -40, 40],
+        distScales: [1.0, 1.0, 1.0, 1.0, 1.0],
+        isMovings: [true, true, true, true, true],
+        forceMoving: true
+      },
+      {
+        name: 'Laser Gauntlet',
+        offsets: [0, -40, 40, -40, 0],
+        distScales: [1.3, 1.3, 1.3, 1.3, 1.3],
+        gapScales: [1.1, 1.1, 1.1, 1.1, 1.1],
+        isLasers: [true, false, true, false, true]
+      },
+      {
+        name: 'Pincer Attack',
+        offsets: [0, 20, 0, -20, 0],
+        distScales: [0.6, 0.6, 0.6, 0.6, 0.6],
+        gapScales: [1.3, 0.78, 1.3, 0.78, 1.3]
+      },
+      {
+        name: 'Heartbeat Pulse',
+        offsets: [0, 25, -85, 85, 0, 0],
+        distScales: [0.9, 0.8, 0.7, 0.8, 1.0, 1.0],
+        gapScales: [1.0, 0.9, 0.75, 0.8, 1.15, 1.0]
+      },
+      {
+        name: 'Double Peak',
+        offsets: [-70, 70, 0, -70, 70],
+        distScales: [0.85, 0.85, 1.1, 0.85, 0.85],
+        gapScales: [1.1, 1.1, 1.25, 1.1, 1.1]
+      },
+      {
+        name: 'Castle Battlement',
+        offsets: [-60, 60, -60, 60, -60, 60],
+        distScales: [0.8, 0.8, 0.8, 0.8, 0.8, 0.8],
+        gapScales: [1.15, 1.15, 1.15, 1.15, 1.15, 1.15]
+      },
+      {
+        name: 'The Viper',
+        offsets: [-45, 45, -45, 45, -45, 45],
+        distScales: [0.58, 0.58, 0.58, 0.58, 0.58, 0.58],
+        gapScales: [1.2, 1.2, 1.2, 1.2, 1.2, 1.2]
+      },
+
+      // 10 Stylized Letter Path Shapes (safe gap traces)
+      {
+        name: 'Letter S',
+        offsets: [-60, -30, 15, 60, 30, -15, -45, -60],
+        distScales: [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7],
+        gapScales: [1.15, 1.0, 0.9, 0.9, 1.0, 1.15, 1.15, 1.2]
+      },
+      {
+        name: 'Letter W',
+        offsets: [-75, 45, -15, 45, -75],
+        distScales: [0.85, 0.85, 0.85, 0.85, 0.85],
+        gapScales: [1.05, 1.15, 1.05, 1.15, 1.05]
+      },
+      {
+        name: 'Letter C',
+        offsets: [0, -65, -65, 0, 65, 65, 0],
+        distScales: [0.62, 0.62, 0.62, 0.62, 0.62, 0.62, 0.62],
+        gapScales: [1.1, 0.95, 0.9, 1.1, 0.9, 0.95, 1.15]
+      },
+      {
+        name: 'Letter M',
+        offsets: [65, -45, 15, -45, 65],
+        distScales: [0.72, 0.72, 0.72, 0.72, 0.72],
+        gapScales: [1.05, 1.15, 1.05, 1.15, 1.05]
+      },
+      {
+        name: 'Letter Z',
+        offsets: [-65, -65, 0, 65, 65],
+        distScales: [0.88, 0.58, 0.58, 0.88, 0.88],
+        gapScales: [1.1, 1.0, 1.0, 1.1, 1.1]
+      },
+      {
+        name: 'Letter U',
+        offsets: [-65, 45, 45, -65],
+        distScales: [1.05, 0.58, 1.05, 1.05],
+        gapScales: [1.1, 1.15, 1.15, 1.1]
+      },
+      {
+        name: 'Letter V',
+        offsets: [-75, 65, -75],
+        distScales: [0.78, 0.78, 0.78],
+        gapScales: [1.0, 1.25, 1.0]
+      },
+      {
+        name: 'Letter X',
+        offsets: [-65, 65, 0, -65, 65],
+        distScales: [0.68, 0.68, 0.68, 0.68, 0.68],
+        gapScales: [1.1, 1.1, 1.2, 1.1, 1.1]
+      },
+      {
+        name: 'Letter O',
+        offsets: [0, -65, 65, 0],
+        distScales: [0.62, 0.62, 0.62, 0.62],
+        gapScales: [1.1, 1.0, 1.0, 1.1]
+      },
+      {
+        name: 'Letter N',
+        offsets: [65, -65, 65, -65],
+        distScales: [0.92, 0.52, 0.92, 0.92],
+        gapScales: [1.1, 1.0, 1.1, 1.1]
+      }
     ];
 
     // Pick a random pattern
     const randPattern = patterns[Math.floor(Math.random() * patterns.length)];
+
+    // Procedural variation: vertical height scale multiplier (0.85 to 1.15)
+    const heightScale = 0.85 + Math.random() * 0.30;
     
-    // Copy the offsets
-    let offsets = [...randPattern.offsets];
+    // Copy and scale the offsets
+    let offsets = randPattern.offsets.map(o => o * heightScale);
 
     // Random vertical inversion to make it completely fresh (50% chance)
     const invert = Math.random() > 0.5 ? -1 : 1;
@@ -671,14 +829,25 @@ export class ObstacleManager {
     // Random vertical shift offset (+-20px) to change spawn positions randomly
     const shift = (Math.random() - 0.5) * 40;
 
+    // Procedural variation: tempo spacing scale multiplier (0.9 to 1.1)
+    const tempoScale = 0.90 + Math.random() * 0.20;
+
     // Apply moving effect randomly to standard patterns (30% chance)
     const isMovingPattern = randPattern.forceMoving || (Math.random() < 0.3);
 
     // Populate the queue
     for (let i = 0; i < offsets.length; i++) {
+      const stepGapScale = (randPattern.gapScales && randPattern.gapScales[i] !== undefined) ? randPattern.gapScales[i] : 1.0;
+      const stepDistScale = (randPattern.distScales && randPattern.distScales[i] !== undefined) ? randPattern.distScales[i] : 1.0;
+      const stepIsLaser = (randPattern.isLasers && randPattern.isLasers[i] !== undefined) ? randPattern.isLasers[i] : undefined;
+      const stepIsMoving = (randPattern.isMovings && randPattern.isMovings[i] !== undefined) ? randPattern.isMovings[i] : isMovingPattern;
+
       this.endlessPatternQueue.push({
         centerYOffset: offsets[i] + shift,
-        isMoving: isMovingPattern
+        isMoving: stepIsMoving,
+        gapScale: stepGapScale,
+        distScale: stepDistScale * tempoScale,
+        isLaser: stepIsLaser
       });
     }
   }
