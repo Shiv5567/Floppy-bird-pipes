@@ -69,9 +69,12 @@ export class Bird {
     } else if (score <= 400) {
       const progress = (score - 300) / 100;
       jumpScale = 1.05 * 1.06 * (1.0 + progress * 0.03);
-    } else {
+    } else if (score <= 500) {
       // From score 400 onwards, increase the bird's upward velocity by 10%
       jumpScale = maxScale400 * 1.10; // ~1.26103
+    } else {
+      // From score 500 onwards, increase the Bird's upward velocity per tap by another 8%
+      jumpScale = maxScale400 * 1.10 * 1.08; // ~1.36191
     }
     return jumpScale;
   }
