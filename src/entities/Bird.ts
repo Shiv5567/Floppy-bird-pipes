@@ -55,19 +55,9 @@ export class Bird {
     return this.activeSkin;
   }
 
-  public jump(soundManager?: any, score = 0) {
-    if (this.isCrashing) return;
-    
-    // Jump lift scaled with skin upgrade level (minor bonus)
-    const levelBonus = (this.activeSkin.upgradeLevel - 1) * 0.05;
-    
-    // Custom progressive score-based jump scaling:
-    // Score 0-100: starting displacement (1.0x)
-    // Score 100-200: +5.0% smooth increase
-    // Score 200-300: +6.0% smooth increase
-    // Score 300-400: +3.0% smooth increase
-    // Score 400+: Fixed at the capped maximum increase (1.05 * 1.06 * 1.03)
+  private getJumpScale(score: number): number {
     let jumpScale = 1.0;
+    const maxScale400 = 1.05 * 1.06 * 1.03; // ~1.14639
     if (score <= 100) {
       jumpScale = 1.0;
     } else if (score <= 200) {
@@ -79,10 +69,24 @@ export class Bird {
     } else if (score <= 400) {
       const progress = (score - 300) / 100;
       jumpScale = 1.05 * 1.06 * (1.0 + progress * 0.03);
+    } else if (score <= 600) {
+      const progress = (score - 400) / 200;
+      // Smoothly decrease back to starting jump force (1.0) over 400 to 600
+      jumpScale = maxScale400 - progress * (maxScale400 - 1.00);
     } else {
-      jumpScale = 1.05 * 1.06 * 1.03; // Fixed maximum: ~1.14639
+      jumpScale = 1.00; // Stay at baseline 1.0 for score > 600
     }
+    return jumpScale;
+  }
+
+  public jump(soundManager?: any, score = 0) {
+    if (this.isCrashing) return;
     
+    // Jump lift scaled with skin upgrade level (minor bonus)
+    const levelBonus = (this.activeSkin.upgradeLevel - 1) * 0.05;
+    
+    // Custom progressive score-based jump scaling:
+    const jumpScale = this.getJumpScale(score);
     const impulse = this.jumpLift * (1 + levelBonus) * jumpScale;
     
     // Instant, sharp, and highly responsive jump:
@@ -103,21 +107,7 @@ export class Bird {
     const currentMaxFallSpeed = this.maxFallSpeed * speedMultiplier;
     
     // Custom progressive score-based jump scaling:
-    let jumpScale = 1.0;
-    if (score <= 100) {
-      jumpScale = 1.0;
-    } else if (score <= 200) {
-      const progress = (score - 100) / 100;
-      jumpScale = 1.0 + progress * 0.05;
-    } else if (score <= 300) {
-      const progress = (score - 200) / 100;
-      jumpScale = 1.05 * (1.0 + progress * 0.06);
-    } else if (score <= 400) {
-      const progress = (score - 300) / 100;
-      jumpScale = 1.05 * 1.06 * (1.0 + progress * 0.03);
-    } else {
-      jumpScale = 1.05 * 1.06 * 1.03;
-    }
+    const jumpScale = this.getJumpScale(score);
     
     // Scale maximum rise speed dynamically to stay fully synchronized with jump impulse scaling!
     const currentMaxRiseSpeed = this.maxRiseSpeed * jumpScale;
