@@ -2070,8 +2070,9 @@ export class ObstacleManager {
         targetBottomHeight = height - targetCenterY - localGapHeight / 2;
       }
 
-      // Enable special different-direction split opening animation specifically for Level 2, Level 5 Group 1, Level 11 Group 1, Level 17 Group 1 W pattern
+      // Enable special different-direction split opening animation specifically for all obstacles in Levels 10-20 and special legacy levels
       const isSpecialSplit = 
+        (levelNum !== undefined && levelNum >= 10 && levelNum <= 20) ||
         (patternType === 'level2_diamond') || 
         (patternType === 'level5_hourglass' && groupIdx === 0) ||
         (patternType === 'level11_diamond' && groupIdx === 0) ||
@@ -2578,6 +2579,19 @@ export class ObstacleManager {
           }
         }
       }
+
+      // Central gap hazard circle collision check for Levels 10-20
+      if (obs.levelNum !== undefined && obs.levelNum >= 10 && obs.levelNum <= 20) {
+        const centerY = obs.topHeight + (height - obs.bottomHeight - obs.topHeight) / 2;
+        const hazardRadius = 18; // precise hitbox radius for center hazard core
+        const dx = bird.x - (obs.x + obs.width / 2);
+        const dy = bird.y - centerY;
+        const distSq = dx * dx + dy * dy;
+        const radiusSum = effectiveRadius + hazardRadius;
+        if (distSq <= radiusSum * radiusSum) {
+          return obs; // collided with gap hazard!
+        }
+      }
     }
 
     return null;
@@ -2803,67 +2817,247 @@ export class ObstacleManager {
         ctx.arc(0, 0, 25, 0, Math.PI * 1.5);
         ctx.stroke();
         ctx.restore();
-      } else if (obs.patternType === 'level10_miniboss') {
+      } else if (obs.levelNum !== undefined && obs.levelNum >= 10 && obs.levelNum <= 20) {
         const centerY = obs.topHeight + (height - obs.bottomHeight - obs.topHeight) / 2;
         ctx.save();
         ctx.translate(obs.x + obs.width / 2, centerY);
+
+        const glowPulse = 20 + Math.sin(this.waveTime * 6.0) * 5;
+        const radGrad = ctx.createRadialGradient(0, 0, 3, 0, 0, glowPulse);
         
-        // Beautiful breathing neon cyber ring
-        const glowPulse = 20 + Math.sin(this.waveTime * 6.0) * 6;
-        const radGrad = ctx.createRadialGradient(0, 0, 4, 0, 0, glowPulse);
-        radGrad.addColorStop(0, '#ffffff');
-        radGrad.addColorStop(0.4, '#00f3ff');
-        radGrad.addColorStop(1, 'rgba(255, 0, 127, 0)');
-        
-        ctx.fillStyle = radGrad;
-        ctx.beginPath();
-        ctx.arc(0, 0, glowPulse, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Multi-layered geometric rotating neon rings (Cyberpunk tech style)
-        ctx.rotate(this.waveTime * 2.5);
-        ctx.strokeStyle = 'rgba(255, 0, 127, 0.9)';
-        ctx.lineWidth = 2.0;
-        ctx.strokeRect(-16, -16, 32, 32);
-        
-        ctx.rotate(-this.waveTime * 5.0);
-        ctx.strokeStyle = 'rgba(0, 243, 255, 0.9)';
-        ctx.lineWidth = 2.0;
-        ctx.beginPath();
-        ctx.arc(0, 0, 22, 0, Math.PI * 1.6);
-        ctx.stroke();
-        
-        ctx.restore();
-      } else if (obs.patternType === 'level20_masterhybrid') {
-        const centerY = obs.topHeight + (height - obs.bottomHeight - obs.topHeight) / 2;
-        ctx.save();
-        ctx.translate(obs.x + obs.width / 2, centerY);
-        
-        // Multi-layered chromatic heartbeat energy sphere
-        const pulse = 24 + Math.sin(this.waveTime * 7.0) * 8;
-        const grad = ctx.createRadialGradient(0, 0, 3, 0, 0, pulse);
-        grad.addColorStop(0, '#ffffff');
-        grad.addColorStop(0.3, '#39ff14'); // Lime Green energy
-        grad.addColorStop(0.6, '#00f3ff'); // Cyan energy
-        grad.addColorStop(1, 'rgba(255, 0, 127, 0)'); // Neon Pink fading glow
-        
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(0, 0, pulse, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Rotating dual star geometric shields (Master Hybrid style!)
-        ctx.rotate(this.waveTime * 3.0);
-        ctx.strokeStyle = '#ffd700'; // Gold star outline
-        ctx.lineWidth = 2.0;
-        ctx.strokeRect(-18, -18, 36, 36);
-        
-        ctx.rotate(-this.waveTime * 6.0);
-        ctx.strokeStyle = '#ff007f'; // Hot Pink outline
-        ctx.beginPath();
-        ctx.arc(0, 0, 26, 0, Math.PI * 1.75);
-        ctx.stroke();
-        
+        switch (obs.levelNum) {
+          case 10:
+            // Level 10 (Miniboss): Neon cyber ring & rotating hex-shield
+            radGrad.addColorStop(0, '#ffffff');
+            radGrad.addColorStop(0.4, '#00f3ff');
+            radGrad.addColorStop(1, 'rgba(255, 0, 127, 0)');
+            ctx.fillStyle = radGrad;
+            ctx.beginPath();
+            ctx.arc(0, 0, glowPulse, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.rotate(this.waveTime * 2.5);
+            ctx.strokeStyle = 'rgba(255, 0, 127, 0.9)';
+            ctx.lineWidth = 2.0;
+            ctx.strokeRect(-16, -16, 32, 32);
+
+            ctx.rotate(-this.waveTime * 5.0);
+            ctx.strokeStyle = 'rgba(0, 243, 255, 0.9)';
+            ctx.lineWidth = 2.0;
+            ctx.beginPath();
+            ctx.arc(0, 0, 22, 0, Math.PI * 1.6);
+            ctx.stroke();
+            break;
+
+          case 11:
+            // Level 11: Floating dual neon spheres with electric links
+            radGrad.addColorStop(0, '#ffffff');
+            radGrad.addColorStop(0.5, '#39ff14'); // lime green
+            radGrad.addColorStop(1, 'rgba(0, 243, 255, 0)');
+            ctx.fillStyle = radGrad;
+            ctx.beginPath();
+            ctx.arc(-14, 0, 10 + Math.sin(this.waveTime * 4.0) * 2, 0, Math.PI * 2);
+            ctx.arc(14, 0, 10 + Math.cos(this.waveTime * 4.0) * 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // lightning link between the two
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(-14, 0);
+            for (let x = -10; x <= 10; x += 5) {
+              ctx.lineTo(x, (Math.random() - 0.5) * 8);
+            }
+            ctx.lineTo(14, 0);
+            ctx.stroke();
+            break;
+
+          case 12:
+            // Level 12: Horizontal spinning neon razor bar
+            radGrad.addColorStop(0, '#ffffff');
+            radGrad.addColorStop(0.4, '#ff0055');
+            radGrad.addColorStop(1, 'rgba(255, 0, 85, 0)');
+            ctx.fillStyle = radGrad;
+            ctx.beginPath();
+            ctx.arc(0, 0, 16, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.rotate(this.waveTime * 6.0); // fast spin razor
+            ctx.strokeStyle = '#ff0055';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(-25, 0);
+            ctx.lineTo(25, 0);
+            ctx.moveTo(0, -25);
+            ctx.lineTo(0, 25);
+            ctx.stroke();
+            break;
+
+          case 13:
+            // Level 13: Pulsing vaporwave crystal disc
+            radGrad.addColorStop(0, '#ffffff');
+            radGrad.addColorStop(0.3, '#d946ef'); // fuchsia
+            radGrad.addColorStop(0.7, '#8b5cf6'); // violet
+            radGrad.addColorStop(1, 'rgba(139, 92, 246, 0)');
+            ctx.fillStyle = radGrad;
+            ctx.beginPath();
+            ctx.arc(0, 0, glowPulse, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.rotate(-this.waveTime * 2.0);
+            ctx.strokeStyle = 'rgba(217, 70, 239, 0.9)';
+            ctx.lineWidth = 2.0;
+            ctx.beginPath();
+            for (let s = 0; s < 5; s++) {
+              const angle = s * (Math.PI * 2 / 5);
+              ctx.lineTo(Math.cos(angle) * 20, Math.sin(angle) * 20);
+            }
+            ctx.closePath();
+            ctx.stroke();
+            break;
+
+          case 14:
+            // Level 14: Vertical crossing neon spark laser
+            radGrad.addColorStop(0, '#ffffff');
+            radGrad.addColorStop(0.5, '#f59e0b'); // amber
+            radGrad.addColorStop(1, 'rgba(245, 158, 11, 0)');
+            ctx.fillStyle = radGrad;
+            ctx.beginPath();
+            ctx.arc(0, 0, 15, 0, Math.PI * 2);
+            ctx.fill();
+
+            // draw vertical energy spark line
+            ctx.strokeStyle = 'rgba(253, 186, 116, 0.95)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, -35);
+            ctx.lineTo(0, 35);
+            ctx.stroke();
+            break;
+
+          case 15:
+            // Level 15: Floating bobbing gravity core
+            radGrad.addColorStop(0, '#ffffff');
+            radGrad.addColorStop(0.4, '#3b82f6'); // bright blue
+            radGrad.addColorStop(1, 'rgba(59, 130, 246, 0)');
+            ctx.fillStyle = radGrad;
+            ctx.beginPath();
+            ctx.arc(0, 0, 18 + Math.sin(this.waveTime * 3.5) * 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.rotate(this.waveTime * 3.0);
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(-12, -12, 24, 24);
+            break;
+
+          case 16:
+            // Level 16: Orbiting ring system (Saturn-like)
+            radGrad.addColorStop(0, '#ffffff');
+            radGrad.addColorStop(0.4, '#06b6d4'); // cyan
+            radGrad.addColorStop(1, 'rgba(6, 182, 212, 0)');
+            ctx.fillStyle = radGrad;
+            ctx.beginPath();
+            ctx.arc(0, 0, 14, 0, Math.PI * 2);
+            ctx.fill();
+
+            // ring
+            ctx.strokeStyle = 'rgba(6, 182, 212, 0.85)';
+            ctx.lineWidth = 3.5;
+            ctx.save();
+            ctx.scale(1.8, 0.5);
+            ctx.rotate(this.waveTime * 1.5);
+            ctx.beginPath();
+            ctx.arc(0, 0, 12, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+            break;
+
+          case 17:
+            // Level 17: Beating heartbeat neon core
+            const heartbeatPulse = 18 + (Math.sin(this.waveTime * 6.0) > 0.6 ? 6 : 0);
+            radGrad.addColorStop(0, '#ffffff');
+            radGrad.addColorStop(0.4, '#ec4899'); // hot pink
+            radGrad.addColorStop(1, 'rgba(236, 72, 153, 0)');
+            ctx.fillStyle = radGrad;
+            ctx.beginPath();
+            ctx.arc(0, 0, heartbeatPulse, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = 'rgba(236, 72, 153, 0.9)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(-18, 0);
+            ctx.lineTo(-6, 0);
+            ctx.lineTo(-3, -16);
+            ctx.lineTo(3, 16);
+            ctx.lineTo(6, 0);
+            ctx.lineTo(18, 0);
+            ctx.stroke();
+            break;
+
+          case 18:
+            // Level 18: Bio-hazard rotating disc
+            radGrad.addColorStop(0, '#ffffff');
+            radGrad.addColorStop(0.3, '#10b981'); // emerald
+            radGrad.addColorStop(0.7, '#047857'); // dark green
+            radGrad.addColorStop(1, 'rgba(16, 185, 129, 0)');
+            ctx.fillStyle = radGrad;
+            ctx.beginPath();
+            ctx.arc(0, 0, glowPulse, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.rotate(this.waveTime * 2.8);
+            ctx.strokeStyle = 'rgba(16, 185, 129, 0.95)';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.arc(0, 0, 20, 0, Math.PI * 2);
+            ctx.stroke();
+            for (let d = 0; d < 3; d++) {
+              ctx.beginPath();
+              ctx.arc(0, -8, 8, 0, Math.PI * 2);
+              ctx.stroke();
+              ctx.rotate(Math.PI * 2 / 3);
+            }
+            break;
+
+          case 19:
+            // Level 19: Floating dual magnetic attract/repel spheres
+            const magnetDist = 12 + Math.sin(this.waveTime * 4.5) * 6;
+            radGrad.addColorStop(0, '#ffffff');
+            radGrad.addColorStop(0.4, '#a855f7'); // purple
+            radGrad.addColorStop(1, 'rgba(168, 85, 247, 0)');
+            ctx.fillStyle = radGrad;
+            ctx.beginPath();
+            ctx.arc(-magnetDist, 0, 8, 0, Math.PI * 2);
+            ctx.arc(magnetDist, 0, 8, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+
+          case 20:
+            // Level 20 (Master Hybrid): Ultimate rotating triple-blade core
+            radGrad.addColorStop(0, '#ffffff');
+            radGrad.addColorStop(0.3, '#39ff14'); // Lime Green energy
+            radGrad.addColorStop(0.6, '#00f3ff'); // Cyan energy
+            radGrad.addColorStop(1, 'rgba(255, 0, 127, 0)'); // Pink fade
+            ctx.fillStyle = radGrad;
+            ctx.beginPath();
+            ctx.arc(0, 0, glowPulse, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.rotate(this.waveTime * 4.0);
+            ctx.strokeStyle = '#ffd700'; // gold star outline
+            ctx.lineWidth = 2.0;
+            ctx.strokeRect(-18, -18, 36, 36);
+
+            ctx.rotate(-this.waveTime * 8.0);
+            ctx.strokeStyle = '#ff007f'; // pink outline
+            ctx.beginPath();
+            ctx.arc(0, 0, 26, 0, Math.PI * 1.75);
+            ctx.stroke();
+            break;
+        }
+
         ctx.restore();
       } else if (obs.patternType === 'level40_miniboss') {
         const centerY = obs.topHeight + (height - obs.bottomHeight - obs.topHeight) / 2;
