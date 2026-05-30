@@ -278,43 +278,39 @@ export class ObstacleManager {
           const c4 = (2 * Math.PI) / 3;
           const easedOpen = progress === 0 ? 0 : progress === 1 ? 1 : Math.pow(2, -10 * progress) * Math.sin((progress * 10 - 0.75) * c4) + 1;
 
-          // Level 1-10 Enhanced Animation Handlers
-          if (obs.patternType === 'level1_funnel') {
-            // GROUP 1: Gentle horizontal drift - whole pipe gently sways
-            // GROUP 2: Offset pillars pulse slightly to signal alternation
-            // GROUP 3: Mini S-Curve subtle flowing drift
-            const drift = Math.sin(this.waveTime * 1.0 + obs.obstacleIdx! * 0.2) * 8;
-            obs.shakeX = drift;
-            obs.shakeX2 = drift;
-            const centerY = obs.spawnCenterY!;
-            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-          } else if (obs.patternType === 'level2_diamond') {
-            // Reactive pulse opening: gap breathes gently; top/bottom pulse in opposite phase
-            const pulse = Math.sin(this.waveTime * 2.2) * 10;
-            const centerY = obs.spawnCenterY!;
-            obs.targetTopHeight = centerY - (obs.gapHeight! + pulse) / 2;
-            obs.targetBottomHeight = height - centerY - (obs.gapHeight! - pulse) / 2;
-          } else if (obs.patternType === 'level3_arc') {
-            // Sequential vertical shifting: pipes in group 3 pinch/widen smoothly
-            const seqShift = Math.sin(this.waveTime * 1.8 + obs.obstacleIdx! * 0.35) * 12;
-            const centerY = obs.spawnCenterY! + seqShift;
-            // Group 3 (obstacleIdx 12-17) also modulates gap width
-            const gapMod = (obs.obstacleIdx! >= 12) ? Math.cos(this.waveTime * 2.2) * 14 : 0;
-            obs.targetTopHeight = centerY - (obs.gapHeight! + gapMod) / 2;
-            obs.targetBottomHeight = height - centerY - (obs.gapHeight! + gapMod) / 2;
-          } else if (obs.patternType === 'level4_snake') {
-            // Traveling wave motion: snake body ripples forward continuously
-            const snakeWave = Math.sin((obs.x * 0.007) - this.waveTime * 3.2) * 20;
-            const centerY = obs.spawnCenterY! + snakeWave;
-            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-          } else if (obs.patternType === 'level5_hourglass') {
-            // Slow breathing effect: gap expands and contracts rhythmically
-            const breathGap = obs.gapHeight! + Math.sin(this.waveTime * 1.6) * 18;
-            const centerY = obs.spawnCenterY!;
-            obs.targetTopHeight = centerY - breathGap / 2;
-            obs.targetBottomHeight = height - centerY - breathGap / 2;
+          // Level 1-5: Stair → Arc → Narrow-Wide-Narrow unified animation system
+          // Detect group from raw index (targetScore=150, groupSize=50)
+          const l15groupSize = 50;
+          const l15group = Math.min(2, Math.floor(obs.obstacleIdx! / l15groupSize));
+          // Amplitude increases per level: L1=35, L2=48, L3=58, L4=66, L5=74
+          const l15amps: Record<string, number> = {
+            'level1_funnel': 35, 'level2_diamond': 48, 'level3_arc': 58,
+            'level4_snake': 66, 'level5_hourglass': 74
+          };
+          const l15amp = l15amps[obs.patternType!] ?? 35;
+
+          if (obs.patternType === 'level1_funnel' || obs.patternType === 'level2_diamond' ||
+              obs.patternType === 'level3_arc' || obs.patternType === 'level4_snake' ||
+              obs.patternType === 'level5_hourglass') {
+            if (l15group === 0) {
+              // GROUP 1 - Stair: each step oscillates with cascading delay (sequential stepping)
+              const cascade = Math.sin(this.waveTime * 1.4 + (obs.obstacleIdx! % l15groupSize) * 0.1) * (l15amp * 0.12);
+              const centerY = obs.spawnCenterY! + cascade;
+              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            } else if (l15group === 1) {
+              // GROUP 2 - Curved Arc: smooth arc gently floats up and down together
+              const arcDrift = Math.sin(this.waveTime * 1.1) * (l15amp * 0.10);
+              const centerY = obs.spawnCenterY! + arcDrift;
+              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            } else {
+              // GROUP 3 - Narrow-Wide-Narrow: gap breathes open/closed rhythmically
+              const breathMod = Math.sin(this.waveTime * 2.0) * (l15amp * 0.32);
+              const centerY = obs.spawnCenterY!;
+              obs.targetTopHeight = centerY - (obs.gapHeight! + breathMod) / 2;
+              obs.targetBottomHeight = height - centerY - (obs.gapHeight! + breathMod) / 2;
+            }
           } else if (obs.patternType === 'level6_infinity') {
             // Flowing infinity motion: lemniscate Y-shift over time
             const angle = this.waveTime * 1.8 + obs.obstacleIdx! * 0.45;
@@ -1054,92 +1050,83 @@ export class ObstacleManager {
       let targetCenterY = height / 2;
 
       if (patternType === 'level1_funnel') {
-        // GROUP 1 (0-5): Wide Funnel Tunnel — gap starts very wide and narrows toward center
-        // GROUP 2 (6-11): Offset Pillars — alternating high/low positions (checkered)
-        // GROUP 3 (12-17): Mini S-Curve — smooth compact left-right S path
+        // ALL 3 GROUPS: Stair → Curved Arc → Narrow-Wide-Narrow (Amplitude: 35px)
+        // GROUP 1 (0-5): Ascending Staircase - gentle beginner steps
+        // GROUP 2 (6-11): Curved Arc Tunnel - smooth sine arch
+        // GROUP 3 (12-17): Narrow-Wide-Narrow - stays centered, gap breathes
         if (obstacleIdx <= 5) {
-          // Funnel: pipes converge from outer edges toward center height
-          targetCenterY = height / 2;
+          // Stair ascending: lowest at 0, highest at 5
+          targetCenterY = height / 2 + 35 - obstacleIdx * 14;
         } else if (obstacleIdx <= 11) {
-          // Offset pillars: even=high, odd=low
-          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -55 : 55);
+          // Curved Arc: sine arch
+          const ai = obstacleIdx - 6;
+          targetCenterY = height / 2 - Math.sin(ai * (Math.PI / 5)) * 35;
         } else {
-          // Mini S-curve: smooth S-shaped shift
-          const sPhase = (obstacleIdx - 12) / 5;
-          targetCenterY = height / 2 + Math.sin(sPhase * Math.PI) * 50;
+          // Narrow-Wide-Narrow: centered (gap animated)
+          targetCenterY = height / 2;
         }
         triggerDistance = 480;
         animDuration = 0.75;
       } else if (patternType === 'level2_diamond') {
-        // GROUP 1 (0-5): W Pattern — classic W dip-rise-dip path
-        // GROUP 2 (6-11): Diamond Corridor — full diamond loop top-bottom-top
-        // GROUP 3 (12-17): Reverse Funnel — narrows to tight, then wide exit
+        // ALL 3 GROUPS: Stair → Curved Arc → Narrow-Wide-Narrow (Amplitude: 48px)
+        // GROUP 1 (0-5): Ascending Staircase
+        // GROUP 2 (6-11): Curved Arc Tunnel
+        // GROUP 3 (12-17): Narrow-Wide-Narrow
         if (obstacleIdx <= 5) {
-          // W pattern: [top, mid, bot, mid, top, mid]
-          const wOffsets = [-50, -15, 55, -15, -50, -15];
-          targetCenterY = height / 2 + wOffsets[obstacleIdx];
+          targetCenterY = height / 2 + 48 - obstacleIdx * 19.2;
         } else if (obstacleIdx <= 11) {
-          // Diamond: rises up on left half, drops on right half
-          const dIdx = obstacleIdx - 6;
-          targetCenterY = height / 2 + (dIdx <= 2 ? -dIdx * 28 : (dIdx - 3) * 28 - 84);
+          const ai = obstacleIdx - 6;
+          targetCenterY = height / 2 - Math.sin(ai * (Math.PI / 5)) * 48;
         } else {
-          // Reverse funnel: narrows to center then widens out
-          const fIdx = obstacleIdx - 12;
-          targetCenterY = height / 2 + Math.cos(fIdx * (Math.PI / 5)) * 40;
+          targetCenterY = height / 2;
+        }
+        triggerDistance = 420;
+        animDuration = 0.68;
+      } else if (patternType === 'level3_arc') {
+        // ALL 3 GROUPS: Stair → Curved Arc → Narrow-Wide-Narrow (Amplitude: 58px)
+        // GROUP 1 (0-5): Ascending Staircase
+        // GROUP 2 (6-11): Curved Arc Tunnel
+        // GROUP 3 (12-17): Narrow-Wide-Narrow
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 + 58 - obstacleIdx * 23.2;
+        } else if (obstacleIdx <= 11) {
+          const ai = obstacleIdx - 6;
+          targetCenterY = height / 2 - Math.sin(ai * (Math.PI / 5)) * 58;
+        } else {
+          targetCenterY = height / 2;
         }
         triggerDistance = 360;
-        animDuration = 0.62;
-      } else if (patternType === 'level3_arc') {
-        // GROUP 1 (0-5): Staircase up — distinct step heights
-        // GROUP 2 (6-11): Curved Arc Tunnel — smooth arc peak in center
-        // GROUP 3 (12-17): Narrow-Wide-Narrow — pinch then open then pinch
-        if (obstacleIdx <= 5) {
-          targetCenterY = height / 2 + 60 - obstacleIdx * 24;
-        } else if (obstacleIdx <= 11) {
-          // Arc: rises to a peak at obstacleIdx=8 (center of group 2)
-          const aIdx = obstacleIdx - 6;
-          targetCenterY = height / 2 - Math.sin(aIdx * (Math.PI / 5)) * 70;
-        } else {
-          // Narrow-wide-narrow: center position with gap modulation (handled in animation)
-          const nIdx = obstacleIdx - 12;
-          targetCenterY = height / 2 + Math.cos(nIdx * (Math.PI / 2.5)) * 30;
-        }
-        triggerDistance = 320;
-        animDuration = 0.58;
+        animDuration = 0.60;
       } else if (patternType === 'level4_snake') {
-        // GROUP 1 (0-5): Snake Tunnel — full S-wave
-        // GROUP 2 (6-11): Broken Rhythm — irregular spacings mimicking stop-start
-        // GROUP 3 (12-17): S-Curve exit — shorter amplitude S
+        // ALL 3 GROUPS: Stair → Curved Arc → Narrow-Wide-Narrow (Amplitude: 66px)
+        // GROUP 1 (0-5): Ascending Staircase
+        // GROUP 2 (6-11): Curved Arc Tunnel
+        // GROUP 3 (12-17): Narrow-Wide-Narrow
         if (obstacleIdx <= 5) {
-          // Full snake: sin wave
-          targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 2.5)) * 65;
+          targetCenterY = height / 2 + 66 - obstacleIdx * 26.4;
         } else if (obstacleIdx <= 11) {
-          // Broken rhythm: irregular spacing
-          const brokenOffsets = [40, -20, 70, 0, -50, 30];
-          targetCenterY = height / 2 + brokenOffsets[obstacleIdx - 6];
+          const ai = obstacleIdx - 6;
+          targetCenterY = height / 2 - Math.sin(ai * (Math.PI / 5)) * 66;
         } else {
-          targetCenterY = height / 2 + Math.sin((obstacleIdx - 12) * (Math.PI / 2.5)) * 40;
+          targetCenterY = height / 2;
         }
-        triggerDistance = 290;
-        animDuration = 0.52;
+        triggerDistance = 310;
+        animDuration = 0.54;
       } else if (patternType === 'level5_hourglass') {
-        // GROUP 1 (0-5): Double Diamond — two back-to-back diamond peaks
-        // GROUP 2 (6-11): Reverse Stair — descends steadily down
-        // GROUP 3 (12-17): Hourglass — pinch at center, open at both ends
+        // ALL 3 GROUPS: Stair → Curved Arc → Narrow-Wide-Narrow (Amplitude: 74px)
+        // GROUP 1 (0-5): Ascending Staircase
+        // GROUP 2 (6-11): Curved Arc Tunnel
+        // GROUP 3 (12-17): Narrow-Wide-Narrow
         if (obstacleIdx <= 5) {
-          // Double diamond: peaks at idx 1 and 4
-          const ddOffsets = [-10, -70, -10, 30, -60, 30];
-          targetCenterY = height / 2 + ddOffsets[obstacleIdx];
+          targetCenterY = height / 2 + 74 - obstacleIdx * 29.6;
         } else if (obstacleIdx <= 11) {
-          // Reverse stair: descend from top to bottom
-          targetCenterY = height / 2 - 60 + (obstacleIdx - 6) * 24;
+          const ai = obstacleIdx - 6;
+          targetCenterY = height / 2 - Math.sin(ai * (Math.PI / 5)) * 74;
         } else {
-          // Hourglass: center is tightest, edges open
-          const hIdx = obstacleIdx - 12;
-          targetCenterY = height / 2 + Math.cos(hIdx * (Math.PI / 5)) * 55;
+          targetCenterY = height / 2;
         }
-        triggerDistance = 280;
-        animDuration = 0.50;
+        triggerDistance = 270;
+        animDuration = 0.48;
       } else if (patternType === 'level6_infinity') {
         // GROUP 1 (0-5): Infinity Path (∞) — lemniscate figure-8
         // GROUP 2 (6-11): Offset Stair Tunnel — stair with alternating horizontal offset
@@ -1686,27 +1673,17 @@ export class ObstacleManager {
       const targetTopHeight = targetCenterY - gapHeight / 2;
       const targetBottomHeight = height - targetCenterY - gapHeight / 2;
 
-      // Selectively apply opening animation to some obstacles (every 4th obstacle)
-      const isSpecialSplit = (actualPatternIdx % 4 === 0);
-      
+      // All level-mode obstacles spawn fully open — no upward/downward opening animation
+      const isSpecialSplit = false;
+
       let closedTopHeight = 0;
       let closedBottomHeight = 0;
-      let initTriggered = false;
-      let initAnimTimer = 0;
+      let initTriggered = true;
+      let initAnimTimer = animDuration;
 
-      if (isSpecialSplit) {
-        // Closed initially with a 30px visual slit
-        closedTopHeight = targetCenterY - 15;
-        closedBottomHeight = height - targetCenterY - 15;
-        initTriggered = false;
-        initAnimTimer = 0;
-      } else {
-        // Already fully open, no opening animation
-        closedTopHeight = targetTopHeight;
-        closedBottomHeight = targetBottomHeight;
-        initTriggered = true;
-        initAnimTimer = animDuration;
-      }
+      // Always fully open at spawn
+      closedTopHeight = targetTopHeight;
+      closedBottomHeight = targetBottomHeight;
 
       const isMutated = (levelNum % 2 === 0);
       const isStructured = (levelNum % 3 === 0);
