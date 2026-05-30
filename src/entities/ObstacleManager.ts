@@ -470,20 +470,20 @@ export class ObstacleManager {
             obs.targetBottomHeight = obs.baseBottomHeight! - wave;
           } else if (obs.patternType === 'level11_diamond') {
             // Level 11: Deep V-Shape and Symmetrical Variations (Based on user's image)
+            const idx = actualIdx % 12;
             if (groupIdx === 0) {
               // Group 1: Deep V-Shape breathes smoothly up and down
               const breath = Math.sin(this.waveTime * 2.0) * 18;
               obs.targetTopHeight = obs.baseTopHeight! + breath;
               obs.targetBottomHeight = obs.baseBottomHeight! - breath;
             } else if (groupIdx === 1) {
-              // Group 2: Symmetrical Inverted V-Shape (pyramid peak) oscillates out of phase
+              // Group 2: Symmetrical Inverted V-Shape oscillates out of phase
               const breath = Math.sin(this.waveTime * 2.0 + Math.PI) * 18;
               obs.targetTopHeight = obs.baseTopHeight! + breath;
               obs.targetBottomHeight = obs.baseBottomHeight! - breath;
             } else {
-              // Group 3: Symmetrical Double V-Shape ripples out from center
-              const rippleIdx = actualIdx - 12;
-              const ripple = Math.sin(this.waveTime * 2.4 - Math.abs(rippleIdx - 2.5) * 0.8) * 16;
+              // Group 3: Symmetrical Double V-Shape ripples out from peaks/valleys
+              const ripple = Math.sin(this.waveTime * 2.4 - Math.abs(idx - 5.5) * 0.4) * 16;
               obs.targetTopHeight = obs.baseTopHeight! + ripple;
               obs.targetBottomHeight = obs.baseBottomHeight! - ripple;
             }
@@ -1380,25 +1380,23 @@ export class ObstacleManager {
         triggerDistance = 200;
         animDuration = 0.38;
       } else if (patternType === 'level11_diamond') {
-        // LEVEL 11: Deep V-Shape & Symmetrical Variations (Based on user's image)
+        // LEVEL 11: Deep V-Shape & Symmetrical Variations (Based on user's image, repeating every 12 columns side-by-side)
         hasAsymmetricHeights = true;
+        const idx = idxInGroup % 12;
+        const centerDist = Math.abs(idx - 5.5);
         if (obstacleIdx <= 5) {
           // Group 1: Symmetrical Deep V-shape profile (Exact match to the user's image)
           localGapHeight = gapHeight - 20;
-          const centerDist = Math.abs(obstacleIdx - 2.5);
-          targetTopHeight = (height / 2 - localGapHeight / 2) + 70 - centerDist * 65;
+          targetTopHeight = (height / 2 - localGapHeight / 2) + 90 - centerDist * 28;
         } else if (obstacleIdx <= 11) {
           // Group 2: Symmetrical Inverted V-shape profile (Pyramid peak variation of the image structure)
           localGapHeight = gapHeight - 20;
-          const idx = obstacleIdx - 6;
-          const centerDist = Math.abs(idx - 2.5);
-          targetTopHeight = (height / 2 - localGapHeight / 2) - 70 + centerDist * 65;
+          targetTopHeight = (height / 2 - localGapHeight / 2) - 90 + centerDist * 28;
         } else {
           // Group 3: Double V-shape (W-shape variation of the image structure)
           localGapHeight = gapHeight - 15;
-          const idx = obstacleIdx - 12;
-          const angle = (idx / 5) * Math.PI * 2;
-          targetTopHeight = (height / 2 - localGapHeight / 2) + Math.cos(angle) * 70;
+          const angle = (idx / 11) * Math.PI * 2;
+          targetTopHeight = (height / 2 - localGapHeight / 2) + Math.cos(angle) * 75;
         }
         triggerDistance = 220;
         animDuration = 0.45;
@@ -1927,12 +1925,11 @@ export class ObstacleManager {
         targetBottomHeight = height - targetCenterY - localGapHeight / 2;
       }
 
-      // Enable special different-direction split opening animation specifically for all obstacles in Levels 10-20 and special legacy levels
+      // Enable special different-direction split opening animation specifically for all obstacles in Levels 10-20 (excluding Level 11) and special legacy levels
       const isSpecialSplit = 
-        (levelNum !== undefined && levelNum >= 10 && levelNum <= 20) ||
+        (levelNum !== undefined && levelNum >= 10 && levelNum <= 20 && levelNum !== 11) ||
         (patternType === 'level2_diamond') || 
         (patternType === 'level5_hourglass' && groupIdx === 0) ||
-        (patternType === 'level11_diamond' && groupIdx === 0) ||
         (patternType === 'level17_heartbeat' && groupIdx === 0);
 
       let closedTopHeight = 0;
