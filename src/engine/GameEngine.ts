@@ -462,6 +462,13 @@ export class GameEngine {
             }
           }
         }
+
+        // Trigger Boss Warning sequence only when all Level Mode obstacles have been passed and cleared from screen
+        if (this.gameMode === 'level' && this.activeLevelConfig && this.score >= this.activeLevelConfig.targetScore) {
+          if (this.obstacleManager.getList().length === 0) {
+            this.triggerBossWarning();
+          }
+        }
       } else if (this.state === 'BOSS_FIGHT') {
         // Boss battle phase
         const bossDefeated = this.bossManager.update(
@@ -743,16 +750,6 @@ export class GameEngine {
     // Spawn point sparkles
     this.particleEngine.emitCoinSparkle(this.bird.x + 30, this.bird.y, '#00ffcc');
 
-    // Level Mode target check
-    if (this.gameMode === 'level' && this.activeLevelConfig) {
-      if (this.score >= this.activeLevelConfig.targetScore) {
-        // Trigger Boss Warning sequence if we haven't already entered boss state
-        if (this.state !== 'BOSS_WARNING' && this.state !== 'BOSS_FIGHT' && !this.bossManager.isBossActive()) {
-          this.triggerBossWarning();
-        }
-        return;
-      }
-    }
   }
 
   private triggerBossWarning() {
