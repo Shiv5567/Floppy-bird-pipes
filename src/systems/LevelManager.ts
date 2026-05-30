@@ -65,9 +65,19 @@ export class LevelManager {
       }
 
       // Linear gap scaling rebalance (from exactly 280px at Level 1 to exactly 150px at Level 50)
-      gapHeight = Math.max(150, Math.round(280 - (levelNum - 1) * 2.653));
+      if (levelNum >= 1 && levelNum <= 10) {
+        // Redesign levels 1 to 10 to be highly progressive and challenging!
+        // Level 1 starts at 190px and Level 10 is 136px
+        gapHeight = 190 - (levelNum - 1) * 6;
+      } else {
+        gapHeight = Math.max(150, Math.round(280 - (levelNum - 1) * 2.653));
+      }
 
-      const scrollSpeed = (3.3 + (levelNum * 0.06)) * 0.8; // Decreased by 20%
+      let scrollSpeed = (3.3 + (levelNum * 0.06)) * 0.8; // Decreased by 20%
+      if (levelNum >= 1 && levelNum <= 10) {
+        // Scroll speed starts at 3.6 (challenging) and scales to 5.58 at Level 10 (intense!)
+        scrollSpeed = 3.6 + (levelNum - 1) * 0.22;
+      }
 
       // Distribute patterns based on level brackets using active wave/moving patterns ONLY
       let patterns: string[] = [];

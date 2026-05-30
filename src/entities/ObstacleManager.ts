@@ -289,194 +289,70 @@ export class ObstacleManager {
           const groupIdx = Math.min(2, Math.floor(actualIdx / groupSize));
 
           if (obs.patternType === 'level1_funnel') {
-            if (groupIdx === 0) {
-              // Group 1: Curved Funnel (Expanding & Contracting breathing gate with vertical wave drift)
-              const breath = Math.sin(this.waveTime * 2.3) * 16;
-              const wave = Math.cos(this.waveTime * 1.6) * 12;
-              const centerY = obs.spawnCenterY! + wave;
-              obs.targetTopHeight = centerY - (obs.gapHeight! + breath) / 2;
-              obs.targetBottomHeight = height - centerY - (obs.gapHeight! + breath) / 2;
-            } else if (groupIdx === 1) {
-              // Group 2: Mini W (Symmetrical horizontal shaking and alternate column vertical see-saw)
-              const wave = Math.sin(this.waveTime * 2.5 + actualIdx * 0.5) * 15;
-              obs.shakeX = Math.cos(this.waveTime * 3.0 + actualIdx * 0.4) * 6;
-              obs.shakeX2 = -Math.cos(this.waveTime * 3.0 + actualIdx * 0.4) * 6;
-              obs.targetTopHeight = obs.baseTopHeight! + wave;
-              obs.targetBottomHeight = obs.baseBottomHeight! - wave;
-            } else {
-              // Group 3: S-Curve (Traveling snake wave that propagates sequentially through columns)
-              const wave = Math.sin(this.waveTime * 2.8 - actualIdx * 0.6) * 18;
-              const centerY = obs.spawnCenterY! + wave;
-              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-            }
+            // LEVEL 1: "The Crusher Gates" (Slamming jaws animation: top and bottom bobs intensely in opposite directions with a rapid breathing pulse)
+            const slam = Math.sin(this.waveTime * 3.5 + actualIdx * 0.4) * 20;
+            obs.targetTopHeight = obs.baseTopHeight! + slam;
+            obs.targetBottomHeight = obs.baseBottomHeight! + slam;
           } else if (obs.patternType === 'level2_diamond') {
-            if (groupIdx === 0) {
-              // Group 1: Stair (High-amplitude sequential rise and fall cascade)
-              const cascade = Math.sin(this.waveTime * 2.6 - actualIdx * 0.5) * 20;
-              const centerY = obs.spawnCenterY! + cascade;
-              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-            } else if (groupIdx === 1) {
-              // Group 2: Diamond (Diamond chamber pulsing squeeze with micro horizontal jitters)
-              const breath = Math.sin(this.waveTime * 2.4) * 20;
-              obs.shakeX = Math.sin(this.waveTime * 15) * 2;
-              obs.shakeX2 = -Math.sin(this.waveTime * 15) * 2;
-              obs.targetTopHeight = obs.baseTopHeight! - breath / 2;
-              obs.targetBottomHeight = obs.baseBottomHeight! - breath / 2;
-            } else {
-              // Group 3: Wave (Entire wavy chain drifting in a large figure-8 pattern)
-              const driftY = Math.sin(this.waveTime * 1.8) * 16;
-              const driftX = Math.cos(this.waveTime * 1.8) * 10;
-              obs.shakeX = driftX;
-              obs.shakeX2 = -driftX;
-              const centerY = obs.spawnCenterY! + driftY;
-              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-            }
+            // LEVEL 2: "The Sine Wave Maze" (Opposing S-oscillations: top and bottom shift horizontally in opposite directions)
+            obs.shakeX = Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 22;
+            obs.shakeX2 = -Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 22;
+            const vWave = Math.cos(this.waveTime * 2.2 + actualIdx * 0.4) * 15;
+            obs.targetTopHeight = obs.baseTopHeight! + vWave;
+            obs.targetBottomHeight = obs.baseBottomHeight! - vWave;
           } else if (obs.patternType === 'level3_arc') {
-            if (groupIdx === 0) {
-              // Group 1: Reverse Stair (descending sequence cascade)
-              const cascade = Math.sin(this.waveTime * 1.5 + actualIdx * 0.5) * 12;
-              const centerY = obs.spawnCenterY! + cascade;
-              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-            } else if (groupIdx === 1) {
-              // Group 2: Curved Arc (arc gently shifts upward and downward)
-              const drift = Math.sin(this.waveTime * 1.2) * 18;
-              const centerY = obs.spawnCenterY! + drift;
-              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-            } else {
-              // Group 3: Zigzag (small horizontal shifting)
-              const shift = Math.sin(this.waveTime * 2.2) * 12;
-              obs.shakeX = shift; obs.shakeX2 = shift;
-              obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2;
-            }
+            // LEVEL 3: "The Gravity Pitfalls" (Anti-phase see-saw elevator shifts: adjacent columns slide vertically with sudden sharp velocity shifts)
+            const phase = this.waveTime * 3.0 + (actualIdx % 3) * (Math.PI * 2 / 3);
+            const shift = Math.sin(phase) * 35;
+            obs.targetTopHeight = obs.baseTopHeight! + shift;
+            obs.targetBottomHeight = obs.baseBottomHeight! - shift;
           } else if (obs.patternType === 'level4_snake') {
-            if (groupIdx === 0) {
-              // Group 1: 30° Slope (climbing slope shifts slowly)
-              const drift = Math.sin(this.waveTime * 0.8) * 12;
-              const centerY = obs.spawnCenterY! + drift;
-              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-            } else if (groupIdx === 1) {
-              // Group 2: Funnel (breathing tunnel effect)
-              const breath = Math.sin(this.waveTime * 1.8) * 14;
-              obs.targetTopHeight = obs.spawnCenterY! - (obs.gapHeight! + breath) / 2;
-              obs.targetBottomHeight = height - obs.spawnCenterY! - (obs.gapHeight! + breath) / 2;
-            } else {
-              // Group 3: Snake (sequential traveling wave motion)
-              const wave = Math.sin(this.waveTime * 2.5 - actualIdx * 0.5) * 15;
-              const centerY = obs.spawnCenterY! + wave;
-              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-            }
+            // LEVEL 4: "The Laser Grid Gauntlet" (Pulsing neon/electronic blink gates: lasers active, lights blink on/off)
+            obs.isLaser = true;
+            const neonBlink = Math.sin(this.waveTime * 4.0 + actualIdx * 0.5) > 0.3 ? 20 : -10;
+            obs.targetTopHeight = obs.baseTopHeight! + neonBlink;
+            obs.targetBottomHeight = obs.baseBottomHeight! - neonBlink;
           } else if (obs.patternType === 'level5_hourglass') {
-            if (groupIdx === 0) {
-              // Group 1: W Pipes (reactive slide opening splits, centerY remains stable)
-              obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2;
-            } else if (groupIdx === 1) {
-              // Group 2: Curved Stair (sequential staircase movement)
-              const cascade = Math.sin(this.waveTime * 1.8 - actualIdx * 0.45) * 16;
-              const centerY = obs.spawnCenterY! + cascade;
-              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-            } else {
-              // Group 3: Infinity (looping shift centerY movement)
-              const shift = Math.sin(this.waveTime * 2.0) * 15;
-              const centerY = obs.spawnCenterY! + shift;
-              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-            }
+            // LEVEL 5: "The Helix Vortex" (Spiral orbital loops: circular horizontal and vertical shaking + breathing)
+            const angle = this.waveTime * 2.5 + actualIdx * 0.6;
+            obs.shakeX = Math.sin(angle) * 25;
+            obs.shakeX2 = Math.cos(angle) * 25;
+            const breath = Math.sin(this.waveTime * 3.0) * 18;
+            obs.targetTopHeight = obs.baseTopHeight! - breath;
+            obs.targetBottomHeight = obs.baseBottomHeight! - breath;
           } else if (obs.patternType === 'level6_infinity') {
-            if (groupIdx === 0) {
-              // Group 1: Diamond (pulsing diamond rhythm)
-              const breath = Math.sin(this.waveTime * 3.0) * 12;
-              obs.targetTopHeight = obs.spawnCenterY! - (obs.gapHeight! + breath) / 2;
-              obs.targetBottomHeight = height - obs.spawnCenterY! - (obs.gapHeight! + breath) / 2;
-            } else if (groupIdx === 1) {
-              // Group 2: Wave Stair (traveling wave stair motion)
-              const wave = Math.sin(this.waveTime * 2.2 - actualIdx * 0.4) * 14;
-              const centerY = obs.spawnCenterY! + wave;
-              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-            } else {
-              // Group 3: S-Curve (gentle side-to-side drift)
-              const driftX = Math.sin(this.waveTime * 1.5) * 18;
-              obs.shakeX = driftX; obs.shakeX2 = driftX;
-              obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2;
-            }
+            // LEVEL 6: "The Chaos Zigzag" (High speed tornado slalom: columns rotate and slide back and forth under the bird)
+            const tVal = this.waveTime * 3.5 + actualIdx * 0.5;
+            obs.shakeX = Math.sin(tVal) * 30;
+            obs.shakeX2 = Math.sin(tVal + Math.PI / 2) * 30;
+            const slalom = Math.cos(this.waveTime * 2.0 + actualIdx * 0.3) * 20;
+            obs.targetTopHeight = obs.baseTopHeight! + slalom;
+            obs.targetBottomHeight = obs.baseBottomHeight! - slalom;
           } else if (obs.patternType === 'level7_dna') {
-            if (groupIdx === 0) {
-              // Group 1: Snake (longer snake corridor traveling wave)
-              const wave = Math.sin(this.waveTime * 2.8 - actualIdx * 0.5) * 16;
-              const centerY = obs.spawnCenterY! + wave;
-              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-            } else if (groupIdx === 1) {
-              // Group 2: Reverse Slope (smooth diagonal shifting centerY)
-              const drift = Math.sin(this.waveTime * 1.5) * 15;
-              const centerY = obs.spawnCenterY! + drift;
-              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-            } else {
-              // Group 3: Curved Funnel (narrowing tunnel breathing)
-              const breath = Math.sin(this.waveTime * 2.0) * 14;
-              obs.targetTopHeight = obs.spawnCenterY! - (obs.gapHeight! + breath) / 2;
-              obs.targetBottomHeight = height - obs.spawnCenterY! - (obs.gapHeight! + breath) / 2;
-            }
+            // LEVEL 7: "The Magnetic Pull Chambers" (Proximity gap contraction/expansion attractor: proximity-based gap pulsing)
+            const force = Math.sin(this.waveTime * 3.2 + actualIdx * 0.8) * 30;
+            obs.targetTopHeight = obs.baseTopHeight! - force;
+            obs.targetBottomHeight = obs.baseBottomHeight! - force;
           } else if (obs.patternType === 'level8_lightning') {
-            if (groupIdx === 0) {
-              // Group 1: Spiral (subtle rotational horizontal helix)
-              obs.shakeX = Math.sin(this.waveTime * 2.0 + actualIdx * 0.4) * 15;
-              obs.shakeX2 = Math.cos(this.waveTime * 2.0 + actualIdx * 0.4) * 15;
-              obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2;
-            } else if (groupIdx === 1) {
-              // Group 2: Zigzag Wave (wave motion through alternate zigzags)
-              const wave = Math.sin(this.waveTime * 2.4 - actualIdx * 0.55) * 15;
-              const centerY = obs.spawnCenterY! + wave;
-              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-            } else {
-              // Group 3: Stair (advanced elevation stair cascading)
-              const cascade = Math.sin(this.waveTime * 2.2 - actualIdx * 0.5) * 18;
-              const centerY = obs.spawnCenterY! + cascade;
-              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-            }
+            // LEVEL 8: "The Tremor Cascades" (Tectonic earthquake: high-frequency visual vibration and offset ridges)
+            obs.shakeX = Math.sin(this.waveTime * 20) * 8;
+            obs.shakeX2 = -Math.sin(this.waveTime * 20) * 8;
+            const tremorY = Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 15;
+            obs.targetTopHeight = obs.baseTopHeight! + tremorY;
+            obs.targetBottomHeight = obs.baseBottomHeight! - tremorY;
           } else if (obs.patternType === 'level9_magnetic') {
-            if (groupIdx === 0) {
-              // Group 1: Infinity (figure-eight opposite helix slide)
-              obs.shakeX = Math.sin(this.waveTime * 1.8 + actualIdx * 0.4) * 20;
-              obs.shakeX2 = -Math.sin(this.waveTime * 1.8 + actualIdx * 0.4) * 20;
-              obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2;
-            } else if (groupIdx === 1) {
-              // Group 2: Snake Stair (traveling snake escalations)
-              const wave = Math.sin(this.waveTime * 2.5 - actualIdx * 0.45) * 15;
-              const centerY = obs.spawnCenterY! + wave;
-              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-            } else {
-              // Group 3: Diamond Wave (pulse + wave hybrid breathing)
-              const breath = Math.sin(this.waveTime * 2.5) * 12;
-              const wave = Math.sin(this.waveTime * 2.0 - actualIdx * 0.4) * 12;
-              const centerY = obs.spawnCenterY! + wave;
-              obs.targetTopHeight = centerY - (obs.gapHeight! + breath) / 2;
-              obs.targetBottomHeight = height - centerY - (obs.gapHeight! + breath) / 2;
-            }
+            // LEVEL 9: "The Guillotine Scissors" (Guillotine scissors: top and bottom slide horizontally in opposite directions past each other)
+            const cross = Math.sin(this.waveTime * 2.4 + actualIdx * 0.6) * 35;
+            obs.shakeX = cross;
+            obs.shakeX2 = -cross;
           } else if (obs.patternType === 'level10_miniboss') {
-            // Level 10: Escalator Stairs
-            // Animates steps sequentially in a climbing or descending cascade
-            const phase = this.waveTime * 2.2 - actualIdx * 0.5;
-            const wave = Math.sin(phase) * 16;
-            obs.targetTopHeight = obs.baseTopHeight! + wave;
-            obs.targetBottomHeight = obs.baseBottomHeight! - wave;
+            // LEVEL 10: "The Mini-Boss Magma Arena" (Magma towers: synthesis of multiple animations with fast vertical elevator shifts)
+            const magWave = Math.sin(this.waveTime * 3.2 + actualIdx * 0.5) * 22;
+            const magPulse = Math.sin(this.waveTime * 4.5) * 15;
+            obs.shakeX = Math.sin(this.waveTime * 3.0) * 20;
+            obs.shakeX2 = Math.cos(this.waveTime * 3.0) * 20;
+            obs.targetTopHeight = obs.baseTopHeight! + magWave - magPulse;
+            obs.targetBottomHeight = obs.baseBottomHeight! - magWave - magPulse;
           } else if (obs.patternType === 'level11_diamond') {
             // Level 11: Structure-Aligned Animations matching each Group's distinct layout
             const idx = actualIdx % 12;
@@ -968,8 +844,8 @@ export class ObstacleManager {
           obs.topHeight = obs.closedTopHeight! + (obs.targetTopHeight! - obs.closedTopHeight!) * easedOpen;
           obs.bottomHeight = obs.closedBottomHeight! + (obs.targetBottomHeight! - obs.closedBottomHeight!) * easedOpen;
 
-          // Centralized Dynamic Gameplay Safeguard for Levels 10-20
-          if (obs.levelNum !== undefined && obs.levelNum >= 10 && obs.levelNum <= 20) {
+          // Centralized Dynamic Gameplay Safeguard for Levels 11-20
+          if (obs.levelNum !== undefined && obs.levelNum >= 11 && obs.levelNum <= 20) {
             let currentGap = height - obs.topHeight - obs.bottomHeight;
             if (currentGap < 165) {
               const center = obs.topHeight + currentGap / 2;
@@ -983,6 +859,25 @@ export class ObstacleManager {
             } else if (obs.bottomHeight < minHeight) {
               obs.bottomHeight = minHeight;
               obs.topHeight = height - minHeight - 165;
+            }
+          }
+
+          // Centralized Dynamic Gameplay Safeguard for Levels 1-10
+          if (obs.levelNum !== undefined && obs.levelNum >= 1 && obs.levelNum <= 10) {
+            const minAllowedGap = 125; // extremely challenging but physically passable
+            let currentGap = height - obs.topHeight - obs.bottomHeight;
+            if (currentGap < minAllowedGap) {
+              const center = obs.topHeight + currentGap / 2;
+              obs.topHeight = center - minAllowedGap / 2;
+              obs.bottomHeight = height - center - minAllowedGap / 2;
+            }
+            const minHeight = 35;
+            if (obs.topHeight < minHeight) {
+              obs.topHeight = minHeight;
+              obs.bottomHeight = height - minHeight - minAllowedGap;
+            } else if (obs.bottomHeight < minHeight) {
+              obs.bottomHeight = minHeight;
+              obs.topHeight = height - minHeight - minAllowedGap;
             }
           }
 
@@ -1214,184 +1109,84 @@ export class ObstacleManager {
       let targetBottomHeight = 0;
 
       if (patternType === 'level1_funnel') {
-        // LEVEL 1:
-        // Group 1 (0-5): Curved Funnel (starts wide, narrows center, opens exit)
-        // Group 2 (6-11): Mini W Pattern
-        // Group 3 (12-17): S-Curve Pattern
-        if (obstacleIdx <= 5) {
-          // Curved Funnel: centerY has downward curve, gap narrows in middle
-          targetCenterY = height / 2 + Math.sin((obstacleIdx / 5) * Math.PI) * 20;
-          localGapHeight = gapHeight + (2.5 - Math.sin((obstacleIdx / 5) * Math.PI) * 2.5) * 15;
-        } else if (obstacleIdx <= 11) {
-          // Mini W: Down -> Up -> Down -> Up centerY
-          const stepAngle = ((obstacleIdx - 6) / 5) * Math.PI * 2;
-          targetCenterY = height / 2 + Math.sin(stepAngle) * 35;
-        } else {
-          // S-Curve: smooth Y-axis flow
-          const stepAngle = ((obstacleIdx - 12) / 5) * Math.PI;
-          targetCenterY = height / 2 + Math.sin(stepAngle) * 45;
-        }
-        triggerDistance = 480;
-        animDuration = 0.75;
-      } else if (patternType === 'level2_diamond') {
-        // LEVEL 2:
-        // Group 1 (0-5): Stair (continuous climb)
-        // Group 2 (6-11): Diamond (diamond corridor)
-        // Group 3 (12-17): Wave (smooth wave riding)
-        if (obstacleIdx <= 5) {
-          targetCenterY = height / 2 + 50 - (obstacleIdx * 20);
-        } else if (obstacleIdx <= 11) {
-          const di = obstacleIdx - 6;
-          localGapHeight = gapHeight + (Math.abs(di - 2.5) / 2.5) * 45;
-          targetCenterY = height / 2;
-        } else {
-          const stepAngle = ((obstacleIdx - 12) / 5) * Math.PI;
-          targetCenterY = height / 2 + Math.sin(stepAngle) * 40;
-        }
-        triggerDistance = 420;
-        animDuration = 0.68;
-      } else if (patternType === 'level3_arc') {
-        // LEVEL 3:
-        // Group 1 (0-5): Reverse Stair (continuous descent)
-        // Group 2 (6-11): Curved Arc (large arc tunnel)
-        // Group 3 (12-17): Zigzag (sharp readable zigzag)
-        if (obstacleIdx <= 5) {
-          targetCenterY = height / 2 - 50 + (obstacleIdx * 20);
-        } else if (obstacleIdx <= 11) {
-          const stepAngle = ((obstacleIdx - 6) / 5) * Math.PI;
-          targetCenterY = height / 2 - Math.sin(stepAngle) * 60;
-        } else {
-          const zi = obstacleIdx - 12;
-          targetCenterY = height / 2 + (zi % 2 === 0 ? -55 : 55);
-        }
-        triggerDistance = 360;
-        animDuration = 0.60;
-      } else if (patternType === 'level4_snake') {
-        // LEVEL 4:
-        // Group 1 (0-5): 30° Slope (diagonal climb)
-        // Group 2 (6-11): Funnel (Wide -> Narrow -> Wide)
-        // Group 3 (12-17): Snake (continuous curved flow)
-        if (obstacleIdx <= 5) {
-          targetCenterY = height / 2 + 50 - (obstacleIdx * 18);
-        } else if (obstacleIdx <= 11) {
-          const fi = obstacleIdx - 6;
-          localGapHeight = gapHeight + (Math.abs(fi - 2.5) / 2.5) * 40;
-          targetCenterY = height / 2;
-        } else {
-          const stepAngle = ((obstacleIdx - 12) / 5) * Math.PI;
-          targetCenterY = height / 2 + Math.sin(stepAngle) * 45;
-        }
-        triggerDistance = 310;
-        animDuration = 0.54;
-      } else if (patternType === 'level5_hourglass') {
-        // LEVEL 5:
-        // Group 1 (0-5): W Pipes (elevation curves + reactive slide open)
-        // Group 2 (6-11): Curved Stair (stairs with curved transitions)
-        // Group 3 (12-17): Infinity (figure-eight looping centerY)
-        if (obstacleIdx <= 5) {
-          const stepAngle = (obstacleIdx / 5) * Math.PI * 2;
-          targetCenterY = height / 2 + Math.sin(stepAngle) * 55;
-        } else if (obstacleIdx <= 11) {
-          const si = obstacleIdx - 6;
-          targetCenterY = height / 2 - Math.cos((si / 5) * Math.PI) * 50;
-        } else {
-          const stepAngle = ((obstacleIdx - 12) / 5) * Math.PI * 2;
-          targetCenterY = height / 2 + Math.sin(stepAngle) * Math.cos(stepAngle) * 75;
-        }
-        triggerDistance = 270;
-        animDuration = 0.48;
-      } else if (patternType === 'level6_infinity') {
-        // LEVEL 6:
-        // Group 1 (0-5): Diamond (connected diamond corridor)
-        // Group 2 (6-11): Wave Stair (stair mixed with wave)
-        // Group 3 (12-17): S-Curve (large S curves)
-        if (obstacleIdx <= 5) {
-          localGapHeight = gapHeight + (obstacleIdx % 3 === 0 ? 30 : -10);
-          targetCenterY = height / 2;
-        } else if (obstacleIdx <= 11) {
-          const si = obstacleIdx - 6;
-          targetCenterY = height / 2 + 50 - si * 18 + Math.sin(si * 0.9) * 20;
-        } else {
-          const stepAngle = ((obstacleIdx - 12) / 5) * Math.PI;
-          targetCenterY = height / 2 + Math.sin(stepAngle) * 60;
-        }
-        triggerDistance = 265;
-        animDuration = 0.47;
-      } else if (patternType === 'level7_dna') {
-        // LEVEL 7:
-        // Group 1 (0-5): Snake (longer snake corridor)
-        // Group 2 (6-11): Reverse Slope (controlled descending slope)
-        // Group 3 (12-17): Curved Funnel (arc-based narrowing tunnel)
-        if (obstacleIdx <= 5) {
-          const stepAngle = (obstacleIdx / 5) * Math.PI;
-          targetCenterY = height / 2 + Math.sin(stepAngle) * 55;
-        } else if (obstacleIdx <= 11) {
-          const si = obstacleIdx - 6;
-          targetCenterY = height / 2 - 50 + (si * 18);
-        } else {
-          const si = obstacleIdx - 12;
-          const stepAngle = (si / 5) * Math.PI;
-          targetCenterY = height / 2 - Math.sin(stepAngle) * 45;
-          localGapHeight = gapHeight + (5 - si) * 8;
-        }
-        triggerDistance = 250;
-        animDuration = 0.44;
-      } else if (patternType === 'level8_lightning') {
-        // LEVEL 8:
-        // Group 1 (0-5): Spiral (spiral circular centerY flow)
-        // Group 2 (6-11): Zigzag Wave (alternating zigzag curves)
-        // Group 3 (12-17): Stair (advanced elevation stairs)
-        if (obstacleIdx <= 5) {
-          const stepAngle = (obstacleIdx / 5) * Math.PI * 1.5;
-          targetCenterY = height / 2 + Math.sin(stepAngle) * 50;
-        } else if (obstacleIdx <= 11) {
-          const si = obstacleIdx - 6;
-          targetCenterY = height / 2 + (si % 2 === 0 ? -40 : 40) + Math.sin(si * 0.8) * 20;
-        } else {
-          const si = obstacleIdx - 12;
-          targetCenterY = height / 2 + 60 - si * 22;
-        }
-        triggerDistance = 235;
-        animDuration = 0.42;
-      } else if (patternType === 'level9_magnetic') {
-        // LEVEL 9:
-        // Group 1 (0-5): Infinity (large centerY loops)
-        // Group 2 (6-11): Snake Stair (snake curves with stairs)
-        // Group 3 (12-17): Diamond Wave (diamond connected by wave)
-        if (obstacleIdx <= 5) {
-          const stepAngle = (obstacleIdx / 5) * Math.PI * 2;
-          targetCenterY = height / 2 + Math.sin(stepAngle) * Math.cos(stepAngle) * 85;
-        } else if (obstacleIdx <= 11) {
-          const si = obstacleIdx - 6;
-          targetCenterY = height / 2 + 50 - si * 16 + Math.sin(si * 0.9) * 25;
-        } else {
-          const si = obstacleIdx - 12;
-          const stepAngle = (si / 5) * Math.PI;
-          targetCenterY = height / 2 + Math.sin(stepAngle) * 40;
-          localGapHeight = gapHeight + (si % 2 === 0 ? 30 : -10);
-        }
-        triggerDistance = 220;
-        animDuration = 0.40;
-      } else if (patternType === 'level10_miniboss') {
-        // LEVEL 10: Escalator Stairs (Climbing/descending steps)
+        // LEVEL 1: "The Crusher Gates" (Alternating extremely high and low blocks to create castellated teeth corridor)
         hasAsymmetricHeights = true;
-        if (obstacleIdx <= 5) {
-          // Group 1: Upward Escalator Stairs
-          localGapHeight = gapHeight;
-          targetTopHeight = 120 + obstacleIdx * 25;
-        } else if (obstacleIdx <= 11) {
-          // Group 2: Downward Escalator Stairs
-          localGapHeight = gapHeight;
-          const idx = obstacleIdx - 6;
-          targetTopHeight = 245 - idx * 25;
+        if (obstacleIdx % 2 === 0) {
+          targetTopHeight = 60;
+          targetBottomHeight = height - localGapHeight - 60;
         } else {
-          // Group 3: Symmetrical Stair Valley
-          localGapHeight = gapHeight;
-          const idx = obstacleIdx - 12;
-          targetTopHeight = 120 + Math.abs(idx - 2.5) * 35;
+          targetTopHeight = height - localGapHeight - 60;
+          targetBottomHeight = 60;
         }
-        triggerDistance = 200;
+        triggerDistance = 450;
+        animDuration = 0.50;
+      } else if (patternType === 'level2_diamond') {
+        // LEVEL 2: "The Sine Wave Maze" (Overlapping double-helix or grid chambers with tight slots)
+        localGapHeight = gapHeight - 10;
+        targetCenterY = height / 2 + Math.sin(obstacleIdx * 1.5) * 55;
+        triggerDistance = 400;
+        animDuration = 0.45;
+      } else if (patternType === 'level3_arc') {
+        // LEVEL 3: "The Gravity Pitfalls" (Giant stairs that drop and rise in extreme vertical leaps)
+        if (obstacleIdx % 3 === 0) {
+          targetCenterY = height / 2 - 80;
+        } else if (obstacleIdx % 3 === 1) {
+          targetCenterY = height / 2 + 80;
+        } else {
+          targetCenterY = height / 2;
+        }
+        triggerDistance = 350;
+        animDuration = 0.40;
+      } else if (patternType === 'level4_snake') {
+        // LEVEL 4: "The Laser Grid Gauntlet" (Electronic cyberpunk-themed columns with narrow gaps)
+        targetCenterY = height / 2 + Math.sin(obstacleIdx) * 50;
+        triggerDistance = 320;
+        animDuration = 0.42;
+      } else if (patternType === 'level5_hourglass') {
+        // LEVEL 5: "The Helix Vortex" (Hourglass corridor starting wide, squeezing to bottleneck, and expanding again)
+        const distFromCenter = Math.abs(obstacleIdx - 2.5);
+        localGapHeight = gapHeight - 25 + distFromCenter * 20;
+        targetCenterY = height / 2 + Math.sin(obstacleIdx * 1.2) * 35;
+        triggerDistance = 300;
+        animDuration = 0.45;
+      } else if (patternType === 'level6_infinity') {
+        // LEVEL 6: "The Chaos Zigzag" (Jagged zigzag that alternates between absolute top and bottom)
+        targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -90 : 90);
+        triggerDistance = 280;
         animDuration = 0.38;
+      } else if (patternType === 'level7_dna') {
+        // LEVEL 7: "The Magnetic Pull Chambers" (Alternating tiny narrow squeeze gates and massive open chambers)
+        if (obstacleIdx % 2 === 0) {
+          localGapHeight = gapHeight - 35;
+          targetCenterY = height / 2 - 40;
+        } else {
+          localGapHeight = gapHeight + 40;
+          targetCenterY = height / 2 + 40;
+        }
+        triggerDistance = 260;
+        animDuration = 0.35;
+      } else if (patternType === 'level8_lightning') {
+        // LEVEL 8: "The Tremor Cascades" (Slanted ridges and misaligned asymmetrical top/bottom blocks)
+        hasAsymmetricHeights = true;
+        targetTopHeight = 60 + Math.sin(obstacleIdx * 1.5) * 75;
+        targetBottomHeight = 60 + Math.cos(obstacleIdx * 1.5) * 75;
+        triggerDistance = 250;
+        animDuration = 0.36;
+      } else if (patternType === 'level9_magnetic') {
+        // LEVEL 9: "The Guillotine Scissors" (Criss-cross guillotines: interlocking pair columns blocking top and bottom)
+        hasAsymmetricHeights = true;
+        const isTopHeavy = (obstacleIdx % 2 === 0);
+        targetTopHeight = isTopHeavy ? height - localGapHeight - 50 : 50;
+        targetBottomHeight = isTopHeavy ? 50 : height - localGapHeight - 50;
+        triggerDistance = 240;
+        animDuration = 0.34;
+      } else if (patternType === 'level10_miniboss') {
+        // LEVEL 10: "The Mini-Boss Magma Arena" (Giant volcanic magma towers rising and falling from bounds)
+        hasAsymmetricHeights = true;
+        targetTopHeight = 60 + Math.sin(obstacleIdx * 2.0) * 85;
+        targetBottomHeight = 60 + Math.cos(obstacleIdx * 2.0) * 85;
+        triggerDistance = 200;
+        animDuration = 0.32;
       } else if (patternType === 'level11_diamond') {
         // LEVEL 11: Deep V-Shape & Symmetrical/Asymmetrical Variations (repeating every 12 columns side-by-side)
         hasAsymmetricHeights = true;
@@ -1922,7 +1717,7 @@ export class ObstacleManager {
       }
 
       // Safeguard boundaries and calculate target heights
-      if (levelNum !== undefined && levelNum >= 10 && levelNum <= 20) {
+      if (levelNum !== undefined && levelNum >= 11 && levelNum <= 20) {
         localGapHeight = Math.max(165, localGapHeight);
       }
 
@@ -1942,9 +1737,9 @@ export class ObstacleManager {
         targetBottomHeight = height - targetCenterY - localGapHeight / 2;
       }
 
-      // Enable special different-direction split opening animation specifically for all obstacles in Levels 10-20 (excluding Level 11) and special legacy levels
+      // Enable special different-direction split opening animation specifically for all obstacles in Levels 1-20 (excluding Level 11) and special legacy levels
       const isSpecialSplit = 
-        (levelNum !== undefined && levelNum >= 10 && levelNum <= 20 && levelNum !== 11) ||
+        (levelNum !== undefined && levelNum >= 1 && levelNum <= 20 && levelNum !== 11) ||
         (patternType === 'level2_diamond') || 
         (patternType === 'level5_hourglass' && groupIdx === 0) ||
         (patternType === 'level17_heartbeat' && groupIdx === 0);
