@@ -31,14 +31,17 @@ export class LevelManager {
       const worldName = worldNames[worldIdx];
 
       // Progressive difficulty values
-      const targetScore = 150; // Level complete requires 150 obstacles crossed
-      const scrollSpeed = (3.3 + (levelNum * 0.06)) * 0.8; // Decreased by 20%
-      let gapHeight = Math.max(195, 260 - (levelNum * 2.2)); // 260 down to 195px
-      if (levelNum === 1) {
-        gapHeight = 280; // Large gap size for easy learning
-      } else if (levelNum === 2) {
-        gapHeight = 265; // Large gap size for onboarding
+      let targetScore = 150;
+      let gapHeight = Math.max(195, 260 - (levelNum * 2.2)); // Default calculation
+      
+      if (levelNum <= 10) {
+        targetScore = 18; // Exactly 3 obstacle groups * 6 pillars per group = 18 pillars
+        // Progressive gap heights for perfect onboarding difficulty ramp
+        const onboardingGaps = [280, 260, 245, 230, 220, 210, 200, 190, 180, 170];
+        gapHeight = onboardingGaps[levelNum - 1];
       }
+
+      const scrollSpeed = (3.3 + (levelNum * 0.06)) * 0.8; // Decreased by 20%
 
       // Distribute patterns based on level brackets using active wave/moving patterns ONLY
       let patterns: string[] = [];

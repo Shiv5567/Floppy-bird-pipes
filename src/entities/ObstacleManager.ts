@@ -277,78 +277,85 @@ export class ObstacleManager {
           const easedOpen = progress === 0 ? 0 : progress === 1 ? 1 : Math.pow(2, -10 * progress) * Math.sin((progress * 10 - 0.75) * c4) + 1;
 
           // Choreographed patterns
+          // Choreographed patterns
           if (obs.patternType === 'level1_straight') {
-            obs.shakeX = Math.sin(this.waveTime * 1.5) * 12;
-            obs.shakeX2 = Math.sin(this.waveTime * 1.5) * 12;
+            // Horizontal sway
+            obs.shakeX = Math.sin(this.waveTime * 1.2) * 6;
+            obs.shakeX2 = Math.sin(this.waveTime * 1.2) * 6;
+            
+            // Layout profile
             const centerY = obs.spawnCenterY!;
             obs.targetTopHeight = centerY - obs.gapHeight! / 2;
             obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
           } else if (obs.patternType === 'level2_w') {
+            // W structure gently expands/contracts, soft pulse effect
             const centerY = obs.spawnCenterY!;
-            const pulseGap = obs.gapHeight! + Math.sin(this.waveTime * 3.5) * 12;
+            const pulseGap = obs.gapHeight! + Math.sin(this.waveTime * 2.5) * 10;
             obs.targetTopHeight = centerY - pulseGap / 2;
             obs.targetBottomHeight = height - centerY - pulseGap / 2;
           } else if (obs.patternType === 'level3_stair') {
-            const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.4) * 20;
-            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            // Sequential stair movement: upper pipes move upward, lower pipes move downward
+            const centerY = obs.spawnCenterY!;
+            const stairOffset = Math.sin(this.waveTime * 2.2 + obs.obstacleIdx! * 0.5) * 15;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2 - stairOffset;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2 - stairOffset;
           } else if (obs.patternType === 'level4_wave') {
-            const waveShift = Math.sin(this.waveTime * 1.8) * 35;
-            const step = obs.obstacleIdx! % 16;
-            const centerY = height / 2 + Math.sin(step * (Math.PI * 2 / 16)) * 60 + waveShift;
+            // Ocean-like wave motion: connected wave flow across pipes
+            const waveShift = Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.45) * 20;
+            const centerY = obs.spawnCenterY! + waveShift;
             obs.targetTopHeight = centerY - obs.gapHeight! / 2;
             obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
           } else if (obs.patternType === 'level5_zigzag') {
-            const zigzagShift = Math.sin(this.waveTime * 2.2) * 20;
+            // Alternate horizontal shifting with smooth transitions
+            const zigzagShift = Math.sin(this.waveTime * 2.2) * 15;
             const direction = (obs.obstacleIdx! % 2 === 0) ? 1 : -1;
             obs.shakeX = zigzagShift * direction;
             obs.shakeX2 = zigzagShift * direction;
+            
             const centerY = obs.spawnCenterY!;
             obs.targetTopHeight = centerY - obs.gapHeight! / 2;
             obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
           } else if (obs.patternType === 'level6_slope') {
-            const slopeShift = Math.sin(this.waveTime * 1.5) * 45;
-            const slopeIndex = obs.obstacleIdx! % 12;
-            const slopeOffset = (slopeIndex <= 6) ? (-120 + slopeIndex * 40) : (120 - (slopeIndex - 6) * 40);
-            const centerY = height / 2 + slopeOffset + slopeShift;
+            // Diagonal sliding movement + anticipation
+            const slideShift = Math.sin(this.waveTime * 1.6) * 20;
+            const centerY = obs.spawnCenterY! + slideShift;
             obs.targetTopHeight = centerY - obs.gapHeight! / 2;
             obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            
+            // Anticipation warning visual vibration
+            const dx = Math.cos(this.waveTime * 8.0) * 2;
+            obs.shakeX = dx;
+            obs.shakeX2 = dx;
           } else if (obs.patternType === 'level7_snake') {
-            const snakeCenterY = height / 2 + Math.sin((obs.x * 0.008) - this.waveTime * 3.5) * 65;
+            // Snake crawls sequentially
+            const snakeCenterY = obs.spawnCenterY! + Math.sin((obs.x * 0.008) - this.waveTime * 3.5) * 25;
             obs.targetTopHeight = snakeCenterY - obs.gapHeight! / 2;
             obs.targetBottomHeight = height - snakeCenterY - obs.gapHeight! / 2;
           } else if (obs.patternType === 'level8_breathing') {
-            const centerY = obs.spawnCenterY!;
-            const breathingGap = obs.gapHeight! + Math.sin(this.waveTime * 2.0) * 25;
-            obs.targetTopHeight = centerY - breathingGap / 2;
-            obs.targetBottomHeight = height - centerY - breathingGap / 2;
+            // Slow breathing expand-contract gap
+            const breathingGap = obs.gapHeight! + Math.sin(this.waveTime * 1.8) * 20;
+            obs.targetTopHeight = obs.spawnCenterY! - breathingGap / 2;
+            obs.targetBottomHeight = height - obs.spawnCenterY! - breathingGap / 2;
           } else if (obs.patternType === 'level9_sliding') {
-            const slideTime = this.waveTime * 2.0;
-            obs.shakeX = Math.sin(slideTime) * 24;
-            obs.shakeX2 = Math.cos(slideTime) * 24;
+            // Delayed horizontal sliding Sequence
+            const slideVal = Math.sin(this.waveTime * 2.2 + obs.obstacleIdx! * 0.3) * 25;
+            obs.shakeX = slideVal;
+            obs.shakeX2 = slideVal;
+            
             const centerY = obs.spawnCenterY!;
             obs.targetTopHeight = centerY - obs.gapHeight! / 2;
             obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
           } else if (obs.patternType === 'level10_hybrid') {
-            const section = Math.floor(obs.obstacleIdx! / 15) % 3;
-            let centerY = obs.spawnCenterY!;
-            if (section === 0) {
-              const waveShift = Math.sin(this.waveTime * 2.0) * 30;
-              const step = obs.obstacleIdx! % 12;
-              centerY = height / 2 + Math.sin(step * (Math.PI * 2 / 12)) * 60 + waveShift;
-            } else if (section === 1) {
-              const slopeShift = Math.sin(this.waveTime * 1.5) * 40;
-              const slopeStep = obs.obstacleIdx! % 8;
-              const slopeOffset = -80 + (slopeStep % 5) * 40;
-              centerY = height / 2 + slopeOffset + slopeShift;
-            } else {
-              const zigzagShift = Math.sin(this.waveTime * 2.2) * 20;
-              const direction = (obs.obstacleIdx! % 2 === 0) ? 1 : -1;
-              obs.shakeX = zigzagShift * direction;
-              obs.shakeX2 = zigzagShift * direction;
-            }
-            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            // Wave + Breathing + Sliding Hybrid Showcase
+            const waveShift = Math.sin(this.waveTime * 2.5 + obs.obstacleIdx! * 0.4) * 22;
+            const breathingGap = obs.gapHeight! + Math.sin(this.waveTime * 3.0) * 12;
+            
+            obs.shakeX = Math.sin(this.waveTime * 2.2) * 18;
+            obs.shakeX2 = Math.cos(this.waveTime * 2.2) * 18;
+            
+            const centerY = obs.spawnCenterY! + waveShift;
+            obs.targetTopHeight = centerY - breathingGap / 2;
+            obs.targetBottomHeight = height - centerY - breathingGap / 2;
           } else if (obs.patternType === 'wave_10') {
             const centerY = height / 2 + Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.5) * 55;
             obs.targetTopHeight = centerY - obs.gapHeight! / 2;
@@ -600,7 +607,8 @@ export class ObstacleManager {
     }
 
     // Procedural Spawning using distance-based logic (extremely robust)
-    if (this.activeLevelConfig && this.currentPatternIdx >= 150) {
+    const maxPillars = (this.activeLevelConfig && this.activeLevelConfig.levelNum <= 10) ? 18 : 150;
+    if (this.activeLevelConfig && this.currentPatternIdx >= maxPillars) {
       return;
     }
 
@@ -623,7 +631,18 @@ export class ObstacleManager {
 
       // Determine next spawn distance: Connected cavern spacing segments (0 distance horizontally) for all Levels in Level Mode
       if (this.activeLevelConfig) {
-        this.nextSpawnDistance = this.obstacleWidth; // 0 horizontal distance between pipes!
+        const levelNum = this.activeLevelConfig.levelNum;
+        if (levelNum <= 10) {
+          // Exactly 3 groups of 6 pillars. Spacing between group 1 & 2 (idx 5) and group 2 & 3 (idx 11) is added
+          const idx = this.currentPatternIdx - 1;
+          if (idx === 5 || idx === 11) {
+            this.nextSpawnDistance = this.obstacleWidth * 3.5; // Spacing between groups (about 252px)
+          } else {
+            this.nextSpawnDistance = this.obstacleWidth; // Connected side-by-side inside group
+          }
+        } else {
+          this.nextSpawnDistance = this.obstacleWidth; // Connected side-by-side for levels 11+
+        }
       } else {
         const baseDistanceClassic = (width / 1.35) * 0.80;
         const defaultDistance = baseDistanceClassic * 1.15;
@@ -656,63 +675,123 @@ export class ObstacleManager {
       let targetCenterY = height / 2;
 
       if (patternType === 'level1_straight') {
-        targetCenterY = height / 2;
+        // Group 1: 0-5 (straight tunnel), Group 2: 6-11 (upward slope), Group 3: 12-17 (straight tunnel)
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2;
+        } else if (obstacleIdx <= 11) {
+          // Gentle upward slope: rises smoothly by 15px per step (reaches -90px)
+          targetCenterY = height / 2 - (obstacleIdx - 5) * 15;
+        } else {
+          targetCenterY = height / 2 - 90;
+        }
         triggerDistance = 450; // Open very early for beginners
-        animDuration = 0.6;
+        animDuration = 0.7; // Slow and comfortable easing
       } else if (patternType === 'level2_w') {
-        const offsets = [60, 10, -40, 10, 60, 10, -40, 10];
-        targetCenterY = height / 2 + offsets[obstacleIdx % offsets.length];
-        triggerDistance = 260; // Open smoothly on approach
-        animDuration = 0.55;
+        // Group 1: 0-5 (W pattern), Group 2: 6-11 (mini diagonal slope), Group 3: 12-17 (straight tunnel)
+        if (obstacleIdx <= 5) {
+          const wOffsets = [45, 10, -30, 10, 45, 10];
+          targetCenterY = height / 2 + wOffsets[obstacleIdx];
+        } else if (obstacleIdx <= 11) {
+          // Gentle downward slope
+          targetCenterY = height / 2 + 10 + (obstacleIdx - 5) * 8;
+        } else {
+          targetCenterY = height / 2 + 58;
+        }
+        triggerDistance = 330; // Open smoothly on approach
+        animDuration = 0.6;
       } else if (patternType === 'level3_stair') {
-        const offsets = [-80, -60, -40, -20, 0, 20, 40, 60, 80, 60, 40, 20, 0, -20, -40, -60];
-        targetCenterY = height / 2 + offsets[obstacleIdx % offsets.length];
-        triggerDistance = 240;
-        animDuration = 0.5;
+        // Group 1: 0-5 (upward staircase), Group 2: 6-11 (downward staircase), Group 3: 12-17 (straight connector)
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 + 50 - obstacleIdx * 20; // rises from +50 to -50
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 - 50 + (obstacleIdx - 6) * 20; // drops from -50 to +50
+        } else {
+          targetCenterY = height / 2 + 50;
+        }
+        triggerDistance = 300;
+        animDuration = 0.55;
       } else if (patternType === 'level4_wave') {
-        const step = obstacleIdx % 16;
-        targetCenterY = height / 2 + Math.sin(step * (Math.PI * 2 / 16)) * 60;
-        triggerDistance = 250;
-        animDuration = 0.48;
+        // Group 1: 0-5 (wave tunnel), Group 2: 6-11 (mini wave), Group 3: 12-17 (straight exit)
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 3)) * 60;
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 + Math.sin((obstacleIdx - 6) * (Math.PI / 3)) * 30;
+        } else {
+          targetCenterY = height / 2;
+        }
+        triggerDistance = 280;
+        animDuration = 0.52;
       } else if (patternType === 'level5_zigzag') {
-        const offsets = [-50, 50, -50, 50];
-        targetCenterY = height / 2 + offsets[obstacleIdx % offsets.length];
-        triggerDistance = 230;
-        animDuration = 0.45;
-      } else if (patternType === 'level6_slope') {
-        const slopeIndex = obstacleIdx % 12;
-        const slopeOffset = (slopeIndex <= 6) ? (-120 + slopeIndex * 40) : (120 - (slopeIndex - 6) * 40);
-        targetCenterY = height / 2 + slopeOffset;
-        triggerDistance = 240;
+        // Group 1: 0-5 (zigzag), Group 2: 6-11 (reverse zigzag), Group 3: 12-17 (recovery)
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -45 : 45);
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? 45 : -45);
+        } else {
+          targetCenterY = height / 2;
+        }
+        triggerDistance = 270;
         animDuration = 0.5;
+      } else if (patternType === 'level6_slope') {
+        // Group 1: 0-5 (30° upward slope), Group 2: 6-11 (30° downward slope), Group 3: 12-17 (straight tunnel)
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 + 70 - obstacleIdx * 28; // steep upward slope
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 - 70 + (obstacleIdx - 6) * 28; // steep downward slope
+        } else {
+          targetCenterY = height / 2;
+        }
+        triggerDistance = 260;
+        animDuration = 0.48;
       } else if (patternType === 'level7_snake') {
-        const step = obstacleIdx % 14;
-        targetCenterY = height / 2 + Math.sin(step * (Math.PI * 2 / 14)) * 65;
-        triggerDistance = 220;
+        // Group 1: 0-5 (snake curve), Group 2: 6-11 (reverse snake), Group 3: 12-17 (straight connector)
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.8) * 55;
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 - Math.sin((obstacleIdx - 6) * 0.8) * 55;
+        } else {
+          targetCenterY = height / 2;
+        }
+        triggerDistance = 250;
         animDuration = 0.45;
       } else if (patternType === 'level8_breathing') {
-        targetCenterY = height / 2;
-        triggerDistance = 240;
-        animDuration = 0.5;
-      } else if (patternType === 'level9_sliding') {
-        const offsets = [-40, 0, 40, 0];
-        targetCenterY = height / 2 + offsets[obstacleIdx % offsets.length];
-        triggerDistance = 230;
-        animDuration = 0.45;
-      } else if (patternType === 'level10_hybrid') {
-        const section = Math.floor(obstacleIdx / 15) % 3;
-        if (section === 0) {
-          const step = obstacleIdx % 12;
-          targetCenterY = height / 2 + Math.sin(step * (Math.PI * 2 / 12)) * 60;
-        } else if (section === 1) {
-          const slopeStep = obstacleIdx % 8;
-          const slopeOffset = -80 + (slopeStep % 5) * 40;
-          targetCenterY = height / 2 + slopeOffset;
+        // Group 1: 0-5 (breathing), Group 2: 6-11 (breathing stair), Group 3: 12-17 (recovery)
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2;
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 + (obstacleIdx <= 8 ? -35 : 35);
         } else {
-          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -50 : 50);
+          targetCenterY = height / 2;
         }
-        triggerDistance = 185; // Reactive closer open for final milestone level
-        animDuration = 0.35;
+        triggerDistance = 240;
+        animDuration = 0.48;
+      } else if (patternType === 'level9_sliding') {
+        // Group 1: 0-5 (sliding), Group 2: 6-11 (reverse sliding), Group 3: 12-17 (mini W)
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -25 : 25);
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? 25 : -25);
+        } else {
+          const wOffsets = [30, 0, -30, 0, 30, 0];
+          targetCenterY = height / 2 + wOffsets[obstacleIdx - 12];
+        }
+        triggerDistance = 220;
+        animDuration = 0.42;
+      } else if (patternType === 'level10_hybrid') {
+        // Group 1: 0-5 (wave + W hybrid), Group 2: 6-11 (stair + slope hybrid), Group 3: 12-17 (snake + zigzag hybrid)
+        if (obstacleIdx <= 5) {
+          // Wave + W hybrid
+          const wOffsets = [35, 10, -25, 10, 35, 10];
+          targetCenterY = height / 2 + wOffsets[obstacleIdx] + Math.sin(obstacleIdx * (Math.PI / 3)) * 20;
+        } else if (obstacleIdx <= 11) {
+          // Stair + slope hybrid (upward)
+          targetCenterY = height / 2 + 60 - (obstacleIdx - 6) * 20;
+        } else {
+          // Snake + zigzag hybrid
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -35 : 35) + Math.sin((obstacleIdx - 12) * 0.8) * 15;
+        }
+        triggerDistance = 195; // Reactive closer open for final milestone level
+        animDuration = 0.38;
       } else if (patternType === 'wave_10') {
         const step = obstacleIdx % 12;
         targetCenterY = height / 2 + Math.sin(step * (Math.PI * 2 / 12)) * 55;
