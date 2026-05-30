@@ -4,6 +4,34 @@ import { SoundManager } from './engine/SoundManager.ts';
 import { GameEngine } from './engine/GameEngine.ts';
 import { UIManager } from './ui/UIManager.ts';
 
+// Global error catcher overlay for instant live debugging
+window.onerror = function(message, source, lineno, colno, error) {
+  const errorDiv = document.createElement('div');
+  errorDiv.style.position = 'fixed';
+  errorDiv.style.top = '0';
+  errorDiv.style.left = '0';
+  errorDiv.style.width = '100%';
+  errorDiv.style.height = '100%';
+  errorDiv.style.backgroundColor = 'rgba(20, 5, 5, 0.96)';
+  errorDiv.style.color = '#ff3366';
+  errorDiv.style.padding = '30px';
+  errorDiv.style.zIndex = '1000000';
+  errorDiv.style.fontFamily = 'monospace';
+  errorDiv.style.fontSize = '14px';
+  errorDiv.style.overflowY = 'auto';
+  errorDiv.style.border = '3px solid #ff0055';
+  errorDiv.style.boxShadow = '0 0 30px rgba(255,0,85,0.5)';
+  errorDiv.innerHTML = `
+    <h2 style="color: #ff0055; margin-top: 0; text-shadow: 0 0 10px rgba(255,0,85,0.4);">🚨 FLIGHT OF LEGENDS CRASHED!</h2>
+    <p style="color: #ffffff; font-size: 16px;"><b>Message:</b> ${message}</p>
+    <p><b>Location:</b> ${source} (Line ${lineno}:${colno})</p>
+    <pre style="background: rgba(0,0,0,0.4); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); color: #e2e8f0; font-size: 12px; line-height: 1.5;">${error ? error.stack : 'No stack trace available'}</pre>
+    <button onclick="window.location.reload()" style="background: #ff0055; color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 15px; box-shadow: 0 4px 10px rgba(255,0,85,0.3);">RELOAD GAME</button>
+  `;
+  document.body.appendChild(errorDiv);
+  return false;
+};
+
 let progressManager: ProgressManager;
 let soundManager: SoundManager;
 let gameEngine: GameEngine;

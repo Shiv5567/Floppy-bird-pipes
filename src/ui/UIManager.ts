@@ -91,9 +91,19 @@ export class UIManager {
     
     // In-place HUD updates to completely bypass innerHTML DOM thrashing when playing!
     if ((state === 'PLAYING' || state === 'BOSS_FIGHT' || state === 'BOSS_WARNING') && document.getElementById('hud-score')) {
-      this.updateHUDValues();
-      this.lastEngineState = state;
-      return;
+      // Force a full render to avoid infinite recursion and properly draw/clear the boss bar if:
+      // 1. We are in BOSS_FIGHT state but the boss health bar container is not yet in the DOM.
+      // 2. We are NOT in BOSS_FIGHT state but the boss health bar container is still in the DOM.
+      const hasBossContainer = !!document.querySelector('.boss-health-bar-container');
+      const isBossActive = this.engine.bossManager.isBossActive();
+      const needsFullBossRender = (state === 'BOSS_FIGHT' && isBossActive && !hasBossContainer) ||
+                                  (state !== 'BOSS_FIGHT' && hasBossContainer);
+
+      if (!needsFullBossRender) {
+        this.updateHUDValues();
+        this.lastEngineState = state;
+        return;
+      }
     }
 
     // Clear old HTML
