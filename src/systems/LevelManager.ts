@@ -34,11 +34,14 @@ export class LevelManager {
       let targetScore = 150;
       let gapHeight = Math.max(195, 260 - (levelNum * 2.2)); // Default calculation
       
-      if (levelNum <= 10) {
+      if (levelNum <= 20) {
         targetScore = 18; // Exactly 3 obstacle groups * 6 pillars per group = 18 pillars
-        // Progressive gap heights for perfect onboarding difficulty ramp
-        const onboardingGaps = [280, 260, 245, 230, 220, 210, 200, 190, 180, 170];
-        gapHeight = onboardingGaps[levelNum - 1];
+        // Progressive gap heights for perfect difficulty ramp (1 to 20)
+        const gaps = [
+          280, 260, 245, 230, 220, 210, 200, 190, 180, 170, // Levels 1-10
+          200, 195, 190, 185, 180, 175, 170, 165, 160, 155  // Levels 11-20
+        ];
+        gapHeight = gaps[levelNum - 1];
       }
 
       const scrollSpeed = (3.3 + (levelNum * 0.06)) * 0.8; // Decreased by 20%
@@ -65,9 +68,29 @@ export class LevelManager {
         patterns = ['level9_sliding'];
       } else if (levelNum === 10) {
         patterns = ['level10_hybrid'];
+      } else if (levelNum === 11) {
+        patterns = ['level11_diamond'];
+      } else if (levelNum === 12) {
+        patterns = ['level12_doublewave'];
+      } else if (levelNum === 13) {
+        patterns = ['level13_scurve'];
+      } else if (levelNum === 14) {
+        patterns = ['level14_crossflow'];
+      } else if (levelNum === 15) {
+        patterns = ['level15_elevatorstair'];
+      } else if (levelNum === 16) {
+        patterns = ['level16_rotatingarc'];
+      } else if (levelNum === 17) {
+        patterns = ['level17_heartbeat'];
+      } else if (levelNum === 18) {
+        patterns = ['level18_serpent'];
+      } else if (levelNum === 19) {
+        patterns = ['level19_magnetic'];
+      } else if (levelNum === 20) {
+        patterns = ['level20_masterhybrid'];
       } else {
-        // Levels 11-50: Cycle through standard wave patterns for simple animation
-        const patternIndex = (levelNum - 11) % wavePatterns.length;
+        // Levels 21-50: Cycle through standard wave patterns for simple animation
+        const patternIndex = (levelNum - 21) % wavePatterns.length;
         patterns = [wavePatterns[patternIndex]];
       }
 

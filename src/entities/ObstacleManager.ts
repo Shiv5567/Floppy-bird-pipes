@@ -356,6 +356,80 @@ export class ObstacleManager {
             const centerY = obs.spawnCenterY! + waveShift;
             obs.targetTopHeight = centerY - breathingGap / 2;
             obs.targetBottomHeight = height - centerY - breathingGap / 2;
+          } else if (obs.patternType === 'level11_diamond') {
+            // Gradual top to bottom gap movement, smooth corner pulsing
+            const verticalMove = Math.sin(this.waveTime * 1.5) * 30;
+            const pulse = Math.sin(this.waveTime * 3.5) * 8;
+            const centerY = obs.spawnCenterY! + verticalMove;
+            const finalGap = obs.gapHeight! + pulse;
+            obs.targetTopHeight = centerY - finalGap / 2;
+            obs.targetBottomHeight = height - centerY - finalGap / 2;
+          } else if (obs.patternType === 'level12_doublewave') {
+            // Upper and lower opposite undulating wave patterns
+            const wave1 = Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.45) * 22;
+            const wave2 = -Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.45) * 22;
+            obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2 + wave1;
+            obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2 + wave2;
+          } else if (obs.patternType === 'level13_scurve') {
+            // S-Curve shifting tunnel flowing motion
+            const shift = Math.sin(this.waveTime * 1.8 + obs.obstacleIdx! * 0.3) * 12;
+            const centerY = obs.spawnCenterY! + shift;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'level14_crossflow') {
+            // Upper and lower opposite horizontal movements, gap stable
+            const shiftVal = Math.sin(this.waveTime * 2.2 + obs.obstacleIdx! * 0.4) * 20;
+            obs.shakeX = shiftVal;
+            obs.shakeX2 = -shiftVal;
+            const centerY = obs.spawnCenterY!;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'level15_elevatorstair') {
+            // Cascade stair steps elevator movement
+            const elevator = Math.sin(this.waveTime * 2.2 + obs.obstacleIdx! * 0.5) * 35;
+            const centerY = obs.spawnCenterY! + elevator;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'level16_rotatingarc') {
+            // Rotating arc visual out of phase rotation
+            const angle = this.waveTime * 1.8 + obs.obstacleIdx! * 0.3;
+            obs.shakeX = Math.sin(angle) * 25;
+            obs.shakeX2 = Math.cos(angle) * 25;
+            const centerY = obs.spawnCenterY!;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'level17_heartbeat') {
+            // Sharp double heartbeat pulse gap contraction
+            let beat = Math.pow(Math.sin(this.waveTime * 2.5), 4) * 25;
+            if (Math.sin(this.waveTime * 2.5) < 0) beat = 0;
+            const finalGap = obs.gapHeight! - beat;
+            const centerY = obs.spawnCenterY!;
+            obs.targetTopHeight = centerY - finalGap / 2;
+            obs.targetBottomHeight = height - centerY - finalGap / 2;
+          } else if (obs.patternType === 'level18_serpent') {
+            // Connected living serpent snake wave travels front to back
+            const wave = Math.sin((obs.x * 0.01) - this.waveTime * 4.5) * 45;
+            const centerY = obs.spawnCenterY! + wave;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'level19_magnetic') {
+            // Magnetic attraction/repulsion smooth gap pulse shifts
+            const pulse = Math.sin(this.waveTime * 2.0) * 25;
+            const finalGap = obs.gapHeight! + pulse;
+            const centerY = obs.spawnCenterY!;
+            obs.targetTopHeight = centerY - finalGap / 2;
+            obs.targetBottomHeight = height - centerY - finalGap / 2;
+          } else if (obs.patternType === 'level20_masterhybrid') {
+            // Master hybrid visual show: wave, stair, slope, snake, and premium glow
+            const waveShift = Math.sin(this.waveTime * 2.5 + obs.obstacleIdx! * 0.45) * 22;
+            const breathingGap = obs.gapHeight! + Math.sin(this.waveTime * 3.2) * 12;
+            const centerY = obs.spawnCenterY! + waveShift;
+            
+            obs.shakeX = Math.sin(this.waveTime * 2.0) * 20;
+            obs.shakeX2 = Math.cos(this.waveTime * 2.0) * 20;
+            
+            obs.targetTopHeight = centerY - breathingGap / 2;
+            obs.targetBottomHeight = height - centerY - breathingGap / 2;
           } else if (obs.patternType === 'wave_10') {
             const centerY = height / 2 + Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.5) * 55;
             obs.targetTopHeight = centerY - obs.gapHeight! / 2;
@@ -463,7 +537,7 @@ export class ObstacleManager {
             let pGlow = false;
             let pGlowColor = undefined;
 
-            if (obs.patternType === 'level10_hybrid') {
+            if (obs.patternType === 'level10_hybrid' || obs.patternType === 'level20_masterhybrid') {
               const colors = ['#ff007f', '#00f3ff', '#39ff14', '#ffff00', '#ffd700'];
               pColor = colors[Math.floor(Math.random() * colors.length)];
               pGlow = true;
@@ -607,7 +681,7 @@ export class ObstacleManager {
     }
 
     // Procedural Spawning using distance-based logic (extremely robust)
-    const maxPillars = (this.activeLevelConfig && this.activeLevelConfig.levelNum <= 10) ? 18 : 150;
+    const maxPillars = (this.activeLevelConfig && this.activeLevelConfig.levelNum <= 20) ? 18 : 150;
     if (this.activeLevelConfig && this.currentPatternIdx >= maxPillars) {
       return;
     }
@@ -632,7 +706,7 @@ export class ObstacleManager {
       // Determine next spawn distance: Connected cavern spacing segments (0 distance horizontally) for all Levels in Level Mode
       if (this.activeLevelConfig) {
         const levelNum = this.activeLevelConfig.levelNum;
-        if (levelNum <= 10) {
+        if (levelNum <= 20) {
           // Exactly 3 groups of 6 pillars. Spacing between group 1 & 2 (idx 5) and group 2 & 3 (idx 11) is added
           const idx = this.currentPatternIdx - 1;
           if (idx === 5 || idx === 11) {
@@ -641,7 +715,7 @@ export class ObstacleManager {
             this.nextSpawnDistance = this.obstacleWidth; // Connected side-by-side inside group
           }
         } else {
-          this.nextSpawnDistance = this.obstacleWidth; // Connected side-by-side for levels 11+
+          this.nextSpawnDistance = this.obstacleWidth; // Connected side-by-side for levels 21+
         }
       } else {
         const baseDistanceClassic = (width / 1.35) * 0.80;
@@ -792,6 +866,122 @@ export class ObstacleManager {
         }
         triggerDistance = 195; // Reactive closer open for final milestone level
         animDuration = 0.38;
+      } else if (patternType === 'level11_diamond') {
+        // Connected diamond formations
+        if (obstacleIdx <= 5) {
+          const diamondOffsets = [0, -35, -70, -35, 0, 35];
+          targetCenterY = height / 2 + diamondOffsets[obstacleIdx];
+        } else if (obstacleIdx <= 11) {
+          const diamondOffsets = [70, 35, 0, -35, -70, -35];
+          targetCenterY = height / 2 + diamondOffsets[obstacleIdx - 6];
+        } else {
+          const diamondOffsets = [0, 35, 70, 35, 0, -35];
+          targetCenterY = height / 2 + diamondOffsets[obstacleIdx - 12];
+        }
+        triggerDistance = 220;
+        animDuration = 0.45;
+      } else if (patternType === 'level12_doublewave') {
+        // Double wave patterns
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 3)) * 50;
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 - Math.sin((obstacleIdx - 6) * (Math.PI / 3)) * 50;
+        } else {
+          targetCenterY = height / 2 + Math.sin((obstacleIdx - 12) * (Math.PI / 3)) * 30;
+        }
+        triggerDistance = 210;
+        animDuration = 0.45;
+      } else if (patternType === 'level13_scurve') {
+        // Large horizontal "S" curve
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.8) * 55;
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 - Math.sin((obstacleIdx - 6) * 0.8) * 55;
+        } else {
+          targetCenterY = height / 2 + Math.cos((obstacleIdx - 12) * 0.8) * 45;
+        }
+        triggerDistance = 205;
+        animDuration = 0.44;
+      } else if (patternType === 'level14_crossflow') {
+        // Upper and lower pillars moving cross rhythm
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 - 35;
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 + 35;
+        } else {
+          targetCenterY = height / 2;
+        }
+        triggerDistance = 220;
+        animDuration = 0.46;
+      } else if (patternType === 'level15_elevatorstair') {
+        // Elevator staircase
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 - 50 + obstacleIdx * 20;
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 + 50 - (obstacleIdx - 6) * 20;
+        } else {
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -30 : 30);
+        }
+        triggerDistance = 210;
+        animDuration = 0.42;
+      } else if (patternType === 'level16_rotatingarc') {
+        // Rotating arc patterns
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 4.5)) * 40;
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 + Math.cos((obstacleIdx - 6) * (Math.PI / 4.5)) * 40;
+        } else {
+          targetCenterY = height / 2 - Math.sin((obstacleIdx - 12) * (Math.PI / 4.5)) * 40;
+        }
+        triggerDistance = 200;
+        animDuration = 0.45;
+      } else if (patternType === 'level17_heartbeat') {
+        // Heartbeat pulse baseline center Y
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 - 15;
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 + 15;
+        } else {
+          targetCenterY = height / 2;
+        }
+        triggerDistance = 230;
+        animDuration = 0.4;
+      } else if (patternType === 'level18_serpent') {
+        // Living Serpent Tunnel
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.9) * 45;
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 - Math.sin((obstacleIdx - 6) * 0.9) * 45;
+        } else {
+          targetCenterY = height / 2 + Math.cos((obstacleIdx - 12) * 0.9) * 45;
+        }
+        triggerDistance = 195;
+        animDuration = 0.38;
+      } else if (patternType === 'level19_magnetic') {
+        // Magnetic attract/repel gap shifting
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -20 : 20);
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? 20 : -20);
+        } else {
+          targetCenterY = height / 2;
+        }
+        triggerDistance = 220;
+        animDuration = 0.45;
+      } else if (patternType === 'level20_masterhybrid') {
+        // Wave, Stair, Slope, Snake hybrid
+        if (obstacleIdx <= 5) {
+          // Wave + Stair
+          targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 3)) * 40 + (obstacleIdx * 10 - 25);
+        } else if (obstacleIdx <= 11) {
+          // Slope + Snake
+          targetCenterY = height / 2 + 50 - (obstacleIdx - 6) * 22 + Math.sin((obstacleIdx - 6) * 0.8) * 15;
+        } else {
+          // Ultimate hybrid mix
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -40 : 40) + Math.cos((obstacleIdx - 12) * 1.2) * 15;
+        }
+        triggerDistance = 180; // Reactive closer open for final masterpiece level
+        animDuration = 0.35;
       } else if (patternType === 'wave_10') {
         const step = obstacleIdx % 12;
         targetCenterY = height / 2 + Math.sin(step * (Math.PI * 2 / 12)) * 55;
@@ -1543,6 +1733,37 @@ export class ObstacleManager {
         ctx.lineWidth = 2.0;
         ctx.beginPath();
         ctx.arc(0, 0, 22, 0, Math.PI * 1.6);
+        ctx.stroke();
+        
+        ctx.restore();
+      } else if (obs.patternType === 'level20_masterhybrid') {
+        const centerY = obs.topHeight + (height - obs.bottomHeight - obs.topHeight) / 2;
+        ctx.save();
+        ctx.translate(obs.x + obs.width / 2, centerY);
+        
+        // Multi-layered chromatic heartbeat energy sphere
+        const pulse = 24 + Math.sin(this.waveTime * 7.0) * 8;
+        const grad = ctx.createRadialGradient(0, 0, 3, 0, 0, pulse);
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.3, '#39ff14'); // Lime Green energy
+        grad.addColorStop(0.6, '#00f3ff'); // Cyan energy
+        grad.addColorStop(1, 'rgba(255, 0, 127, 0)'); // Neon Pink fading glow
+        
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(0, 0, pulse, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Rotating dual star geometric shields (Master Hybrid style!)
+        ctx.rotate(this.waveTime * 3.0);
+        ctx.strokeStyle = '#ffd700'; // Gold star outline
+        ctx.lineWidth = 2.0;
+        ctx.strokeRect(-18, -18, 36, 36);
+        
+        ctx.rotate(-this.waveTime * 6.0);
+        ctx.strokeStyle = '#ff007f'; // Hot Pink outline
+        ctx.beginPath();
+        ctx.arc(0, 0, 26, 0, Math.PI * 1.75);
         ctx.stroke();
         
         ctx.restore();
