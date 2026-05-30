@@ -469,21 +469,25 @@ export class ObstacleManager {
             obs.targetTopHeight = obs.baseTopHeight! + wave;
             obs.targetBottomHeight = obs.baseBottomHeight! - wave;
           } else if (obs.patternType === 'level11_diamond') {
-            // Level 11: Deep V-Shape and Symmetrical Variations (Based on user's image)
+            // Level 11: Structure-Aligned Animations matching each Group's distinct layout
             const idx = actualIdx % 12;
             if (groupIdx === 0) {
-              // Group 1: Deep V-Shape breathes smoothly up and down
-              const breath = Math.sin(this.waveTime * 2.0) * 18;
+              // Group 1 (Deep V-Shape): "Sinking Valley" oscillation. The sides stay stable while center valley bobs.
+              const centerDist = Math.abs(idx - 5.5);
+              const centerFactor = 1.0 - (centerDist / 5.5);
+              const breath = Math.sin(this.waveTime * 2.5) * 22 * centerFactor;
               obs.targetTopHeight = obs.baseTopHeight! + breath;
               obs.targetBottomHeight = obs.baseBottomHeight! - breath;
             } else if (groupIdx === 1) {
-              // Group 2: Symmetrical Inverted V-Shape oscillates out of phase
-              const breath = Math.sin(this.waveTime * 2.0 + Math.PI) * 18;
-              obs.targetTopHeight = obs.baseTopHeight! + breath;
-              obs.targetBottomHeight = obs.baseBottomHeight! - breath;
+              // Group 2 (Asymmetric Slanted Peak): "Tilted pivots". The entire ridge tilts up/down like a see-saw.
+              const tiltFactor = (idx - 4) / 7.0;
+              const wave = Math.sin(this.waveTime * 2.2) * 20 * tiltFactor;
+              obs.targetTopHeight = obs.baseTopHeight! + wave;
+              obs.targetBottomHeight = obs.baseBottomHeight! - wave;
             } else {
-              // Group 3: Symmetrical Double V-Shape ripples out from peaks/valleys
-              const ripple = Math.sin(this.waveTime * 2.4 - Math.abs(idx - 5.5) * 0.4) * 16;
+              // Group 3 (Double V / W-Shape): "Double Peristaltic Wave". Sequential traveling ripple through W peaks and valleys.
+              const rippleAngle = (idx / 11) * Math.PI * 2;
+              const ripple = Math.sin(this.waveTime * 2.8 + rippleAngle * 2) * 16;
               obs.targetTopHeight = obs.baseTopHeight! + ripple;
               obs.targetBottomHeight = obs.baseBottomHeight! - ripple;
             }
@@ -1380,23 +1384,27 @@ export class ObstacleManager {
         triggerDistance = 200;
         animDuration = 0.38;
       } else if (patternType === 'level11_diamond') {
-        // LEVEL 11: Deep V-Shape & Symmetrical Variations (Based on user's image, repeating every 12 columns side-by-side)
+        // LEVEL 11: Deep V-Shape & Symmetrical/Asymmetrical Variations (repeating every 12 columns side-by-side)
         hasAsymmetricHeights = true;
         const idx = idxInGroup % 12;
-        const centerDist = Math.abs(idx - 5.5);
         if (obstacleIdx <= 5) {
           // Group 1: Symmetrical Deep V-shape profile (Exact match to the user's image)
           localGapHeight = gapHeight - 20;
+          const centerDist = Math.abs(idx - 5.5);
           targetTopHeight = (height / 2 - localGapHeight / 2) + 90 - centerDist * 28;
         } else if (obstacleIdx <= 11) {
-          // Group 2: Symmetrical Inverted V-shape profile (Pyramid peak variation of the image structure)
+          // Group 2: Asymmetric Sloped Ridge Peak (Up steeply on left, down gently on right)
           localGapHeight = gapHeight - 20;
-          targetTopHeight = (height / 2 - localGapHeight / 2) - 90 + centerDist * 28;
+          if (idx <= 4) {
+            targetTopHeight = (height / 2 - localGapHeight / 2) - 80 + (4 - idx) * 35;
+          } else {
+            targetTopHeight = (height / 2 - localGapHeight / 2) - 80 + (idx - 4) * 22;
+          }
         } else {
-          // Group 3: Double V-shape (W-shape variation of the image structure)
+          // Group 3: Symmetrical W-shape (Double V-shape valley profile)
           localGapHeight = gapHeight - 15;
           const angle = (idx / 11) * Math.PI * 2;
-          targetTopHeight = (height / 2 - localGapHeight / 2) + Math.cos(angle) * 75;
+          targetTopHeight = (height / 2 - localGapHeight / 2) + Math.cos(angle * 2) * 70;
         }
         triggerDistance = 220;
         animDuration = 0.45;
