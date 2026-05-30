@@ -290,38 +290,47 @@ export class ObstacleManager {
 
           if (obs.patternType === 'level1_funnel') {
             if (groupIdx === 0) {
-              // Group 1: Curved Funnel (breathing gap movement, 3-4s cycle)
-              const breath = Math.sin(this.waveTime * (2 * Math.PI / 3.5)) * 8;
-              obs.targetTopHeight = obs.spawnCenterY! - (obs.gapHeight! + breath) / 2;
-              obs.targetBottomHeight = height - obs.spawnCenterY! - (obs.gapHeight! + breath) / 2;
+              // Group 1: Curved Funnel (Expanding & Contracting breathing gate with vertical wave drift)
+              const breath = Math.sin(this.waveTime * 2.3) * 16;
+              const wave = Math.cos(this.waveTime * 1.6) * 12;
+              const centerY = obs.spawnCenterY! + wave;
+              obs.targetTopHeight = centerY - (obs.gapHeight! + breath) / 2;
+              obs.targetBottomHeight = height - centerY - (obs.gapHeight! + breath) / 2;
             } else if (groupIdx === 1) {
-              // Group 2: Mini W (upper/lower pipes move upward/downward slightly)
-              const breath = Math.sin(this.waveTime * 2.5) * 6;
-              obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2 - breath / 2;
-              obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2 - breath / 2;
+              // Group 2: Mini W (Symmetrical horizontal shaking and alternate column vertical see-saw)
+              const wave = Math.sin(this.waveTime * 2.5 + actualIdx * 0.5) * 15;
+              obs.shakeX = Math.cos(this.waveTime * 3.0 + actualIdx * 0.4) * 6;
+              obs.shakeX2 = -Math.cos(this.waveTime * 3.0 + actualIdx * 0.4) * 6;
+              obs.targetTopHeight = obs.baseTopHeight! + wave;
+              obs.targetBottomHeight = obs.baseBottomHeight! - wave;
             } else {
-              // Group 3: S-Curve (small wave centerY movement)
-              const wave = Math.sin(this.waveTime * 2.0 - actualIdx * 0.4) * 10;
+              // Group 3: S-Curve (Traveling snake wave that propagates sequentially through columns)
+              const wave = Math.sin(this.waveTime * 2.8 - actualIdx * 0.6) * 18;
               const centerY = obs.spawnCenterY! + wave;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             }
           } else if (obs.patternType === 'level2_diamond') {
             if (groupIdx === 0) {
-              // Group 1: Stair (sequential rise cascade)
-              const cascade = Math.sin(this.waveTime * 1.5 - actualIdx * 0.5) * 12;
+              // Group 1: Stair (High-amplitude sequential rise and fall cascade)
+              const cascade = Math.sin(this.waveTime * 2.6 - actualIdx * 0.5) * 20;
               const centerY = obs.spawnCenterY! + cascade;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else if (groupIdx === 1) {
-              // Group 2: Diamond (diamond gently expands/contracts pulse)
-              const breath = Math.sin(this.waveTime * 2.0) * 10;
-              obs.targetTopHeight = obs.spawnCenterY! - (obs.gapHeight! + breath) / 2;
-              obs.targetBottomHeight = height - obs.spawnCenterY! - (obs.gapHeight! + breath) / 2;
+              // Group 2: Diamond (Diamond chamber pulsing squeeze with micro horizontal jitters)
+              const breath = Math.sin(this.waveTime * 2.4) * 20;
+              obs.shakeX = Math.sin(this.waveTime * 15) * 2;
+              obs.shakeX2 = -Math.sin(this.waveTime * 15) * 2;
+              obs.targetTopHeight = obs.baseTopHeight! - breath / 2;
+              obs.targetBottomHeight = obs.baseBottomHeight! - breath / 2;
             } else {
-              // Group 3: Wave (entire pipe chain moves like ocean waves)
-              const drift = Math.sin(this.waveTime * 1.8) * 15;
-              const centerY = obs.spawnCenterY! + drift;
+              // Group 3: Wave (Entire wavy chain drifting in a large figure-8 pattern)
+              const driftY = Math.sin(this.waveTime * 1.8) * 16;
+              const driftX = Math.cos(this.waveTime * 1.8) * 10;
+              obs.shakeX = driftX;
+              obs.shakeX2 = -driftX;
+              const centerY = obs.spawnCenterY! + driftY;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             }
