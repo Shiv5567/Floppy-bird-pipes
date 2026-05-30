@@ -463,23 +463,21 @@ export class ObstacleManager {
             }
           } else if (obs.patternType === 'level10_miniboss') {
             if (groupIdx === 0) {
-              // Group 1: Lightning Flow (small reactive horizontal snap shifts + floating drift)
-              const drift = Math.sin(this.waveTime * 3.5 + actualIdx * 0.3) * 10;
-              obs.targetTopHeight = obs.baseTopHeight! + drift;
-              obs.targetBottomHeight = obs.baseBottomHeight! - drift;
-              obs.shakeX = Math.sin(this.waveTime * 3.5 + actualIdx * 0.3) * 10;
-              obs.shakeX2 = obs.shakeX;
+              // Group 1: Stair Pattern (escalator cascading wave to dynamically create a shifting stair shape)
+              const delay = actualIdx * 0.45;
+              const wave = Math.sin(this.waveTime * 2.0 - delay) * 15;
+              obs.targetTopHeight = obs.baseTopHeight! + wave;
+              obs.targetBottomHeight = obs.baseBottomHeight! - wave;
             } else if (groupIdx === 1) {
-              // Group 2: Reverse Zigzag (alternating movement rhythm using waves/cascades)
-              const drift = Math.sin(this.waveTime * 2.2 + (actualIdx % 2) * Math.PI) * 15;
+              // Group 2: Zigzag Pattern (sharp alternating rhythm shifting back and forth)
+              const drift = Math.sin(this.waveTime * 2.5 + (actualIdx % 2) * Math.PI) * 15;
               obs.targetTopHeight = obs.baseTopHeight! + drift;
               obs.targetBottomHeight = obs.baseBottomHeight! - drift;
             } else {
-              // Group 3: Mini Spiral (helix rotating orbits)
-              obs.shakeX = Math.sin(this.waveTime * 2.5 + actualIdx * 0.5) * 12;
-              obs.shakeX2 = Math.cos(this.waveTime * 2.5 + actualIdx * 0.5) * 12;
-              obs.targetTopHeight = obs.baseTopHeight!;
-              obs.targetBottomHeight = obs.baseBottomHeight!;
+              // Group 3: Snake Pattern (smooth traveling wave undulations flowing through curves)
+              const wave = Math.sin(this.waveTime * 2.5 - actualIdx * 0.4) * 18;
+              obs.targetTopHeight = obs.baseTopHeight! + wave;
+              obs.targetBottomHeight = obs.baseBottomHeight! - wave;
             }
           } else if (obs.patternType === 'level11_diamond') {
             if (groupIdx === 0) {
@@ -1448,19 +1446,22 @@ export class ObstacleManager {
         animDuration = 0.40;
       } else if (patternType === 'level10_miniboss') {
         // LEVEL 10:
-        // Group 1 (0-5): Lightning Edge. Top: sharp angular lightning zigzag; Bottom: gentle sine wave
-        // Group 2 (6-11): Reverse Zigzag. Top: alternating high/low steps; Bottom: inverted/shifted steps
-        // Group 3 (12-17): Mini Spiral. Top: upward semi-circle progress; Bottom: flat baseline
+        // Group 1 (0-5): Stair Pattern. Top/Bottom surfaces form climbing stairs
+        // Group 2 (6-11): Zigzag Pattern. Top/Bottom surfaces form sharp alternating peak/valley zigzags
+        // Group 3 (12-17): Snake Pattern. Top/Bottom surfaces form smooth flowing curves
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
-          const peak = (obstacleIdx % 2 === 0 ? 55 : -55);
-          targetTopHeight = (height / 2 - localGapHeight / 2) + peak;
-        } else if (obstacleIdx <= 11) {
-          const step = ((obstacleIdx - 6) % 2 === 0 ? 45 : -45);
+          // Stair steps climbing up
+          const step = obstacleIdx * 24 - 60;
           targetTopHeight = (height / 2 - localGapHeight / 2) + step;
+        } else if (obstacleIdx <= 11) {
+          // Sharp zigzag
+          const zig = ((obstacleIdx - 6) % 2 === 0 ? 50 : -50);
+          targetTopHeight = (height / 2 - localGapHeight / 2) + zig;
         } else {
-          const stepAngle = ((obstacleIdx - 12) / 5) * Math.PI * 1.5;
-          targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin(stepAngle) * 40;
+          // Smooth snake curve
+          const stepAngle = ((obstacleIdx - 12) / 5) * Math.PI * 2;
+          targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin(stepAngle) * 45;
         }
         triggerDistance = 200;
         animDuration = 0.38;
