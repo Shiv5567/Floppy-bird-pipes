@@ -462,200 +462,86 @@ export class ObstacleManager {
               obs.targetBottomHeight = height - centerY - (obs.gapHeight! + breath) / 2;
             }
           } else if (obs.patternType === 'level10_miniboss') {
-            if (groupIdx === 0) {
-              // Group 1: Lightning Edge Pipes (small vertical oscillation, alternate sections move independently)
-              const factor = (actualIdx % 2 === 0 ? 1 : -1);
-              const wave = Math.sin(this.waveTime * 2.5 - actualIdx * 0.4) * 12 * factor;
-              obs.targetTopHeight = obs.baseTopHeight! + wave;
-              obs.targetBottomHeight = obs.baseBottomHeight! - wave;
-            } else if (groupIdx === 1) {
-              // Group 2: Reverse Zigzag Edge (upper pipes move upward, lower pipes move downward)
-              const wave = Math.sin(this.waveTime * 2.0) * 14;
-              obs.targetTopHeight = obs.baseTopHeight! - wave / 2;
-              obs.targetBottomHeight = obs.baseBottomHeight! - wave / 2;
-            } else {
-              // Group 3: Mini Spiral Edge (sequential vertical wave)
-              const wave = Math.sin(this.waveTime * 2.4 - actualIdx * 0.45) * 15;
-              obs.targetTopHeight = obs.baseTopHeight! + wave;
-              obs.targetBottomHeight = obs.baseBottomHeight! - wave;
-            }
+            // Level 10: Escalator Stairs
+            // Animates steps sequentially in a climbing or descending cascade
+            const phase = this.waveTime * 2.2 - actualIdx * 0.5;
+            const wave = Math.sin(phase) * 16;
+            obs.targetTopHeight = obs.baseTopHeight! + wave;
+            obs.targetBottomHeight = obs.baseBottomHeight! - wave;
           } else if (obs.patternType === 'level11_diamond') {
-            if (groupIdx === 0) {
-              // Group 1: Double W Edge (wave travels through W peaks)
-              const wave = Math.sin(this.waveTime * 2.2 - actualIdx * 0.4) * 15;
-              obs.targetTopHeight = obs.baseTopHeight! + wave;
-              obs.targetBottomHeight = obs.baseBottomHeight! - wave;
-            } else if (groupIdx === 1) {
-              // Group 2: Diamond Edge (diamond sections pulse vertically)
-              const pulse = Math.sin(this.waveTime * 2.0) * 16;
-              obs.targetTopHeight = obs.baseTopHeight! - pulse / 2;
-              obs.targetBottomHeight = obs.baseBottomHeight! - pulse / 2;
-            } else {
-              // Group 3: Wave Stair Edge (sequential stair movement)
-              const cascade = Math.sin(this.waveTime * 1.8 - actualIdx * 0.5) * 15;
-              obs.targetTopHeight = obs.baseTopHeight! + cascade;
-              obs.targetBottomHeight = obs.baseBottomHeight! - cascade;
-            }
+            // Level 11: W & M Peaks
+            // Symmetrical peak-valley breathing waves
+            const wave = Math.sin(this.waveTime * 2.4 - Math.abs(actualIdx - 2.5) * 0.8) * 18;
+            obs.targetTopHeight = obs.baseTopHeight! + wave;
+            obs.targetBottomHeight = obs.baseBottomHeight! - wave;
           } else if (obs.patternType === 'level12_doublewave') {
-            if (groupIdx === 0) {
-              // Group 1: Snake Edge (traveling snake movement)
-              const wave = Math.sin(this.waveTime * 2.5 - actualIdx * 0.45) * 16;
-              obs.targetTopHeight = obs.baseTopHeight! + wave;
-              obs.targetBottomHeight = obs.baseBottomHeight! - wave;
-            } else if (groupIdx === 1) {
-              // Group 2: Reverse Funnel Edge (funnel breathes vertically)
-              const breath = Math.sin(this.waveTime * 1.6) * 15;
-              obs.targetTopHeight = obs.baseTopHeight! - breath / 2;
-              obs.targetBottomHeight = obs.baseBottomHeight! - breath / 2;
-            } else {
-              // Group 3: Arc Edge (arc slowly rises and falls)
-              const floatVal = Math.sin(this.waveTime * 1.4) * 18;
-              obs.targetTopHeight = obs.baseTopHeight! + floatVal;
-              obs.targetBottomHeight = obs.baseBottomHeight! - floatVal;
-            }
+            // Level 12: Exponential Gaps
+            // Squeezes or expands gaps dynamically with an exponential breathing rhythm
+            const breath = (Math.pow(Math.sin(this.waveTime * 2.0), 2) - 0.5) * 35;
+            obs.targetTopHeight = obs.baseTopHeight! - breath / 2;
+            obs.targetBottomHeight = obs.baseBottomHeight! - breath / 2;
           } else if (obs.patternType === 'level13_scurve') {
-            if (groupIdx === 0) {
-              // Group 1: Spiral Edge (sequential vertical rotation illusion)
-              obs.shakeX = Math.sin(this.waveTime * 2.0 + actualIdx * 0.4) * 15;
-              obs.shakeX2 = Math.cos(this.waveTime * 2.0 + actualIdx * 0.4) * 15;
-              const wave = Math.sin(this.waveTime * 1.8 - actualIdx * 0.4) * 12;
-              obs.targetTopHeight = obs.baseTopHeight! + wave;
-              obs.targetBottomHeight = obs.baseBottomHeight! - wave;
-            } else if (groupIdx === 1) {
-              // Group 2: Stair Slope Edge (stair segments move upward sequentially)
-              const cascade = Math.sin(this.waveTime * 2.0 - actualIdx * 0.45) * 16;
-              obs.targetTopHeight = obs.baseTopHeight! + cascade;
-              obs.targetBottomHeight = obs.baseBottomHeight! - cascade;
-            } else {
-              // Group 3: S-Maze Edge (S-wave motion)
-              const wave = Math.sin(this.waveTime * 2.2 - actualIdx * 0.4) * 18;
-              obs.targetTopHeight = obs.baseTopHeight! + wave;
-              obs.targetBottomHeight = obs.baseBottomHeight! - wave;
-            }
+            // Level 13: Helix Spirals
+            // 3D Twist using horizontal orbital shake and vertical helical waves
+            const helixPhase = this.waveTime * 2.3 + actualIdx * 0.6;
+            obs.shakeX = Math.sin(helixPhase) * 22;
+            obs.shakeX2 = Math.cos(helixPhase) * 22;
+            const vWave = Math.sin(this.waveTime * 1.8 - actualIdx * 0.4) * 14;
+            obs.targetTopHeight = obs.baseTopHeight! + vWave;
+            obs.targetBottomHeight = obs.baseBottomHeight! - vWave;
           } else if (obs.patternType === 'level14_crossflow') {
-            if (groupIdx === 0) {
-              // Group 1: Diamond Wave Edge (wave pulse movement)
-              const pulse = Math.sin(this.waveTime * 2.0) * 12;
-              const wave = Math.sin(this.waveTime * 1.8 - actualIdx * 0.4) * 12;
-              obs.targetTopHeight = obs.baseTopHeight! + wave - pulse / 2;
-              obs.targetBottomHeight = obs.baseBottomHeight! - wave - pulse / 2;
-            } else if (groupIdx === 1) {
-              // Group 2: Reverse Stair Edge (sequential downward movement)
-              const cascade = Math.sin(this.waveTime * 1.6 + actualIdx * 0.5) * 16;
-              obs.targetTopHeight = obs.baseTopHeight! + cascade;
-              obs.targetBottomHeight = obs.baseBottomHeight! - cascade;
-            } else {
-              // Group 3: Curved Funnel Edge (gentle breathing motion)
-              const breath = Math.sin(this.waveTime * 1.5) * 14;
-              obs.targetTopHeight = obs.baseTopHeight! - breath / 2;
-              obs.targetBottomHeight = obs.baseBottomHeight! - breath / 2;
-            }
+            // Level 14: Serpent Waves
+            // Traveling smooth serpent waves slithering up and down
+            const wave = Math.sin(this.waveTime * 3.2 - actualIdx * 0.75) * 20;
+            obs.targetTopHeight = obs.baseTopHeight! + wave;
+            obs.targetBottomHeight = obs.baseBottomHeight! - wave;
           } else if (obs.patternType === 'level15_elevatorstair') {
-            if (groupIdx === 0) {
-              // Group 1: Snake Stair Edge (traveling vertical movement)
-              const wave = Math.sin(this.waveTime * 2.2 - actualIdx * 0.45) * 15;
-              obs.targetTopHeight = obs.baseTopHeight! + wave;
-              obs.targetBottomHeight = obs.baseBottomHeight! - wave;
-            } else if (groupIdx === 1) {
-              // Group 2: Double Slope Edge (entire structure drifts vertically)
-              const drift = Math.sin(this.waveTime * 1.4) * 16;
-              obs.targetTopHeight = obs.baseTopHeight! + drift;
-              obs.targetBottomHeight = obs.baseBottomHeight! - drift;
-            } else {
-              // Group 3: Infinity Edge (looping vertical rhythm)
-              const loopVal = Math.sin(this.waveTime * 1.8 - actualIdx * 0.4) * 14;
-              obs.targetTopHeight = obs.baseTopHeight! + loopVal;
-              obs.targetBottomHeight = obs.baseBottomHeight! - loopVal;
-            }
+            // Level 15: Diamond Chambers
+            // Pincer contraction: vertical diamond chamber squeeze pulsing
+            const pulse = Math.sin(this.waveTime * 2.2) * 20;
+            const sign = (actualIdx % 2 === 0 ? 1 : -1);
+            obs.targetTopHeight = obs.baseTopHeight! + pulse * sign;
+            obs.targetBottomHeight = obs.baseBottomHeight! + pulse * sign;
           } else if (obs.patternType === 'level16_rotatingarc') {
-            if (groupIdx === 0) {
-              // Group 1: Wave Maze Edge (traveling wave movement)
-              const wave = Math.sin(this.waveTime * 2.4 - actualIdx * 0.4) * 16;
-              obs.targetTopHeight = obs.baseTopHeight! + wave;
-              obs.targetBottomHeight = obs.baseBottomHeight! - wave;
-            } else if (groupIdx === 1) {
-              // Group 2: Offset Diamond Edge (diamonds pulse independently)
-              const pulse = Math.sin(this.waveTime * 2.0 + actualIdx * 0.5) * 14;
-              obs.targetTopHeight = obs.baseTopHeight! - pulse / 2;
-              obs.targetBottomHeight = obs.baseBottomHeight! - pulse / 2;
-            } else {
-              // Group 3: Spiral Stair Edge (sequential rise pattern)
-              const cascade = Math.sin(this.waveTime * 2.2 - actualIdx * 0.45) * 15;
-              obs.targetTopHeight = obs.baseTopHeight! + cascade;
-              obs.targetBottomHeight = obs.baseBottomHeight! - cascade;
-            }
+            // Level 16: Infinity Loops
+            // Lemniscate figure-eight criss-cross dynamic pattern
+            const tVal = this.waveTime * 1.8 - actualIdx * 0.55;
+            obs.shakeX = Math.sin(tVal * 2) * 14;
+            obs.shakeX2 = -Math.sin(tVal * 2) * 14;
+            const loopY = Math.sin(tVal) * 18;
+            obs.targetTopHeight = obs.baseTopHeight! + loopY;
+            obs.targetBottomHeight = obs.baseBottomHeight! - loopY;
           } else if (obs.patternType === 'level17_heartbeat') {
-            if (groupIdx === 0) {
-              // Group 1: Triple W Edge (wave propagation through peaks)
-              const wave = Math.sin(this.waveTime * 2.2 - actualIdx * 0.4) * 16;
-              obs.targetTopHeight = obs.baseTopHeight! + wave;
-              obs.targetBottomHeight = obs.baseBottomHeight! - wave;
-            } else if (groupIdx === 1) {
-              // Group 2: Arc Slope Edge (arc sections move vertically)
-              const wave = Math.sin(this.waveTime * 1.5 - actualIdx * 0.4) * 15;
-              obs.targetTopHeight = obs.baseTopHeight! + wave;
-              obs.targetBottomHeight = obs.baseBottomHeight! - wave;
-            } else {
-              // Group 3: Zigzag Wave Edge (wave motion through zigzags)
-              const wave = Math.sin(this.waveTime * 2.4 - actualIdx * 0.45) * 16;
-              obs.targetTopHeight = obs.baseTopHeight! + wave;
-              obs.targetBottomHeight = obs.baseBottomHeight! - wave;
-            }
+            // Level 17: Volcanic Crags
+            // Tectonic tremors: fast jittery horizontal shaking with volcanic vertical eruptions
+            const tremor = (Math.sin(this.waveTime * 14) * 4) + (Math.sin(this.waveTime * 2.2) * 10);
+            obs.shakeX = Math.sin(this.waveTime * 22) * 6;
+            obs.shakeX2 = -Math.sin(this.waveTime * 22) * 6;
+            obs.targetTopHeight = obs.baseTopHeight! + tremor;
+            obs.targetBottomHeight = obs.baseBottomHeight! - tremor;
           } else if (obs.patternType === 'level18_serpent') {
-            if (groupIdx === 0) {
-              // Group 1: Infinity Stair Edge (sequential vertical flow)
-              const cascade = Math.sin(this.waveTime * 2.0 - actualIdx * 0.45) * 15;
-              obs.targetTopHeight = obs.baseTopHeight! + cascade;
-              obs.targetBottomHeight = obs.baseBottomHeight! - cascade;
-            } else if (groupIdx === 1) {
-              // Group 2: Snake Funnel Edge (breathing + snake movement)
-              const breath = Math.sin(this.waveTime * 1.8) * 12;
-              const snake = Math.sin(this.waveTime * 2.2 - actualIdx * 0.45) * 12;
-              obs.targetTopHeight = obs.baseTopHeight! + snake - breath / 2;
-              obs.targetBottomHeight = obs.baseBottomHeight! - snake - breath / 2;
-            } else {
-              // Group 3: Diamond Arc Edge (arc rise/fall movement)
-              const floatVal = Math.sin(this.waveTime * 1.4) * 16;
-              obs.targetTopHeight = obs.baseTopHeight! + floatVal;
-              obs.targetBottomHeight = obs.baseBottomHeight! - floatVal;
-            }
+            // Level 18: Magnetic Slingshots
+            // High-intensity proximity-based magnetic contraction/expansion
+            const mag = Math.sin(this.waveTime * 3.5 - actualIdx * 0.3) * 24;
+            obs.targetTopHeight = obs.baseTopHeight! - mag;
+            obs.targetBottomHeight = obs.baseBottomHeight! - mag;
           } else if (obs.patternType === 'level19_magnetic') {
-            if (groupIdx === 0) {
-              // Group 1: Spiral Wave Edge (rotational wave movement)
-              obs.shakeX = Math.sin(this.waveTime * 2.2 + actualIdx * 0.4) * 14;
-              obs.shakeX2 = Math.cos(this.waveTime * 2.2 + actualIdx * 0.4) * 14;
-              const wave = Math.sin(this.waveTime * 1.8 - actualIdx * 0.4) * 12;
-              obs.targetTopHeight = obs.baseTopHeight! + wave;
-              obs.targetBottomHeight = obs.baseBottomHeight! - wave;
-            } else if (groupIdx === 1) {
-              // Group 2: Reverse S Edge (side-to-side vertical movement)
-              const wave = Math.sin(this.waveTime * 1.6 - actualIdx * 0.4) * 15;
-              obs.targetTopHeight = obs.baseTopHeight! + wave;
-              obs.targetBottomHeight = obs.baseBottomHeight! - wave;
-            } else {
-              // Group 3: Stair Maze Edge (sequential stair flow)
-              const cascade = Math.sin(this.waveTime * 2.0 - actualIdx * 0.5) * 16;
-              obs.targetTopHeight = obs.baseTopHeight! + cascade;
-              obs.targetBottomHeight = obs.baseBottomHeight! - cascade;
-            }
+            // Level 19: Crossflow Intercepting Gates
+            // Zipping vertical gates moving in alternating opposite directions
+            const phaseSign = (actualIdx % 2 === 0 ? 1 : -1);
+            const gateMove = Math.sin(this.waveTime * 2.8) * 24 * phaseSign;
+            obs.targetTopHeight = obs.baseTopHeight! + gateMove;
+            obs.targetBottomHeight = obs.baseBottomHeight! - gateMove;
           } else if (obs.patternType === 'level20_masterhybrid') {
-            if (groupIdx === 0) {
-              // Group 1: Infinity Spiral Edge (looping rise/fall motion)
-              const loopVal = Math.sin(this.waveTime * 1.8 - actualIdx * 0.4) * 15;
-              obs.targetTopHeight = obs.baseTopHeight! + loopVal;
-              obs.targetBottomHeight = obs.baseBottomHeight! - loopVal;
-            } else if (groupIdx === 1) {
-              // Group 2: Snake Wave Stair Edge (multi-stage sequential movement)
-              const cascade = Math.sin(this.waveTime * 2.2 - actualIdx * 0.45) * 16;
-              obs.targetTopHeight = obs.baseTopHeight! + cascade;
-              obs.targetBottomHeight = obs.baseBottomHeight! - cascade;
-            } else {
-              // Group 3: Diamond Funnel Maze Edge (pulse + breathing hybrid)
-              const breath = Math.sin(this.waveTime * 2.0) * 12;
-              const pulse = Math.sin(this.waveTime * 1.5 + actualIdx * 0.5) * 12;
-              obs.targetTopHeight = obs.baseTopHeight! + pulse - breath / 2;
-              obs.targetBottomHeight = obs.baseBottomHeight! - pulse - breath / 2;
-            }
+            // Level 20: Master Boss Hybrid
+            // Synthesis: Helix 3D rotation, crossflow zipping, and slithering waves
+            const orbital = this.waveTime * 2.5 + actualIdx * 0.6;
+            obs.shakeX = Math.sin(orbital) * 20;
+            obs.shakeX2 = Math.cos(orbital) * 20;
+            const hybridSign = (actualIdx % 2 === 0 ? 1 : -1);
+            const hybridMove = Math.sin(this.waveTime * 2.6 - actualIdx * 0.4) * 16 + (Math.sin(this.waveTime * 3.2) * 8 * hybridSign);
+            obs.targetTopHeight = obs.baseTopHeight! + hybridMove;
+            obs.targetBottomHeight = obs.baseBottomHeight! - hybridMove;
           } else if (obs.patternType === 'level30_hybridwave') {
             // Wave flow + breathing effect
             const waveShift = Math.sin(this.waveTime * 1.8 + obs.obstacleIdx! * 0.45) * 25;
@@ -1461,232 +1347,229 @@ export class ObstacleManager {
         triggerDistance = 220;
         animDuration = 0.40;
       } else if (patternType === 'level10_miniboss') {
-        // LEVEL 10 (MINIBOSS):
-        // Group 1 (0-5): Lightning Edge Pipes (sharp angular peaks, lightning bolt silhouette)
-        // Group 2 (6-11): Reverse Zigzag Edge (continuous zigzag line)
-        // Group 3 (12-17): Mini Spiral Edge (semi-circular height progression)
+        // LEVEL 10: Escalator Stairs (Climbing/descending steps)
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
-          localGapHeight = gapHeight + 20 - obstacleIdx * 6;
-          const step = (obstacleIdx % 3 === 0 ? 30 : obstacleIdx % 3 === 1 ? -40 : 50);
-          targetTopHeight = (height / 2 - localGapHeight / 2) + step;
+          // Group 1: Upward Escalator Stairs
+          localGapHeight = gapHeight;
+          targetTopHeight = 120 + obstacleIdx * 25;
         } else if (obstacleIdx <= 11) {
-          localGapHeight = gapHeight + ((obstacleIdx - 6) % 2 === 0 ? 25 : -25);
-          const step = ((obstacleIdx - 6) % 2 === 0 ? -45 : 45);
-          targetTopHeight = (height / 2 - localGapHeight / 2) + step;
+          // Group 2: Downward Escalator Stairs
+          localGapHeight = gapHeight;
+          const idx = obstacleIdx - 6;
+          targetTopHeight = 245 - idx * 25;
         } else {
-          localGapHeight = gapHeight + Math.sin((obstacleIdx - 12) * 1.2) * 18;
-          const angle = ((obstacleIdx - 12) / 5) * Math.PI;
-          targetTopHeight = (height / 2 - localGapHeight / 2) - Math.sin(angle) * 50;
+          // Group 3: Symmetrical Stair Valley
+          localGapHeight = gapHeight;
+          const idx = obstacleIdx - 12;
+          targetTopHeight = 120 + Math.abs(idx - 2.5) * 35;
         }
         triggerDistance = 200;
         animDuration = 0.38;
       } else if (patternType === 'level11_diamond') {
-        // LEVEL 11:
-        // Group 1 (0-5): Double W Edge (large W profile)
-        // Group 2 (6-11): Diamond Edge (diamond corridor)
-        // Group 3 (12-17): Wave Stair Edge (stair profile with curved tops)
+        // LEVEL 11: W & M Peaks (Symmetrical peak-valley profiles)
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
-          localGapHeight = gapHeight - 10 + (Math.abs(obstacleIdx - 2.5) / 2.5) * 30;
-          const angle = (obstacleIdx / 5) * Math.PI * 2;
-          targetTopHeight = (height / 2 - localGapHeight / 2) + Math.cos(angle) * 55;
+          // Group 1: Symmetrical W-shape profile
+          localGapHeight = gapHeight - 10;
+          targetTopHeight = height / 2 - localGapHeight / 2 + Math.abs(obstacleIdx - 2.5) * 35 - 45;
         } else if (obstacleIdx <= 11) {
-          localGapHeight = gapHeight + 25 - (obstacleIdx - 6) * 9;
-          const di = obstacleIdx - 6;
-          targetTopHeight = (height / 2 - localGapHeight / 2) - (2.5 - Math.abs(di - 2.5)) * 25;
+          // Group 2: Symmetrical M-shape profile (inverted W)
+          localGapHeight = gapHeight - 10;
+          const idx = obstacleIdx - 6;
+          targetTopHeight = height / 2 - localGapHeight / 2 - Math.abs(idx - 2.5) * 35 + 45;
         } else {
-          localGapHeight = gapHeight + ((obstacleIdx - 12) % 2 === 0 ? 20 : -20);
-          const si = obstacleIdx - 12;
-          targetTopHeight = (height / 2 - localGapHeight / 2) + 50 - si * 20 + Math.sin(si * 1.0) * 15;
+          // Group 3: Double peak-valley waves
+          localGapHeight = gapHeight + 15;
+          const idx = obstacleIdx - 12;
+          targetTopHeight = height / 2 - localGapHeight / 2 + Math.sin(idx * Math.PI / 2.5) * 60;
         }
         triggerDistance = 220;
         animDuration = 0.45;
       } else if (patternType === 'level12_doublewave') {
-        // LEVEL 12:
-        // Group 1 (0-5): Snake Edge (smooth curves)
-        // Group 2 (6-11): Reverse Funnel Edge (Wide -> Narrow -> Wide)
-        // Group 3 (12-17): Arc Edge (large semi-circle profile)
+        // LEVEL 12: Exponential Gaps (Gaps opening and contracting exponentially)
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
-          localGapHeight = gapHeight + Math.sin(obstacleIdx * 1.2) * 22;
-          targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin(obstacleIdx * 1.2) * 45;
+          // Group 1: Exponentially Squeezing Gaps
+          localGapHeight = Math.max(165, gapHeight + 50 - Math.pow(1.65, obstacleIdx) * 8);
+          targetTopHeight = height / 2 - localGapHeight / 2;
         } else if (obstacleIdx <= 11) {
-          const fi = obstacleIdx - 6;
-          localGapHeight = gapHeight + (Math.abs(fi - 2.5) / 2.5) * 45;
-          targetTopHeight = (height / 2 - localGapHeight / 2);
+          // Group 2: Exponentially Expanding Gaps
+          const idx = obstacleIdx - 6;
+          localGapHeight = Math.max(165, gapHeight - 40 + Math.pow(1.65, idx) * 8);
+          targetTopHeight = height / 2 - localGapHeight / 2;
         } else {
-          localGapHeight = gapHeight + 30 - (obstacleIdx - 12) * 11;
-          const si = obstacleIdx - 12;
-          targetTopHeight = (height / 2 - localGapHeight / 2) - Math.sin((si / 5) * Math.PI) * 60;
+          // Group 3: Exponential Peak/Valley Heights
+          localGapHeight = gapHeight;
+          const idx = obstacleIdx - 12;
+          targetTopHeight = 50 + Math.pow(1.45, idx) * 12;
         }
         triggerDistance = 210;
         animDuration = 0.45;
       } else if (patternType === 'level13_scurve') {
-        // LEVEL 13:
-        // Group 1 (0-5): Spiral Edge (circular staircase silhouette)
-        // Group 2 (6-11): Stair Slope Edge (stair pattern on diagonal slope)
-        // Group 3 (12-17): S-Maze Edge (large S-profile)
+        // LEVEL 13: Helix Spirals (twisting spiral/orbital rotation)
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
-          localGapHeight = gapHeight + (obstacleIdx % 2 === 0 ? 25 : -25);
-          const angle = (obstacleIdx / 5) * Math.PI * 1.5;
-          targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin(angle) * 45;
+          // Group 1: Helix top height sine progression
+          localGapHeight = gapHeight;
+          targetTopHeight = height / 2 - localGapHeight / 2 + Math.sin(obstacleIdx * (Math.PI / 2.5)) * 60;
         } else if (obstacleIdx <= 11) {
-          localGapHeight = gapHeight + Math.sin((obstacleIdx - 6) * 1.2) * 18;
-          const si = obstacleIdx - 6;
-          targetTopHeight = (height / 2 - localGapHeight / 2) - 50 + si * 22;
+          // Group 2: Phase-shifted Helix
+          localGapHeight = gapHeight;
+          const idx = obstacleIdx - 6;
+          targetTopHeight = height / 2 - localGapHeight / 2 + Math.cos(idx * (Math.PI / 2.5)) * 60;
         } else {
-          localGapHeight = gapHeight - 15 + (Math.abs((obstacleIdx - 12) - 2.5) / 2.5) * 35;
-          const si = obstacleIdx - 12;
-          targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin((si / 5) * Math.PI * 2) * 55;
+          // Group 3: Helix Tunnel (expanding helical radius)
+          const idx = obstacleIdx - 12;
+          localGapHeight = gapHeight - 15 + idx * 6;
+          targetTopHeight = height / 2 - localGapHeight / 2 + Math.sin(idx * (Math.PI / 2)) * (30 + idx * 5);
         }
         triggerDistance = 205;
         animDuration = 0.44;
       } else if (patternType === 'level14_crossflow') {
-        // LEVEL 14:
-        // Group 1 (0-5): Diamond Wave Edge (alternating diamonds and curves)
-        // Group 2 (6-11): Reverse Stair Edge (descending staircase)
-        // Group 3 (12-17): Curved Funnel Edge (funnel connected by arcs)
+        // LEVEL 14: Serpent Waves (Smooth undulating curves slithering like a snake)
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
-          localGapHeight = gapHeight + (obstacleIdx % 2 === 0 ? 25 : -20);
-          targetTopHeight = (height / 2 - localGapHeight / 2) + (obstacleIdx % 2 === 0 ? 35 : -35) + Math.sin(obstacleIdx * 1.0) * 15;
+          // Group 1: Sine Serpent
+          localGapHeight = gapHeight + 10;
+          targetTopHeight = height / 2 - localGapHeight / 2 + Math.sin(obstacleIdx * 1.1) * 55;
         } else if (obstacleIdx <= 11) {
-          localGapHeight = gapHeight + 25 - (obstacleIdx - 6) * 10;
-          const si = obstacleIdx - 6;
-          targetTopHeight = (height / 2 - localGapHeight / 2) - 55 + si * 22;
+          // Group 2: High-Frequency Serpent
+          localGapHeight = gapHeight + 5;
+          const idx = obstacleIdx - 6;
+          targetTopHeight = height / 2 - localGapHeight / 2 + Math.cos(idx * 1.6) * 50;
         } else {
-          localGapHeight = gapHeight + (5 - (obstacleIdx - 12)) * 8;
-          const si = obstacleIdx - 12;
-          localGapHeight = gapHeight + (Math.abs(si - 2.5) / 2.5) * 35;
-          targetTopHeight = (height / 2 - localGapHeight / 2) - Math.sin((si / 5) * Math.PI) * 30;
+          // Group 3: Double S Serpent
+          localGapHeight = gapHeight - 10;
+          const idx = obstacleIdx - 12;
+          targetTopHeight = height / 2 - localGapHeight / 2 + Math.sin(idx * 0.8) * 65;
         }
         triggerDistance = 220;
         animDuration = 0.46;
       } else if (patternType === 'level15_elevatorstair') {
-        // LEVEL 15:
-        // Group 1 (0-5): Snake Stair Edge (snake curves combined with stairs)
-        // Group 2 (6-11): Double Slope Edge (mountain-like profile)
-        // Group 3 (12-17): Infinity Edge (figure-eight inspired silhouette)
+        // LEVEL 15: Diamond Chambers (Diamond-shaped corridors and pincer chambers)
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
-          localGapHeight = gapHeight + (obstacleIdx % 2 === 0 ? 22 : -22);
-          targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin(obstacleIdx * 1.2) * 35 + (obstacleIdx * 15 - 35);
+          // Group 1: Narrowing Diamond Chamber
+          const di = obstacleIdx;
+          localGapHeight = gapHeight - 35 + (2.5 - Math.abs(di - 2.5)) * 30;
+          targetTopHeight = height / 2 - localGapHeight / 2 - (2.5 - Math.abs(di - 2.5)) * 25;
         } else if (obstacleIdx <= 11) {
-          localGapHeight = gapHeight + Math.sin((obstacleIdx - 6) * 1.2) * 20;
-          const si = obstacleIdx - 6;
-          targetTopHeight = (height / 2 - localGapHeight / 2) - (2.5 - Math.abs(si - 2.5)) * 35;
+          // Group 2: Widening Diamond Chamber
+          const di = obstacleIdx - 6;
+          localGapHeight = gapHeight + 25 - (2.5 - Math.abs(di - 2.5)) * 30;
+          targetTopHeight = height / 2 - localGapHeight / 2 + (2.5 - Math.abs(di - 2.5)) * 25;
         } else {
-          localGapHeight = gapHeight - 15 + (Math.abs((obstacleIdx - 12) - 2.5) / 2.5) * 35;
-          const si = obstacleIdx - 12;
-          const stepAngle = (si / 5) * Math.PI * 2;
-          targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin(stepAngle) * Math.cos(stepAngle) * 70;
+          // Group 3: Hexagonal Gate
+          const di = obstacleIdx - 12;
+          localGapHeight = gapHeight + (di % 2 === 0 ? 25 : -25);
+          targetTopHeight = height / 2 - localGapHeight / 2 + (di % 2 === 0 ? -30 : 30);
         }
         triggerDistance = 210;
         animDuration = 0.42;
       } else if (patternType === 'level16_rotatingarc') {
-        // LEVEL 16:
-        // Group 1 (0-5): Wave Maze Edge (complex wave corridor)
-        // Group 2 (6-11): Offset Diamond Edge (diamonds at varying heights)
-        // Group 3 (12-17): Spiral Stair Edge (circular stair progression)
+        // LEVEL 16: Infinity Loops (Lemniscate figure-eight loop patterns)
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
-          localGapHeight = gapHeight + 25 - obstacleIdx * 9;
-          targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin(obstacleIdx * 1.5) * 50;
+          // Group 1: Lemniscate X-Y mapping
+          const t = (obstacleIdx / 5) * Math.PI * 2;
+          localGapHeight = gapHeight + 10;
+          targetTopHeight = height / 2 - localGapHeight / 2 + Math.sin(t) * Math.cos(t) * 75;
         } else if (obstacleIdx <= 11) {
-          localGapHeight = gapHeight + (Math.abs((obstacleIdx - 6) - 2.5) / 2.5) * 35;
-          const si = obstacleIdx - 6;
-          targetTopHeight = (height / 2 - localGapHeight / 2) + (si % 2 === 0 ? 30 : -30) - (2.5 - Math.abs(si - 2.5)) * 15;
+          // Group 2: Inverted Lemniscate
+          const t = ((obstacleIdx - 6) / 5) * Math.PI * 2;
+          localGapHeight = gapHeight + 10;
+          targetTopHeight = height / 2 - localGapHeight / 2 - Math.sin(t) * Math.cos(t) * 75;
         } else {
-          localGapHeight = gapHeight + ((obstacleIdx - 12) % 2 === 0 ? 25 : -20);
-          const si = obstacleIdx - 12;
-          targetTopHeight = (height / 2 - localGapHeight / 2) - 50 + si * 20 + Math.sin((si / 5) * Math.PI) * 20;
+          // Group 3: Double infinity crossover
+          const t = ((obstacleIdx - 12) / 5) * Math.PI * 4;
+          localGapHeight = gapHeight - 15;
+          targetTopHeight = height / 2 - localGapHeight / 2 + Math.sin(t) * 45;
         }
         triggerDistance = 200;
         animDuration = 0.45;
       } else if (patternType === 'level17_heartbeat') {
-        // LEVEL 17:
-        // Group 1 (0-5): Triple W Edge (three connected W formations)
-        // Group 2 (6-11): Arc Slope Edge (arc connected to slope)
-        // Group 3 (12-17): Zigzag Wave Edge (zigzag connected by curves)
+        // LEVEL 17: Volcanic Crags (Jagged crag profiles and tectonic tremors)
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
-          localGapHeight = gapHeight + Math.sin(obstacleIdx * 1.2) * 20;
-          const angle = (obstacleIdx / 5) * Math.PI * 3;
-          targetTopHeight = (height / 2 - localGapHeight / 2) + Math.cos(angle) * 50;
+          // Group 1: Jagged Crag peaks
+          localGapHeight = gapHeight - 15;
+          const step = (obstacleIdx % 2 === 0 ? 60 : -60) + (obstacleIdx * 5);
+          targetTopHeight = height / 2 - localGapHeight / 2 + step;
         } else if (obstacleIdx <= 11) {
-          localGapHeight = gapHeight - 15 + (Math.abs((obstacleIdx - 6) - 2.5) / 2.5) * 35;
-          const si = obstacleIdx - 6;
-          targetTopHeight = (height / 2 - localGapHeight / 2) - Math.sin((si / 5) * Math.PI) * 35 + (si * 12 - 30);
+          // Group 2: Crater basin
+          localGapHeight = gapHeight + 15;
+          const idx = obstacleIdx - 6;
+          const step = -50 + Math.pow(Math.abs(idx - 2.5), 2) * 14;
+          targetTopHeight = height / 2 - localGapHeight / 2 + step;
         } else {
-          localGapHeight = gapHeight + 30 - (obstacleIdx - 12) * 11;
-          const si = obstacleIdx - 12;
-          targetTopHeight = (height / 2 - localGapHeight / 2) + (si % 2 === 0 ? 35 : -35) + Math.sin(si * 1.2) * 15;
+          // Group 3: Chaotic Magma Spikes
+          localGapHeight = gapHeight - 20;
+          const idx = obstacleIdx - 12;
+          const spikes = [70, -65, 45, -55, 60, -40];
+          targetTopHeight = height / 2 - localGapHeight / 2 + spikes[idx % spikes.length];
         }
         triggerDistance = 230;
         animDuration = 0.4;
       } else if (patternType === 'level18_serpent') {
-        // LEVEL 18:
-        // Group 1 (0-5): Infinity Stair Edge (infinity silhouette combined with stairs)
-        // Group 2 (6-11): Snake Funnel Edge (funnel route shaped like snake curves)
-        // Group 3 (12-17): Diamond Arc Edge (diamonds connected by semi-circles)
+        // LEVEL 18: Magnetic Slingshots (Proximity magnetic repulsion/attraction)
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
-          localGapHeight = gapHeight + (obstacleIdx % 2 === 0 ? 24 : -24);
-          const stepAngle = (obstacleIdx / 5) * Math.PI * 2;
-          targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin(stepAngle) * Math.cos(stepAngle) * 50 + (obstacleIdx * 12 - 30);
+          // Group 1: Symmetric Magnetic Horns (top and bottom converge)
+          localGapHeight = gapHeight - 35;
+          targetTopHeight = height / 2 - localGapHeight / 2 - Math.sin((obstacleIdx / 5) * Math.PI) * 40;
         } else if (obstacleIdx <= 11) {
-          const si = obstacleIdx - 6;
-          localGapHeight = gapHeight + (Math.abs(si - 2.5) / 2.5) * 35;
-          targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin(si * 1.2) * 20;
+          // Group 2: Repelling Poles (top and bottom diverge)
+          const idx = obstacleIdx - 6;
+          localGapHeight = gapHeight + 35;
+          targetTopHeight = height / 2 - localGapHeight / 2 + Math.sin((idx / 5) * Math.PI) * 40;
         } else {
-          localGapHeight = gapHeight + (Math.abs((obstacleIdx - 12) - 2.5) / 2.5) * 40;
-          const si = obstacleIdx - 12;
-          targetTopHeight = (height / 2 - localGapHeight / 2) + (si % 3 === 0 ? 30 : -10) - Math.sin((si / 5) * Math.PI) * 30;
+          // Group 3: Alternating Pole Pairs
+          const idx = obstacleIdx - 12;
+          localGapHeight = gapHeight + (idx % 2 === 0 ? -25 : 25);
+          targetTopHeight = height / 2 - localGapHeight / 2;
         }
         triggerDistance = 195;
         animDuration = 0.38;
       } else if (patternType === 'level19_magnetic') {
-        // LEVEL 19:
-        // Group 1 (0-5): Spiral Wave Edge (spiral silhouette with waves)
-        // Group 2 (6-11): Reverse S Edge (inverted S profile)
-        // Group 3 (12-17): Stair Maze Edge (complex staircase route)
+        // LEVEL 19: Crossflow Intercepting Gates (Dual-phase zipping barriers)
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
-          localGapHeight = gapHeight + Math.sin(obstacleIdx * 1.2) * 22;
-          const stepAngle = (obstacleIdx / 5) * Math.PI * 1.5;
-          targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin(stepAngle) * 35 + Math.sin(obstacleIdx * 1.0) * 15;
+          // Group 1: Alternating Upper/Lower Blocks
+          localGapHeight = gapHeight - 20;
+          const isTopHeavy = (obstacleIdx % 2 === 0);
+          targetTopHeight = height / 2 - localGapHeight / 2 + (isTopHeavy ? 65 : -65);
         } else if (obstacleIdx <= 11) {
-          localGapHeight = gapHeight - 15 + (Math.abs((obstacleIdx - 6) - 2.5) / 2.5) * 35;
-          const si = obstacleIdx - 6;
-          targetTopHeight = (height / 2 - localGapHeight / 2) - Math.sin((si / 5) * Math.PI * 2) * 50;
+          // Group 2: Intercepting Wave Gates
+          const idx = obstacleIdx - 6;
+          localGapHeight = gapHeight - 15;
+          const isTopHeavy = (idx % 2 === 1);
+          targetTopHeight = height / 2 - localGapHeight / 2 + (isTopHeavy ? 65 : -65);
         } else {
-          localGapHeight = gapHeight + 25 - (obstacleIdx - 12) * 9;
-          const si = obstacleIdx - 12;
-          targetTopHeight = (height / 2 - localGapHeight / 2) - 60 + si * 24;
+          // Group 3: Double Squeezing Gates
+          const idx = obstacleIdx - 12;
+          localGapHeight = gapHeight + 20;
+          targetTopHeight = height / 2 - localGapHeight / 2 + (idx % 3 === 0 ? 55 : idx % 3 === 1 ? -55 : 0);
         }
         triggerDistance = 220;
         animDuration = 0.45;
       } else if (patternType === 'level20_masterhybrid') {
-        // LEVEL 20 (BOSS LEVEL):
-        // Group 1 (0-5): Infinity Spiral Edge (infinity + spiral combination)
-        // Group 2 (6-11): Snake Wave Stair Edge (snake curves + waves + stairs)
-        // Group 3 (12-17): Diamond Funnel Maze Edge (diamonds connected by funnels)
+        // LEVEL 20: Master Boss Hybrid (Synthesis of all unique mechanisms)
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
-          localGapHeight = gapHeight + (obstacleIdx % 2 === 0 ? 25 : -25);
-          const stepAngle = (obstacleIdx / 5) * Math.PI * 2.5;
-          targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin(stepAngle) * Math.cos(stepAngle) * 50 + Math.sin(obstacleIdx * 1.2) * 20;
+          // Group 1: Escalator Stairs + Peak Wave Hybrid
+          localGapHeight = gapHeight;
+          targetTopHeight = 110 + obstacleIdx * 20 + Math.sin(obstacleIdx * 1.5) * 30;
         } else if (obstacleIdx <= 11) {
-          localGapHeight = gapHeight + Math.sin((obstacleIdx - 6) * 1.2) * 20;
-          const si = obstacleIdx - 6;
-          targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin(si * 1.2) * 25 + Math.sin(si * 0.8) * 15 + (si * 14 - 35);
+          // Group 2: Exponential Gap + Symmetrical W Peaks Hybrid
+          const idx = obstacleIdx - 6;
+          localGapHeight = Math.max(165, gapHeight + 40 - Math.pow(1.6, idx) * 8);
+          targetTopHeight = height / 2 - localGapHeight / 2 + Math.abs(idx - 2.5) * 30 - 30;
         } else {
-          localGapHeight = gapHeight + (5 - (obstacleIdx - 12)) * 10;
-          const si = obstacleIdx - 12;
-          localGapHeight = gapHeight + (Math.abs(si - 2.5) / 2.5) * 30;
-          targetTopHeight = (height / 2 - localGapHeight / 2) + (si % 2 === 0 ? 25 : -25);
+          // Group 3: Helix Spiral + Crossflow Intercepting Gates Hybrid
+          const idx = obstacleIdx - 12;
+          localGapHeight = gapHeight + (idx % 2 === 0 ? -20 : 20);
+          targetTopHeight = height / 2 - localGapHeight / 2 + Math.sin(idx * (Math.PI / 2.5)) * 50 + (idx % 2 === 0 ? 30 : -30);
         }
         triggerDistance = 180;
         animDuration = 0.35;
