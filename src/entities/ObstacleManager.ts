@@ -463,198 +463,240 @@ export class ObstacleManager {
             }
           } else if (obs.patternType === 'level10_miniboss') {
             if (groupIdx === 0) {
-              // Group 1: Stair Pattern (escalator cascading wave to dynamically create a shifting stair shape)
+              // Group 1: Stair Pattern (escalator cascading wave to dynamically create a shifting stair shape - only even pillars animate, odd are static!)
+              const isAnimated = (actualIdx % 2 === 0);
               const delay = actualIdx * 0.45;
-              const wave = Math.sin(this.waveTime * 2.0 - delay) * 15;
+              const wave = isAnimated ? Math.sin(this.waveTime * 2.0 - delay) * 16 : 0;
               obs.targetTopHeight = obs.baseTopHeight! + wave;
               obs.targetBottomHeight = obs.baseBottomHeight! - wave;
             } else if (groupIdx === 1) {
-              // Group 2: Zigzag Pattern (sharp alternating rhythm shifting back and forth)
-              const drift = Math.sin(this.waveTime * 2.5 + (actualIdx % 2) * Math.PI) * 15;
+              // Group 2: Zigzag Pattern (sharp alternating rhythm shifting back and forth - alternate direction vertically!)
+              const factor = (actualIdx % 2 === 0 ? 1 : -1);
+              const drift = Math.sin(this.waveTime * 2.5) * 16 * factor;
               obs.targetTopHeight = obs.baseTopHeight! + drift;
               obs.targetBottomHeight = obs.baseBottomHeight! - drift;
             } else {
-              // Group 3: Snake Pattern (smooth traveling wave undulations flowing through curves)
-              const wave = Math.sin(this.waveTime * 2.5 - actualIdx * 0.4) * 18;
+              // Group 3: Snake Pattern (smooth traveling wave undulations flowing through curves - only odd pillars animate, even are static!)
+              const isAnimated = (actualIdx % 2 !== 0);
+              const wave = isAnimated ? Math.sin(this.waveTime * 2.5 - actualIdx * 0.4) * 18 : 0;
               obs.targetTopHeight = obs.baseTopHeight! + wave;
               obs.targetBottomHeight = obs.baseBottomHeight! - wave;
             }
           } else if (obs.patternType === 'level11_diamond') {
             if (groupIdx === 0) {
-              // Group 1: Double W (reactive splits opening, stable base)
-              obs.targetTopHeight = obs.baseTopHeight!;
-              obs.targetBottomHeight = obs.baseBottomHeight!;
+              // Group 1: Double W (reactive splits opening + alternating vertical bob on even pillars)
+              const isEven = (actualIdx % 2 === 0);
+              const wave = isEven ? Math.sin(this.waveTime * 2.0 - actualIdx * 0.4) * 12 : 0;
+              obs.targetTopHeight = obs.baseTopHeight! + wave;
+              obs.targetBottomHeight = obs.baseBottomHeight! - wave;
             } else if (groupIdx === 1) {
-              // Group 2: Curved Diamond (expanding/contracting diamond gap pulse - breathing)
-              const breath = Math.sin(this.waveTime * 2.2) * 10;
+              // Group 2: Curved Diamond (expanding/contracting diamond gap pulse - only even pillars breathe!)
+              const isAnimated = (actualIdx % 2 === 0);
+              const breath = isAnimated ? Math.sin(this.waveTime * 2.2) * 12 : 0;
               obs.targetTopHeight = obs.baseTopHeight! - breath / 2;
               obs.targetBottomHeight = obs.baseBottomHeight! - breath / 2;
             } else {
-              // Group 3: Wave Stair (traveling wave stair climbing motion - waves)
-              const wave = Math.sin(this.waveTime * 2.0 - actualIdx * 0.45) * 14;
+              // Group 3: Wave Stair (traveling wave stair climbing motion - only odd pillars wave!)
+              const isAnimated = (actualIdx % 2 !== 0);
+              const wave = isAnimated ? Math.sin(this.waveTime * 2.0 - actualIdx * 0.45) * 15 : 0;
               obs.targetTopHeight = obs.baseTopHeight! + wave;
               obs.targetBottomHeight = obs.baseBottomHeight! - wave;
             }
           } else if (obs.patternType === 'level12_doublewave') {
             if (groupIdx === 0) {
-              // Group 1: Snake Tunnel (sequential traveling snake - waves)
-              const wave = Math.sin(this.waveTime * 2.4 - actualIdx * 0.5) * 16;
+              // Group 1: Snake Tunnel (sequential traveling snake - alternate pillars wave in opposite directions!)
+              const factor = (actualIdx % 2 === 0 ? 1 : -1);
+              const wave = Math.sin(this.waveTime * 2.4 - actualIdx * 0.5) * 16 * factor;
               obs.targetTopHeight = obs.baseTopHeight! + wave;
               obs.targetBottomHeight = obs.baseBottomHeight! - wave;
             } else if (groupIdx === 1) {
-              // Group 2: Reverse Funnel (breathing tunnel effect - breathing)
-              const breath = Math.sin(this.waveTime * 1.6) * 15;
+              // Group 2: Reverse Funnel (breathing tunnel effect - only even pillars breathe!)
+              const isAnimated = (actualIdx % 2 === 0);
+              const breath = isAnimated ? Math.sin(this.waveTime * 1.6) * 18 : 0;
               obs.targetTopHeight = obs.baseTopHeight! - breath / 2;
               obs.targetBottomHeight = obs.baseBottomHeight! - breath / 2;
             } else {
-              // Group 3: Offset Arc (smooth vertical arc drifting - floating)
-              const drift = Math.sin(this.waveTime * 1.2) * 16;
+              // Group 3: Offset Arc (smooth vertical arc drifting - alternate pillars float in opposite directions!)
+              const factor = (actualIdx % 2 === 0 ? 1 : -1);
+              const drift = Math.sin(this.waveTime * 1.2) * 16 * factor;
               obs.targetTopHeight = obs.baseTopHeight! + drift;
               obs.targetBottomHeight = obs.baseBottomHeight! - drift;
             }
           } else if (obs.patternType === 'level13_scurve') {
             if (groupIdx === 0) {
-              // Group 1: Spiral Flow (slow rotational spiral horizontal helix - helical)
-              obs.shakeX = Math.sin(this.waveTime * 1.5 + actualIdx * 0.35) * 14;
-              obs.shakeX2 = Math.cos(this.waveTime * 1.5 + actualIdx * 0.35) * 14;
-              obs.targetTopHeight = obs.baseTopHeight!;
-              obs.targetBottomHeight = obs.baseBottomHeight!;
+              // Group 1: Spiral Flow (only even pillars float, odd pillars shake horizontally!)
+              const isEven = (actualIdx % 2 === 0);
+              obs.shakeX = !isEven ? Math.sin(this.waveTime * 2.0 + actualIdx * 0.4) * 14 : 0;
+              obs.shakeX2 = !isEven ? Math.cos(this.waveTime * 2.0 + actualIdx * 0.4) * 14 : 0;
+              const drift = isEven ? Math.sin(this.waveTime * 1.5) * 15 : 0;
+              obs.targetTopHeight = obs.baseTopHeight! + drift;
+              obs.targetBottomHeight = obs.baseBottomHeight! - drift;
             } else if (groupIdx === 1) {
-              // Group 2: Stair Slope (sequential staircase climb elevation movement - waves)
-              const cascade = Math.sin(this.waveTime * 2.0 - actualIdx * 0.45) * 16;
+              // Group 2: Stair Slope (sequential staircase climb elevation movement - alternate pillars in opposite phases!)
+              const factor = (actualIdx % 2 === 0 ? 1 : -1);
+              const cascade = Math.sin(this.waveTime * 2.0 - actualIdx * 0.45) * 16 * factor;
               obs.targetTopHeight = obs.baseTopHeight! + cascade;
               obs.targetBottomHeight = obs.baseBottomHeight! - cascade;
             } else {
-              // Group 3: S-Curve Maze (gentle side shifts centerY)
-              const shift = Math.sin(this.waveTime * 2.2) * 18;
+              // Group 3: S-Curve Maze (only odd pillars shake horizontally, even float vertically!)
+              const isOdd = (actualIdx % 2 !== 0);
+              const shift = isOdd ? Math.sin(this.waveTime * 2.2) * 18 : 0;
               obs.shakeX = shift; obs.shakeX2 = shift;
-              obs.targetTopHeight = obs.baseTopHeight!;
-              obs.targetBottomHeight = obs.baseBottomHeight!;
+              const verticalFloat = !isOdd ? Math.sin(this.waveTime * 1.5) * 12 : 0;
+              obs.targetTopHeight = obs.baseTopHeight! + verticalFloat;
+              obs.targetBottomHeight = obs.baseBottomHeight! - verticalFloat;
             }
           } else if (obs.patternType === 'level14_crossflow') {
             if (groupIdx === 0) {
-              // Group 1: Diamond Wave (pulse + wave hybrid breathing)
-              const breath = Math.sin(this.waveTime * 2.5) * 10;
+              // Group 1: Diamond Wave (pulse + wave hybrid - alternate pillars breathe in opposite directions!)
+              const factor = (actualIdx % 2 === 0 ? 1 : -1);
+              const breath = Math.sin(this.waveTime * 2.5) * 10 * factor;
               const wave = Math.sin(this.waveTime * 1.8 - actualIdx * 0.4) * 12;
               obs.targetTopHeight = obs.baseTopHeight! + wave - breath / 2;
               obs.targetBottomHeight = obs.baseBottomHeight! - wave - breath / 2;
             } else if (groupIdx === 1) {
-              // Group 2: Reverse Stair (sequential downward descending cascade - waves)
-              const cascade = Math.sin(this.waveTime * 1.6 + actualIdx * 0.5) * 14;
+              // Group 2: Reverse Stair (sequential downward descending cascade - only even pillars cascade!)
+              const isEven = (actualIdx % 2 === 0);
+              const cascade = isEven ? Math.sin(this.waveTime * 1.6 + actualIdx * 0.5) * 16 : 0;
               obs.targetTopHeight = obs.baseTopHeight! + cascade;
               obs.targetBottomHeight = obs.baseBottomHeight! - cascade;
             } else {
-              // Group 3: Curved Funnel (gentle corridor breathing Y - breathing)
-              const breath = Math.sin(this.waveTime * 1.4) * 12;
+              // Group 3: Curved Funnel (corridor breathing Y - only odd pillars breathe!)
+              const isOdd = (actualIdx % 2 !== 0);
+              const breath = isOdd ? Math.sin(this.waveTime * 1.4) * 14 : 0;
               obs.targetTopHeight = obs.baseTopHeight! - breath / 2;
               obs.targetBottomHeight = obs.baseBottomHeight! - breath / 2;
             }
           } else if (obs.patternType === 'level15_elevatorstair') {
             if (groupIdx === 0) {
-              // Group 1: Snake Stair (traveling snake climbing movement Y - waves)
-              const wave = Math.sin(this.waveTime * 2.2 - actualIdx * 0.45) * 15;
+              // Group 1: Snake Stair (traveling snake climbing Y - alternate pillars wave in opposite directions!)
+              const factor = (actualIdx % 2 === 0 ? 1 : -1);
+              const wave = Math.sin(this.waveTime * 2.2 - actualIdx * 0.45) * 15 * factor;
               obs.targetTopHeight = obs.baseTopHeight! + wave;
               obs.targetBottomHeight = obs.baseBottomHeight! - wave;
             } else if (groupIdx === 1) {
-              // Group 2: Double Slope (diagonal drifting centerY wave - floating)
-              const drift = Math.sin(this.waveTime * 1.5) * 15;
+              // Group 2: Double Slope (diagonal drifting wave - only even pillars float!)
+              const isEven = (actualIdx % 2 === 0);
+              const drift = isEven ? Math.sin(this.waveTime * 1.5) * 16 : 0;
               obs.targetTopHeight = obs.baseTopHeight! + drift;
               obs.targetBottomHeight = obs.baseBottomHeight! - drift;
             } else {
-              // Group 3: Infinity Flow (figure-eight looping helix slide - helical)
-              obs.shakeX = Math.sin(this.waveTime * 1.8 + actualIdx * 0.4) * 16;
-              obs.shakeX2 = -Math.sin(this.waveTime * 1.8 + actualIdx * 0.4) * 16;
-              obs.targetTopHeight = obs.baseTopHeight!;
-              obs.targetBottomHeight = obs.baseBottomHeight!;
+              // Group 3: Infinity Flow (looping helix slide - only odd pillars shake/rotate and bob vertically!)
+              const isOdd = (actualIdx % 2 !== 0);
+              obs.shakeX = isOdd ? Math.sin(this.waveTime * 1.8 + actualIdx * 0.4) * 16 : 0;
+              obs.shakeX2 = isOdd ? -Math.sin(this.waveTime * 1.8 + actualIdx * 0.4) * 16 : 0;
+              const verticalBob = isOdd ? Math.sin(this.waveTime * 2.2 - actualIdx * 0.4) * 12 : 0;
+              obs.targetTopHeight = obs.baseTopHeight! + verticalBob;
+              obs.targetBottomHeight = obs.baseBottomHeight! - verticalBob;
             }
           } else if (obs.patternType === 'level16_rotatingarc') {
             if (groupIdx === 0) {
-              // Group 1: Wave Maze (continuous wave motion centerY - waves)
-              const wave = Math.sin(this.waveTime * 2.2 - actualIdx * 0.4) * 16;
+              // Group 1: Wave Maze (continuous wave motion Y - alternate pillars wave in opposite directions!)
+              const factor = (actualIdx % 2 === 0 ? 1 : -1);
+              const wave = Math.sin(this.waveTime * 2.2 - actualIdx * 0.4) * 16 * factor;
               obs.targetTopHeight = obs.baseTopHeight! + wave;
               obs.targetBottomHeight = obs.baseBottomHeight! - wave;
             } else if (groupIdx === 1) {
-              // Group 2: Offset Diamond (pulsing diamond gap height - breathing)
-              const breath = Math.sin(this.waveTime * 2.0) * 12;
+              // Group 2: Offset Diamond (pulsing diamond gap - only even pillars breathe!)
+              const isEven = (actualIdx % 2 === 0);
+              const breath = isEven ? Math.sin(this.waveTime * 2.0) * 14 : 0;
               obs.targetTopHeight = obs.baseTopHeight! - breath / 2;
               obs.targetBottomHeight = obs.baseBottomHeight! - breath / 2;
             } else {
-              // Group 3: Spiral Stair (sequential rotational rhythm - helical)
-              obs.shakeX = Math.sin(this.waveTime * 2.0 + actualIdx * 0.45) * 14;
-              obs.shakeX2 = Math.cos(this.waveTime * 2.0 + actualIdx * 0.45) * 14;
-              obs.targetTopHeight = obs.baseTopHeight!;
-              obs.targetBottomHeight = obs.baseBottomHeight!;
+              // Group 3: Spiral Stair (only odd pillars shake/rotate, even bob vertically!)
+              const isOdd = (actualIdx % 2 !== 0);
+              obs.shakeX = isOdd ? Math.sin(this.waveTime * 2.0 + actualIdx * 0.45) * 14 : 0;
+              obs.shakeX2 = isOdd ? Math.cos(this.waveTime * 2.0 + actualIdx * 0.45) * 14 : 0;
+              const verticalBob = !isOdd ? Math.sin(this.waveTime * 1.8) * 14 : 0;
+              obs.targetTopHeight = obs.baseTopHeight! + verticalBob;
+              obs.targetBottomHeight = obs.baseBottomHeight! - verticalBob;
             }
           } else if (obs.patternType === 'level17_heartbeat') {
             if (groupIdx === 0) {
-              // Group 1: Triple W (reactive expansion slides open, centerY stable)
-              obs.targetTopHeight = obs.baseTopHeight!;
-              obs.targetBottomHeight = obs.baseBottomHeight!;
+              // Group 1: Triple W (reactive split open + alternate vertical bobbing on even pillars)
+              const isEven = (actualIdx % 2 === 0);
+              const verticalBob = isEven ? Math.sin(this.waveTime * 2.0 - actualIdx * 0.4) * 14 : 0;
+              obs.targetTopHeight = obs.baseTopHeight! + verticalBob;
+              obs.targetBottomHeight = obs.baseBottomHeight! - verticalBob;
             } else if (groupIdx === 1) {
-              // Group 2: Arc Slope (smooth drifting motion Y - floating)
-              const drift = Math.sin(this.waveTime * 1.4) * 16;
+              // Group 2: Arc Slope (smooth drifting Y - alternate pillars float in opposite directions!)
+              const factor = (actualIdx % 2 === 0 ? 1 : -1);
+              const drift = Math.sin(this.waveTime * 1.4) * 16 * factor;
               obs.targetTopHeight = obs.baseTopHeight! + drift;
               obs.targetBottomHeight = obs.baseBottomHeight! - drift;
             } else {
-              // Group 3: Zigzag Wave (traveling wave curves through zigzags - waves)
-              const wave = Math.sin(this.waveTime * 2.4 - actualIdx * 0.5) * 15;
+              // Group 3: Zigzag Wave (traveling wave curves through zigzags - only odd pillars wave!)
+              const isOdd = (actualIdx % 2 !== 0);
+              const wave = isOdd ? Math.sin(this.waveTime * 2.4 - actualIdx * 0.5) * 16 : 0;
               obs.targetTopHeight = obs.baseTopHeight! + wave;
               obs.targetBottomHeight = obs.baseBottomHeight! - wave;
             }
           } else if (obs.patternType === 'level18_serpent') {
             if (groupIdx === 0) {
-              // Group 1: Infinity Stair (sequential looping figure-eight slide Y - helical)
-              obs.shakeX = Math.sin(this.waveTime * 2.0 - actualIdx * 0.4) * 15;
-              obs.shakeX2 = -Math.sin(this.waveTime * 2.0 - actualIdx * 0.4) * 15;
+              // Group 1: Infinity Stair (looping figure-eight Y slide - only even pillars float/shake!)
+              const isEven = (actualIdx % 2 === 0);
+              obs.shakeX = isEven ? Math.sin(this.waveTime * 2.0 - actualIdx * 0.4) * 15 : 0;
+              obs.shakeX2 = isEven ? -Math.sin(this.waveTime * 2.0 - actualIdx * 0.4) * 15 : 0;
               obs.targetTopHeight = obs.baseTopHeight!;
               obs.targetBottomHeight = obs.baseBottomHeight!;
             } else if (groupIdx === 1) {
-              // Group 2: Snake Funnel (snake motion + funnel breathing - breathing)
-              const wave = Math.sin(this.waveTime * 2.2 - actualIdx * 0.45) * 14;
+              // Group 2: Snake Funnel (snake motion + funnel - alternate pillars wave in opposite directions!)
+              const factor = (actualIdx % 2 === 0 ? 1 : -1);
+              const wave = Math.sin(this.waveTime * 2.2 - actualIdx * 0.45) * 14 * factor;
               const breath = Math.sin(this.waveTime * 1.8) * 12;
               obs.targetTopHeight = obs.baseTopHeight! + wave - breath / 2;
               obs.targetBottomHeight = obs.baseBottomHeight! - wave - breath / 2;
             } else {
-              // Group 3: Diamond Arc (pulse + drift hybrid - floating + breathing)
-              const breath = Math.sin(this.waveTime * 2.0) * 10;
-              const drift = Math.sin(this.waveTime * 1.2) * 15;
+              // Group 3: Diamond Arc (pulse + drift - only odd pillars float/breathe!)
+              const isOdd = (actualIdx % 2 !== 0);
+              const drift = isOdd ? Math.sin(this.waveTime * 1.2) * 15 : 0;
+              const breath = isOdd ? Math.sin(this.waveTime * 2.0) * 10 : 0;
               obs.targetTopHeight = obs.baseTopHeight! + drift - breath / 2;
               obs.targetBottomHeight = obs.baseBottomHeight! - drift - breath / 2;
             }
           } else if (obs.patternType === 'level19_magnetic') {
             if (groupIdx === 0) {
-              // Group 1: Spiral Wave (rotational wave helix - helical)
+              // Group 1: Spiral Wave (rotational wave helix - alternate pillars float in opposite directions!)
+              const factor = (actualIdx % 2 === 0 ? 1 : -1);
               obs.shakeX = Math.sin(this.waveTime * 2.2 + actualIdx * 0.4) * 16;
               obs.shakeX2 = Math.cos(this.waveTime * 2.2 + actualIdx * 0.4) * 16;
-              obs.targetTopHeight = obs.baseTopHeight!;
-              obs.targetBottomHeight = obs.baseBottomHeight!;
+              const drift = Math.sin(this.waveTime * 1.5) * 12 * factor;
+              obs.targetTopHeight = obs.baseTopHeight! + drift;
+              obs.targetBottomHeight = obs.baseBottomHeight! - drift;
             } else if (groupIdx === 1) {
-              // Group 2: Reverse S-Curve (gentle side shifts centerY)
-              obs.shakeX = Math.sin(this.waveTime * 1.6) * 16;
-              obs.shakeX2 = obs.shakeX;
-              obs.targetTopHeight = obs.baseTopHeight!;
-              obs.targetBottomHeight = obs.baseBottomHeight!;
+              // Group 2: Reverse S-Curve (even pillars shake horizontally, odd pillars wave vertically!)
+              const isEven = (actualIdx % 2 === 0);
+              const shift = isEven ? Math.sin(this.waveTime * 1.6) * 16 : 0;
+              obs.shakeX = shift; obs.shakeX2 = shift;
+              const verticalWave = !isEven ? Math.sin(this.waveTime * 2.2 - actualIdx * 0.5) * 15 : 0;
+              obs.targetTopHeight = obs.baseTopHeight! + verticalWave;
+              obs.targetBottomHeight = obs.baseBottomHeight! - verticalWave;
             } else {
-              // Group 3: Stair Maze (sequential stair altitude movement - waves)
-              const cascade = Math.sin(this.waveTime * 2.0 - actualIdx * 0.5) * 18;
+              // Group 3: Stair Maze (sequential stair Y - only odd pillars cascade!)
+              const isOdd = (actualIdx % 2 !== 0);
+              const cascade = isOdd ? Math.sin(this.waveTime * 2.0 - actualIdx * 0.5) * 18 : 0;
               obs.targetTopHeight = obs.baseTopHeight! + cascade;
               obs.targetBottomHeight = obs.baseBottomHeight! - cascade;
             }
           } else if (obs.patternType === 'level20_masterhybrid') {
             if (groupIdx === 0) {
-              // Group 1: Infinity Spiral (looping helical spiral orbits - helical)
-              obs.shakeX = Math.sin(this.waveTime * 2.2 + actualIdx * 0.35) * 20;
-              obs.shakeX2 = -Math.cos(this.waveTime * 2.2 + actualIdx * 0.35) * 20;
-              obs.targetTopHeight = obs.baseTopHeight!;
-              obs.targetBottomHeight = obs.baseBottomHeight!;
+              // Group 1: Infinity Spiral (alternate pillars shake/float horizontally and vertically in opposite directions!)
+              const factor = (actualIdx % 2 === 0 ? 1 : -1);
+              obs.shakeX = Math.sin(this.waveTime * 2.2 + actualIdx * 0.35) * 18 * factor;
+              obs.shakeX2 = -Math.cos(this.waveTime * 2.2 + actualIdx * 0.35) * 18 * factor;
+              const verticalShift = Math.sin(this.waveTime * 1.8 + actualIdx * 0.4) * 14 * factor;
+              obs.targetTopHeight = obs.baseTopHeight! + verticalShift;
+              obs.targetBottomHeight = obs.baseBottomHeight! - verticalShift;
             } else if (groupIdx === 1) {
-              // Group 2: Snake Wave Stair (traveling hybrid climb movement Y - waves)
-              const wave = Math.sin(this.waveTime * 2.4 - actualIdx * 0.45) * 15;
+              // Group 2: Snake Wave Stair (traveling hybrid - only even pillars wave vertically!)
+              const isEven = (actualIdx % 2 === 0);
+              const wave = isEven ? Math.sin(this.waveTime * 2.4 - actualIdx * 0.45) * 16 : 0;
               obs.targetTopHeight = obs.baseTopHeight! + wave;
               obs.targetBottomHeight = obs.baseBottomHeight! - wave;
             } else {
-              // Group 3: Diamond Funnel Maze (pulse + breathing hybrid gap - breathing)
-              const breath = Math.sin(this.waveTime * 2.5) * 12 + Math.sin(this.waveTime * 1.5) * 6;
+              // Group 3: Diamond Funnel Maze (pulse + breathing - only odd pillars breathe!)
+              const isOdd = (actualIdx % 2 !== 0);
+              const breath = isOdd ? (Math.sin(this.waveTime * 2.5) * 12 + Math.sin(this.waveTime * 1.5) * 6) : 0;
               obs.targetTopHeight = obs.baseTopHeight! - breath / 2;
               obs.targetBottomHeight = obs.baseBottomHeight! - breath / 2;
             }
@@ -1058,6 +1100,24 @@ export class ObstacleManager {
           obs.topHeight = obs.closedTopHeight! + (obs.targetTopHeight! - obs.closedTopHeight!) * easedOpen;
           obs.bottomHeight = obs.closedBottomHeight! + (obs.targetBottomHeight! - obs.closedBottomHeight!) * easedOpen;
 
+          // Centralized Dynamic Gameplay Safeguard for Levels 10-20
+          if (obs.levelNum !== undefined && obs.levelNum >= 10 && obs.levelNum <= 20) {
+            let currentGap = height - obs.topHeight - obs.bottomHeight;
+            if (currentGap < 165) {
+              const center = obs.topHeight + currentGap / 2;
+              obs.topHeight = center - 165 / 2;
+              obs.bottomHeight = height - center - 165 / 2;
+            }
+            const minHeight = 40;
+            if (obs.topHeight < minHeight) {
+              obs.topHeight = minHeight;
+              obs.bottomHeight = height - minHeight - 165;
+            } else if (obs.bottomHeight < minHeight) {
+              obs.bottomHeight = minHeight;
+              obs.topHeight = height - minHeight - 165;
+            }
+          }
+
           // Spawn active movement particle trails
           if (_particleEngine && Math.random() < 0.12) {
             const pxTop = obs.x + Math.random() * obs.width;
@@ -1446,20 +1506,20 @@ export class ObstacleManager {
         animDuration = 0.40;
       } else if (patternType === 'level10_miniboss') {
         // LEVEL 10:
-        // Group 1 (0-5): Stair Pattern. Top/Bottom surfaces form climbing stairs
-        // Group 2 (6-11): Zigzag Pattern. Top/Bottom surfaces form sharp alternating peak/valley zigzags
-        // Group 3 (12-17): Snake Pattern. Top/Bottom surfaces form smooth flowing curves
+        // Group 1 (0-5): Stair Pattern. Gaps gradually narrow.
+        // Group 2 (6-11): Zigzag Pattern. Gaps alternate.
+        // Group 3 (12-17): Snake Pattern. Gaps undulate.
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
-          // Stair steps climbing up
+          localGapHeight = gapHeight + 25 - obstacleIdx * 10;
           const step = obstacleIdx * 24 - 60;
           targetTopHeight = (height / 2 - localGapHeight / 2) + step;
         } else if (obstacleIdx <= 11) {
-          // Sharp zigzag
+          localGapHeight = gapHeight + ((obstacleIdx - 6) % 2 === 0 ? 25 : -25);
           const zig = ((obstacleIdx - 6) % 2 === 0 ? 50 : -50);
           targetTopHeight = (height / 2 - localGapHeight / 2) + zig;
         } else {
-          // Smooth snake curve
+          localGapHeight = gapHeight + Math.sin((obstacleIdx - 12) * 1.2) * 20;
           const stepAngle = ((obstacleIdx - 12) / 5) * Math.PI * 2;
           targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin(stepAngle) * 45;
         }
@@ -1467,17 +1527,20 @@ export class ObstacleManager {
         animDuration = 0.38;
       } else if (patternType === 'level11_diamond') {
         // LEVEL 11:
-        // Group 1 (0-5): Double W. Top: W curves, reactive splitting; Bottom: inverted W curves
-        // Group 2 (6-11): Diamond Edge. Top: arching diamond up; Bottom: arching diamond down
-        // Group 3 (12-17): Wave Stair. Top: stair step climb; Bottom: smooth wave profile
+        // Group 1 (0-5): Double W. Funnel gaps.
+        // Group 2 (6-11): Diamond Edge. Tapered gaps.
+        // Group 3 (12-17): Wave Stair. Alternate gaps.
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
+          localGapHeight = gapHeight - 15 + (Math.abs(obstacleIdx - 2.5) / 2.5) * 35;
           const stepAngle = (obstacleIdx / 5) * Math.PI * 4;
           targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin(stepAngle) * 50;
         } else if (obstacleIdx <= 11) {
+          localGapHeight = gapHeight + 25 - (obstacleIdx - 6) * 9;
           const di = obstacleIdx - 6;
           targetTopHeight = (height / 2 - localGapHeight / 2) - (2.5 - Math.abs(di - 2.5)) * 25;
         } else {
+          localGapHeight = gapHeight + ((obstacleIdx - 12) % 2 === 0 ? 20 : -20);
           const si = obstacleIdx - 12;
           targetTopHeight = (height / 2 - localGapHeight / 2) + 40 - si * 18 + Math.sin(si * 0.9) * 20;
         }
@@ -1485,17 +1548,18 @@ export class ObstacleManager {
         animDuration = 0.45;
       } else if (patternType === 'level12_doublewave') {
         // LEVEL 12:
-        // Group 1 (0-5): Snake Edge. Top: smooth sine curves; Bottom: phase-shifted cosine curves
-        // Group 2 (6-11): Reverse Funnel. Top: curving down funnel; Bottom: curving up funnel
-        // Group 3 (12-17): Arc Edge. Top: large semi-circle arch; Bottom: flat baseline
+        // Group 1 (0-5): Snake Edge. Undulating gaps.
+        // Group 2 (6-11): Reverse Funnel. Funnel gaps.
+        // Group 3 (12-17): Arc Edge. Tapered gaps.
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
+          localGapHeight = gapHeight + Math.sin(obstacleIdx * 1.2) * 22;
           targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin((obstacleIdx / 5) * Math.PI) * 45;
         } else if (obstacleIdx <= 11) {
-          const si = obstacleIdx - 6;
-          localGapHeight = gapHeight + (Math.abs(si - 2.5) / 2.5) * 45;
+          localGapHeight = gapHeight + (Math.abs((obstacleIdx - 6) - 2.5) / 2.5) * 45;
           targetTopHeight = (height / 2 - localGapHeight / 2);
         } else {
+          localGapHeight = gapHeight + 30 - (obstacleIdx - 12) * 11;
           const si = obstacleIdx - 12;
           targetTopHeight = (height / 2 - localGapHeight / 2) - Math.sin((si / 5) * Math.PI) * 55 + (si % 2 === 0 ? -25 : 25);
         }
@@ -1503,17 +1567,20 @@ export class ObstacleManager {
         animDuration = 0.45;
       } else if (patternType === 'level13_scurve') {
         // LEVEL 13:
-        // Group 1 (0-5): Spiral Edge. Top: circular staircase progress; Bottom: shifted cosine waves
-        // Group 2 (6-11): Stair Slope. Top: stair climb slope; Bottom: flat diagonal slope
-        // Group 3 (12-17): S-Maze Edge. Top: smooth S-curves; Bottom: inverted simple S-curves
+        // Group 1 (0-5): Spiral Edge. Alternate gaps.
+        // Group 2 (6-11): Stair Slope. Undulating gaps.
+        // Group 3 (12-17): S-Maze Edge. Funnel gaps.
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
+          localGapHeight = gapHeight + (obstacleIdx % 2 === 0 ? 25 : -25);
           const stepAngle = (obstacleIdx / 5) * Math.PI * 1.5;
           targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin(stepAngle) * 50;
         } else if (obstacleIdx <= 11) {
+          localGapHeight = gapHeight + Math.sin((obstacleIdx - 6) * 1.2) * 18;
           const si = obstacleIdx - 6;
           targetTopHeight = (height / 2 - localGapHeight / 2) + 40 - si * 18 + (si % 2 === 0 ? -10 : 10);
         } else {
+          localGapHeight = gapHeight - 15 + (Math.abs((obstacleIdx - 12) - 2.5) / 2.5) * 35;
           const si = obstacleIdx - 12;
           targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin((si / 5) * Math.PI) * 60;
         }
@@ -1521,35 +1588,39 @@ export class ObstacleManager {
         animDuration = 0.44;
       } else if (patternType === 'level14_crossflow') {
         // LEVEL 14:
-        // Group 1 (0-5): Diamond Wave. Top: sharp diamond peaks; Bottom: smooth sine curves
-        // Group 2 (6-11): Reverse Stair. Top: gradual descending staircase steps; Bottom: flat baseline
-        // Group 3 (12-17): Curved Funnel. Top: arc-funnel narrowing; Bottom: straight funnel steps
+        // Group 1 (0-5): Diamond Wave. Alternate gaps.
+        // Group 2 (6-11): Reverse Stair. Tapered gaps.
+        // Group 3 (12-17): Curved Funnel. Funnel gaps.
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
+          localGapHeight = gapHeight + (obstacleIdx % 2 === 0 ? 25 : -20);
           targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin((obstacleIdx / 5) * Math.PI) * 35;
-          localGapHeight = gapHeight + (obstacleIdx % 2 === 0 ? 30 : -10);
         } else if (obstacleIdx <= 11) {
+          localGapHeight = gapHeight + 25 - (obstacleIdx - 6) * 10;
           const si = obstacleIdx - 6;
           targetTopHeight = (height / 2 - localGapHeight / 2) - 45 + si * 18;
         } else {
+          localGapHeight = gapHeight + (5 - (obstacleIdx - 12)) * 8;
           const si = obstacleIdx - 12;
           targetTopHeight = (height / 2 - localGapHeight / 2) - Math.sin((si / 5) * Math.PI) * 45;
-          localGapHeight = gapHeight + (5 - si) * 8;
         }
         triggerDistance = 220;
         animDuration = 0.46;
       } else if (patternType === 'level15_elevatorstair') {
         // LEVEL 15:
-        // Group 1 (0-5): Snake Stair. Top: climbing snake curves and stairs; Bottom: flat climbing steps
-        // Group 2 (6-11): Double Slope. Top: up-then-down mountain slope peaks; Bottom: flat baseline
-        // Group 3 (12-17): Infinity Edge. Top: figure-eight loops; Bottom: flat baseline
+        // Group 1 (0-5): Snake Stair. Alternate gaps.
+        // Group 2 (6-11): Double Slope. Undulating gaps.
+        // Group 3 (12-17): Infinity Edge. Funnel gaps.
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
+          localGapHeight = gapHeight + (obstacleIdx % 2 === 0 ? 22 : -22);
           targetTopHeight = (height / 2 - localGapHeight / 2) + 45 - obstacleIdx * 15 + Math.sin(obstacleIdx * 0.9) * 20;
         } else if (obstacleIdx <= 11) {
+          localGapHeight = gapHeight + Math.sin((obstacleIdx - 6) * 1.2) * 20;
           const si = obstacleIdx - 6;
           targetTopHeight = (height / 2 - localGapHeight / 2) + (si <= 2 ? (45 - si * 30) : (-15 + (si - 3) * 30));
         } else {
+          localGapHeight = gapHeight - 15 + (Math.abs((obstacleIdx - 12) - 2.5) / 2.5) * 35;
           const si = obstacleIdx - 12;
           const stepAngle = (si / 5) * Math.PI * 2;
           targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin(stepAngle) * Math.cos(stepAngle) * 75;
@@ -1558,17 +1629,19 @@ export class ObstacleManager {
         animDuration = 0.42;
       } else if (patternType === 'level16_rotatingarc') {
         // LEVEL 16:
-        // Group 1 (0-5): Wave Maze. Top: complex wave peaks and valleys; Bottom: simple sine waves
-        // Group 2 (6-11): Offset Diamond. Top: alternating peak offsets; Bottom: opposite offset peaks
-        // Group 3 (12-17): Spiral Stair. Top: circular climbing steps; Bottom: flat stair rise steps
+        // Group 1 (0-5): Wave Maze. Tapered gaps.
+        // Group 2 (6-11): Offset Diamond. Funnel gaps.
+        // Group 3 (12-17): Spiral Stair. Alternate gaps.
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
+          localGapHeight = gapHeight + 25 - obstacleIdx * 9;
           targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin((obstacleIdx / 5) * Math.PI) * 55;
         } else if (obstacleIdx <= 11) {
+          localGapHeight = gapHeight + (Math.abs((obstacleIdx - 6) - 2.5) / 2.5) * 35;
           const si = obstacleIdx - 6;
           targetTopHeight = (height / 2 - localGapHeight / 2) + (si % 2 === 0 ? -25 : 25);
-          localGapHeight = gapHeight + (Math.abs(si - 2.5) / 2.5) * 35;
         } else {
+          localGapHeight = gapHeight + ((obstacleIdx - 12) % 2 === 0 ? 25 : -20);
           const si = obstacleIdx - 12;
           const stepAngle = (si / 5) * Math.PI * 1.2;
           targetTopHeight = (height / 2 - localGapHeight / 2) + 45 - si * 16 + Math.sin(stepAngle) * 20;
@@ -1577,17 +1650,20 @@ export class ObstacleManager {
         animDuration = 0.45;
       } else if (patternType === 'level17_heartbeat') {
         // LEVEL 17:
-        // Group 1 (0-5): Triple W. Top: three W peaks, reactive splitting; Bottom: flat baseline
-        // Group 2 (6-11): Arc Slope. Top: arc climbing slope; Bottom: flat rising slope
-        // Group 3 (12-17): Zigzag Wave. Top: zigzags mixed with curves; Bottom: simple sine curves
+        // Group 1 (0-5): Triple W. Undulating gaps.
+        // Group 2 (6-11): Arc Slope. Funnel gaps.
+        // Group 3 (12-17): Zigzag Wave. Tapered gaps.
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
+          localGapHeight = gapHeight + Math.sin(obstacleIdx * 1.2) * 20;
           const stepAngle = (obstacleIdx / 5) * Math.PI * 5;
           targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin(stepAngle) * 45;
         } else if (obstacleIdx <= 11) {
+          localGapHeight = gapHeight - 15 + (Math.abs((obstacleIdx - 6) - 2.5) / 2.5) * 35;
           const si = obstacleIdx - 6;
           targetTopHeight = (height / 2 - localGapHeight / 2) - Math.sin((si / 5) * Math.PI) * 40 + (si * 9 - 22);
         } else {
+          localGapHeight = gapHeight + 30 - (obstacleIdx - 12) * 11;
           const si = obstacleIdx - 12;
           targetTopHeight = (height / 2 - localGapHeight / 2) + (si % 2 === 0 ? -40 : 40) + Math.sin(si * 0.9) * 20;
         }
@@ -1595,37 +1671,41 @@ export class ObstacleManager {
         animDuration = 0.4;
       } else if (patternType === 'level18_serpent') {
         // LEVEL 18:
-        // Group 1 (0-5): Infinity Stair. Top: infinity loop combined with stair steps; Bottom: simple stair steps
-        // Group 2 (6-11): Snake Funnel. Top: snake funnel peaks; Bottom: straight funnel steps
-        // Group 3 (12-17): Diamond Arc. Top: sharp diamond peaks; Bottom: large semi-circle arch
+        // Group 1 (0-5): Infinity Stair. Alternate gaps.
+        // Group 2 (6-11): Snake Funnel. Tapered gaps.
+        // Group 3 (12-17): Diamond Arc. Funnel gaps.
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
+          localGapHeight = gapHeight + (obstacleIdx % 2 === 0 ? 24 : -24);
           const stepAngle = (obstacleIdx / 5) * Math.PI * 2;
           targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin(stepAngle) * Math.cos(stepAngle) * 60 + (obstacleIdx * 10 - 25);
         } else if (obstacleIdx <= 11) {
+          localGapHeight = gapHeight + (5 - (obstacleIdx - 6)) * 10;
           const si = obstacleIdx - 6;
           targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin((si / 5) * Math.PI) * 35;
-          localGapHeight = gapHeight + (5 - si) * 10;
         } else {
+          localGapHeight = gapHeight + (Math.abs((obstacleIdx - 12) - 2.5) / 2.5) * 40;
           const si = obstacleIdx - 12;
           targetTopHeight = (height / 2 - localGapHeight / 2) - Math.sin((si / 5) * Math.PI) * 50;
-          localGapHeight = gapHeight + (Math.abs(si - 2.5) / 2.5) * 40;
         }
         triggerDistance = 195;
         animDuration = 0.38;
       } else if (patternType === 'level19_magnetic') {
         // LEVEL 19:
-        // Group 1 (0-5): Spiral Wave. Top: spiral curves with wave peaks; Bottom: simple waves
-        // Group 2 (6-11): Reverse S Edge. Top: inverted S-curves; Bottom: regular S-curves
-        // Group 3 (12-17): Stair Maze. Top: complex climbing stair heights; Bottom: simple climbing steps
+        // Group 1 (0-5): Spiral Wave. Undulating gaps.
+        // Group 2 (6-11): Reverse S Edge. Funnel gaps.
+        // Group 3 (12-17): Stair Maze. Tapered gaps.
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
+          localGapHeight = gapHeight + Math.sin(obstacleIdx * 1.2) * 22;
           const stepAngle = (obstacleIdx / 5) * Math.PI * 1.5;
           targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin(stepAngle) * 40 + Math.sin(obstacleIdx * 0.8) * 15;
         } else if (obstacleIdx <= 11) {
+          localGapHeight = gapHeight - 15 + (Math.abs((obstacleIdx - 6) - 2.5) / 2.5) * 35;
           const si = obstacleIdx - 6;
           targetTopHeight = (height / 2 - localGapHeight / 2) - Math.sin((si / 5) * Math.PI) * 55;
         } else {
+          localGapHeight = gapHeight + 25 - (obstacleIdx - 12) * 9;
           const si = obstacleIdx - 12;
           targetTopHeight = (height / 2 - localGapHeight / 2) + 50 - si * 20;
         }
@@ -1633,20 +1713,22 @@ export class ObstacleManager {
         animDuration = 0.45;
       } else if (patternType === 'level20_masterhybrid') {
         // LEVEL 20 (BOSS LEVEL):
-        // Group 1 (0-5): Infinity Spiral. Top: figure-eight spiral; Bottom: simple spiral curves
-        // Group 2 (6-11): Snake Wave Stair. Top: snake wave stair heights; Bottom: wave stair heights
-        // Group 3 (12-17): Diamond Funnel Maze. Top: sharp diamond offsets; Bottom: straight funnel steps
+        // Group 1 (0-5): Infinity Spiral. Alternate gaps.
+        // Group 2 (6-11): Snake Wave Stair. Undulating gaps.
+        // Group 3 (12-17): Diamond Funnel Maze. Tapered gaps.
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
+          localGapHeight = gapHeight + (obstacleIdx % 2 === 0 ? 25 : -25);
           const stepAngle = (obstacleIdx / 5) * Math.PI * 2.5;
           targetTopHeight = (height / 2 - localGapHeight / 2) + Math.sin(stepAngle) * Math.cos(stepAngle) * 70;
         } else if (obstacleIdx <= 11) {
+          localGapHeight = gapHeight + Math.sin((obstacleIdx - 6) * 1.2) * 20;
           const si = obstacleIdx - 6;
           targetTopHeight = (height / 2 - localGapHeight / 2) + 45 - si * 16 + Math.sin(si * 0.9) * 20;
         } else {
+          localGapHeight = gapHeight + (5 - (obstacleIdx - 12)) * 10;
           const si = obstacleIdx - 12;
           targetTopHeight = (height / 2 - localGapHeight / 2) + (si % 2 === 0 ? -30 : 30);
-          localGapHeight = gapHeight + (5 - si) * 10;
         }
         triggerDistance = 180;
         animDuration = 0.35;
@@ -1968,6 +2050,9 @@ export class ObstacleManager {
       }
 
       // Safeguard boundaries and calculate target heights
+      if (levelNum !== undefined && levelNum >= 10 && levelNum <= 20) {
+        localGapHeight = Math.max(165, localGapHeight);
+      }
 
       if (hasAsymmetricHeights) {
         // Asymmetric edges are bounded directly using minimum clearance
