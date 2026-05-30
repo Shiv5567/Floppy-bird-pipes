@@ -33,30 +33,39 @@ export class LevelManager {
       // Progressive difficulty values
       let targetScore = 150;
       let gapHeight = Math.max(195, 260 - (levelNum * 2.2)); // Default calculation
-      
-      if (levelNum <= 20) {
-        targetScore = 18; // Exactly 3 obstacle groups * 6 pillars per group = 18 pillars
-        // Progressive gap heights for perfect difficulty ramp (1 to 20)
-        const gaps = [
-          280, 260, 245, 230, 220, 210, 200, 190, 180, 170, // Levels 1-10
-          200, 195, 190, 185, 180, 175, 170, 165, 160, 155  // Levels 11-20
-        ];
-        gapHeight = gaps[levelNum - 1];
-      } else if (levelNum >= 30 && levelNum < 40) {
-        targetScore = 18; // Exactly 3 obstacle groups * 6 pillars per group = 18 pillars
-        // Advanced difficulty ramp (Levels 30-39) with smaller playable gaps
-        const gaps30to39 = [
-          155, 153, 151, 149, 147, 145, 143, 141, 139, 137
-        ];
-        gapHeight = gaps30to39[levelNum - 30];
-      } else if (levelNum >= 40 && levelNum <= 50) {
-        targetScore = 18; // Exactly 3 obstacle groups * 6 pillars per group = 18 pillars
-        // Master challenge difficulty ramp (Levels 40-50) with smaller gaps
-        const gaps40to50 = [
-          135, 133, 131, 129, 127, 125, 123, 121, 119, 117, 115
-        ];
-        gapHeight = gaps40to50[levelNum - 40];
+      if (levelNum >= 1 && levelNum <= 5) {
+        targetScore = 150;
+      } else if (levelNum >= 6 && levelNum <= 10) {
+        const scores = [162, 162, 165, 165, 168];
+        targetScore = scores[levelNum - 6];
+      } else if (levelNum >= 11 && levelNum <= 15) {
+        const scores = [171, 171, 174, 174, 177];
+        targetScore = scores[levelNum - 11];
+      } else if (levelNum >= 16 && levelNum <= 20) {
+        const scores = [180, 180, 183, 183, 186];
+        targetScore = scores[levelNum - 16];
+      } else if (levelNum >= 21 && levelNum <= 25) {
+        const scores = [192, 192, 195, 195, 198];
+        targetScore = scores[levelNum - 21];
+      } else if (levelNum >= 26 && levelNum <= 30) {
+        const scores = [201, 201, 204, 204, 207];
+        targetScore = scores[levelNum - 26];
+      } else if (levelNum >= 31 && levelNum <= 35) {
+        const scores = [210, 210, 213, 213, 216];
+        targetScore = scores[levelNum - 31];
+      } else if (levelNum >= 36 && levelNum <= 40) {
+        const scores = [222, 222, 225, 225, 228];
+        targetScore = scores[levelNum - 36];
+      } else if (levelNum >= 41 && levelNum <= 45) {
+        const scores = [231, 231, 234, 234, 237];
+        targetScore = scores[levelNum - 41];
+      } else if (levelNum >= 46 && levelNum <= 50) {
+        const scores = [240, 240, 243, 243, 246];
+        targetScore = scores[levelNum - 46];
       }
+
+      // Linear gap scaling rebalance (from exactly 280px at Level 1 to exactly 150px at Level 50)
+      gapHeight = Math.max(150, Math.round(280 - (levelNum - 1) * 2.653));
 
       const scrollSpeed = (3.3 + (levelNum * 0.06)) * 0.8; // Decreased by 20%
 
@@ -144,8 +153,10 @@ export class LevelManager {
         patterns = ['level49_fractal'];
       } else if (levelNum === 50) {
         patterns = ['level50_finalboss'];
+      } else if (levelNum >= 21 && levelNum <= 29) {
+        patterns = [`level${levelNum}_progress`];
       } else {
-        // Levels 21-29: Cycle through standard wave patterns for simple animation
+        // Fallback cycling
         const patternIndex = (levelNum - 21) % wavePatterns.length;
         patterns = [wavePatterns[patternIndex]];
       }

@@ -689,6 +689,109 @@ export class ObstacleManager {
             const currentGap = obs.gapHeight! + pulseVal;
             obs.targetTopHeight = centerY - currentGap / 2;
             obs.targetBottomHeight = height - centerY - currentGap / 2;
+          } else if (obs.patternType && obs.patternType.indexOf('_progress') !== -1) {
+            // Retrieve dynamic subPattern for Levels 21-29
+            const groupSize = Math.floor(this.activeLevelConfig.targetScore / 3);
+            const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
+            const levelNum = this.activeLevelConfig.levelNum;
+            
+            let subPattern = 'wave_10';
+            if (levelNum === 21) {
+              subPattern = obstacleIdx < groupSize ? 'wave_10' : (obstacleIdx < groupSize * 2 ? 'breathing_12' : 'moving_stair_15');
+            } else if (levelNum === 22) {
+              subPattern = obstacleIdx < groupSize ? 'rotating_17' : (obstacleIdx < groupSize * 2 ? 'dynamic_w_18' : 'exp_shrink_19');
+            } else if (levelNum === 23) {
+              subPattern = obstacleIdx < groupSize ? 'hybrid_20' : (obstacleIdx < groupSize * 2 ? 'snake_21' : 'pulse_22');
+            } else if (levelNum === 24) {
+              subPattern = obstacleIdx < groupSize ? 'gravity_23' : (obstacleIdx < groupSize * 2 ? 'rotating_24' : 'waterfall_25');
+            } else if (levelNum === 25) {
+              subPattern = obstacleIdx < groupSize ? 'elevator_26' : (obstacleIdx < groupSize * 2 ? 'magnetic_27' : 'pendulum_28');
+            } else if (levelNum === 26) {
+              subPattern = obstacleIdx < groupSize ? 'sliding_29' : (obstacleIdx < groupSize * 2 ? 'wave_10' : 'breathing_12');
+            } else if (levelNum === 27) {
+              subPattern = obstacleIdx < groupSize ? 'moving_stair_15' : (obstacleIdx < groupSize * 2 ? 'rotating_17' : 'dynamic_w_18');
+            } else if (levelNum === 28) {
+              subPattern = obstacleIdx < groupSize ? 'exp_shrink_19' : (obstacleIdx < groupSize * 2 ? 'hybrid_20' : 'snake_21');
+            } else if (levelNum === 29) {
+              subPattern = obstacleIdx < groupSize ? 'pulse_22' : (obstacleIdx < groupSize * 2 ? 'gravity_23' : 'rotating_24');
+            }
+            
+            if (subPattern === 'wave_10') {
+              const centerY = height / 2 + Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.5) * 55;
+              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            } else if (subPattern === 'breathing_12') {
+              const currentGap = obs.gapHeight! + Math.sin(this.waveTime * 2.5) * 30;
+              obs.targetTopHeight = obs.spawnCenterY! - currentGap / 2;
+              obs.targetBottomHeight = height - obs.spawnCenterY! - currentGap / 2;
+            } else if (subPattern === 'moving_stair_15') {
+              const shift = Math.sin(this.waveTime * 1.8 + obs.obstacleIdx! * 0.4) * 45;
+              const centerY = obs.spawnCenterY! + shift;
+              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            } else if (subPattern === 'rotating_17' || subPattern === 'rotating_24') {
+              const angle = this.waveTime * 2.0 + obs.obstacleIdx! * 0.5;
+              obs.shakeX = Math.sin(angle) * 20;
+              obs.shakeX2 = Math.cos(angle) * 20;
+              obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2;
+              obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2;
+            } else if (subPattern === 'dynamic_w_18') {
+              const shift = Math.sin(this.waveTime * 2.2 + obs.obstacleIdx! * 0.3) * 35;
+              const centerY = obs.spawnCenterY! + shift;
+              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            } else if (subPattern === 'exp_shrink_19') {
+              const currentGap = obs.gapHeight! + Math.sin(this.waveTime * 2.2) * 20;
+              obs.targetTopHeight = obs.spawnCenterY! - currentGap / 2;
+              obs.targetBottomHeight = height - obs.spawnCenterY! - currentGap / 2;
+            } else if (subPattern === 'hybrid_20') {
+              const shift = Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.4) * 30;
+              const currentGap = obs.gapHeight! + Math.sin(this.waveTime * 2.5) * 15;
+              const centerY = obs.spawnCenterY! + shift;
+              obs.targetTopHeight = centerY - currentGap / 2;
+              obs.targetBottomHeight = height - centerY - currentGap / 2;
+            } else if (subPattern === 'snake_21') {
+              const wave = Math.sin((obs.x * 0.01) - this.waveTime * 3.5) * 35;
+              const centerY = obs.spawnCenterY! + wave;
+              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            } else if (subPattern === 'pulse_22') {
+              const pulse = Math.pow(Math.sin(this.waveTime * 2.2), 4) * 25;
+              const currentGap = obs.gapHeight! - pulse;
+              obs.targetTopHeight = obs.spawnCenterY! - currentGap / 2;
+              obs.targetBottomHeight = height - obs.spawnCenterY! - currentGap / 2;
+            } else if (subPattern === 'gravity_23') {
+              const shift = Math.sin(this.waveTime * 2.4) * 28;
+              const centerY = obs.spawnCenterY! + shift;
+              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            } else if (subPattern === 'waterfall_25') {
+              const delay = (obs.obstacleIdx! * 0.4 - this.waveTime * 1.8) % 2.0;
+              const cascade = delay * 20;
+              const centerY = obs.spawnCenterY! + cascade;
+              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            } else if (subPattern === 'elevator_26') {
+              const shift = Math.sin(this.waveTime * 1.8 + (obs.obstacleIdx! % 2) * Math.PI) * 40;
+              const centerY = obs.spawnCenterY! + shift;
+              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            } else if (subPattern === 'magnetic_27') {
+              const magnet = Math.sin(this.waveTime * 2.0) * 20;
+              obs.targetTopHeight = obs.spawnCenterY! - (obs.gapHeight! + magnet) / 2;
+              obs.targetBottomHeight = height - obs.spawnCenterY! - (obs.gapHeight! - magnet) / 2;
+            } else if (subPattern === 'pendulum_28') {
+              const angle = Math.sin(this.waveTime * 1.6 + obs.obstacleIdx! * 0.4) * 0.3;
+              obs.shakeX = Math.sin(angle) * 25;
+              obs.shakeX2 = obs.shakeX;
+              obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2;
+              obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2;
+            } else if (subPattern === 'sliding_29') {
+              const shift = Math.sin(this.waveTime * 2.0 + (obs.obstacleIdx! % 2) * (Math.PI / 2)) * 30;
+              const centerY = obs.spawnCenterY! + shift;
+              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            }
           }
 
           // Smooth reveal interpolation
@@ -851,7 +954,7 @@ export class ObstacleManager {
     }
 
     // Procedural Spawning using distance-based logic (extremely robust)
-    const maxPillars = (this.activeLevelConfig && (this.activeLevelConfig.levelNum <= 20 || (this.activeLevelConfig.levelNum >= 30 && this.activeLevelConfig.levelNum <= 50))) ? 18 : 150;
+    const maxPillars = this.activeLevelConfig ? this.activeLevelConfig.targetScore : 150;
     if (this.activeLevelConfig && this.currentPatternIdx >= maxPillars) {
       return;
     }
@@ -875,17 +978,12 @@ export class ObstacleManager {
 
       // Determine next spawn distance: Connected cavern spacing segments (0 distance horizontally) for all Levels in Level Mode
       if (this.activeLevelConfig) {
-        const levelNum = this.activeLevelConfig.levelNum;
-        if (levelNum <= 20 || (levelNum >= 30 && levelNum <= 50)) {
-          // Exactly 3 groups of 6 pillars. Spacing between group 1 & 2 (idx 5) and group 2 & 3 (idx 11) is added
-          const idx = this.currentPatternIdx - 1;
-          if (idx === 5 || idx === 11) {
-            this.nextSpawnDistance = this.obstacleWidth * 3.5; // Spacing between groups (about 252px)
-          } else {
-            this.nextSpawnDistance = this.obstacleWidth; // Connected side-by-side inside group
-          }
+        const groupSize = Math.floor(this.activeLevelConfig.targetScore / 3);
+        const idx = this.currentPatternIdx - 1;
+        if (idx === groupSize - 1 || idx === (groupSize * 2) - 1) {
+          this.nextSpawnDistance = this.obstacleWidth * 3.5; // Safe transition gap between obstacle groups
         } else {
-          this.nextSpawnDistance = this.obstacleWidth; // Connected side-by-side for other levels
+          this.nextSpawnDistance = this.obstacleWidth; // Connected side-by-side inside group
         }
       } else {
         const baseDistanceClassic = (width / 1.35) * 0.80;
@@ -911,7 +1009,12 @@ export class ObstacleManager {
       const levelNum = this.activeLevelConfig.levelNum;
       const patternsList = this.activeLevelConfig.patterns;
       const patternType = patternsList[this.currentPatternIdx % patternsList.length];
-      const obstacleIdx = this.currentPatternIdx;
+      const actualPatternIdx = this.currentPatternIdx;
+      const groupSize = Math.floor(this.activeLevelConfig.targetScore / 3);
+      const groupIdx = Math.min(2, Math.floor(actualPatternIdx / groupSize));
+      const idxInGroup = actualPatternIdx % groupSize;
+      const scaleFactor = 6 / groupSize;
+      const obstacleIdx = Math.min(17, Math.floor(groupIdx * 6 + idxInGroup * scaleFactor));
       this.currentPatternIdx++;
 
       let triggerDistance = 220;
@@ -1385,6 +1488,68 @@ export class ObstacleManager {
         }
         triggerDistance = 160;
         animDuration = 0.28;
+      } else if (patternType.indexOf('_progress') !== -1) {
+        // Levels 21 to 29: 3 completely different wave patterns per level!
+        let subPattern = 'wave_10';
+        if (levelNum === 21) {
+          subPattern = actualPatternIdx < groupSize ? 'wave_10' : (actualPatternIdx < groupSize * 2 ? 'breathing_12' : 'moving_stair_15');
+        } else if (levelNum === 22) {
+          subPattern = actualPatternIdx < groupSize ? 'rotating_17' : (actualPatternIdx < groupSize * 2 ? 'dynamic_w_18' : 'exp_shrink_19');
+        } else if (levelNum === 23) {
+          subPattern = actualPatternIdx < groupSize ? 'hybrid_20' : (actualPatternIdx < groupSize * 2 ? 'snake_21' : 'pulse_22');
+        } else if (levelNum === 24) {
+          subPattern = actualPatternIdx < groupSize ? 'gravity_23' : (actualPatternIdx < groupSize * 2 ? 'rotating_24' : 'waterfall_25');
+        } else if (levelNum === 25) {
+          subPattern = actualPatternIdx < groupSize ? 'elevator_26' : (actualPatternIdx < groupSize * 2 ? 'magnetic_27' : 'pendulum_28');
+        } else if (levelNum === 26) {
+          subPattern = actualPatternIdx < groupSize ? 'sliding_29' : (actualPatternIdx < groupSize * 2 ? 'wave_10' : 'breathing_12');
+        } else if (levelNum === 27) {
+          subPattern = actualPatternIdx < groupSize ? 'moving_stair_15' : (actualPatternIdx < groupSize * 2 ? 'rotating_17' : 'dynamic_w_18');
+        } else if (levelNum === 28) {
+          subPattern = actualPatternIdx < groupSize ? 'exp_shrink_19' : (actualPatternIdx < groupSize * 2 ? 'hybrid_20' : 'snake_21');
+        } else if (levelNum === 29) {
+          subPattern = actualPatternIdx < groupSize ? 'pulse_22' : (actualPatternIdx < groupSize * 2 ? 'gravity_23' : 'rotating_24');
+        }
+        
+        // Retrieve values for standard wave subPattern
+        if (subPattern === 'wave_10') {
+          const step = actualPatternIdx % 12;
+          targetCenterY = height / 2 + Math.sin(step * (Math.PI * 2 / 12)) * 55;
+        } else if (subPattern === 'breathing_12' || subPattern === 'exp_shrink_19') {
+          targetCenterY = height / 2;
+        } else if (subPattern === 'moving_stair_15') {
+          const offsets = [80, 40, 0, -40, -80, -40, 0, 40];
+          targetCenterY = height / 2 + offsets[actualPatternIdx % offsets.length];
+        } else if (subPattern === 'rotating_17' || subPattern === 'rotating_24') {
+          targetCenterY = height / 2 + Math.sin(actualPatternIdx * (Math.PI / 4)) * 40;
+        } else if (subPattern === 'dynamic_w_18') {
+          const offsets = [-80, -40, 0, 40, 80, 40, 0, -40];
+          targetCenterY = height / 2 + offsets[actualPatternIdx % offsets.length];
+        } else if (subPattern === 'hybrid_20') {
+          const offsets = [-60, -30, 0, 30, 60, 30, 0, -30];
+          targetCenterY = height / 2 + offsets[actualPatternIdx % offsets.length];
+        } else if (subPattern === 'snake_21') {
+          targetCenterY = height / 2 + Math.sin(actualPatternIdx * 0.7) * 45;
+        } else if (subPattern === 'pulse_22') {
+          targetCenterY = height / 2 + (actualPatternIdx % 2 === 0 ? -25 : 25);
+        } else if (subPattern === 'gravity_23') {
+          targetCenterY = height / 2 + (actualPatternIdx % 3 === 0 ? -40 : 20);
+        } else if (subPattern === 'waterfall_25') {
+          const offsets = [-80, -40, 0, 40, 80, 80, 40, 0, -40, -80];
+          targetCenterY = height / 2 + offsets[actualPatternIdx % offsets.length];
+        } else if (subPattern === 'elevator_26') {
+          targetCenterY = height / 2 + (actualPatternIdx % 2 === 0 ? -70 : 70);
+        } else if (subPattern === 'magnetic_27') {
+          targetCenterY = height / 2 + (actualPatternIdx % 4 === 0 ? -40 : 40);
+        } else if (subPattern === 'pendulum_28') {
+          targetCenterY = height / 2 + 20;
+        } else if (subPattern === 'sliding_29') {
+          const offsets = [-50, 0, 50, 0];
+          targetCenterY = height / 2 + offsets[actualPatternIdx % offsets.length];
+        }
+        
+        triggerDistance = 210;
+        animDuration = 0.45;
       } else if (patternType === 'wave_10') {
         const step = obstacleIdx % 12;
         targetCenterY = height / 2 + Math.sin(step * (Math.PI * 2 / 12)) * 55;
@@ -1455,7 +1620,7 @@ export class ObstacleManager {
         shakeX2: 0,
         gapHeight,
         spawnCenterY: targetCenterY,
-        obstacleIdx
+        obstacleIdx: actualPatternIdx
       }));
       return;
     }
