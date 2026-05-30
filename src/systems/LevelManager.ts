@@ -72,25 +72,25 @@ export class LevelManager {
       // Distribute patterns based on level brackets using active wave/moving patterns ONLY
       let patterns: string[] = [];
       if (levelNum === 1) {
-        patterns = ['level1_straight'];
+        patterns = ['level1_funnel'];
       } else if (levelNum === 2) {
-        patterns = ['level2_w'];
+        patterns = ['level2_diamond'];
       } else if (levelNum === 3) {
-        patterns = ['level3_stair'];
+        patterns = ['level3_arc'];
       } else if (levelNum === 4) {
-        patterns = ['level4_wave'];
+        patterns = ['level4_snake'];
       } else if (levelNum === 5) {
-        patterns = ['level5_zigzag'];
+        patterns = ['level5_hourglass'];
       } else if (levelNum === 6) {
-        patterns = ['level6_slope'];
+        patterns = ['level6_infinity'];
       } else if (levelNum === 7) {
-        patterns = ['level7_snake'];
+        patterns = ['level7_dna'];
       } else if (levelNum === 8) {
-        patterns = ['level8_breathing'];
+        patterns = ['level8_lightning'];
       } else if (levelNum === 9) {
-        patterns = ['level9_sliding'];
+        patterns = ['level9_magnetic'];
       } else if (levelNum === 10) {
-        patterns = ['level10_hybrid'];
+        patterns = ['level10_miniboss'];
       } else if (levelNum === 11) {
         patterns = ['level11_diamond'];
       } else if (levelNum === 12) {
