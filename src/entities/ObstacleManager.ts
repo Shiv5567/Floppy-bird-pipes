@@ -278,39 +278,36 @@ export class ObstacleManager {
           const c4 = (2 * Math.PI) / 3;
           const easedOpen = progress === 0 ? 0 : progress === 1 ? 1 : Math.pow(2, -10 * progress) * Math.sin((progress * 10 - 0.75) * c4) + 1;
 
-          // Level 1-5: Stair → Arc → Narrow-Wide-Narrow unified animation system
-          // Detect group from raw index (targetScore=150, groupSize=50)
-          const l15groupSize = 50;
-          const l15group = Math.min(2, Math.floor(obs.obstacleIdx! / l15groupSize));
-          // Amplitude increases per level: L1=35, L2=48, L3=58, L4=66, L5=74
-          const l15amps: Record<string, number> = {
-            'level1_funnel': 35, 'level2_diamond': 48, 'level3_arc': 58,
-            'level4_snake': 66, 'level5_hourglass': 74
-          };
-          const l15amp = l15amps[obs.patternType!] ?? 35;
-
-          if (obs.patternType === 'level1_funnel' || obs.patternType === 'level2_diamond' ||
-              obs.patternType === 'level3_arc' || obs.patternType === 'level4_snake' ||
-              obs.patternType === 'level5_hourglass') {
-            if (l15group === 0) {
-              // GROUP 1 - Stair: each step oscillates with cascading delay (sequential stepping)
-              const cascade = Math.sin(this.waveTime * 1.4 + (obs.obstacleIdx! % l15groupSize) * 0.1) * (l15amp * 0.12);
-              const centerY = obs.spawnCenterY! + cascade;
-              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-            } else if (l15group === 1) {
-              // GROUP 2 - Curved Arc: smooth arc gently floats up and down together
-              const arcDrift = Math.sin(this.waveTime * 1.1) * (l15amp * 0.10);
-              const centerY = obs.spawnCenterY! + arcDrift;
-              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-            } else {
-              // GROUP 3 - Narrow-Wide-Narrow: gap breathes open/closed rhythmically
-              const breathMod = Math.sin(this.waveTime * 2.0) * (l15amp * 0.32);
-              const centerY = obs.spawnCenterY!;
-              obs.targetTopHeight = centerY - (obs.gapHeight! + breathMod) / 2;
-              obs.targetBottomHeight = height - centerY - (obs.gapHeight! + breathMod) / 2;
-            }
+          // Level 1-5 Custom Flight Path & Animation Updates
+          if (obs.patternType === 'level1_funnel') {
+            // Level 1 - Wide Funnel Tunnel: subtle floating animation
+            const float = Math.sin(this.waveTime * 1.0 + obs.obstacleIdx! * 0.05) * 12;
+            const centerY = obs.spawnCenterY! + float;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'level2_diamond') {
+            // Level 2 - W Pattern: stable curves, only horizontal reactive split opening
+            const centerY = obs.spawnCenterY!;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'level3_arc') {
+            // Level 3 - Stair Pattern: clean stair route with gradual sequential climbing step delay
+            const cascade = Math.sin(this.waveTime * 1.5 - obs.obstacleIdx! * 0.4) * 15;
+            const centerY = obs.spawnCenterY! + cascade;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'level4_snake') {
+            // Level 4 - Curved Arc Tunnel: slow synchronized arc drift (whole tunnel floats in sync)
+            const drift = Math.sin(this.waveTime * 1.2) * 20;
+            const centerY = obs.spawnCenterY! + drift;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'level5_hourglass') {
+            // Level 5 - Narrow-Wide-Narrow Corridor: rhythmic gap breathing/pulsing animation
+            const breath = Math.sin(this.waveTime * 1.8) * 15;
+            const centerY = obs.spawnCenterY!;
+            obs.targetTopHeight = centerY - (obs.gapHeight! + breath) / 2;
+            obs.targetBottomHeight = height - centerY - (obs.gapHeight! + breath) / 2;
           } else if (obs.patternType === 'level6_infinity') {
             // Flowing infinity motion: lemniscate Y-shift over time
             const angle = this.waveTime * 1.8 + obs.obstacleIdx! * 0.45;
@@ -1048,83 +1045,67 @@ export class ObstacleManager {
       let triggerDistance = 220;
       let animDuration = 0.45;
       let targetCenterY = height / 2;
+      let localGapHeight = gapHeight;
 
       if (patternType === 'level1_funnel') {
-        // ALL 3 GROUPS: Stair → Curved Arc → Narrow-Wide-Narrow (Amplitude: 35px)
-        // GROUP 1 (0-5): Ascending Staircase - gentle beginner steps
-        // GROUP 2 (6-11): Curved Arc Tunnel - smooth sine arch
-        // GROUP 3 (12-17): Narrow-Wide-Narrow - stays centered, gap breathes
+        // LEVEL 1: Wide Funnel Tunnel flight path.
+        // Route gently narrows and widens.
+        // Group 1 (0-5): Funnel down (narrows)
+        // Group 2 (6-11): Narrow corridor (stable gap)
+        // Group 3 (12-17): Funnel up (widens)
         if (obstacleIdx <= 5) {
-          // Stair ascending: lowest at 0, highest at 5
-          targetCenterY = height / 2 + 35 - obstacleIdx * 14;
+          localGapHeight = gapHeight + (5 - obstacleIdx) * 10;
         } else if (obstacleIdx <= 11) {
-          // Curved Arc: sine arch
-          const ai = obstacleIdx - 6;
-          targetCenterY = height / 2 - Math.sin(ai * (Math.PI / 5)) * 35;
+          localGapHeight = gapHeight;
         } else {
-          // Narrow-Wide-Narrow: centered (gap animated)
-          targetCenterY = height / 2;
+          localGapHeight = gapHeight + (obstacleIdx - 12) * 10;
         }
+        targetCenterY = height / 2;
         triggerDistance = 480;
         animDuration = 0.75;
       } else if (patternType === 'level2_diamond') {
-        // ALL 3 GROUPS: Stair → Curved Arc → Narrow-Wide-Narrow (Amplitude: 48px)
-        // GROUP 1 (0-5): Ascending Staircase
-        // GROUP 2 (6-11): Curved Arc Tunnel
-        // GROUP 3 (12-17): Narrow-Wide-Narrow
-        if (obstacleIdx <= 5) {
-          targetCenterY = height / 2 + 48 - obstacleIdx * 19.2;
-        } else if (obstacleIdx <= 11) {
-          const ai = obstacleIdx - 6;
-          targetCenterY = height / 2 - Math.sin(ai * (Math.PI / 5)) * 48;
-        } else {
-          targetCenterY = height / 2;
-        }
+        // LEVEL 2: W Pattern flight path.
+        // Bird follows smooth downward and upward curves matching the W layout.
+        // W shape across 18 obstacles: starts at center, curves down/up smoothly.
+        const angle = (obstacleIdx / 17) * Math.PI * 3;
+        targetCenterY = height / 2 + Math.sin(angle) * 60;
         triggerDistance = 420;
         animDuration = 0.68;
       } else if (patternType === 'level3_arc') {
-        // ALL 3 GROUPS: Stair → Curved Arc → Narrow-Wide-Narrow (Amplitude: 58px)
-        // GROUP 1 (0-5): Ascending Staircase
-        // GROUP 2 (6-11): Curved Arc Tunnel
-        // GROUP 3 (12-17): Narrow-Wide-Narrow
+        // LEVEL 3: Stair Pattern flight path.
+        // Clean staircase route with gradual elevation changes, avoiding sharp jumps.
+        // Group 1 (0-5): Ascending stairs
+        // Group 2 (6-11): flat platform transitioning to Descending stairs
+        // Group 3 (12-17): flat platform transitioning back to Ascending stairs
         if (obstacleIdx <= 5) {
-          targetCenterY = height / 2 + 58 - obstacleIdx * 23.2;
+          targetCenterY = height / 2 + 60 - obstacleIdx * 20;
         } else if (obstacleIdx <= 11) {
-          const ai = obstacleIdx - 6;
-          targetCenterY = height / 2 - Math.sin(ai * (Math.PI / 5)) * 58;
+          targetCenterY = height / 2 - 40 + (obstacleIdx - 6) * 20;
         } else {
-          targetCenterY = height / 2;
+          targetCenterY = height / 2 + 60 - (obstacleIdx - 12) * 20;
         }
         triggerDistance = 360;
         animDuration = 0.60;
       } else if (patternType === 'level4_snake') {
-        // ALL 3 GROUPS: Stair → Curved Arc → Narrow-Wide-Narrow (Amplitude: 66px)
-        // GROUP 1 (0-5): Ascending Staircase
-        // GROUP 2 (6-11): Curved Arc Tunnel
-        // GROUP 3 (12-17): Narrow-Wide-Narrow
-        if (obstacleIdx <= 5) {
-          targetCenterY = height / 2 + 66 - obstacleIdx * 26.4;
-        } else if (obstacleIdx <= 11) {
-          const ai = obstacleIdx - 6;
-          targetCenterY = height / 2 - Math.sin(ai * (Math.PI / 5)) * 66;
-        } else {
-          targetCenterY = height / 2;
-        }
+        // LEVEL 4: Curved Arc Tunnel flight path.
+        // Bird follows flowing arch-shaped route with elegant curved transitions.
+        targetCenterY = height / 2 - Math.sin((obstacleIdx / 17) * Math.PI) * 70;
         triggerDistance = 310;
         animDuration = 0.54;
       } else if (patternType === 'level5_hourglass') {
-        // ALL 3 GROUPS: Stair → Curved Arc → Narrow-Wide-Narrow (Amplitude: 74px)
-        // GROUP 1 (0-5): Ascending Staircase
-        // GROUP 2 (6-11): Curved Arc Tunnel
-        // GROUP 3 (12-17): Narrow-Wide-Narrow
+        // LEVEL 5: Narrow-Wide-Narrow Corridor flight path.
+        // Route starts tight, opens into a comfortable section, then narrows again.
+        // Group 1 (0-5): Narrows to comfortable
+        // Group 2 (6-11): Comfortable wide corridor
+        // Group 3 (12-17): Narrows back down tight
         if (obstacleIdx <= 5) {
-          targetCenterY = height / 2 + 74 - obstacleIdx * 29.6;
+          localGapHeight = gapHeight - 35 + obstacleIdx * 14;
         } else if (obstacleIdx <= 11) {
-          const ai = obstacleIdx - 6;
-          targetCenterY = height / 2 - Math.sin(ai * (Math.PI / 5)) * 74;
+          localGapHeight = gapHeight + 35;
         } else {
-          targetCenterY = height / 2;
+          localGapHeight = gapHeight + 35 - (obstacleIdx - 12) * 14;
         }
+        targetCenterY = height / 2;
         triggerDistance = 270;
         animDuration = 0.48;
       } else if (patternType === 'level6_infinity') {
@@ -1666,24 +1647,31 @@ export class ObstacleManager {
       }
 
       // Safeguard boundaries
-      const minCenterY = 75 + gapHeight / 2;
-      const maxCenterY = height - 75 - gapHeight / 2;
+      const minCenterY = 75 + localGapHeight / 2;
+      const maxCenterY = height - 75 - localGapHeight / 2;
       targetCenterY = Math.max(minCenterY, Math.min(maxCenterY, targetCenterY));
 
-      const targetTopHeight = targetCenterY - gapHeight / 2;
-      const targetBottomHeight = height - targetCenterY - gapHeight / 2;
+      const targetTopHeight = targetCenterY - localGapHeight / 2;
+      const targetBottomHeight = height - targetCenterY - localGapHeight / 2;
 
-      // All level-mode obstacles spawn fully open — no upward/downward opening animation
-      const isSpecialSplit = false;
+      // Enable special different-direction split opening animation specifically for Level 2 W pattern
+      const isSpecialSplit = (patternType === 'level2_diamond');
 
       let closedTopHeight = 0;
       let closedBottomHeight = 0;
       let initTriggered = true;
       let initAnimTimer = animDuration;
 
-      // Always fully open at spawn
-      closedTopHeight = targetTopHeight;
-      closedBottomHeight = targetBottomHeight;
+      if (isSpecialSplit) {
+        initTriggered = false;
+        initAnimTimer = 0;
+        // Start closed at centerX to show the slide apart on approach
+        closedTopHeight = targetCenterY - 15;
+        closedBottomHeight = height - targetCenterY - 15;
+      } else {
+        closedTopHeight = targetTopHeight;
+        closedBottomHeight = targetBottomHeight;
+      }
 
       const isMutated = (levelNum % 2 === 0);
       const isStructured = (levelNum % 3 === 0);
@@ -1720,7 +1708,7 @@ export class ObstacleManager {
         levelNum,
         shakeX: 0,
         shakeX2: 0,
-        gapHeight,
+        gapHeight: localGapHeight,
         spawnCenterY: targetCenterY,
         obstacleIdx: actualPatternIdx
       }));
