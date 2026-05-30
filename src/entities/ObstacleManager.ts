@@ -600,6 +600,10 @@ export class ObstacleManager {
     }
 
     // Procedural Spawning using distance-based logic (extremely robust)
+    if (this.activeLevelConfig && this.currentPatternIdx >= 150) {
+      return;
+    }
+
     this.spawnTimer += actualScrollSpeed;
     if (this.spawnTimer >= this.nextSpawnDistance) {
       this.spawnTimer = 0;
