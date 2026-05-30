@@ -42,6 +42,13 @@ export class LevelManager {
           200, 195, 190, 185, 180, 175, 170, 165, 160, 155  // Levels 11-20
         ];
         gapHeight = gaps[levelNum - 1];
+      } else if (levelNum >= 30 && levelNum <= 40) {
+        targetScore = 18; // Exactly 3 obstacle groups * 6 pillars per group = 18 pillars
+        // Advanced difficulty ramp (Levels 30-40) with smaller playable gaps
+        const gaps30to40 = [
+          155, 153, 151, 149, 147, 145, 143, 141, 139, 137, 135
+        ];
+        gapHeight = gaps30to40[levelNum - 30];
       }
 
       const scrollSpeed = (3.3 + (levelNum * 0.06)) * 0.8; // Decreased by 20%
@@ -88,8 +95,30 @@ export class LevelManager {
         patterns = ['level19_magnetic'];
       } else if (levelNum === 20) {
         patterns = ['level20_masterhybrid'];
+      } else if (levelNum === 30) {
+        patterns = ['level30_hybridwave'];
+      } else if (levelNum === 31) {
+        patterns = ['level31_snakemotion'];
+      } else if (levelNum === 32) {
+        patterns = ['level32_waterfall'];
+      } else if (levelNum === 33) {
+        patterns = ['level33_magneticpush'];
+      } else if (levelNum === 34) {
+        patterns = ['level34_pendulum'];
+      } else if (levelNum === 35) {
+        patterns = ['level35_triplestair'];
+      } else if (levelNum === 36) {
+        patterns = ['level36_spiralflow'];
+      } else if (levelNum === 37) {
+        patterns = ['level37_elevator'];
+      } else if (levelNum === 38) {
+        patterns = ['level38_scurve'];
+      } else if (levelNum === 39) {
+        patterns = ['level39_orbit'];
+      } else if (levelNum === 40) {
+        patterns = ['level40_miniboss'];
       } else {
-        // Levels 21-50: Cycle through standard wave patterns for simple animation
+        // Levels 21-29, 41-50: Cycle through standard wave patterns for simple animation
         const patternIndex = (levelNum - 21) % wavePatterns.length;
         patterns = [wavePatterns[patternIndex]];
       }
