@@ -469,11 +469,24 @@ export class ObstacleManager {
             obs.targetTopHeight = obs.baseTopHeight! + wave;
             obs.targetBottomHeight = obs.baseBottomHeight! - wave;
           } else if (obs.patternType === 'level11_diamond') {
-            // Level 11: W & M Peaks
-            // Symmetrical peak-valley breathing waves
-            const wave = Math.sin(this.waveTime * 2.4 - Math.abs(actualIdx - 2.5) * 0.8) * 18;
-            obs.targetTopHeight = obs.baseTopHeight! + wave;
-            obs.targetBottomHeight = obs.baseBottomHeight! - wave;
+            // Level 11: Deep V-Shape and Symmetrical Variations (Based on user's image)
+            if (groupIdx === 0) {
+              // Group 1: Deep V-Shape breathes smoothly up and down
+              const breath = Math.sin(this.waveTime * 2.0) * 18;
+              obs.targetTopHeight = obs.baseTopHeight! + breath;
+              obs.targetBottomHeight = obs.baseBottomHeight! - breath;
+            } else if (groupIdx === 1) {
+              // Group 2: Symmetrical Inverted V-Shape (pyramid peak) oscillates out of phase
+              const breath = Math.sin(this.waveTime * 2.0 + Math.PI) * 18;
+              obs.targetTopHeight = obs.baseTopHeight! + breath;
+              obs.targetBottomHeight = obs.baseBottomHeight! - breath;
+            } else {
+              // Group 3: Symmetrical Double V-Shape ripples out from center
+              const rippleIdx = actualIdx - 12;
+              const ripple = Math.sin(this.waveTime * 2.4 - Math.abs(rippleIdx - 2.5) * 0.8) * 16;
+              obs.targetTopHeight = obs.baseTopHeight! + ripple;
+              obs.targetBottomHeight = obs.baseBottomHeight! - ripple;
+            }
           } else if (obs.patternType === 'level12_doublewave') {
             // Level 12: Exponential Gaps
             // Squeezes or expands gaps dynamically with an exponential breathing rhythm
@@ -1367,22 +1380,25 @@ export class ObstacleManager {
         triggerDistance = 200;
         animDuration = 0.38;
       } else if (patternType === 'level11_diamond') {
-        // LEVEL 11: W & M Peaks (Symmetrical peak-valley profiles)
+        // LEVEL 11: Deep V-Shape & Symmetrical Variations (Based on user's image)
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
-          // Group 1: Symmetrical W-shape profile
-          localGapHeight = gapHeight - 10;
-          targetTopHeight = height / 2 - localGapHeight / 2 + Math.abs(obstacleIdx - 2.5) * 35 - 45;
+          // Group 1: Symmetrical Deep V-shape profile (Exact match to the user's image)
+          localGapHeight = gapHeight - 20;
+          const centerDist = Math.abs(obstacleIdx - 2.5);
+          targetTopHeight = (height / 2 - localGapHeight / 2) + 70 - centerDist * 65;
         } else if (obstacleIdx <= 11) {
-          // Group 2: Symmetrical M-shape profile (inverted W)
-          localGapHeight = gapHeight - 10;
+          // Group 2: Symmetrical Inverted V-shape profile (Pyramid peak variation of the image structure)
+          localGapHeight = gapHeight - 20;
           const idx = obstacleIdx - 6;
-          targetTopHeight = height / 2 - localGapHeight / 2 - Math.abs(idx - 2.5) * 35 + 45;
+          const centerDist = Math.abs(idx - 2.5);
+          targetTopHeight = (height / 2 - localGapHeight / 2) - 70 + centerDist * 65;
         } else {
-          // Group 3: Double peak-valley waves
-          localGapHeight = gapHeight + 15;
+          // Group 3: Double V-shape (W-shape variation of the image structure)
+          localGapHeight = gapHeight - 15;
           const idx = obstacleIdx - 12;
-          targetTopHeight = height / 2 - localGapHeight / 2 + Math.sin(idx * Math.PI / 2.5) * 60;
+          const angle = (idx / 5) * Math.PI * 2;
+          targetTopHeight = (height / 2 - localGapHeight / 2) + Math.cos(angle) * 70;
         }
         triggerDistance = 220;
         animDuration = 0.45;
