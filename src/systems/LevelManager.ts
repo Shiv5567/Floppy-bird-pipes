@@ -32,32 +32,37 @@ export class LevelManager {
       const worldName = worldNames[worldIdx];
 
       // Progressive difficulty values
-      const targetScore = 50; // Level complete requires 50 obstacles crossed
+      const targetScore = 150; // Level complete requires 150 obstacles crossed
       const scrollSpeed = (3.3 + (levelNum * 0.06)) * 0.8; // Decreased by 20%
-      const gapHeight = Math.max(195, 260 - (levelNum * 2.2)); // 260 down to 195px
+      let gapHeight = Math.max(195, 260 - (levelNum * 2.2)); // 260 down to 195px
+      if (levelNum === 1) {
+        gapHeight = 280; // Large gap size for easy learning
+      } else if (levelNum === 2) {
+        gapHeight = 265; // Large gap size for onboarding
+      }
 
       // Distribute patterns based on level brackets using active wave/moving patterns ONLY
       let patterns: string[] = [];
       if (levelNum === 1) {
-        patterns = ['wave_10'];
+        patterns = ['level1_straight'];
       } else if (levelNum === 2) {
-        patterns = ['breathing_12'];
+        patterns = ['level2_w'];
       } else if (levelNum === 3) {
-        patterns = ['moving_stair_15'];
+        patterns = ['level3_stair'];
       } else if (levelNum === 4) {
-        patterns = ['rotating_17'];
+        patterns = ['level4_wave'];
       } else if (levelNum === 5) {
-        patterns = ['dynamic_w_18'];
+        patterns = ['level5_zigzag'];
       } else if (levelNum === 6) {
-        patterns = ['exp_shrink_19'];
+        patterns = ['level6_slope'];
       } else if (levelNum === 7) {
-        patterns = ['hybrid_20'];
+        patterns = ['level7_snake'];
       } else if (levelNum === 8) {
-        patterns = ['snake_21'];
+        patterns = ['level8_breathing'];
       } else if (levelNum === 9) {
-        patterns = ['pulse_22'];
+        patterns = ['level9_sliding'];
       } else if (levelNum === 10) {
-        patterns = ['gravity_23'];
+        patterns = ['level10_hybrid'];
       } else if (levelNum === 11) {
         patterns = ['rotating_24'];
       } else if (levelNum === 12) {
@@ -95,9 +100,9 @@ export class LevelManager {
       } else if (levelNum === 30) {
         patterns = ['boss_30'];
       } else if (levelNum <= 5) {
-        patterns = ['wave_10', 'breathing_12', 'moving_stair_15'];
+        patterns = ['level1_straight', 'level2_w', 'level3_stair'];
       } else if (levelNum <= 10) {
-        patterns = ['rotating_17', 'dynamic_w_18', 'exp_shrink_19', 'hybrid_20'];
+        patterns = ['level4_wave', 'level5_zigzag', 'level6_slope', 'level7_snake'];
       } else if (levelNum <= 15) {
         patterns = ['snake_21', 'pulse_22', 'gravity_23', 'rotating_24'];
       } else if (levelNum <= 20) {

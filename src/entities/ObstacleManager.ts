@@ -277,7 +277,79 @@ export class ObstacleManager {
           const easedOpen = progress === 0 ? 0 : progress === 1 ? 1 : Math.pow(2, -10 * progress) * Math.sin((progress * 10 - 0.75) * c4) + 1;
 
           // Choreographed patterns
-          if (obs.patternType === 'wave_10') {
+          if (obs.patternType === 'level1_straight') {
+            obs.shakeX = Math.sin(this.waveTime * 1.5) * 12;
+            obs.shakeX2 = Math.sin(this.waveTime * 1.5) * 12;
+            const centerY = obs.spawnCenterY!;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'level2_w') {
+            const centerY = obs.spawnCenterY!;
+            const pulseGap = obs.gapHeight! + Math.sin(this.waveTime * 3.5) * 12;
+            obs.targetTopHeight = centerY - pulseGap / 2;
+            obs.targetBottomHeight = height - centerY - pulseGap / 2;
+          } else if (obs.patternType === 'level3_stair') {
+            const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.4) * 20;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'level4_wave') {
+            const waveShift = Math.sin(this.waveTime * 1.8) * 35;
+            const step = obs.obstacleIdx! % 16;
+            const centerY = height / 2 + Math.sin(step * (Math.PI * 2 / 16)) * 60 + waveShift;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'level5_zigzag') {
+            const zigzagShift = Math.sin(this.waveTime * 2.2) * 20;
+            const direction = (obs.obstacleIdx! % 2 === 0) ? 1 : -1;
+            obs.shakeX = zigzagShift * direction;
+            obs.shakeX2 = zigzagShift * direction;
+            const centerY = obs.spawnCenterY!;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'level6_slope') {
+            const slopeShift = Math.sin(this.waveTime * 1.5) * 45;
+            const slopeIndex = obs.obstacleIdx! % 12;
+            const slopeOffset = (slopeIndex <= 6) ? (-120 + slopeIndex * 40) : (120 - (slopeIndex - 6) * 40);
+            const centerY = height / 2 + slopeOffset + slopeShift;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'level7_snake') {
+            const snakeCenterY = height / 2 + Math.sin((obs.x * 0.008) - this.waveTime * 3.5) * 65;
+            obs.targetTopHeight = snakeCenterY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - snakeCenterY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'level8_breathing') {
+            const centerY = obs.spawnCenterY!;
+            const breathingGap = obs.gapHeight! + Math.sin(this.waveTime * 2.0) * 25;
+            obs.targetTopHeight = centerY - breathingGap / 2;
+            obs.targetBottomHeight = height - centerY - breathingGap / 2;
+          } else if (obs.patternType === 'level9_sliding') {
+            const slideTime = this.waveTime * 2.0;
+            obs.shakeX = Math.sin(slideTime) * 24;
+            obs.shakeX2 = Math.cos(slideTime) * 24;
+            const centerY = obs.spawnCenterY!;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'level10_hybrid') {
+            const section = Math.floor(obs.obstacleIdx! / 15) % 3;
+            let centerY = obs.spawnCenterY!;
+            if (section === 0) {
+              const waveShift = Math.sin(this.waveTime * 2.0) * 30;
+              const step = obs.obstacleIdx! % 12;
+              centerY = height / 2 + Math.sin(step * (Math.PI * 2 / 12)) * 60 + waveShift;
+            } else if (section === 1) {
+              const slopeShift = Math.sin(this.waveTime * 1.5) * 40;
+              const slopeStep = obs.obstacleIdx! % 8;
+              const slopeOffset = -80 + (slopeStep % 5) * 40;
+              centerY = height / 2 + slopeOffset + slopeShift;
+            } else {
+              const zigzagShift = Math.sin(this.waveTime * 2.2) * 20;
+              const direction = (obs.obstacleIdx! % 2 === 0) ? 1 : -1;
+              obs.shakeX = zigzagShift * direction;
+              obs.shakeX2 = zigzagShift * direction;
+            }
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'wave_10') {
             const centerY = height / 2 + Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.5) * 55;
             obs.targetTopHeight = centerY - obs.gapHeight! / 2;
             obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
@@ -384,7 +456,13 @@ export class ObstacleManager {
             let pGlow = false;
             let pGlowColor = undefined;
 
-            if (obs.worldId === 'jungle' || obs.worldId === 'jungle_temple') {
+            if (obs.patternType === 'level10_hybrid') {
+              const colors = ['#ff007f', '#00f3ff', '#39ff14', '#ffff00', '#ffd700'];
+              pColor = colors[Math.floor(Math.random() * colors.length)];
+              pGlow = true;
+              pGlowColor = pColor;
+              pShape = Math.random() > 0.5 ? 'star' : 'spark';
+            } else if (obs.worldId === 'jungle' || obs.worldId === 'jungle_temple') {
               pColor = Math.random() < 0.5 ? '#228b22' : '#39ff14';
               pShape = 'spark';
             } else if (obs.worldId === 'cyberpunk') {
@@ -569,9 +647,69 @@ export class ObstacleManager {
       const obstacleIdx = this.currentPatternIdx;
       this.currentPatternIdx++;
 
+      let triggerDistance = 220;
+      let animDuration = 0.45;
       let targetCenterY = height / 2;
-      
-      if (patternType === 'wave_10') {
+
+      if (patternType === 'level1_straight') {
+        targetCenterY = height / 2;
+        triggerDistance = 450; // Open very early for beginners
+        animDuration = 0.6;
+      } else if (patternType === 'level2_w') {
+        const offsets = [60, 10, -40, 10, 60, 10, -40, 10];
+        targetCenterY = height / 2 + offsets[obstacleIdx % offsets.length];
+        triggerDistance = 260; // Open smoothly on approach
+        animDuration = 0.55;
+      } else if (patternType === 'level3_stair') {
+        const offsets = [-80, -60, -40, -20, 0, 20, 40, 60, 80, 60, 40, 20, 0, -20, -40, -60];
+        targetCenterY = height / 2 + offsets[obstacleIdx % offsets.length];
+        triggerDistance = 240;
+        animDuration = 0.5;
+      } else if (patternType === 'level4_wave') {
+        const step = obstacleIdx % 16;
+        targetCenterY = height / 2 + Math.sin(step * (Math.PI * 2 / 16)) * 60;
+        triggerDistance = 250;
+        animDuration = 0.48;
+      } else if (patternType === 'level5_zigzag') {
+        const offsets = [-50, 50, -50, 50];
+        targetCenterY = height / 2 + offsets[obstacleIdx % offsets.length];
+        triggerDistance = 230;
+        animDuration = 0.45;
+      } else if (patternType === 'level6_slope') {
+        const slopeIndex = obstacleIdx % 12;
+        const slopeOffset = (slopeIndex <= 6) ? (-120 + slopeIndex * 40) : (120 - (slopeIndex - 6) * 40);
+        targetCenterY = height / 2 + slopeOffset;
+        triggerDistance = 240;
+        animDuration = 0.5;
+      } else if (patternType === 'level7_snake') {
+        const step = obstacleIdx % 14;
+        targetCenterY = height / 2 + Math.sin(step * (Math.PI * 2 / 14)) * 65;
+        triggerDistance = 220;
+        animDuration = 0.45;
+      } else if (patternType === 'level8_breathing') {
+        targetCenterY = height / 2;
+        triggerDistance = 240;
+        animDuration = 0.5;
+      } else if (patternType === 'level9_sliding') {
+        const offsets = [-40, 0, 40, 0];
+        targetCenterY = height / 2 + offsets[obstacleIdx % offsets.length];
+        triggerDistance = 230;
+        animDuration = 0.45;
+      } else if (patternType === 'level10_hybrid') {
+        const section = Math.floor(obstacleIdx / 15) % 3;
+        if (section === 0) {
+          const step = obstacleIdx % 12;
+          targetCenterY = height / 2 + Math.sin(step * (Math.PI * 2 / 12)) * 60;
+        } else if (section === 1) {
+          const slopeStep = obstacleIdx % 8;
+          const slopeOffset = -80 + (slopeStep % 5) * 40;
+          targetCenterY = height / 2 + slopeOffset;
+        } else {
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -50 : 50);
+        }
+        triggerDistance = 185; // Reactive closer open for final milestone level
+        animDuration = 0.35;
+      } else if (patternType === 'wave_10') {
         const step = obstacleIdx % 12;
         targetCenterY = height / 2 + Math.sin(step * (Math.PI * 2 / 12)) * 55;
       } else if (patternType === 'moving_stair_15') {
@@ -630,8 +768,8 @@ export class ObstacleManager {
         patternType,
         isTriggered: false, // starts closed, reactive approach opens it
         animTimer: 0,
-        animDuration: 0.45,
-        triggerDistance: 220,
+        animDuration,
+        triggerDistance,
         closedTopHeight,
         closedBottomHeight,
         targetTopHeight,
@@ -1293,6 +1431,37 @@ export class ObstacleManager {
         ctx.beginPath();
         ctx.arc(0, 0, 25, 0, Math.PI * 1.5);
         ctx.stroke();
+        ctx.restore();
+      } else if (obs.patternType === 'level10_hybrid') {
+        const centerY = obs.topHeight + (height - obs.bottomHeight - obs.topHeight) / 2;
+        ctx.save();
+        ctx.translate(obs.x + obs.width / 2, centerY);
+        
+        // Beautiful breathing neon cyber ring
+        const glowPulse = 20 + Math.sin(this.waveTime * 6.0) * 6;
+        const radGrad = ctx.createRadialGradient(0, 0, 4, 0, 0, glowPulse);
+        radGrad.addColorStop(0, '#ffffff');
+        radGrad.addColorStop(0.4, '#00f3ff');
+        radGrad.addColorStop(1, 'rgba(255, 0, 127, 0)');
+        
+        ctx.fillStyle = radGrad;
+        ctx.beginPath();
+        ctx.arc(0, 0, glowPulse, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Multi-layered geometric rotating neon rings (Cyberpunk tech style)
+        ctx.rotate(this.waveTime * 2.5);
+        ctx.strokeStyle = 'rgba(255, 0, 127, 0.9)';
+        ctx.lineWidth = 2.0;
+        ctx.strokeRect(-16, -16, 32, 32);
+        
+        ctx.rotate(-this.waveTime * 5.0);
+        ctx.strokeStyle = 'rgba(0, 243, 255, 0.9)';
+        ctx.lineWidth = 2.0;
+        ctx.beginPath();
+        ctx.arc(0, 0, 22, 0, Math.PI * 1.6);
+        ctx.stroke();
+        
         ctx.restore();
       }
 

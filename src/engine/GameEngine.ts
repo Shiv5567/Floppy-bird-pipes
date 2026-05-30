@@ -472,14 +472,43 @@ export class GameEngine {
 
         if (bossDefeated) {
           // Boss defeated trigger
-          this.state = 'PLAYING';
-          this.incrementScore(10); // Massive points
           this.coinsCollectedThisRun += 150;
           this.progressManager.addCoins(150);
           this.progressManager.incrementAchievement('boss_slayer', 1);
           this.progressManager.updateQuestProgress('slayer', 1);
           this.soundManager.playLevelUp();
           this.particleEngine.emitRing(width * 0.7, height * 0.5, '#ffd700', 40);
+
+          if (this.gameMode === 'level' && this.activeLevelConfig) {
+            // Level complete!
+            this.state = 'LEVEL_COMPLETE' as any;
+            this.soundManager.stopMusic();
+            
+            // Stars calculation:
+            // 3 Stars: 0 revives used AND shield not broken
+            // 2 Stars: 0 revives used AND shield broken
+            // 1 Star: 1 or more revives used
+            let stars = 1;
+            if (this.revivesUsedThisRun === 0) {
+              stars = this.shieldBrokenThisRun ? 2 : 3;
+            }
+            
+            this.progressManager.setLevelComplete(this.currentLevelNum, stars);
+            
+            window.dispatchEvent(new CustomEvent('level_complete_state', {
+              detail: {
+                levelNum: this.currentLevelNum,
+                stars: stars,
+                score: this.score,
+                targetScore: this.activeLevelConfig.targetScore,
+                coinsGained: this.coinsCollectedThisRun,
+                gemsGained: this.gemsCollectedThisRun
+              }
+            }));
+          } else {
+            this.state = 'PLAYING';
+            this.incrementScore(10); // Massive points
+          }
         }
 
         // Check boss or bullet hitting bird
@@ -711,51 +740,23 @@ export class GameEngine {
     // Level Mode target check
     if (this.gameMode === 'level' && this.activeLevelConfig) {
       if (this.score >= this.activeLevelConfig.targetScore) {
-        // Level complete!
-        this.state = 'LEVEL_COMPLETE' as any; // Cast in case State type is checked
-        this.soundManager.stopMusic();
-        this.soundManager.playLevelUp();
-        
-        // Stars calculation:
-        // 3 Stars: 0 revives used AND shield not broken
-        // 2 Stars: 0 revives used AND shield broken
-        // 1 Star: 1 or more revives used
-        let stars = 1;
-        if (this.revivesUsedThisRun === 0) {
-          stars = this.shieldBrokenThisRun ? 2 : 3;
+        // Trigger Boss Warning sequence if we haven't already entered boss state
+        if (this.state !== 'BOSS_WARNING' && this.state !== 'BOSS_FIGHT' && !this.bossManager.isBossActive()) {
+          this.triggerBossWarning();
         }
-        
-        this.progressManager.setLevelComplete(this.currentLevelNum, stars);
-        
-        window.dispatchEvent(new CustomEvent('level_complete_state', {
-          detail: {
-            levelNum: this.currentLevelNum,
-            stars: stars,
-            score: this.score,
-            targetScore: this.activeLevelConfig.targetScore,
-            coinsGained: this.coinsCollectedThisRun,
-            gemsGained: this.gemsCollectedThisRun
-          }
-        }));
         return;
       }
     }
-
-    // Trigger Boss Warning sequence at milestone (Endless Mode only)
-    // Disabled to prevent gameplay freezes at score 50 and allow truly endless scrolling gameplay
-    // if (this.gameMode === 'endless' && this.score > 0 && this.score % this.bossScoreMilestone === 0 && this.state !== 'BOSS_FIGHT') {
-    //   this.triggerBossWarning();
-    // }
   }
 
-  // private triggerBossWarning() {
-  //   this.state = 'BOSS_WARNING';
-  //   this.bossWarningTimer = 0;
-  //   this.obstacleManager.clear();
-  //   
-  //   // Dispatch HUD alert custom event
-  //   window.dispatchEvent(new CustomEvent('hud_alert', { detail: { text: 'TITAN BOSS APPROACHING!', sub: 'COLLECT PLASMA CHARGES TO DEFEND!' } }));
-  // }
+  private triggerBossWarning() {
+    this.state = 'BOSS_WARNING';
+    this.bossWarningTimer = 0;
+    this.obstacleManager.clear();
+    
+    // Dispatch HUD alert custom event
+    window.dispatchEvent(new CustomEvent('hud_alert', { detail: { text: 'TITAN BOSS APPROACHING!', sub: 'COLLECT PLASMA CHARGES TO DEFEND!' } }));
+  }
 
   // Activate game changing powerup mechanics
   private activatePowerup(type: string) {
