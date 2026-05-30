@@ -516,6 +516,90 @@ export class ObstacleManager {
             
             obs.targetTopHeight = centerY - breathingGap / 2;
             obs.targetBottomHeight = height - centerY - breathingGap / 2;
+          } else if (obs.patternType === 'level41_doublew') {
+            // Alternating movement cycles: odd/even pillars shift in opposite directions
+            const shift = Math.sin(this.waveTime * 2.2 + (obs.obstacleIdx! % 2) * Math.PI) * 20;
+            const centerY = obs.spawnCenterY! + shift;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'level42_infinity') {
+            // Lemniscate of Bernoulli infinity (∞) figure-8 motion and breathing gaps
+            const angle = this.waveTime * 2.0 + obs.obstacleIdx! * 0.45;
+            const shiftY = Math.sin(angle) * Math.cos(angle) * 45;
+            const breathingGap = obs.gapHeight! + Math.sin(this.waveTime * 3.0) * 15;
+            const centerY = obs.spawnCenterY! + shiftY;
+            obs.targetTopHeight = centerY - breathingGap / 2;
+            obs.targetBottomHeight = height - centerY - breathingGap / 2;
+          } else if (obs.patternType === 'level43_dnahelix') {
+            // DNA Double Helix strands rotation
+            const phase = obs.obstacleIdx! % 2 === 0 ? 0 : Math.PI;
+            const helix = Math.sin(this.waveTime * 2.5 + obs.obstacleIdx! * 0.5 + phase) * 35;
+            const centerY = obs.spawnCenterY! + helix;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'level44_pendulum') {
+            // High-amplitude swinging pendulum rotation and gap attraction-repulsion
+            const swingAngle = Math.sin(this.waveTime * 1.8 + obs.obstacleIdx! * 0.35) * 0.4;
+            obs.shakeX = Math.sin(swingAngle) * 35;
+            obs.shakeX2 = obs.shakeX;
+            const pulse = Math.sin(this.waveTime * 2.5) * 20;
+            const finalGap = obs.gapHeight! + (obs.obstacleIdx! % 2 === 0 ? pulse : -pulse);
+            const centerY = obs.spawnCenterY!;
+            obs.targetTopHeight = centerY - finalGap / 2;
+            obs.targetBottomHeight = height - centerY - finalGap / 2;
+          } else if (obs.patternType === 'level45_scurve') {
+            // Continuous S-curve snake flow and synchronized vertical elevators
+            const sflow = Math.sin((obs.x * 0.009) - this.waveTime * 3.5) * 40;
+            const sync = Math.sin(this.waveTime * 2.2) * 35;
+            const centerY = obs.spawnCenterY! + sflow + (obs.obstacleIdx! % 2 === 0 ? sync : -sync) * 0.5;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'level46_triplespiral') {
+            // Multi-layered 3D rotational illusion using orbiting horizontal and vertical shake joints
+            const rotateAngle = this.waveTime * 2.0 + obs.obstacleIdx! * 0.6;
+            obs.shakeX = Math.sin(rotateAngle) * 24;
+            obs.shakeX2 = Math.cos(rotateAngle) * 24;
+            const shift = Math.sin(this.waveTime * 1.5) * 15;
+            const centerY = obs.spawnCenterY! + shift;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'level47_diamond') {
+            // Expanding/contracting diamond gaps and dynamic shifting
+            const expand = Math.sin(this.waveTime * 2.4) * 20;
+            const shift = Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.5) * 25;
+            const finalGap = obs.gapHeight! + expand;
+            const centerY = obs.spawnCenterY! + shift;
+            obs.targetTopHeight = centerY - finalGap / 2;
+            obs.targetBottomHeight = height - centerY - finalGap / 2;
+          } else if (obs.patternType === 'level48_tornado') {
+            // High-speed tornado swirl animation and continuous spiraling
+            const swirl = this.waveTime * 3.0 + obs.obstacleIdx! * 0.8;
+            obs.shakeX = Math.sin(swirl) * 30;
+            obs.shakeX2 = Math.cos(swirl) * 30;
+            const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 2.0) * 18;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'level49_fractal') {
+            // Multi-stage recursive staircase movements and breathing gaps
+            const recursive = Math.sin(this.waveTime * 2.0 + (obs.obstacleIdx! % 3) * Math.PI) * 25 + Math.cos(this.waveTime * 1.0) * 12;
+            const centerY = obs.spawnCenterY! + recursive;
+            const breathingGap = obs.gapHeight! + Math.sin(this.waveTime * 2.5) * 10;
+            obs.targetTopHeight = centerY - breathingGap / 2;
+            obs.targetBottomHeight = height - centerY - breathingGap / 2;
+          } else if (obs.patternType === 'level50_finalboss') {
+            // Ultimate Final Boss Layout: synthesis of snake crawl, wave undulations, magnetic pulse, pendulum, orbits, and reactive openings
+            const wave = Math.sin((obs.x * 0.01) - this.waveTime * 4.0) * 30;
+            const pulse = Math.sin(this.waveTime * 3.0) * 15;
+            const swing = Math.sin(this.waveTime * 1.5 + obs.obstacleIdx! * 0.5) * 0.3;
+            const orbit = this.waveTime * 2.5 + obs.obstacleIdx! * 0.4;
+            
+            obs.shakeX = Math.sin(orbit) * 24 + Math.sin(swing) * 15;
+            obs.shakeX2 = Math.cos(orbit) * 24 + Math.sin(swing) * 15;
+            
+            const finalGap = obs.gapHeight! + pulse;
+            const centerY = obs.spawnCenterY! + wave + Math.sin(this.waveTime * 2.0) * 15;
+            obs.targetTopHeight = centerY - finalGap / 2;
+            obs.targetBottomHeight = height - centerY - finalGap / 2;
           } else if (obs.patternType === 'wave_10') {
             const centerY = height / 2 + Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.5) * 55;
             obs.targetTopHeight = centerY - obs.gapHeight! / 2;
@@ -767,7 +851,7 @@ export class ObstacleManager {
     }
 
     // Procedural Spawning using distance-based logic (extremely robust)
-    const maxPillars = (this.activeLevelConfig && (this.activeLevelConfig.levelNum <= 20 || (this.activeLevelConfig.levelNum >= 30 && this.activeLevelConfig.levelNum <= 40))) ? 18 : 150;
+    const maxPillars = (this.activeLevelConfig && (this.activeLevelConfig.levelNum <= 20 || (this.activeLevelConfig.levelNum >= 30 && this.activeLevelConfig.levelNum <= 50))) ? 18 : 150;
     if (this.activeLevelConfig && this.currentPatternIdx >= maxPillars) {
       return;
     }
@@ -792,7 +876,7 @@ export class ObstacleManager {
       // Determine next spawn distance: Connected cavern spacing segments (0 distance horizontally) for all Levels in Level Mode
       if (this.activeLevelConfig) {
         const levelNum = this.activeLevelConfig.levelNum;
-        if (levelNum <= 20 || (levelNum >= 30 && levelNum <= 40)) {
+        if (levelNum <= 20 || (levelNum >= 30 && levelNum <= 50)) {
           // Exactly 3 groups of 6 pillars. Spacing between group 1 & 2 (idx 5) and group 2 & 3 (idx 11) is added
           const idx = this.currentPatternIdx - 1;
           if (idx === 5 || idx === 11) {
@@ -1191,6 +1275,116 @@ export class ObstacleManager {
         }
         triggerDistance = 175; // extremely close reactive opening for mini boss complete challenge
         animDuration = 0.32;
+      } else if (patternType === 'level41_doublew') {
+        // Group 1: Double W Tunnel, Group 2: Reverse Snake, Group 3: Dynamic Slope
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? 30 : -30);
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 - Math.sin((obstacleIdx - 6) * 0.9) * 45;
+        } else {
+          targetCenterY = height / 2 + 40 - (obstacleIdx - 12) * 14;
+        }
+        triggerDistance = 180;
+        animDuration = 0.35;
+      } else if (patternType === 'level42_infinity') {
+        // Group 1: Infinity pattern, Group 2: Wave Stair hybrid, Group 3: Pulse Tunnel
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 3)) * 40;
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 + 40 - (obstacleIdx - 6) * 15 + Math.sin((obstacleIdx - 6) * 0.5) * 15;
+        } else {
+          targetCenterY = height / 2;
+        }
+        triggerDistance = 180;
+        animDuration = 0.35;
+      } else if (patternType === 'level43_dnahelix') {
+        // Group 1: Helix strands, Group 2: Sliding Zigzag, Group 3: Curved Tunnel
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -30 : 30);
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? 35 : -35);
+        } else {
+          targetCenterY = height / 2 + Math.cos((obstacleIdx - 12) * 0.8) * 35;
+        }
+        triggerDistance = 185;
+        animDuration = 0.34;
+      } else if (patternType === 'level44_pendulum') {
+        // Group 1: Pendulum, Group 2: Magnetic corridor, Group 3: W Stair hybrid
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2;
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2;
+        } else {
+          targetCenterY = height / 2 + 40 - (obstacleIdx - 12) * 15 + (obstacleIdx % 2 === 0 ? 10 : -10);
+        }
+        triggerDistance = 190;
+        animDuration = 0.36;
+      } else if (patternType === 'level45_scurve') {
+        // Group 1: S-Curve, Group 2: Elevator synchronizations, Group 3: Pulse Maze
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.8) * 45;
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -40 : 40);
+        } else {
+          targetCenterY = height / 2;
+        }
+        triggerDistance = 175;
+        animDuration = 0.32;
+      } else if (patternType === 'level46_triplespiral') {
+        // Group 1: Triple spiral, Group 2: Snake Wave, Group 3: Orbit connector
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 4)) * 35;
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 - Math.sin((obstacleIdx - 6) * 0.8) * 40;
+        } else {
+          targetCenterY = height / 2;
+        }
+        triggerDistance = 180;
+        animDuration = 0.34;
+      } else if (patternType === 'level47_diamond') {
+        // Group 1: Diamond pattern, Group 2: Sliding Stair, Group 3: Dynamic Gap
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 + (obstacleIdx <= 2 ? -30 : 30);
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 - 40 + (obstacleIdx - 6) * 16;
+        } else {
+          targetCenterY = height / 2;
+        }
+        triggerDistance = 180;
+        animDuration = 0.35;
+      } else if (patternType === 'level48_tornado') {
+        // Group 1: Tornado swirl, Group 2: Reverse Spiral, Group 3: Magnetic Snake
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI * 2 / 6)) * 30;
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 + Math.cos((obstacleIdx - 6) * 0.8) * 35;
+        } else {
+          targetCenterY = height / 2;
+        }
+        triggerDistance = 170;
+        animDuration = 0.3;
+      } else if (patternType === 'level49_fractal') {
+        // Group 1: Fractal stair, Group 2: Infinity wave, Group 3: Orbit Maze
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 - 35 + (obstacleIdx % 3) * 20 - (obstacleIdx % 2) * 10;
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 + Math.sin((obstacleIdx - 6) * 0.8) * 40;
+        } else {
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -25 : 25);
+        }
+        triggerDistance = 175;
+        animDuration = 0.32;
+      } else if (patternType === 'level50_finalboss') {
+        // Ultimate Final Boss Layout: Group 1 (DNA + Snake Wave), Group 2 (Spiral + Magnetic), Group 3 (Infinity + Orbit)
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.8) * 40 + (obstacleIdx % 2 === 0 ? -15 : 15);
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 - 40 + (obstacleIdx - 6) * 15 + Math.sin((obstacleIdx - 6) * (Math.PI / 3)) * 15;
+        } else {
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -30 : 30) + Math.cos((obstacleIdx - 12) * 0.8) * 15;
+        }
+        triggerDistance = 160;
+        animDuration = 0.28;
       } else if (patternType === 'wave_10') {
         const step = obstacleIdx % 12;
         targetCenterY = height / 2 + Math.sin(step * (Math.PI * 2 / 12)) * 55;

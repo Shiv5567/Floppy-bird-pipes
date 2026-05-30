@@ -479,6 +479,23 @@ export class Renderer {
       return;
     }
 
+    if (this.activeLevelNum === 50) {
+      // Final Boss level dramatic dark void backdrop
+      const bossGrad = this.ctx.createLinearGradient(0, 0, 0, height);
+      bossGrad.addColorStop(0, '#0f001a'); // Dark Void Purple
+      bossGrad.addColorStop(0.5, '#2b0014'); // Dark Crimson
+      bossGrad.addColorStop(1, '#050002'); // Black
+      this.ctx.fillStyle = bossGrad;
+      this.ctx.fillRect(0, 0, width, height);
+
+      // Distant flashing lightning storm representing Peak Boss energy
+      if (Math.sin(this.weatherTime * 8.0) > 0.96 && Math.random() < 0.15) {
+        this.ctx.fillStyle = 'rgba(138, 43, 226, 0.15)'; // electric purple flash
+        this.ctx.fillRect(0, 0, width, height);
+      }
+      return;
+    }
+
     // Draw solid color backdrop depending on active world
     const skyGrad = this.ctx.createLinearGradient(0, 0, 0, height);
     switch (worldId) {
@@ -552,6 +569,22 @@ export class Renderer {
     const isPerformance = (window as any).gameDisableShadows;
     if (isPerformance) return;
     this.ctx.save();
+
+    if (this.activeLevelNum === 50) {
+      // Swirling digital neon grid storm or giant vortex in the sky for the Final Boss!
+      this.ctx.save();
+      this.ctx.translate(width / 2, height * 0.4);
+      this.ctx.rotate(this.weatherTime * 0.5);
+      this.ctx.strokeStyle = 'rgba(255, 0, 127, 0.12)';
+      this.ctx.lineWidth = 1.5;
+      for (let r = 50; r < 350; r += 50) {
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, r, 0, Math.PI * 1.7);
+        this.ctx.stroke();
+      }
+      this.ctx.restore();
+    }
+
     switch (worldId) {
       case 'space':
         // Nebula gradient shapes

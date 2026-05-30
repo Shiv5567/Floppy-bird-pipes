@@ -42,13 +42,20 @@ export class LevelManager {
           200, 195, 190, 185, 180, 175, 170, 165, 160, 155  // Levels 11-20
         ];
         gapHeight = gaps[levelNum - 1];
-      } else if (levelNum >= 30 && levelNum <= 40) {
+      } else if (levelNum >= 30 && levelNum < 40) {
         targetScore = 18; // Exactly 3 obstacle groups * 6 pillars per group = 18 pillars
-        // Advanced difficulty ramp (Levels 30-40) with smaller playable gaps
-        const gaps30to40 = [
-          155, 153, 151, 149, 147, 145, 143, 141, 139, 137, 135
+        // Advanced difficulty ramp (Levels 30-39) with smaller playable gaps
+        const gaps30to39 = [
+          155, 153, 151, 149, 147, 145, 143, 141, 139, 137
         ];
-        gapHeight = gaps30to40[levelNum - 30];
+        gapHeight = gaps30to39[levelNum - 30];
+      } else if (levelNum >= 40 && levelNum <= 50) {
+        targetScore = 18; // Exactly 3 obstacle groups * 6 pillars per group = 18 pillars
+        // Master challenge difficulty ramp (Levels 40-50) with smaller gaps
+        const gaps40to50 = [
+          135, 133, 131, 129, 127, 125, 123, 121, 119, 117, 115
+        ];
+        gapHeight = gaps40to50[levelNum - 40];
       }
 
       const scrollSpeed = (3.3 + (levelNum * 0.06)) * 0.8; // Decreased by 20%
@@ -117,8 +124,28 @@ export class LevelManager {
         patterns = ['level39_orbit'];
       } else if (levelNum === 40) {
         patterns = ['level40_miniboss'];
+      } else if (levelNum === 41) {
+        patterns = ['level41_doublew'];
+      } else if (levelNum === 42) {
+        patterns = ['level42_infinity'];
+      } else if (levelNum === 43) {
+        patterns = ['level43_dnahelix'];
+      } else if (levelNum === 44) {
+        patterns = ['level44_pendulum'];
+      } else if (levelNum === 45) {
+        patterns = ['level45_scurve'];
+      } else if (levelNum === 46) {
+        patterns = ['level46_triplespiral'];
+      } else if (levelNum === 47) {
+        patterns = ['level47_diamond'];
+      } else if (levelNum === 48) {
+        patterns = ['level48_tornado'];
+      } else if (levelNum === 49) {
+        patterns = ['level49_fractal'];
+      } else if (levelNum === 50) {
+        patterns = ['level50_finalboss'];
       } else {
-        // Levels 21-29, 41-50: Cycle through standard wave patterns for simple animation
+        // Levels 21-29: Cycle through standard wave patterns for simple animation
         const patternIndex = (levelNum - 21) % wavePatterns.length;
         patterns = [wavePatterns[patternIndex]];
       }
