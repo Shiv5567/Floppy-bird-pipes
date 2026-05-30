@@ -51,6 +51,7 @@ export interface Obstacle {
   gapHeight?: number;
   spawnCenterY?: number;
   obstacleIdx?: number;
+  isSpecialSplit?: boolean;
 }
 
 export class ObstacleManager {
@@ -112,7 +113,8 @@ export class ObstacleManager {
       shakeX2: 0,
       gapHeight: 0,
       spawnCenterY: 0,
-      obstacleIdx: undefined
+      obstacleIdx: undefined,
+      isSpecialSplit: false
     }, props);
     return obs;
   }
@@ -791,6 +793,38 @@ export class ObstacleManager {
               const centerY = obs.spawnCenterY! + shift;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            }
+          }
+
+          // Apply custom different-direction split opening animation for special obstacles
+          if (obs.isSpecialSplit && progress < 1) {
+            const levelNum = obs.levelNum || 1;
+            const splitStyle = Math.floor((levelNum - 1) / 5) % 5;
+            
+            // The split slide magnitude decays as it fully opens
+            const decay = 1 - progress;
+            
+            if (splitStyle === 0) {
+              // Style 0 (Levels 1-5, 26-30...): Diagonal Split (Top left, Bottom right)
+              obs.shakeX += -50 * decay;
+              obs.shakeX2 = (obs.shakeX2 || 0) + 50 * decay;
+            } else if (splitStyle === 1) {
+              // Style 1 (Levels 6-10, 31-35...): Horizontal Opposite Split (Top left, Bottom right larger)
+              obs.shakeX += -65 * decay;
+              obs.shakeX2 = (obs.shakeX2 || 0) + 65 * decay;
+            } else if (splitStyle === 2) {
+              // Style 2 (Levels 11-15, 36-40...): Scissors Opposite Split (Top right, Bottom left)
+              obs.shakeX += 65 * decay;
+              obs.shakeX2 = (obs.shakeX2 || 0) - 65 * decay;
+            } else if (splitStyle === 3) {
+              // Style 3 (Levels 16-20, 41-45...): Diagonal Reverse Split
+              obs.shakeX += 50 * decay;
+              obs.shakeX2 = (obs.shakeX2 || 0) - 50 * decay;
+            } else {
+              // Style 4 (Levels 21-25, 46-50...): Rotational Sine Swing Split
+              const swing = Math.sin((1 - progress) * Math.PI) * 55;
+              obs.shakeX += -swing;
+              obs.shakeX2 = (obs.shakeX2 || 0) + swing;
             }
           }
 
@@ -1580,9 +1614,27 @@ export class ObstacleManager {
       const targetTopHeight = targetCenterY - gapHeight / 2;
       const targetBottomHeight = height - targetCenterY - gapHeight / 2;
 
-      // Close the gaps initially with a 30px visual slit
-      const closedTopHeight = targetCenterY - 15;
-      const closedBottomHeight = height - targetCenterY - 15;
+      // Selectively apply opening animation to some obstacles (every 4th obstacle)
+      const isSpecialSplit = (actualPatternIdx % 4 === 0);
+      
+      let closedTopHeight = 0;
+      let closedBottomHeight = 0;
+      let initTriggered = false;
+      let initAnimTimer = 0;
+
+      if (isSpecialSplit) {
+        // Closed initially with a 30px visual slit
+        closedTopHeight = targetCenterY - 15;
+        closedBottomHeight = height - targetCenterY - 15;
+        initTriggered = false;
+        initAnimTimer = 0;
+      } else {
+        // Already fully open, no opening animation
+        closedTopHeight = targetTopHeight;
+        closedBottomHeight = targetBottomHeight;
+        initTriggered = true;
+        initAnimTimer = animDuration;
+      }
 
       const isMutated = (levelNum % 2 === 0);
       const isStructured = (levelNum % 3 === 0);
@@ -1590,7 +1642,7 @@ export class ObstacleManager {
       this.list.push(this.acquireObstacle({
         x: width + 50,
         width: this.obstacleWidth,
-        topHeight: closedTopHeight, // starts closed
+        topHeight: closedTopHeight,
         bottomHeight: closedBottomHeight,
         passed: false,
         worldId,
@@ -1607,8 +1659,9 @@ export class ObstacleManager {
         isStructured,
         
         patternType,
-        isTriggered: false, // starts closed, reactive approach opens it
-        animTimer: 0,
+        isTriggered: initTriggered,
+        isSpecialSplit,
+        animTimer: initAnimTimer,
         animDuration,
         triggerDistance,
         closedTopHeight,
@@ -2192,8 +2245,26 @@ export class ObstacleManager {
       // Save context state for drawing this obstacle
       ctx.save();
 
-      // Draw the main obstacle pillars
+      const topShift = obs.shakeX || 0;
+      const bottomShift = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
+
+      // Draw Top Column (Shifted by shakeX)
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(obs.x - 200, 0, obs.width + 400, obs.topHeight + 40);
+      ctx.clip();
+      ctx.translate(topShift, 0);
       drawPillars();
+      ctx.restore();
+
+      // Draw Bottom Column (Shifted by shakeX2)
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(obs.x - 200, height - obs.bottomHeight - 40, obs.width + 400, obs.bottomHeight + 40);
+      ctx.clip();
+      ctx.translate(bottomShift, 0);
+      drawPillars();
+      ctx.restore();
 
       // Pulsing neon gap-border glow along inner lips of moving Level columns
       if (obs.levelNum !== undefined && obs.isMoving) {
