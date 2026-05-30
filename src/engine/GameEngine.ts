@@ -419,9 +419,15 @@ export class GameEngine {
         // Check score triggers for obstacles
         for (let i = 0; i < obsLen; i++) {
           const obs = obstacles[i];
+          if (!obs) continue; // Safety guard in case obstacles list is cleared dynamically
           if (!obs.passed && obs.x + obs.width < this.bird.x) {
             obs.passed = true;
             this.incrementScore();
+            
+            // If the state changes from PLAYING (e.g., entered BOSS_WARNING), break out of the loop immediately
+            if (this.state !== 'PLAYING') {
+              break;
+            }
           }
         }
 
