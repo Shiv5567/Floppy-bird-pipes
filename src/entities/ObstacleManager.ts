@@ -1064,9 +1064,9 @@ export class ObstacleManager {
         const groupSize = Math.floor(this.activeLevelConfig.targetScore / 3);
         const idx = this.currentPatternIdx - 1;
         if (idx === groupSize - 1 || idx === (groupSize * 2) - 1) {
-          this.nextSpawnDistance = this.obstacleWidth * 3.5; // Safe transition gap between obstacle groups
+          this.nextSpawnDistance = this.obstacleWidth * 5.0; // Safe transition gap between obstacle groups
         } else {
-          this.nextSpawnDistance = this.obstacleWidth; // Connected side-by-side inside group
+          this.nextSpawnDistance = this.obstacleWidth * 3.5; // Challenge horizontal spacing between columns
         }
       } else {
         const baseDistanceClassic = (width / 1.35) * 0.80;
