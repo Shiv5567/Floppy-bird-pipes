@@ -421,11 +421,29 @@ export class ObstacleManager {
             obs.targetTopHeight = obs.baseTopHeight! + vWave;
             obs.targetBottomHeight = obs.baseBottomHeight! - vWave;
           } else if (obs.patternType === 'level14_crossflow') {
-            // Level 14: Serpent Waves
-            // Traveling smooth serpent waves slithering up and down
-            const wave = Math.sin(this.waveTime * 3.2 - actualIdx * 0.75) * 20;
-            obs.targetTopHeight = obs.baseTopHeight! + wave;
-            obs.targetBottomHeight = obs.baseBottomHeight! - wave;
+            // Level 14: "The Wormhole Vortex" — independent per-group orbital motion
+            const p14group = Math.floor((actualIdx % 18) / 6); // 0=spiral, 1=shockwave, 2=gravity
+            if (p14group === 0) {
+              // Group 1 (Spiral Funnel): continuous orbital spin — top and bottom rotate out of phase
+              const spinTop = this.waveTime * 2.1 + actualIdx * 0.55;
+              const spinBot = this.waveTime * 2.1 + actualIdx * 0.55 + Math.PI * 0.6; // out of phase
+              obs.targetTopHeight = obs.baseTopHeight! + Math.cos(spinTop) * 22;
+              obs.targetBottomHeight = obs.baseBottomHeight! + Math.sin(spinBot) * 22;
+              // Horizontal orbital shimmer
+              obs.shakeX = Math.sin(spinTop * 0.7) * 16;
+              obs.shakeX2 = -Math.sin(spinBot * 0.7) * 16;
+            } else if (p14group === 1) {
+              // Group 2 (Shockwave Ring): radial pulse expanding outward from center
+              const distFromCenter = Math.abs((actualIdx % 6) - 2.5) / 2.5;
+              const pulse = Math.sin(this.waveTime * 2.8 - distFromCenter * 2.0) * 18;
+              obs.targetTopHeight = obs.baseTopHeight! - pulse * (1 - distFromCenter);
+              obs.targetBottomHeight = obs.baseBottomHeight! + pulse * (1 - distFromCenter);
+            } else {
+              // Group 3 (Gravity Flip): slow pendulum sway back and forth
+              const flipSway = Math.sin(this.waveTime * 1.4 + actualIdx * 0.8) * 25;
+              obs.targetTopHeight = obs.baseTopHeight! + flipSway;
+              obs.targetBottomHeight = obs.baseBottomHeight! - flipSway;
+            }
           } else if (obs.patternType === 'level15_elevatorstair') {
             // Level 15: Diamond Chambers
             // Pincer contraction: vertical diamond chamber squeeze pulsing
@@ -1333,25 +1351,47 @@ export class ObstacleManager {
         triggerDistance = 205;
         animDuration = 0.44;
       } else if (patternType === 'level14_crossflow') {
-        // LEVEL 14: Serpent Waves (Smooth undulating curves slithering like a snake)
+        // LEVEL 14: "The Wormhole Vortex" — 3-group unique orbital/radial/gravity-flip pattern
+        // Group 1: Spiral Funnel — gap center orbits asymmetrically (cos top, -sin bottom)
+        // Group 2: Shockwave Ring — center cols narrow, edge cols wide (radial dome cross-section)
+        // Group 3: Gravity Flip — gap alternates ceiling-hug ↔ floor-hug every 3 cols
         hasAsymmetricHeights = true;
-        if (obstacleIdx <= 5) {
-          // Group 1: Sine Serpent
-          localGapHeight = gapHeight + 10;
-          targetTopHeight = height / 2 - localGapHeight / 2 + Math.sin(obstacleIdx * 1.1) * 55;
-        } else if (obstacleIdx <= 11) {
-          // Group 2: High-Frequency Serpent
-          localGapHeight = gapHeight + 5;
-          const idx = obstacleIdx - 6;
-          targetTopHeight = height / 2 - localGapHeight / 2 + Math.cos(idx * 1.6) * 50;
+        const p14idx = obstacleIdx % 18;
+        if (p14idx <= 5) {
+          // Group 1: Spiral funnel — top and bottom walls orbit independently
+          const angle = (p14idx / 5) * Math.PI * 2; // full 360° spread
+          localGapHeight = Math.max(168, gapHeight - 8);
+          const orbitRadius = 55;
+          // Top follows cosine, bottom follows negative sine — creates rotating asymmetry
+          const topOrbit = Math.cos(angle) * orbitRadius;
+          const botOrbit = -Math.sin(angle) * orbitRadius;
+          targetTopHeight = height / 2 - localGapHeight / 2 + topOrbit;
+          targetBottomHeight = height / 2 - localGapHeight / 2 - botOrbit;
+        } else if (p14idx <= 11) {
+          // Group 2: Shockwave ring — gap narrows at center, widens at edges like a radial dome
+          const rStep = p14idx - 6; // 0..5
+          const distFromCenter = Math.abs(rStep - 2.5) / 2.5; // 0 at center, 1 at edge
+          const shockGapAdd = distFromCenter * 45; // edges get wider gap
+          localGapHeight = Math.max(165, gapHeight - 30 + shockGapAdd);
+          // Center is pushed toward ceiling, edges float to mid-screen
+          const centerBias = (1 - distFromCenter) * 40;
+          targetTopHeight = height / 2 - localGapHeight / 2 - centerBias;
         } else {
-          // Group 3: Double S Serpent
-          localGapHeight = gapHeight - 10;
-          const idx = obstacleIdx - 12;
-          targetTopHeight = height / 2 - localGapHeight / 2 + Math.sin(idx * 0.8) * 65;
+          // Group 3: Gravity flip — every 3 cols flips between ceiling-hug and floor-hug
+          const gStep = p14idx - 12; // 0..5
+          localGapHeight = Math.max(168, gapHeight - 5);
+          const flipGroup = Math.floor(gStep / 3); // 0 or 1
+          const posWithinFlip = (gStep % 3) / 2; // 0..1
+          // Smooth cubic blend between ceiling position and floor position
+          const t = posWithinFlip * posWithinFlip * (3 - 2 * posWithinFlip); // smoothstep
+          const topPos = height * 0.08;           // ceiling-hug top
+          const botPos = height - localGapHeight - height * 0.08; // floor-hug top
+          const fromPos = (flipGroup === 0) ? topPos : botPos;
+          const toPos   = (flipGroup === 0) ? botPos : topPos;
+          targetTopHeight = fromPos + (toPos - fromPos) * t;
         }
-        triggerDistance = 220;
-        animDuration = 0.46;
+        triggerDistance = 240;
+        animDuration = 0.52;
       } else if (patternType === 'level15_elevatorstair') {
         // LEVEL 15: Diamond Chambers (Diamond-shaped corridors and pincer chambers)
         hasAsymmetricHeights = true;
