@@ -351,9 +351,9 @@ export class ObstacleManager {
             obs.targetTopHeight = obs.baseTopHeight! + tremorY;
             obs.targetBottomHeight = obs.baseBottomHeight! - tremorY;
           } else if (obs.patternType === 'level9_magnetic') {
-            // LEVEL 9: "The Quantum Entangled Gates" (Anti-phase entangled mirror sliding where adjacent columns expand/contract in exact opposition - 30% speed reduction)
+            // LEVEL 9: "The Quantum Entangled Gates" (Anti-phase entangled mirror sliding where adjacent columns expand/contract in exact opposition - additional 30% speed reduction)
             const isEven = (actualIdx % 2 === 0);
-            const entangleTime = this.waveTime * 2.24;
+            const entangleTime = this.waveTime * 1.57;
             const slide = Math.sin(entangleTime + (actualIdx * 0.5)) * 25;
             
             const dir = isEven ? 1 : -1;

@@ -88,6 +88,9 @@ export class LevelManager {
       if (levelNum >= 1 && levelNum <= 10) {
         // Scroll speed starts at 3.6 (challenging) and scales to 5.58 at Level 10 (intense!)
         scrollSpeed = 3.6 + (levelNum - 1) * 0.22;
+        if (levelNum === 9) {
+          scrollSpeed = scrollSpeed * 0.80; // Decreased by 20% (from 5.36 to 4.29)
+        }
       } else if (levelNum === 13) {
         // Completely replaced by Level 4
         scrollSpeed = 3.6 + (4 - 1) * 0.22;
