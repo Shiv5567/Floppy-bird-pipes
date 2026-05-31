@@ -290,14 +290,14 @@ export class ObstacleManager {
 
           if (obs.patternType === 'level1_funnel') {
             // LEVEL 1: "The Winding Cavern" (Parallel waving motion: ceiling and floor surfaces wave together in perfect harmony)
-            const slam = Math.sin(this.waveTime * 2.2 + actualIdx * 0.15) * 23;
+            const slam = Math.sin(this.waveTime * 2.2 + actualIdx * 0.15) * 10;
             obs.targetTopHeight = obs.baseTopHeight! + slam;
             obs.targetBottomHeight = obs.baseBottomHeight! - slam;
           } else if (obs.patternType === 'level2_diamond') {
-            // LEVEL 2: "The Zigzag Gauntlet" (Ceiling and floor surfaces wave in parallel harmony, horizontal opposite shift remains active)
+            // LEVEL 2: "The Wave Gauntlet" (Ceiling and floor surfaces wave in parallel harmony, horizontal opposite shift remains active)
             obs.shakeX = Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 20;
             obs.shakeX2 = -Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 20;
-            const slam = Math.sin(this.waveTime * 2.0 + actualIdx * 0.15) * 12;
+            const slam = Math.sin(this.waveTime * 2.0 + actualIdx * 0.15) * 15;
             obs.targetTopHeight = obs.baseTopHeight! + slam;
             obs.targetBottomHeight = obs.baseBottomHeight! - slam;
           } else if (obs.patternType === 'level3_arc') {
@@ -1111,17 +1111,13 @@ export class ObstacleManager {
       if (patternType === 'level1_funnel') {
         // LEVEL 1: "The Winding Cavern" (Smooth continuous undulating wave path aligned with the surfaces, touching side-by-side)
         hasAsymmetricHeights = false;
-        targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.35) * 85;
+        targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.35) * 48;
         triggerDistance = 750;
         animDuration = 0.50;
       } else if (patternType === 'level2_diamond') {
-        // LEVEL 2: "The Zigzag Gauntlet" (Sharp, linear zigzag path aligned side-by-side)
+        // LEVEL 2: "The Wave Gauntlet" (Smooth continuous wave pattern aligned side-by-side)
         localGapHeight = gapHeight - 5;
-        const idxInCycle = obstacleIdx % 8;
-        const offset = idxInCycle < 4 
-          ? -70 + idxInCycle * 46 
-          : 70 - (idxInCycle - 4) * 46;
-        targetCenterY = height / 2 + offset;
+        targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.28) * 65;
         triggerDistance = 220;
         animDuration = 0.45;
       } else if (patternType === 'level3_arc') {
