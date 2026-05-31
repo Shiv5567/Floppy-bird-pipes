@@ -327,8 +327,8 @@ export class ObstacleManager {
             obs.targetTopHeight = obs.baseTopHeight! - breath;
             obs.targetBottomHeight = obs.baseBottomHeight! - breath;
           } else if (obs.patternType === 'level6_infinity') {
-            // LEVEL 6: "The Folding Accordion Gates" (Quadrature phase-shifted horizontal/vertical twisting accordion motion)
-            const phaseTop = this.waveTime * 2.8 + actualIdx * 0.5;
+            // LEVEL 6: "The Folding Accordion Gates" (Quadrature phase-shifted horizontal/vertical twisting accordion motion - 30% speed reduction)
+            const phaseTop = this.waveTime * 1.96 + actualIdx * 0.5;
             const phaseBottom = phaseTop + Math.PI / 2; // 90 degrees out of phase!
             
             obs.shakeX = Math.sin(phaseTop) * 26;
@@ -351,9 +351,9 @@ export class ObstacleManager {
             obs.targetTopHeight = obs.baseTopHeight! + tremorY;
             obs.targetBottomHeight = obs.baseBottomHeight! - tremorY;
           } else if (obs.patternType === 'level9_magnetic') {
-            // LEVEL 9: "The Quantum Entangled Gates" (Anti-phase entangled mirror sliding where adjacent columns expand/contract in exact opposition)
+            // LEVEL 9: "The Quantum Entangled Gates" (Anti-phase entangled mirror sliding where adjacent columns expand/contract in exact opposition - 30% speed reduction)
             const isEven = (actualIdx % 2 === 0);
-            const entangleTime = this.waveTime * 3.2;
+            const entangleTime = this.waveTime * 2.24;
             const slide = Math.sin(entangleTime + (actualIdx * 0.5)) * 25;
             
             const dir = isEven ? 1 : -1;
@@ -363,9 +363,9 @@ export class ObstacleManager {
             obs.shakeX = isEven ? Math.cos(entangleTime) * 20 : -Math.cos(entangleTime) * 20;
             obs.shakeX2 = isEven ? -Math.cos(entangleTime) * 20 : Math.cos(entangleTime) * 20;
           } else if (obs.patternType === 'level10_miniboss') {
-            // LEVEL 10: "The Chrono Warp Horizon" (Space-time warp compression with dynamic time-dilation ripples propagating through columns)
-            const timeDilation = 1.0 + Math.sin(this.waveTime * 1.5) * 0.4;
-            const warpTime = this.waveTime * 3.5 * timeDilation;
+            // LEVEL 10: "The Chrono Warp Horizon" (Space-time warp compression with dynamic time-dilation ripples propagating through columns - 30% speed reduction)
+            const timeDilation = 1.0 + Math.sin(this.waveTime * 1.05) * 0.4;
+            const warpTime = this.waveTime * 2.45 * timeDilation;
             const ripplePhase = warpTime - actualIdx * 0.45;
             
             obs.shakeX = Math.sin(ripplePhase) * 26;
