@@ -2374,19 +2374,19 @@ export class ObstacleManager {
       const topShift = obs.shakeX || 0;
       const bottomShift = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
 
-      // Draw Top Column (Shifted by shakeX)
+      // Draw Top Column (Shifted by shakeX) - Extended upwards by 1000px to prevent visual cut-off during camera pans
       ctx.save();
       ctx.beginPath();
-      ctx.rect(obs.x - 200, 0, obs.width + 400, obs.topHeight + 40);
+      ctx.rect(obs.x - 200, -1000, obs.width + 400, obs.topHeight + 40 + 1000);
       ctx.clip();
       ctx.translate(topShift, 0);
       drawPillars();
       ctx.restore();
 
-      // Draw Bottom Column (Shifted by shakeX2)
+      // Draw Bottom Column (Shifted by shakeX2) - Extended downwards by 1000px to prevent visual cut-off during camera pans
       ctx.save();
       ctx.beginPath();
-      ctx.rect(obs.x - 200, height - obs.bottomHeight - 40, obs.width + 400, obs.bottomHeight + 40);
+      ctx.rect(obs.x - 200, height - obs.bottomHeight - 40, obs.width + 400, obs.bottomHeight + 40 + 1000);
       ctx.clip();
       ctx.translate(bottomShift, 0);
       drawPillars();
