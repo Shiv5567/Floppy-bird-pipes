@@ -289,10 +289,10 @@ export class ObstacleManager {
           const groupIdx = Math.min(2, Math.floor(actualIdx / groupSize));
 
           if (obs.patternType === 'level1_funnel') {
-            // LEVEL 1: "The Crusher Gates" (Slamming jaws animation: top and bottom bobs intensely in opposite directions with a rapid breathing pulse)
-            const slam = Math.sin(this.waveTime * 3.5 + actualIdx * 0.4) * 20;
+            // LEVEL 1: "The Winding Cavern" (Parallel waving motion: ceiling and floor surfaces wave together in perfect harmony)
+            const slam = Math.sin(this.waveTime * 2.2 + actualIdx * 0.15) * 15;
             obs.targetTopHeight = obs.baseTopHeight! + slam;
-            obs.targetBottomHeight = obs.baseBottomHeight! + slam;
+            obs.targetBottomHeight = obs.baseBottomHeight! - slam;
           } else if (obs.patternType === 'level2_diamond') {
             // LEVEL 2: "The Sine Wave Maze" (Opposing S-oscillations: top and bottom shift horizontally in opposite directions)
             obs.shakeX = Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 22;
@@ -1064,9 +1064,9 @@ export class ObstacleManager {
         const groupSize = Math.floor(this.activeLevelConfig.targetScore / 3);
         const idx = this.currentPatternIdx - 1;
         if (idx === groupSize - 1 || idx === (groupSize * 2) - 1) {
-          this.nextSpawnDistance = this.obstacleWidth * 5.0; // Safe transition gap between obstacle groups
+          this.nextSpawnDistance = this.obstacleWidth * 3.5; // Safe transition gap between obstacle groups
         } else {
-          this.nextSpawnDistance = this.obstacleWidth * 3.5; // Challenge horizontal spacing between columns
+          this.nextSpawnDistance = this.obstacleWidth; // Connected side-by-side inside group
         }
       } else {
         const baseDistanceClassic = (width / 1.35) * 0.80;
@@ -1109,15 +1109,9 @@ export class ObstacleManager {
       let targetBottomHeight = 0;
 
       if (patternType === 'level1_funnel') {
-        // LEVEL 1: "The Crusher Gates" (Alternating extremely high and low blocks to create castellated teeth corridor)
-        hasAsymmetricHeights = true;
-        if (obstacleIdx % 2 === 0) {
-          targetTopHeight = 60;
-          targetBottomHeight = height - localGapHeight - 60;
-        } else {
-          targetTopHeight = height - localGapHeight - 60;
-          targetBottomHeight = 60;
-        }
+        // LEVEL 1: "The Winding Cavern" (Smooth continuous undulating path aligned with the surfaces, touching side-by-side)
+        hasAsymmetricHeights = false;
+        targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.32) * 55;
         triggerDistance = 450;
         animDuration = 0.50;
       } else if (patternType === 'level2_diamond') {
