@@ -294,12 +294,12 @@ export class ObstacleManager {
             obs.targetTopHeight = obs.baseTopHeight! + slam;
             obs.targetBottomHeight = obs.baseBottomHeight! - slam;
           } else if (obs.patternType === 'level2_diamond') {
-            // LEVEL 2: "The Sine Wave Maze" (Opposing S-oscillations: top and bottom shift horizontally in opposite directions)
-            obs.shakeX = Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 22;
-            obs.shakeX2 = -Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 22;
-            const vWave = Math.cos(this.waveTime * 2.2 + actualIdx * 0.4) * 15;
-            obs.targetTopHeight = obs.baseTopHeight! + vWave;
-            obs.targetBottomHeight = obs.baseBottomHeight! - vWave;
+            // LEVEL 2: "The Arch Gauntlet" (Ceiling and floor surfaces wave in parallel harmony, horizontal opposite shift remains active)
+            obs.shakeX = Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 20;
+            obs.shakeX2 = -Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 20;
+            const slam = Math.sin(this.waveTime * 2.0 + actualIdx * 0.15) * 12;
+            obs.targetTopHeight = obs.baseTopHeight! + slam;
+            obs.targetBottomHeight = obs.baseBottomHeight! - slam;
           } else if (obs.patternType === 'level3_arc') {
             // LEVEL 3: "The Gravity Pitfalls" (Anti-phase see-saw elevator shifts: adjacent columns slide vertically with sudden sharp velocity shifts)
             const phase = this.waveTime * 3.0 + (actualIdx % 3) * (Math.PI * 2 / 3);
@@ -1115,10 +1115,13 @@ export class ObstacleManager {
         triggerDistance = 750;
         animDuration = 0.50;
       } else if (patternType === 'level2_diamond') {
-        // LEVEL 2: "The Sine Wave Maze" (Overlapping double-helix or grid chambers with tight slots)
-        localGapHeight = gapHeight - 10;
-        targetCenterY = height / 2 + Math.sin(obstacleIdx * 1.5) * 55;
-        triggerDistance = 400;
+        // LEVEL 2: "The Arch Gauntlet" (Smooth parabolic arches aligned side-by-side)
+        localGapHeight = gapHeight - 5;
+        const idxInArch = obstacleIdx % 7;
+        const x_val = (idxInArch - 3) / 3;
+        const y_offset = (1.0 - x_val * x_val) * 110;
+        targetCenterY = (height / 2 + 60) - y_offset;
+        triggerDistance = 220;
         animDuration = 0.45;
       } else if (patternType === 'level3_arc') {
         // LEVEL 3: "The Gravity Pitfalls" (Giant stairs that drop and rise in extreme vertical leaps)
@@ -1733,8 +1736,7 @@ export class ObstacleManager {
 
       // Enable special different-direction split opening animation specifically for all obstacles in Levels 1-20 (excluding Level 11) and special legacy levels
       const isSpecialSplit = 
-        (levelNum !== undefined && levelNum >= 1 && levelNum <= 20 && levelNum !== 11) ||
-        (patternType === 'level2_diamond') || 
+        (levelNum !== undefined && levelNum >= 1 && levelNum <= 20 && levelNum !== 11 && levelNum !== 2) ||
         (patternType === 'level5_hourglass' && groupIdx === 0) ||
         (patternType === 'level17_heartbeat' && groupIdx === 0);
 
