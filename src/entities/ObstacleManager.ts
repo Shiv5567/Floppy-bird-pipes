@@ -1123,7 +1123,32 @@ export class ObstacleManager {
       } else if (patternType === 'level2_diamond') {
         // LEVEL 2: "The Wave Gauntlet" (Smooth continuous wave pattern aligned side-by-side)
         localGapHeight = gapHeight - 5;
-        targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.28) * 65;
+        
+        // Base center wave Y
+        const baseCenterY = height / 2 + Math.sin(obstacleIdx * 0.28) * 65;
+        
+        // Alternating 30% gap shift every 10 obstacles with a smooth transition over 3 obstacles
+        const period = 20;
+        const rampWidth = 3;
+        const amplitude = localGapHeight * 0.30;
+        const t = actualPatternIdx % period;
+        
+        let verticalShift = 0;
+        if (t < rampWidth) {
+          // Smooth ramp from -amplitude to +amplitude
+          const ratio = t / rampWidth;
+          verticalShift = -amplitude + ratio * (2 * amplitude);
+        } else if (t < period / 2) {
+          verticalShift = amplitude;
+        } else if (t < period / 2 + rampWidth) {
+          // Smooth ramp from +amplitude to -amplitude
+          const ratio = (t - period / 2) / rampWidth;
+          verticalShift = amplitude - ratio * (2 * amplitude);
+        } else {
+          verticalShift = -amplitude;
+        }
+        
+        targetCenterY = baseCenterY + verticalShift;
         triggerDistance = 220;
         animDuration = 0.45;
       } else if (patternType === 'level3_arc') {
