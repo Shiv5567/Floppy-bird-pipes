@@ -401,11 +401,16 @@ export class ObstacleManager {
               obs.targetBottomHeight = obs.baseBottomHeight! - ripple;
             }
           } else if (obs.patternType === 'level12_doublewave') {
-            // Level 12: Exponential Gaps
-            // Squeezes or expands gaps dynamically with an exponential breathing rhythm
-            const breath = (Math.pow(Math.sin(this.waveTime * 2.0), 2) - 0.5) * 35;
-            obs.targetTopHeight = obs.baseTopHeight! - breath / 2;
-            obs.targetBottomHeight = obs.baseBottomHeight! - breath / 2;
+            // Level 12: "The Pincer Maze" — Tidal breathing + lateral zigzag oscillation
+            // Tidal: whole corridor breathes up and down slowly
+            const tidal = Math.sin(this.waveTime * 1.6) * 18;
+            // Zigzag lateral: odd/even columns oscillate in opposite vertical phase
+            const isOdd = (actualIdx % 2 === 1);
+            const zigzag = Math.sin(this.waveTime * 3.0 + actualIdx * 0.9) * 14 * (isOdd ? 1 : -1);
+            // Pincer pulse: gap breathes with an extra squeeze on top of base gap
+            const pincerSqueeze = Math.pow(Math.sin(this.waveTime * 2.2 - actualIdx * 0.4), 2) * 20;
+            obs.targetTopHeight = obs.baseTopHeight! + tidal + zigzag + pincerSqueeze;
+            obs.targetBottomHeight = obs.baseBottomHeight! - tidal - zigzag + pincerSqueeze;
           } else if (obs.patternType === 'level13_scurve') {
             // Level 13: Helix Spirals
             // 3D Twist using horizontal orbital shake and vertical helical waves
@@ -1275,25 +1280,38 @@ export class ObstacleManager {
         triggerDistance = 240;
         animDuration = 0.72;
       } else if (patternType === 'level12_doublewave') {
-        // LEVEL 12: Exponential Gaps (Gaps opening and contracting exponentially)
+        // LEVEL 12: "The Pincer Maze" — 3-group challenging corridor
+        // Group 1: Staggered Zigzag Staircase (hard alternating high/low gaps)
+        // Group 2: Converging Pincer Squeeze (both walls close in from opposite sides)
+        // Group 3: Cross-Diagonal Sweep (gap center snakes diagonally top→bottom→top)
         hasAsymmetricHeights = true;
-        if (obstacleIdx <= 5) {
-          // Group 1: Exponentially Squeezing Gaps
-          localGapHeight = Math.max(165, gapHeight + 50 - Math.pow(1.65, obstacleIdx) * 8);
-          targetTopHeight = height / 2 - localGapHeight / 2;
-        } else if (obstacleIdx <= 11) {
-          // Group 2: Exponentially Expanding Gaps
-          const idx = obstacleIdx - 6;
-          localGapHeight = Math.max(165, gapHeight - 40 + Math.pow(1.65, idx) * 8);
-          targetTopHeight = height / 2 - localGapHeight / 2;
+        const p12idx = obstacleIdx % 18;
+        if (p12idx <= 5) {
+          // Group 1: Alternating zigzag staircase — odd pillars push gap high, even push low
+          const step = p12idx;
+          const isOdd = (step % 2 === 1);
+          localGapHeight = Math.max(170, gapHeight - 10);
+          const stairShift = isOdd ? -75 : 75; // sharp high/low alternation
+          targetTopHeight = height / 2 - localGapHeight / 2 + stairShift;
+        } else if (p12idx <= 11) {
+          // Group 2: Pincer squeeze — top wall drops down, bottom wall rises up simultaneously
+          const pStep = p12idx - 6; // 0..5
+          const squeeze = Math.sin((pStep / 5) * Math.PI) * 60; // arc: 0→60→0
+          localGapHeight = Math.max(168, gapHeight - squeeze * 0.6);
+          const topBias = squeeze * 0.5;
+          const botBias = squeeze * 0.5;
+          targetTopHeight = height / 2 - localGapHeight / 2 + topBias;
+          const explicitBottom = height / 2 - localGapHeight / 2 + botBias;
+          targetBottomHeight = explicitBottom;
         } else {
-          // Group 3: Exponential Peak/Valley Heights
-          localGapHeight = gapHeight;
-          const idx = obstacleIdx - 12;
-          targetTopHeight = 50 + Math.pow(1.45, idx) * 12;
+          // Group 3: Cross-diagonal sweep — center Y sweeps from top-left to bottom-right then back
+          const dStep = p12idx - 12; // 0..5
+          localGapHeight = Math.max(168, gapHeight - 5);
+          const sweepArc = Math.sin((dStep / 5) * Math.PI * 2) * 80; // full sine sweep
+          targetTopHeight = height / 2 - localGapHeight / 2 + sweepArc;
         }
-        triggerDistance = 210;
-        animDuration = 0.45;
+        triggerDistance = 230;
+        animDuration = 0.55;
       } else if (patternType === 'level13_scurve') {
         // LEVEL 13: Helix Spirals (twisting spiral/orbital rotation)
         hasAsymmetricHeights = true;
