@@ -327,14 +327,17 @@ export class ObstacleManager {
             obs.targetTopHeight = obs.baseTopHeight! - breath;
             obs.targetBottomHeight = obs.baseBottomHeight! - breath;
           } else if (obs.patternType === 'level6_infinity') {
-            // LEVEL 6: "The Quantum Scissors Labyrinth" (High-difficulty shifting scissors gate with orbital horizontal sway)
-            const angle = this.waveTime * 3.2 + actualIdx * 0.7;
-            obs.shakeX = Math.sin(angle) * 25;
-            obs.shakeX2 = -Math.sin(angle) * 25;
+            // LEVEL 6: "The Folding Accordion Gates" (Quadrature phase-shifted horizontal/vertical twisting accordion motion)
+            const phaseTop = this.waveTime * 2.8 + actualIdx * 0.5;
+            const phaseBottom = phaseTop + Math.PI / 2; // 90 degrees out of phase!
             
-            const squeeze = Math.sin(this.waveTime * 4.5 + actualIdx * 0.8) * 30;
-            obs.targetTopHeight = obs.baseTopHeight! + squeeze;
-            obs.targetBottomHeight = obs.baseBottomHeight! + squeeze;
+            obs.shakeX = Math.sin(phaseTop) * 26;
+            obs.shakeX2 = Math.cos(phaseBottom) * 26;
+            
+            const topBob = Math.cos(phaseTop) * 18;
+            const botBob = Math.sin(phaseBottom) * 18;
+            obs.targetTopHeight = obs.baseTopHeight! + topBob;
+            obs.targetBottomHeight = obs.baseBottomHeight! - botBob;
           } else if (obs.patternType === 'level7_dna') {
             // LEVEL 7: "The Magnetic Pull Chambers" (Proximity gap contraction/expansion attractor: proximity-based gap pulsing)
             const force = Math.sin(this.waveTime * 3.2 + actualIdx * 0.8) * 30;
@@ -348,23 +351,29 @@ export class ObstacleManager {
             obs.targetTopHeight = obs.baseTopHeight! + tremorY;
             obs.targetBottomHeight = obs.baseBottomHeight! - tremorY;
           } else if (obs.patternType === 'level9_magnetic') {
-            // LEVEL 9: "The Solar Flare Pillars" (Heat wave diagonal bobbing and horizontal opposing sway)
-            const flareTime = this.waveTime * 3.0 + actualIdx * 0.5;
-            obs.shakeX = Math.sin(flareTime) * 25;
-            obs.shakeX2 = -Math.sin(flareTime) * 25;
+            // LEVEL 9: "The Quantum Entangled Gates" (Anti-phase entangled mirror sliding where adjacent columns expand/contract in exact opposition)
+            const isEven = (actualIdx % 2 === 0);
+            const entangleTime = this.waveTime * 3.2;
+            const slide = Math.sin(entangleTime + (actualIdx * 0.5)) * 25;
             
-            const thermalBob = Math.cos(this.waveTime * 2.5 + actualIdx * 0.4) * 22;
-            obs.targetTopHeight = obs.baseTopHeight! + thermalBob;
-            obs.targetBottomHeight = obs.baseBottomHeight! - thermalBob;
+            const dir = isEven ? 1 : -1;
+            obs.targetTopHeight = obs.baseTopHeight! + (dir * slide);
+            obs.targetBottomHeight = obs.baseBottomHeight! - (dir * slide);
+            
+            obs.shakeX = isEven ? Math.cos(entangleTime) * 20 : -Math.cos(entangleTime) * 20;
+            obs.shakeX2 = isEven ? -Math.cos(entangleTime) * 20 : Math.cos(entangleTime) * 20;
           } else if (obs.patternType === 'level10_miniboss') {
-            // LEVEL 10: "The Magma Vortex Colosseum" (Epic mini-boss synthesis: circular horizontal shake + high-intensity scissors squeeze)
-            const angle = this.waveTime * 3.6;
-            obs.shakeX = Math.sin(angle) * 22;
-            obs.shakeX2 = Math.cos(angle) * 22;
+            // LEVEL 10: "The Chrono Warp Horizon" (Space-time warp compression with dynamic time-dilation ripples propagating through columns)
+            const timeDilation = 1.0 + Math.sin(this.waveTime * 1.5) * 0.4;
+            const warpTime = this.waveTime * 3.5 * timeDilation;
+            const ripplePhase = warpTime - actualIdx * 0.45;
             
-            const magmaPulse = Math.sin(this.waveTime * 5.0 + actualIdx * 0.6) * 28;
-            obs.targetTopHeight = obs.baseTopHeight! + magmaPulse;
-            obs.targetBottomHeight = obs.baseBottomHeight! + magmaPulse;
+            obs.shakeX = Math.sin(ripplePhase) * 26;
+            obs.shakeX2 = Math.cos(ripplePhase) * 26;
+            
+            const compression = Math.sin(ripplePhase + Math.PI / 4) * 22;
+            obs.targetTopHeight = obs.baseTopHeight! + compression;
+            obs.targetBottomHeight = obs.baseBottomHeight! - compression;
           } else if (obs.patternType === 'level11_diamond') {
             // Level 11: Structure-Aligned Animations matching each Group's distinct layout
             const idx = actualIdx % 12;
@@ -1193,9 +1202,11 @@ export class ObstacleManager {
         triggerDistance = 300;
         animDuration = 0.45;
       } else if (patternType === 'level6_infinity') {
-        // LEVEL 6: "The Quantum Scissors Labyrinth" (High-difficulty steep wave path with base gap adjustment)
+        // LEVEL 6: "The Folding Accordion Gates" (Clean triangle-wave folding layout)
         localGapHeight = gapHeight - 5;
-        targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.85) * 85;
+        const modIdx = obstacleIdx % 6;
+        const triangleOffset = modIdx < 3 ? (modIdx * 45 - 45) : ((5 - modIdx) * 45 - 45);
+        targetCenterY = height / 2 + triangleOffset;
         triggerDistance = 280;
         animDuration = 0.38;
       } else if (patternType === 'level7_dna') {
@@ -1217,29 +1228,22 @@ export class ObstacleManager {
         triggerDistance = 250;
         animDuration = 0.36;
       } else if (patternType === 'level9_magnetic') {
-        // LEVEL 9: "The Solar Flare Pillars" (Attractive triple-crest diagonal stepping layout)
+        // LEVEL 9: "The Quantum Entangled Gates" (Interlaced high-low paired gates)
         localGapHeight = gapHeight - 10;
-        const step = obstacleIdx % 3;
-        if (step === 0) {
-          targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.6) * 75;
-        } else if (step === 1) {
-          targetCenterY = height / 2 - 75 + Math.sin(obstacleIdx * 0.6) * 45;
+        const isEven = (obstacleIdx % 2 === 0);
+        if (isEven) {
+          targetCenterY = height / 2 - 60 + Math.sin(obstacleIdx * 0.4) * 30;
         } else {
-          targetCenterY = height / 2 + 75 + Math.sin(obstacleIdx * 0.6) * 45;
+          targetCenterY = height / 2 + 60 - Math.sin((obstacleIdx - 1) * 0.4) * 30;
         }
         triggerDistance = 240;
         animDuration = 0.34;
       } else if (patternType === 'level10_miniboss') {
-        // LEVEL 10: "The Magma Vortex Colosseum" (Epic interlocking 4-step colosseum arena)
-        localGapHeight = gapHeight - 15;
-        const step = obstacleIdx % 4;
-        let centerYOffset = 0;
-        if (step === 0) centerYOffset = -90;
-        else if (step === 1) centerYOffset = 40;
-        else if (step === 2) centerYOffset = -40;
-        else centerYOffset = 90;
-        
-        targetCenterY = height / 2 + centerYOffset;
+        // LEVEL 10: "The Chrono Warp Horizon" (Sci-fi roller-coaster plunging and rising warp tunnel)
+        localGapHeight = gapHeight - 12;
+        const normIdx = (obstacleIdx % 6) / 5.0;
+        const warpOffset = Math.sin(normIdx * Math.PI * 2) * 95;
+        targetCenterY = height / 2 + warpOffset;
         triggerDistance = 200;
         animDuration = 0.32;
       } else if (patternType === 'level11_diamond') {
