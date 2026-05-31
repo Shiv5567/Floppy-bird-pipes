@@ -327,13 +327,14 @@ export class ObstacleManager {
             obs.targetTopHeight = obs.baseTopHeight! - breath;
             obs.targetBottomHeight = obs.baseBottomHeight! - breath;
           } else if (obs.patternType === 'level6_infinity') {
-            // LEVEL 6: "The Chaos Zigzag" (High speed tornado slalom: columns rotate and slide back and forth under the bird)
-            const tVal = this.waveTime * 3.5 + actualIdx * 0.5;
-            obs.shakeX = Math.sin(tVal) * 30;
-            obs.shakeX2 = Math.sin(tVal + Math.PI / 2) * 30;
-            const slalom = Math.cos(this.waveTime * 2.0 + actualIdx * 0.3) * 20;
-            obs.targetTopHeight = obs.baseTopHeight! + slalom;
-            obs.targetBottomHeight = obs.baseBottomHeight! - slalom;
+            // LEVEL 6: "The Cosmic Crosswave" (Orbital rotating oscillation where top and bottom pipes shift in opposite horizontal and vertical directions like a revolving double-helix)
+            const angle = this.waveTime * 2.5 + actualIdx * 0.4;
+            obs.shakeX = Math.sin(angle) * 25;
+            obs.shakeX2 = -Math.sin(angle) * 25;
+            
+            const verticalSway = Math.cos(this.waveTime * 2.0 + actualIdx * 0.3) * 15;
+            obs.targetTopHeight = obs.baseTopHeight! + verticalSway;
+            obs.targetBottomHeight = obs.baseBottomHeight! - verticalSway;
           } else if (obs.patternType === 'level7_dna') {
             // LEVEL 7: "The Magnetic Pull Chambers" (Proximity gap contraction/expansion attractor: proximity-based gap pulsing)
             const force = Math.sin(this.waveTime * 3.2 + actualIdx * 0.8) * 30;
@@ -1187,8 +1188,9 @@ export class ObstacleManager {
         triggerDistance = 300;
         animDuration = 0.45;
       } else if (patternType === 'level6_infinity') {
-        // LEVEL 6: "The Chaos Zigzag" (Jagged zigzag that alternates between absolute top and bottom)
-        targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -90 : 90);
+        // LEVEL 6: "The Cosmic Crosswave Tunnel" (Smooth double-sine breathing Y-center wave tunnel)
+        localGapHeight = gapHeight + Math.cos(obstacleIdx * 0.5) * 25;
+        targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.5) * 70;
         triggerDistance = 280;
         animDuration = 0.38;
       } else if (patternType === 'level7_dna') {
