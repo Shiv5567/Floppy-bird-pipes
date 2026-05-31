@@ -290,7 +290,7 @@ export class ObstacleManager {
 
           if (obs.patternType === 'level1_funnel') {
             // LEVEL 1: "The Winding Cavern" (Parallel waving motion: ceiling and floor surfaces wave together in perfect harmony)
-            const slam = Math.sin(this.waveTime * 2.2 + actualIdx * 0.15) * 15;
+            const slam = Math.sin(this.waveTime * 2.2 + actualIdx * 0.15) * 23;
             obs.targetTopHeight = obs.baseTopHeight! + slam;
             obs.targetBottomHeight = obs.baseBottomHeight! - slam;
           } else if (obs.patternType === 'level2_diamond') {
@@ -1111,8 +1111,8 @@ export class ObstacleManager {
       if (patternType === 'level1_funnel') {
         // LEVEL 1: "The Winding Cavern" (Smooth continuous undulating path aligned with the surfaces, touching side-by-side)
         hasAsymmetricHeights = false;
-        targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.32) * 55;
-        triggerDistance = 450;
+        targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.32) * 83;
+        triggerDistance = 750;
         animDuration = 0.50;
       } else if (patternType === 'level2_diamond') {
         // LEVEL 2: "The Sine Wave Maze" (Overlapping double-helix or grid chambers with tight slots)

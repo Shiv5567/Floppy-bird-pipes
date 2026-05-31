@@ -65,9 +65,11 @@ export class LevelManager {
       }
 
       // Linear gap scaling rebalance (from exactly 280px at Level 1 to exactly 150px at Level 50)
-      if (levelNum >= 1 && levelNum <= 10) {
+      if (levelNum === 1) {
+        gapHeight = 165; // Tighter, high-skill entry challenge
+      } else if (levelNum >= 2 && levelNum <= 10) {
         // Redesign levels 1 to 10 to be highly progressive and challenging!
-        // Level 1 starts at 190px and Level 10 is 136px
+        // Level 2 starts at 184px and Level 10 is 136px
         gapHeight = 190 - (levelNum - 1) * 6;
       } else if (levelNum === 13) {
         // Completely replaced by Level 4
