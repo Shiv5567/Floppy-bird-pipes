@@ -363,9 +363,9 @@ export class ObstacleManager {
             obs.shakeX = isEven ? Math.cos(entangleTime) * 20 : -Math.cos(entangleTime) * 20;
             obs.shakeX2 = isEven ? -Math.cos(entangleTime) * 20 : Math.cos(entangleTime) * 20;
           } else if (obs.patternType === 'level10_miniboss') {
-            // LEVEL 10: "The Chrono Warp Horizon" (Space-time warp compression with dynamic time-dilation ripples propagating through columns - 30% speed reduction)
-            const timeDilation = 1.0 + Math.sin(this.waveTime * 1.05) * 0.4;
-            const warpTime = this.waveTime * 2.45 * timeDilation;
+            // LEVEL 10: "The Chrono Warp Horizon" (Space-time warp compression with dynamic time-dilation ripples propagating through columns - additional 20% speed reduction)
+            const timeDilation = 1.0 + Math.sin(this.waveTime * 0.84) * 0.4;
+            const warpTime = this.waveTime * 1.96 * timeDilation;
             const ripplePhase = warpTime - actualIdx * 0.45;
             
             obs.shakeX = Math.sin(ripplePhase) * 26;

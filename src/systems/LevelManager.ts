@@ -90,6 +90,8 @@ export class LevelManager {
         scrollSpeed = 3.6 + (levelNum - 1) * 0.22;
         if (levelNum === 9) {
           scrollSpeed = scrollSpeed * 0.80; // Decreased by 20% (from 5.36 to 4.29)
+        } else if (levelNum === 10) {
+          scrollSpeed = scrollSpeed * 0.60; // Decreased by 40% (from 5.58 to 3.35)
         }
       } else if (levelNum === 13) {
         // Completely replaced by Level 4
