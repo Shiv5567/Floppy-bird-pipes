@@ -278,9 +278,12 @@ export class ObstacleManager {
           }
 
           const progress = obs.animTimer! / obs.animDuration!;
-          // Soft elastic easing open
+          // Soft elastic easing open (default for most levels)
           const c4 = (2 * Math.PI) / 3;
-          const easedOpen = progress === 0 ? 0 : progress === 1 ? 1 : Math.pow(2, -10 * progress) * Math.sin((progress * 10 - 0.75) * c4) + 1;
+          const elasticEase = progress === 0 ? 0 : progress === 1 ? 1 : Math.pow(2, -10 * progress) * Math.sin((progress * 10 - 0.75) * c4) + 1;
+          // Smooth easeOutSine for Level 11 to avoid mid-animation split jitter
+          const sineEase = Math.sin((progress * Math.PI) / 2);
+          const easedOpen = (obs.levelNum === 11) ? sineEase : elasticEase;
 
           // Level 1-5 Custom Flight Path & Animation Updates
           // Level 1-10 Choreographed Animations Update Loop
@@ -1269,8 +1272,8 @@ export class ObstacleManager {
           const angle = (idx / 11) * Math.PI * 2;
           targetTopHeight = (height / 2 - localGapHeight / 2) + Math.cos(angle * 2) * 70;
         }
-        triggerDistance = 220;
-        animDuration = 0.45;
+        triggerDistance = 240;
+        animDuration = 0.72;
       } else if (patternType === 'level12_doublewave') {
         // LEVEL 12: Exponential Gaps (Gaps opening and contracting exponentially)
         hasAsymmetricHeights = true;
@@ -1802,6 +1805,9 @@ export class ObstacleManager {
         (patternType === 'level5_hourglass' && groupIdx === 0) ||
         (patternType === 'level17_heartbeat' && groupIdx === 0);
 
+      // Level 11 gets a dedicated smooth slide-in from edges (not a split)
+      const isLevel11SmoothEntry = (patternType === 'level11_diamond');
+
       let closedTopHeight = 0;
       let closedBottomHeight = 0;
       let initTriggered = true;
@@ -1813,6 +1819,12 @@ export class ObstacleManager {
         // Start closed at centerX to show the slide apart on approach
         closedTopHeight = targetCenterY - 15;
         closedBottomHeight = height - targetCenterY - 15;
+      } else if (isLevel11SmoothEntry) {
+        // Level 11: pillars start flush with screen edges, then smoothly slide inward
+        initTriggered = false;
+        initAnimTimer = 0;
+        closedTopHeight = 0;          // top pillar starts at zero height (flush with ceiling)
+        closedBottomHeight = 0;       // bottom pillar starts at zero height (flush with floor)
       } else {
         closedTopHeight = targetTopHeight;
         closedBottomHeight = targetBottomHeight;
