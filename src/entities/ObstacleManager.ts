@@ -308,7 +308,7 @@ export class ObstacleManager {
             obs.targetBottomHeight = obs.baseBottomHeight! - slam;
           } else if (obs.patternType === 'level3_arc') {
             // LEVEL 3: "The Gravity Pitfalls" (Anti-phase see-saw elevator shifts: adjacent columns slide vertically with sudden sharp velocity shifts)
-            const phase = this.waveTime * 3.0 + (actualIdx % 3) * (Math.PI * 2 / 3);
+            const phase = this.waveTime * 1.95 + (actualIdx % 3) * (Math.PI * 2 / 3);
             const shift = Math.sin(phase) * 35;
             obs.targetTopHeight = obs.baseTopHeight! + shift;
             obs.targetBottomHeight = obs.baseBottomHeight! - shift;
