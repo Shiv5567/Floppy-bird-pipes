@@ -289,8 +289,10 @@ export class ObstacleManager {
           const groupIdx = Math.min(2, Math.floor(actualIdx / groupSize));
 
           if (obs.patternType === 'level1_funnel') {
-            // LEVEL 1: "The Winding Cavern" (Parallel waving motion: ceiling and floor surfaces wave together in perfect harmony)
-            const slam = Math.sin(this.waveTime * 2.2 + actualIdx * 0.15) * 10;
+            // LEVEL 1: "The Winding Cavern" (Smooth active vertical motion: slow overall sway + sequential parallel ripple)
+            const overallSway = Math.sin(this.waveTime * 1.4) * 22;
+            const ripple = Math.sin(this.waveTime * 2.2 + actualIdx * 0.18) * 8;
+            const slam = overallSway + ripple;
             obs.targetTopHeight = obs.baseTopHeight! + slam;
             obs.targetBottomHeight = obs.baseBottomHeight! - slam;
           } else if (obs.patternType === 'level2_diamond') {
