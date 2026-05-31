@@ -212,6 +212,66 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5
+      },
+      {
+        id: 'storm_griffin',
+        name: 'Storm Griffin',
+        rarity: 'Epic',
+        glowColor: 'rgba(255, 235, 59, 0.8)',
+        particleType: 'storm',
+        costCoins: 6000,
+        costGems: 0,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5
+      },
+      {
+        id: 'void_sentinel',
+        name: 'Void Sentinel',
+        rarity: 'Legendary',
+        glowColor: 'rgba(74, 20, 140, 0.85)',
+        particleType: 'void',
+        costCoins: 0,
+        costGems: 450,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5
+      },
+      {
+        id: 'crimson_valkyrie',
+        name: 'Crimson Valkyrie',
+        rarity: 'Legendary',
+        glowColor: 'rgba(211, 47, 47, 0.85)',
+        particleType: 'valkyrie',
+        costCoins: 8000,
+        costGems: 0,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5
+      },
+      {
+        id: 'emerald_wyvern',
+        name: 'Emerald Wyvern',
+        rarity: 'Epic',
+        glowColor: 'rgba(0, 230, 118, 0.8)',
+        particleType: 'wyvern',
+        costCoins: 5000,
+        costGems: 0,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5
+      },
+      {
+        id: 'obsidian_gargoyle',
+        name: 'Obsidian Gargoyle',
+        rarity: 'Rare',
+        glowColor: 'rgba(255, 110, 64, 0.65)',
+        particleType: 'gargoyle',
+        costCoins: 2000,
+        costGems: 0,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5
       }
     ];
   }

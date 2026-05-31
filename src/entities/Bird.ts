@@ -211,6 +211,27 @@ export class Bird {
         particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -0.5 - Math.random() * 1, -0.2 - Math.random() * 0.8, 'rgba(173, 216, 230, 0.5)', 2.5 + Math.random() * 3, 0.7, 0.015, 'bubble');
         break;
 
+      case 'storm':
+        particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -2 - Math.random() * 1.5, (Math.random() - 0.5) * 1.5, '#ffd600', 3 + Math.random() * 2, 1.0, 0.025, 'spark', true, '#00e5ff');
+        break;
+
+      case 'void':
+        particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -1 - Math.random() * 2, (Math.random() - 0.5) * 1.5, '#bc00dd', 3 + Math.random() * 3, 1.0, 0.02, 'star', true, 'rgba(74, 20, 140, 0.85)');
+        break;
+
+      case 'valkyrie':
+        particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -1.2 - Math.random() * 2, (Math.random() - 0.5) * 1.5, '#ff1744', 3.5 + Math.random() * 3.5, 1.0, 0.03, 'circle', true, '#ffd700');
+        break;
+
+      case 'wyvern':
+        particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -1 - Math.random() * 1.5, (Math.random() - 0.5) * 1.5, '#00e676', 3 + Math.random() * 2, 0.9, 0.02, 'spark', true, 'rgba(27, 94, 32, 0.5)');
+        break;
+
+      case 'gargoyle':
+        particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -0.8 - Math.random() * 1, (Math.random() - 0.5) * 1, '#37474f', 4 + Math.random() * 3, 0.8, 0.03, 'circle');
+        particleEngine.spawn(offsetBackX, offsetBackY, -1.2 - Math.random() * 1, (Math.random() - 0.5) * 0.5, '#ff3d00', 2.5 + Math.random() * 2, 0.9, 0.04, 'spark', true, '#ff9100');
+        break;
+
       default:
         particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -1 - Math.random() * 1, (Math.random() - 0.5) * 0.5, 'rgba(255, 255, 255, 0.4)', 2, 0.8, 0.03, 'circle');
     }
@@ -291,6 +312,21 @@ export class Bird {
         break;
       case 'white_dragon':
         this.drawWhiteDragon(ctx);
+        break;
+      case 'storm_griffin':
+        this.drawStormGriffin(ctx);
+        break;
+      case 'void_sentinel':
+        this.drawVoidSentinel(ctx);
+        break;
+      case 'crimson_valkyrie':
+        this.drawCrimsonValkyrie(ctx);
+        break;
+      case 'emerald_wyvern':
+        this.drawEmeraldWyvern(ctx);
+        break;
+      case 'obsidian_gargoyle':
+        this.drawObsidianGargoyle(ctx);
         break;
       default:
         this.drawEagle(ctx); // Default Eagle
@@ -1884,5 +1920,198 @@ export class Bird {
     ctx.arc(wristX, wristY, 2.2, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+  }
+
+  private drawStormGriffin(ctx: CanvasRenderingContext2D) {
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = 'rgba(255, 235, 59, 0.85)';
+    }
+    const grad = ctx.createLinearGradient(-16, -16, 16, 16);
+    grad.addColorStop(0, '#00e5ff');
+    grad.addColorStop(0.5, '#ffd600');
+    grad.addColorStop(1, '#ff6d00');
+
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, 0, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Golden electric griffin beak
+    ctx.fillStyle = '#ffe100';
+    ctx.beginPath();
+    ctx.moveTo(10, -5);
+    ctx.lineTo(26, 2);
+    ctx.lineTo(10, 7);
+    ctx.closePath();
+    ctx.fill();
+
+    // Feather crown
+    ctx.fillStyle = '#00e5ff';
+    ctx.beginPath();
+    ctx.moveTo(-4, -15);
+    ctx.lineTo(2, -22);
+    ctx.lineTo(8, -12);
+    ctx.closePath();
+    ctx.fill();
+
+    // Griffin blue eye
+    ctx.fillStyle = '#00b0ff';
+    ctx.beginPath();
+    ctx.arc(7, -4, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Electric wings
+    this.drawFlappingWing(ctx, '#00e5ff', '#ffe100', true);
+  }
+
+  private drawVoidSentinel(ctx: CanvasRenderingContext2D) {
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = 'rgba(188, 0, 221, 0.85)';
+    }
+    ctx.fillStyle = '#1c0a35';
+    ctx.strokeStyle = '#bc00dd';
+    ctx.lineWidth = 2.0;
+
+    // Angular dark void shield armor body
+    ctx.beginPath();
+    ctx.moveTo(-15, -15);
+    ctx.lineTo(15, -10);
+    ctx.lineTo(10, 15);
+    ctx.lineTo(-12, 12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Glowing purple laser visor
+    ctx.fillStyle = '#d500f9';
+    ctx.beginPath();
+    ctx.rect(4, -4, 10, 3.5);
+    ctx.fill();
+
+    // Void sentinel metal wings
+    this.drawFlappingWing(ctx, '#4a148c', '#d500f9', true);
+  }
+
+  private drawCrimsonValkyrie(ctx: CanvasRenderingContext2D) {
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 14;
+      ctx.shadowColor = 'rgba(211, 47, 47, 0.9)';
+    }
+    const valkGrad = ctx.createLinearGradient(-15, -15, 15, 15);
+    valkGrad.addColorStop(0, '#ffd700');
+    valkGrad.addColorStop(0.5, '#d32f2f');
+    valkGrad.addColorStop(1, '#5d0000');
+
+    ctx.fillStyle = valkGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Majestic golden crest
+    ctx.fillStyle = '#ffd700';
+    ctx.beginPath();
+    ctx.moveTo(-6, -16);
+    ctx.lineTo(6, -24);
+    ctx.lineTo(12, -10);
+    ctx.closePath();
+    ctx.fill();
+
+    // Glowing valkyrie beak
+    ctx.fillStyle = '#ffb300';
+    ctx.beginPath();
+    ctx.moveTo(9, -4);
+    ctx.lineTo(24, -1);
+    ctx.lineTo(9, 5);
+    ctx.closePath();
+    ctx.fill();
+
+    // Valiant golden eye
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(6, -3, 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Crimson wings
+    this.drawFlappingWing(ctx, '#ff1744', '#ffd700', true);
+  }
+
+  private drawEmeraldWyvern(ctx: CanvasRenderingContext2D) {
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = 'rgba(0, 230, 118, 0.8)';
+    }
+    const scaleGrad = ctx.createLinearGradient(-16, -16, 16, 16);
+    scaleGrad.addColorStop(0, '#00e676');
+    scaleGrad.addColorStop(0.6, '#00b0ff');
+    scaleGrad.addColorStop(1, '#1b5e20');
+
+    ctx.fillStyle = scaleGrad;
+    ctx.beginPath();
+    ctx.moveTo(-16, -5);
+    ctx.lineTo(0, -16);
+    ctx.lineTo(16, -5);
+    ctx.lineTo(12, 14);
+    ctx.lineTo(-12, 14);
+    ctx.closePath();
+    ctx.fill();
+
+    // Jade horns
+    ctx.fillStyle = '#00e676';
+    ctx.beginPath();
+    ctx.moveTo(5, -15);
+    ctx.lineTo(12, -26);
+    ctx.lineTo(10, -12);
+    ctx.closePath();
+    ctx.fill();
+
+    // Snake slit eye
+    ctx.fillStyle = '#ffe100';
+    ctx.beginPath();
+    ctx.arc(6, -2, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Emerald webbed wings
+    this.drawCrystalWing(ctx);
+  }
+
+  private drawObsidianGargoyle(ctx: CanvasRenderingContext2D) {
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = 'rgba(255, 110, 64, 0.7)';
+    }
+    // Obsidian lava-cracked stone texture
+    ctx.fillStyle = '#263238';
+    ctx.beginPath();
+    ctx.arc(0, 0, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Lava cracks glowing
+    ctx.strokeStyle = '#ff3d00';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-10, 2);
+    ctx.lineTo(0, -6);
+    ctx.lineTo(10, 8);
+    ctx.stroke();
+
+    // Heavy gargoyle horn
+    ctx.fillStyle = '#37474f';
+    ctx.beginPath();
+    ctx.moveTo(-8, -12);
+    ctx.lineTo(-18, -20);
+    ctx.lineTo(-4, -14);
+    ctx.closePath();
+    ctx.fill();
+
+    // Angry fire eyes
+    ctx.fillStyle = '#ff3d00';
+    ctx.beginPath();
+    ctx.arc(6, -4, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Heavy bat wings
+    this.drawFlappingWing(ctx, '#37474f', '#ff9100');
   }
 }

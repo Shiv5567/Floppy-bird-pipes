@@ -459,8 +459,8 @@ export class UIManager {
           <!-- Left side panel -->
           <div class="side-panel-left">
             <button class="side-btn" id="side-btn-skins">
-              <span class="side-btn-icon">✨</span>
-              <span class="side-btn-label">SKINS</span>
+              <span class="side-btn-icon">🦅</span>
+              <span class="side-btn-label">CHARACTERS</span>
             </button>
             <button class="side-btn" id="side-btn-worlds">
               <span class="side-btn-icon">🪐</span>
@@ -523,7 +523,7 @@ export class UIManager {
     const progress = this.engine.progressManager.getState();
 
     const tabMeta: Record<string, { icon: string; title: string; color: string; heroIcon: string; heroSubtitle: string }> = {
-      skins:        { icon: '🪶', title: 'BIRD HANGAR & SKINS',  color: '#00f3ff', heroIcon: '✨', heroSubtitle: 'Customize your legendary bird' },
+      skins:        { icon: '🪶', title: 'BIRD HANGAR & CHARACTERS',  color: '#00f3ff', heroIcon: '🦅', heroSubtitle: 'Select your legendary aviator' },
       worlds:       { icon: '🪐', title: 'SELECT BATTLEFIELD',   color: '#7b2fff', heroIcon: '🌍', heroSubtitle: 'Choose your flying world' },
       bp:           { icon: '🎫', title: 'SEASON 1 BATTLE PASS', color: '#ff007f', heroIcon: '⚔️', heroSubtitle: 'Unlock exclusive rewards' },
       achievements: { icon: '🏆', title: 'HALL OF TROPHIES',     color: '#ffd700', heroIcon: '🏅', heroSubtitle: 'Track your legendary feats' },
@@ -612,7 +612,8 @@ export class UIManager {
           const emojiMap: Record<string, string> = {
             default: '🦅', phoenix: '🔥', cyber: '🤖', ice: '❄️',
             shadow: '👿', dragon: '🐲', nebula: '🌌', bubble: '🐳',
-            cyber_owl: '🦉', neon_crow: '🐦‍⬛', goofy_pilot: '🦜', white_dragon: '🐉'
+            cyber_owl: '🦉', neon_crow: '🐦‍⬛', goofy_pilot: '🦜', white_dragon: '🐉',
+            storm_griffin: '⚡', void_sentinel: '🌀', crimson_valkyrie: '⚔️', emerald_wyvern: '🦎', obsidian_gargoyle: '🗿'
           };
           const rarityColors: Record<string, string> = {
             common: '#aaa', rare: '#00f3ff', epic: '#a855f7', legendary: '#ffd700'
@@ -636,7 +637,7 @@ export class UIManager {
               <div class="buy-row">
                 ${s.unlocked
                   ? (isSelected
-                      ? `<span class="equipped-tag">★ ACTIVE SKIN</span>`
+                      ? `<span class="equipped-tag">★ ACTIVE CHAR</span>`
                       : `<button class="btn-equip-skin" data-id="${s.id}">➡ EQUIP</button>`)
                   : `<button class="btn-buy-skin" data-id="${s.id}">${s.costCoins > 0 ? '🟡 ' + s.costCoins.toLocaleString() : '💎 ' + s.costGems.toLocaleString()}</button>`
                 }
@@ -645,7 +646,7 @@ export class UIManager {
           `;
         }).join('');
         return `
-          <div class="tab-sheet-title">✨ CHOOSE YOUR SKIN</div>
+          <div class="tab-sheet-title">✨ SELECT YOUR CHARACTER</div>
           <div class="grid-scroll">${skinsCards}</div>
         `;
       }
