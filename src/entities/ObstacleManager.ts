@@ -348,18 +348,23 @@ export class ObstacleManager {
             obs.targetTopHeight = obs.baseTopHeight! + tremorY;
             obs.targetBottomHeight = obs.baseBottomHeight! - tremorY;
           } else if (obs.patternType === 'level9_magnetic') {
-            // LEVEL 9: "The Guillotine Scissors" (Guillotine scissors: top and bottom slide horizontally in opposite directions past each other)
-            const cross = Math.sin(this.waveTime * 2.4 + actualIdx * 0.6) * 35;
-            obs.shakeX = cross;
-            obs.shakeX2 = -cross;
+            // LEVEL 9: "The Solar Flare Pillars" (Heat wave diagonal bobbing and horizontal opposing sway)
+            const flareTime = this.waveTime * 3.0 + actualIdx * 0.5;
+            obs.shakeX = Math.sin(flareTime) * 25;
+            obs.shakeX2 = -Math.sin(flareTime) * 25;
+            
+            const thermalBob = Math.cos(this.waveTime * 2.5 + actualIdx * 0.4) * 22;
+            obs.targetTopHeight = obs.baseTopHeight! + thermalBob;
+            obs.targetBottomHeight = obs.baseBottomHeight! - thermalBob;
           } else if (obs.patternType === 'level10_miniboss') {
-            // LEVEL 10: "The Mini-Boss Magma Arena" (Magma towers: synthesis of multiple animations with fast vertical elevator shifts)
-            const magWave = Math.sin(this.waveTime * 3.2 + actualIdx * 0.5) * 22;
-            const magPulse = Math.sin(this.waveTime * 4.5) * 15;
-            obs.shakeX = Math.sin(this.waveTime * 3.0) * 20;
-            obs.shakeX2 = Math.cos(this.waveTime * 3.0) * 20;
-            obs.targetTopHeight = obs.baseTopHeight! + magWave - magPulse;
-            obs.targetBottomHeight = obs.baseBottomHeight! - magWave - magPulse;
+            // LEVEL 10: "The Magma Vortex Colosseum" (Epic mini-boss synthesis: circular horizontal shake + high-intensity scissors squeeze)
+            const angle = this.waveTime * 3.6;
+            obs.shakeX = Math.sin(angle) * 22;
+            obs.shakeX2 = Math.cos(angle) * 22;
+            
+            const magmaPulse = Math.sin(this.waveTime * 5.0 + actualIdx * 0.6) * 28;
+            obs.targetTopHeight = obs.baseTopHeight! + magmaPulse;
+            obs.targetBottomHeight = obs.baseBottomHeight! + magmaPulse;
           } else if (obs.patternType === 'level11_diamond') {
             // Level 11: Structure-Aligned Animations matching each Group's distinct layout
             const idx = actualIdx % 12;
@@ -1212,18 +1217,29 @@ export class ObstacleManager {
         triggerDistance = 250;
         animDuration = 0.36;
       } else if (patternType === 'level9_magnetic') {
-        // LEVEL 9: "The Guillotine Scissors" (Criss-cross guillotines: interlocking pair columns blocking top and bottom)
-        hasAsymmetricHeights = true;
-        const isTopHeavy = (obstacleIdx % 2 === 0);
-        targetTopHeight = isTopHeavy ? height - localGapHeight - 50 : 50;
-        targetBottomHeight = isTopHeavy ? 50 : height - localGapHeight - 50;
+        // LEVEL 9: "The Solar Flare Pillars" (Attractive triple-crest diagonal stepping layout)
+        localGapHeight = gapHeight - 10;
+        const step = obstacleIdx % 3;
+        if (step === 0) {
+          targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.6) * 75;
+        } else if (step === 1) {
+          targetCenterY = height / 2 - 75 + Math.sin(obstacleIdx * 0.6) * 45;
+        } else {
+          targetCenterY = height / 2 + 75 + Math.sin(obstacleIdx * 0.6) * 45;
+        }
         triggerDistance = 240;
         animDuration = 0.34;
       } else if (patternType === 'level10_miniboss') {
-        // LEVEL 10: "The Mini-Boss Magma Arena" (Giant volcanic magma towers rising and falling from bounds)
-        hasAsymmetricHeights = true;
-        targetTopHeight = 60 + Math.sin(obstacleIdx * 2.0) * 85;
-        targetBottomHeight = 60 + Math.cos(obstacleIdx * 2.0) * 85;
+        // LEVEL 10: "The Magma Vortex Colosseum" (Epic interlocking 4-step colosseum arena)
+        localGapHeight = gapHeight - 15;
+        const step = obstacleIdx % 4;
+        let centerYOffset = 0;
+        if (step === 0) centerYOffset = -90;
+        else if (step === 1) centerYOffset = 40;
+        else if (step === 2) centerYOffset = -40;
+        else centerYOffset = 90;
+        
+        targetCenterY = height / 2 + centerYOffset;
         triggerDistance = 200;
         animDuration = 0.32;
       } else if (patternType === 'level11_diamond') {
