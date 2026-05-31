@@ -296,10 +296,14 @@ export class ObstacleManager {
             obs.targetTopHeight = obs.baseTopHeight! + slam;
             obs.targetBottomHeight = obs.baseBottomHeight! - slam;
           } else if (obs.patternType === 'level2_diamond') {
-            // LEVEL 2: "The Wave Gauntlet" (Ceiling and floor surfaces wave in parallel harmony, horizontal opposite shift remains active)
+            // LEVEL 2: "The Wave Gauntlet" (Ceiling and floor surfaces wave in parallel harmony with slow overall sway + sequential parallel ripple, horizontal opposite shift remains active)
             obs.shakeX = Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 20;
             obs.shakeX2 = -Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 20;
-            const slam = Math.sin(this.waveTime * 2.0 + actualIdx * 0.15) * 15;
+            
+            const overallSway = Math.sin(this.waveTime * 1.3) * 24;
+            const ripple = Math.sin(this.waveTime * 2.4 + actualIdx * 0.16) * 12;
+            const slam = overallSway + ripple;
+            
             obs.targetTopHeight = obs.baseTopHeight! + slam;
             obs.targetBottomHeight = obs.baseBottomHeight! - slam;
           } else if (obs.patternType === 'level3_arc') {
