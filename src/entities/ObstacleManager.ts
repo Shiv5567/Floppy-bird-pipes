@@ -294,7 +294,7 @@ export class ObstacleManager {
             obs.targetTopHeight = obs.baseTopHeight! + slam;
             obs.targetBottomHeight = obs.baseBottomHeight! - slam;
           } else if (obs.patternType === 'level2_diamond') {
-            // LEVEL 2: "The Arch Gauntlet" (Ceiling and floor surfaces wave in parallel harmony, horizontal opposite shift remains active)
+            // LEVEL 2: "The Zigzag Gauntlet" (Ceiling and floor surfaces wave in parallel harmony, horizontal opposite shift remains active)
             obs.shakeX = Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 20;
             obs.shakeX2 = -Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 20;
             const slam = Math.sin(this.waveTime * 2.0 + actualIdx * 0.15) * 12;
@@ -1109,18 +1109,19 @@ export class ObstacleManager {
       let targetBottomHeight = 0;
 
       if (patternType === 'level1_funnel') {
-        // LEVEL 1: "The Winding Cavern" (Smooth continuous undulating path aligned with the surfaces, touching side-by-side)
+        // LEVEL 1: "The Winding Cavern" (Smooth continuous undulating wave path aligned with the surfaces, touching side-by-side)
         hasAsymmetricHeights = false;
-        targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.32) * 83;
+        targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.35) * 85;
         triggerDistance = 750;
         animDuration = 0.50;
       } else if (patternType === 'level2_diamond') {
-        // LEVEL 2: "The Arch Gauntlet" (Smooth parabolic arches aligned side-by-side)
+        // LEVEL 2: "The Zigzag Gauntlet" (Sharp, linear zigzag path aligned side-by-side)
         localGapHeight = gapHeight - 5;
-        const idxInArch = obstacleIdx % 7;
-        const x_val = (idxInArch - 3) / 3;
-        const y_offset = (1.0 - x_val * x_val) * 110;
-        targetCenterY = (height / 2 + 60) - y_offset;
+        const idxInCycle = obstacleIdx % 8;
+        const offset = idxInCycle < 4 
+          ? -70 + idxInCycle * 46 
+          : 70 - (idxInCycle - 4) * 46;
+        targetCenterY = height / 2 + offset;
         triggerDistance = 220;
         animDuration = 0.45;
       } else if (patternType === 'level3_arc') {
