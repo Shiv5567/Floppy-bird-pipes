@@ -1171,7 +1171,19 @@ export class ObstacleManager {
         // LEVEL 5: "The Helix Vortex" (Hourglass corridor starting wide, squeezing to bottleneck, and expanding again)
         const distFromCenter = Math.abs(obstacleIdx - 2.5);
         localGapHeight = gapHeight - 25 + distFromCenter * 20;
-        targetCenterY = height / 2 + Math.sin(obstacleIdx * 1.2) * 35;
+        
+        // Base center Y
+        const baseCenterY = height / 2 + Math.sin(obstacleIdx * 1.2) * 35;
+        
+        // Alternating 30% gap shift every 20 obstacles shaped as a smooth arc
+        const period = 20;
+        const blockIdx = Math.floor(actualPatternIdx / period);
+        const idxInBlock = actualPatternIdx % period;
+        const shiftSign = (blockIdx % 2 === 0) ? -1 : 1; // Alternating UP (-1) and DOWN (+1)
+        const arcFactor = Math.sin((idxInBlock / 19) * Math.PI);
+        const verticalShift = shiftSign * (localGapHeight * 0.30) * arcFactor;
+        
+        targetCenterY = baseCenterY + verticalShift;
         triggerDistance = 300;
         animDuration = 0.45;
       } else if (patternType === 'level6_infinity') {
