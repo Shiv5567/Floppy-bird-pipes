@@ -97,8 +97,8 @@ export class LevelManager {
         // Completely replaced by Level 4
         scrollSpeed = 3.6 + (4 - 1) * 0.22;
       } else if (levelNum === 14) {
-        // Completely replaced by Level 3
-        scrollSpeed = 3.6 + (3 - 1) * 0.22;
+        // Completely replaced by Level 3, then decreased by 15% for Wormhole Vortex
+        scrollSpeed = (3.6 + (3 - 1) * 0.22) * 0.85;
       } else if (levelNum === 15) {
         // Completely replaced by Level 7
         scrollSpeed = 3.6 + (7 - 1) * 0.22;
