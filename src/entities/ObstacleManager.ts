@@ -1193,9 +1193,15 @@ export class ObstacleManager {
             }
           }
         }
-        // Dynamic Spacing Safeguard: Increase the horizontally minimum gap/distance by 10% for playability
+        // Dynamic Spacing Safeguard: Increase the horizontally minimum gap/distance dynamically by score
         if (this.currentEndlessDistScale <= 0.65) {
-          dist *= 1.10; // 10% increase
+          let minimumGapScale = 1.10; // Default 10% increase (score < 300)
+          if (score >= 300 && score <= 500) {
+            minimumGapScale = 1.10; // 10% increase
+          } else if (score > 500) {
+            minimumGapScale = 1.18; // 18% increase
+          }
+          dist *= minimumGapScale;
         }
         this.nextSpawnDistance = dist;
       }
