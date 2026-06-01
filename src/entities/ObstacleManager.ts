@@ -51,6 +51,7 @@ export interface Obstacle {
   gapHeight?: number;
   spawnCenterY?: number;
   isSpecialSplit?: boolean;
+  approachAnimType?: 'open' | 'close';
   baseTopHeight?: number;
   baseBottomHeight?: number;
   obstacleIdx?: number;
@@ -1008,69 +1009,96 @@ export class ObstacleManager {
         }
       } else {
         // Endless mode obstacle movement
-        let centerY = obs.spawnCenterY !== undefined ? obs.spawnCenterY : (obs.initialTopHeight + (height - obs.initialBottomHeight - obs.initialTopHeight) / 2);
-        let currentGap = obs.gapHeight !== undefined ? obs.gapHeight : (height - obs.initialBottomHeight - obs.initialTopHeight);
+        if (obs.approachAnimType !== undefined) {
+          // Check near approach trigger
+          if (_birdX !== undefined) {
+            const dx = obs.x - _birdX;
+            if (!obs.isTriggered && dx <= obs.triggerDistance!) {
+              obs.isTriggered = true;
+              obs.animTimer = 0;
+            }
+          }
 
-        // Pipe gaps are kept completely constant and unchanged as requested, only shifting centerY up and down!
-        let verticalShift = 0;
-        if (score >= 100 && score < 200) {
-          // 10% difficulty: shift centerY up and down by 25px
-          const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
-          if (motionStyle === 0) {
-            verticalShift = Math.sin(this.waveTime * 1.5 + (obs.obstacleIdx || 0) * 0.5) * 25;
+          if (obs.isTriggered) {
+            obs.animTimer! += deltaTime * timeScale;
+            if (obs.animTimer! > obs.animDuration!) {
+              obs.animTimer = obs.animDuration!;
+            }
+            const progress = obs.animTimer! / obs.animDuration!;
+            // Smooth ease-out sine profile for extremely fluid visual transitions
+            const ease = Math.sin((progress * Math.PI) / 2);
+            obs.topHeight = obs.closedTopHeight! + (obs.targetTopHeight! - obs.closedTopHeight!) * ease;
+            obs.bottomHeight = obs.closedBottomHeight! + (obs.targetBottomHeight! - obs.closedBottomHeight!) * ease;
           } else {
-            const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-            verticalShift = Math.sin(this.waveTime * 1.2) * 20 * elevatorDir;
+            obs.topHeight = obs.closedTopHeight!;
+            obs.bottomHeight = obs.closedBottomHeight!;
           }
-        } else if (score >= 200 && score < 300) {
-          // 10% + 15% = 25% difficulty: shift centerY up and down by 50px
-          const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
-          if (motionStyle === 0) {
-            verticalShift = Math.sin(this.waveTime * 2.2 + (obs.obstacleIdx || 0) * 0.5) * 50;
-          } else {
-            const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-            verticalShift = Math.sin(this.waveTime * 1.8) * 45 * elevatorDir;
-          }
-        } else if (score >= 300) {
-          // Score >= 300: full high difficulty sways up to 60px
-          const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
-          if (motionStyle === 0) {
-            verticalShift = Math.sin(this.waveTime * 2.5 + (obs.obstacleIdx || 0) * 0.5) * 60;
-          } else {
-            const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-            verticalShift = Math.sin(this.waveTime * 2.0) * 55 * elevatorDir;
+        } else {
+          // Standard endless mode obstacle movement (sways/oscillations)
+          let centerY = obs.spawnCenterY !== undefined ? obs.spawnCenterY : (obs.initialTopHeight + (height - obs.initialBottomHeight - obs.initialTopHeight) / 2);
+          let currentGap = obs.gapHeight !== undefined ? obs.gapHeight : (height - obs.initialBottomHeight - obs.initialTopHeight);
+
+          // Pipe gaps are kept completely constant and unchanged as requested, only shifting centerY up and down!
+          let verticalShift = 0;
+          if (score >= 100 && score < 200) {
+            // 10% difficulty: shift centerY up and down by 25px
+            const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
+            if (motionStyle === 0) {
+              verticalShift = Math.sin(this.waveTime * 1.5 + (obs.obstacleIdx || 0) * 0.5) * 25;
+            } else {
+              const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
+              verticalShift = Math.sin(this.waveTime * 1.2) * 20 * elevatorDir;
+            }
+          } else if (score >= 200 && score < 300) {
+            // 10% + 15% = 25% difficulty: shift centerY up and down by 50px
+            const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
+            if (motionStyle === 0) {
+              verticalShift = Math.sin(this.waveTime * 2.2 + (obs.obstacleIdx || 0) * 0.5) * 50;
+            } else {
+              const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
+              verticalShift = Math.sin(this.waveTime * 1.8) * 45 * elevatorDir;
+            }
+          } else if (score >= 300) {
+            // Score >= 300: full high difficulty sways up to 60px
+            const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
+            if (motionStyle === 0) {
+              verticalShift = Math.sin(this.waveTime * 2.5 + (obs.obstacleIdx || 0) * 0.5) * 60;
+            } else {
+              const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
+              verticalShift = Math.sin(this.waveTime * 2.0) * 55 * elevatorDir;
+            }
+
+            // Global wave motion if score is 500 or above
+            if (score >= 500) {
+              const globalWave = Math.sin(this.waveTime * 1.5 + obs.x * 0.004) * 45;
+              verticalShift += globalWave;
+            }
           }
 
-          // Global wave motion if score is 500 or above
-          if (score >= 500) {
-            const globalWave = Math.sin(this.waveTime * 1.5 + obs.x * 0.004) * 45;
-            verticalShift += globalWave;
+          // Playability Safeguard: Clamp vertical shift to [-40, 40] if pipes are horizontally close (minimum horizontal gap)
+          let isTightHorizontalGap = false;
+          for (let j = 0; j < this.list.length; j++) {
+            const other = this.list[j];
+            if (other !== obs && Math.abs(obs.x - other.x) < 320) {
+              isTightHorizontalGap = true;
+              break;
+            }
           }
+          if (isTightHorizontalGap) {
+            verticalShift = Math.max(-40, Math.min(40, verticalShift));
+          }
+
+          centerY += verticalShift;
+
+          // Keep centerY within screen bounds so that both top and bottom pipes are at least 45px high
+          const minCenterY = 45 + currentGap / 2;
+          const maxCenterY = height - 45 - currentGap / 2;
+          centerY = Math.max(minCenterY, Math.min(maxCenterY, centerY));
+
+          // Apply coordinates
+          obs.topHeight = centerY - currentGap / 2;
+          obs.bottomHeight = height - centerY - currentGap / 2;
         }
-
-        // Playability Safeguard: Clamp vertical shift to [-40, 40] if pipes are horizontally close (minimum horizontal gap)
-        let isTightHorizontalGap = false;
-        for (let j = 0; j < this.list.length; j++) {
-          const other = this.list[j];
-          if (other !== obs && Math.abs(obs.x - other.x) < 320) {
-            isTightHorizontalGap = true;
-            break;
-          }
-        }
-        if (isTightHorizontalGap) {
-          verticalShift = Math.max(-40, Math.min(40, verticalShift));
-        }
-
-        centerY += verticalShift;
-
-        // Keep centerY within screen bounds so that both top and bottom pipes are at least 45px high
-        const minCenterY = 45 + currentGap / 2;
-        const maxCenterY = height - 45 - currentGap / 2;
-        centerY = Math.max(minCenterY, Math.min(maxCenterY, centerY));
-
-        // Apply coordinates
-        obs.topHeight = centerY - currentGap / 2;
-        obs.bottomHeight = height - centerY - currentGap / 2;
 
           // 4. Visual effects - spawn dynamic movement particles
           if (_particleEngine && Math.random() < 0.08) {
@@ -2045,6 +2073,31 @@ export class ObstacleManager {
     const isMutated = this.activeLevelConfig ? (this.activeLevelConfig.levelNum % 2 === 0) : (score >= 20 && score < 50);
     const isStructured = this.activeLevelConfig ? (this.activeLevelConfig.levelNum % 3 === 0) : (score >= 50 && score <= 70);
 
+    let approachAnimType: 'open' | 'close' | undefined = undefined;
+    let closedTopHeight = topHeight;
+    let closedBottomHeight = bottomHeight;
+    let animDuration = 0.40;
+    let triggerDistance = 380;
+
+    // 30% of obstacles for score 1 to 150 in Endless Mode
+    if (!this.activeLevelConfig && score >= 1 && score <= 150 && Math.random() < 0.30) {
+      approachAnimType = Math.random() < 0.5 ? 'open' : 'close';
+      if (approachAnimType === 'open') {
+        // Start closed (tiny 10px gap at center) and split open
+        closedTopHeight = targetCenterY - 5;
+        closedBottomHeight = height - targetCenterY - 5;
+        topHeight = closedTopHeight;
+        bottomHeight = closedBottomHeight;
+      } else {
+        // Start wide (1.4x larger gap) and close down to target position
+        const wideGap = currentStepGap * 1.40;
+        closedTopHeight = targetCenterY - wideGap / 2;
+        closedBottomHeight = height - targetCenterY - wideGap / 2;
+        topHeight = closedTopHeight;
+        bottomHeight = closedBottomHeight;
+      }
+    }
+
     this.list.push(this.acquireObstacle({
       x: width + 50,
       width: this.obstacleWidth,
@@ -2069,7 +2122,16 @@ export class ObstacleManager {
       levelNum,
       gapHeight: currentStepGap,
       spawnCenterY: targetCenterY,
-      obstacleIdx: this.endlessObstacleCount++
+      obstacleIdx: this.endlessObstacleCount++,
+      approachAnimType,
+      targetTopHeight: targetCenterY - currentStepGap / 2,
+      targetBottomHeight: height - targetCenterY - currentStepGap / 2,
+      closedTopHeight,
+      closedBottomHeight,
+      animTimer: 0,
+      animDuration,
+      triggerDistance,
+      isTriggered: false
     }));
   }
 
