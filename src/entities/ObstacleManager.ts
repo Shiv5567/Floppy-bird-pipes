@@ -1251,6 +1251,15 @@ export class ObstacleManager {
           }
           dist *= minimumGapScale;
         }
+
+        // 15% increase for all minimum horizontal gaps starting from score 100
+        if (score >= 100) {
+          const isMinimumHorizontalGap = this.currentEndlessDistScale <= 0.65 || (1.0 - pct) <= 0.85;
+          if (isMinimumHorizontalGap) {
+            dist *= 1.15; // 15% increase
+          }
+        }
+
         this.nextSpawnDistance = dist;
       }
     }
