@@ -15,13 +15,11 @@ export class Bird {
   private maxFallSpeed = 11.0;
   private maxRiseSpeed = -8.5;
   
-  // Animation & input tracking variables
+  // Animation variables
   private flapCycle = 0;
   private flapSpeed = 0.25;
   private crashSpinAngle = 0;
   public isCrashing = false;
-  private lastTapTime = 0;
-  private tapCombo = 0;
 
   // Aura animation variables
   private auraAngle = 0;
@@ -96,40 +94,16 @@ export class Bird {
   public jump(soundManager?: any, score = 0) {
     if (this.isCrashing) return;
     
-    // Track rapid tapping combo
-    const now = performance.now();
-    const timeSinceLastTap = (now - this.lastTapTime) / 1000;
-    this.lastTapTime = now;
-
-    // If the tap is rapid (within 280ms), build up a combo!
-    if (timeSinceLastTap < 0.28) {
-      this.tapCombo = Math.min(6, this.tapCombo + 1);
-    } else {
-      this.tapCombo = 0;
-    }
-
     // Jump lift scaled with skin upgrade level (minor bonus)
     const levelBonus = (this.activeSkin.upgradeLevel - 1) * 0.05;
     
     // Custom progressive score-based jump scaling (with 30% reduction applied to impulse above score 600)
     const jumpScale = this.getJumpScale(score, true);
-    const unreducedJumpScale = this.getJumpScale(score, false);
+    const impulse = this.jumpLift * (1 + levelBonus) * jumpScale;
     
-    // Tapping speed bonus: scale jump impulse by 20% for each combo step above score 500!
-    const tapSpeedMultiplier = score >= 500 ? (1.0 + this.tapCombo * 0.20) : 1.0;
-    const impulse = this.jumpLift * (1 + levelBonus) * jumpScale * tapSpeedMultiplier;
-    
-    // Enforce maximum rise speed dynamically (allowing higher speeds for high combos based on unreduced velocity scale!)
-    const comboRiseBonus = score >= 500 ? (1.0 + this.tapCombo * 0.35) : 1.0;
-    const currentMaxRiseSpeed = this.maxRiseSpeed * unreducedJumpScale * comboRiseBonus;
-
-    // Stack impulse additively if tapping rapidly so bird climbs faster according to tap speed!
-    if (score >= 500 && this.vy < 0 && timeSinceLastTap < 0.28) {
-      this.vy = Math.max(currentMaxRiseSpeed, this.vy + impulse * 0.65);
-    } else {
-      // Standard jump reset
-      this.vy = impulse;
-    }
+    // Instant, sharp, predictable and completely constant jump:
+    // Instantly set vertical velocity to the jump impulse to give an immediate constant response on every tap.
+    this.vy = impulse;
     
     this.flapCycle = 0; // Reset wing animation cycle to start flap
     if (soundManager) soundManager.playFlap();
@@ -146,9 +120,8 @@ export class Bird {
     // Custom progressive score-based jump scaling:
     const unreducedJumpScale = this.getJumpScale(score, false);
     
-    // Scale maximum rise speed dynamically to stay fully synchronized with jump impulse and combo scaling (unreduced for upward speed!)
-    const comboRiseBonus = score >= 500 ? (1.0 + this.tapCombo * 0.35) : 1.0;
-    const currentMaxRiseSpeed = this.maxRiseSpeed * unreducedJumpScale * comboRiseBonus;
+    // Scale maximum rise speed dynamically to stay fully synchronized with jump impulse (unreduced for upward speed!)
+    const currentMaxRiseSpeed = this.maxRiseSpeed * unreducedJumpScale;
     
     if (isPlaying) {
       // Apply gravity
