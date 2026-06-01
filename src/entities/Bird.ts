@@ -15,11 +15,13 @@ export class Bird {
   private maxFallSpeed = 11.0;
   private maxRiseSpeed = -8.5;
   
-  // Animation variables
+  // Animation & input tracking variables
   private flapCycle = 0;
   private flapSpeed = 0.25;
   private crashSpinAngle = 0;
   public isCrashing = false;
+  private lastTapTime = 0;
+  private tapCombo = 0;
 
   // Aura animation variables
   private auraAngle = 0;
@@ -72,20 +74,15 @@ export class Bird {
     } else if (score <= 500) {
       // From score 400 onwards, increase the bird's upward velocity by 10%
       jumpScale = maxScale400 * 1.10; // ~1.26103
-    } else if (score < 600) {
-      // From score 500 onwards, increase the Bird's upward velocity per tap by another 8%
-      const progress = (score - 500) / 100;
-      jumpScale = maxScale400 * 1.10 * 1.08 * (1.0 + progress * 0.075);
     } else if (score <= 700) {
-      // From score 600 onwards, decrease upward jump distance per tap by 60% (so multiply by 0.40)
-      const progress = (score - 600) / 100;
-      const baseScale = maxScale400 * 1.10 * 1.08 * 1.075; // ~1.46
-      jumpScale = baseScale * 0.40 * (1.0 + progress * 0.08); // small micro-jump scaling
+      // From score 500 onwards, increase the Bird's upward velocity per tap progressively to counter heavy gravity
+      const progress = (score - 500) / 200;
+      jumpScale = maxScale400 * 1.10 * 1.08 * (1.0 + progress * 0.20); // up to ~1.63 at score 700
     } else {
-      // Above score 700, keep jump distance 60% decreased, with minor progressive increase for higher scores
+      // Above score 700, increase tap power exponentially to counter heavy progressive gravity
       const over700Factor = Math.floor((score - 700) / 50);
-      const baseScale = maxScale400 * 1.10 * 1.08 * 1.15; // ~1.56
-      jumpScale = baseScale * 0.40 * Math.pow(1.08, over700Factor);
+      const baseScale = maxScale400 * 1.10 * 1.08 * 1.20; // ~1.63
+      jumpScale = baseScale * Math.pow(1.10, over700Factor);
     }
     return jumpScale;
   }
@@ -93,17 +90,39 @@ export class Bird {
   public jump(soundManager?: any, score = 0) {
     if (this.isCrashing) return;
     
+    // Track rapid tapping combo
+    const now = performance.now();
+    const timeSinceLastTap = (now - this.lastTapTime) / 1000;
+    this.lastTapTime = now;
+
+    // If the tap is rapid (within 280ms), build up a combo!
+    if (timeSinceLastTap < 0.28) {
+      this.tapCombo = Math.min(6, this.tapCombo + 1);
+    } else {
+      this.tapCombo = 0;
+    }
+
     // Jump lift scaled with skin upgrade level (minor bonus)
     const levelBonus = (this.activeSkin.upgradeLevel - 1) * 0.05;
     
     // Custom progressive score-based jump scaling:
     const jumpScale = this.getJumpScale(score);
-    const impulse = this.jumpLift * (1 + levelBonus) * jumpScale;
     
-    // Instant, sharp, and highly responsive jump:
-    // Instantly set vertical velocity to the jump impulse to give an immediate response.
-    // This guarantees a perfectly predictable jump height on every single tap and prevents wild speed-stacking!
-    this.vy = impulse;
+    // Tapping speed bonus: scale jump impulse by 20% for each combo step above score 500!
+    const tapSpeedMultiplier = score >= 500 ? (1.0 + this.tapCombo * 0.20) : 1.0;
+    const impulse = this.jumpLift * (1 + levelBonus) * jumpScale * tapSpeedMultiplier;
+    
+    // Enforce maximum rise speed dynamically (allowing higher speeds for high combos!)
+    const comboRiseBonus = score >= 500 ? (1.0 + this.tapCombo * 0.35) : 1.0;
+    const currentMaxRiseSpeed = this.maxRiseSpeed * jumpScale * comboRiseBonus;
+
+    // Stack impulse additively if tapping rapidly so bird climbs faster according to tap speed!
+    if (score >= 500 && this.vy < 0 && timeSinceLastTap < 0.28) {
+      this.vy = Math.max(currentMaxRiseSpeed, this.vy + impulse * 0.65);
+    } else {
+      // Standard jump reset
+      this.vy = impulse;
+    }
     
     this.flapCycle = 0; // Reset wing animation cycle to start flap
     if (soundManager) soundManager.playFlap();
@@ -114,22 +133,15 @@ export class Bird {
     
     // Synchronize physics gravity and max fall speed caps with 5% speed increase every 25 score
     const speedMultiplier = 1.0 + Math.floor(score / 25.0) * 0.05;
-    let currentGravity = this.gravity * speedMultiplier;
-    let currentMaxFallSpeed = this.maxFallSpeed * speedMultiplier;
+    const currentGravity = this.gravity * speedMultiplier;
+    const currentMaxFallSpeed = this.maxFallSpeed * speedMultiplier;
     
     // Custom progressive score-based jump scaling:
     const jumpScale = this.getJumpScale(score);
     
-    if (score >= 600) {
-      // Balance gravity with the 60% reduced jump lift/distance so vertical reaction speed remains balanced & snappy
-      const baseGravityScale = 0.35;
-      const difficultyFactor = 1.0 + (score - 600) * 0.0012; // slow progressive difficulty scaling
-      currentGravity = baseGravityScale * difficultyFactor;
-      currentMaxFallSpeed = this.maxFallSpeed * 0.5 * difficultyFactor;
-    }
-    
-    // Scale maximum rise speed dynamically to stay fully synchronized with jump impulse scaling!
-    const currentMaxRiseSpeed = this.maxRiseSpeed * jumpScale;
+    // Scale maximum rise speed dynamically to stay fully synchronized with jump impulse and combo scaling!
+    const comboRiseBonus = score >= 500 ? (1.0 + this.tapCombo * 0.35) : 1.0;
+    const currentMaxRiseSpeed = this.maxRiseSpeed * jumpScale * comboRiseBonus;
     
     if (isPlaying) {
       // Apply gravity
