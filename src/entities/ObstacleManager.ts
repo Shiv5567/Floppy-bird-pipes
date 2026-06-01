@@ -1104,7 +1104,7 @@ export class ObstacleManager {
 
           centerY += verticalShift;
 
-          // Intersection Safeguard (Score >= 200, specially 400+): Enforce minimum 30% gap overlap for adjacent pipes
+          // Intersection Safeguard (Score >= 200, specially 400+): Enforce minimum 30% gap overlap or highly parallel alignment for adjacent pipes
           if (score >= 200) {
             let nearestOther: Obstacle | null = null;
             let minDistance = Infinity;
@@ -1123,9 +1123,12 @@ export class ObstacleManager {
               const otherGap = height - nearestOther.bottomHeight - nearestOther.topHeight;
               const otherCenterY = nearestOther.topHeight + otherGap / 2;
               
-              // Ensure at least 30% overlap (intersection) of the gap height
-              const overlapPercentage = 0.30;
-              const maxCenterDiff = currentGap * (1.0 - overlapPercentage);
+              // Dynamic Overlap Constraints based on Horizontal Spacing:
+              // - If horizontally very close (minDistance < 320), keep them highly parallel (vertical offset <= 30% of gap, i.e., 70% parallel path alignment)
+              // - Otherwise, keep at least a 30% intersection overlap (vertical offset <= 70% of gap)
+              const maxCenterDiff = minDistance < 320 
+                ? currentGap * 0.30  // Highly parallel / 30% maximum center offset
+                : currentGap * 0.70; // Standard overlap safeguard / 70% maximum center offset
               
               const diffY = centerY - otherCenterY;
               if (Math.abs(diffY) > maxCenterDiff) {
