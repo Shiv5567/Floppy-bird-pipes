@@ -1014,8 +1014,14 @@ export class ObstacleManager {
         // Pipe gaps are kept completely constant and unchanged as requested, only shifting centerY up and down!
         let verticalShift = 0;
         if (score >= 100 && score < 200) {
-          // Completely static pipes as requested by the user, no vertical movement animation!
-          verticalShift = 0;
+          // 10% difficulty: shift centerY up and down by 25px
+          const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
+          if (motionStyle === 0) {
+            verticalShift = Math.sin(this.waveTime * 1.5 + (obs.obstacleIdx || 0) * 0.5) * 25;
+          } else {
+            const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
+            verticalShift = Math.sin(this.waveTime * 1.2) * 20 * elevatorDir;
+          }
         } else if (score >= 200 && score < 300) {
           // 10% + 15% = 25% difficulty: shift centerY up and down by 50px
           const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
@@ -2003,8 +2009,8 @@ export class ObstacleManager {
 
     let endlessShiftScale = 1.0;
     if (score >= 100 && score < 200) {
-      endlessShiftScale = 1.15; // 15% more challenging static up-down offsets
-      isMoving = false; // Completely static pipes (no vertical motion/animation!)
+      endlessShiftScale = 1.0;
+      isMoving = !!nextPattern.isMoving;
     } else if (score >= 200 && score < 300) {
       endlessShiftScale = 1.25; // 25% more extreme vertical sways
       isMoving = !!nextPattern.isMoving;
