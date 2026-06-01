@@ -881,12 +881,18 @@ export class GameEngine {
     }
 
     if (type === 'coin') {
-      this.coinsCollectedThisRun += 1;
-      this.progressManager.addCoins(1);
-      this.progressManager.updateQuestProgress('coin_grab', 1);
-      // Reward Ultimate energy (Option 2)
+      let coinVal = 1;
+      if (this.score >= 300 && this.score < 500) {
+        coinVal = 2;
+      } else if (this.score >= 500) {
+        coinVal = 3;
+      }
+      this.coinsCollectedThisRun += coinVal;
+      this.progressManager.addCoins(coinVal);
+      this.progressManager.updateQuestProgress('coin_grab', coinVal);
+      // Reward Ultimate energy
       if (!this.ultimateActive) {
-        this.ultimateEnergy = Math.min(100, this.ultimateEnergy + 8);
+        this.ultimateEnergy = Math.min(100, this.ultimateEnergy + 8 * coinVal);
       }
       return;
     }

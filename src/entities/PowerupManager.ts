@@ -103,15 +103,15 @@ export class PowerupManager {
       const targetX = unrewardedObstacle.x + baseOffset;
 
       const rand = Math.random();
-      if (rand < 0.82) {
-        // Spawn a beautiful horizontal row of 3 coins guiding the player through the center of the gap
+      if (rand < 0.50) {
+        // Spawn a beautiful horizontal row of 3 coins guiding the player through the center of the gap (Avg: 0.50 * 3 = 1.5 coins per pipe = 150 coins per 100 score!)
         this.spawnItem('coin', width, height, targetX - 55, gapCenterY);
         this.spawnItem('coin', width, height, targetX, gapCenterY);
         this.spawnItem('coin', width, height, targetX + 55, gapCenterY);
-      } else if (rand < 0.94) {
+      } else if (rand < 0.62) {
         // Spawn a gem in the center
         this.spawnItem('gem', width, height, targetX, gapCenterY);
-      } else {
+      } else if (rand < 0.72) {
         // Spawn a powerup in the center
         const types: PowerupType[] = ['shield', 'slowmo', 'magnet', 'double', 'turbo', 'ghost', 'mini', 'revive'];
         const randomType = types[Math.floor(Math.random() * types.length)];
@@ -179,7 +179,14 @@ export class PowerupManager {
 
         // Visual collection particles
         if (item.type === 'coin') {
-          particleEngine.emitCoinSparkle(item.x, item.y, '#ffd700');
+          const gameScore = (window as any).gameEngine ? (window as any).gameEngine.score : 0;
+          let sparkleColor = '#ffd700';
+          if (gameScore >= 300 && gameScore < 500) {
+            sparkleColor = '#00e5ff';
+          } else if (gameScore >= 500) {
+            sparkleColor = '#ff3d00';
+          }
+          particleEngine.emitCoinSparkle(item.x, item.y, sparkleColor);
           soundManager.playCoin();
         } else if (item.type === 'gem') {
           particleEngine.emitCoinSparkle(item.x, item.y, '#00ffcc');
@@ -269,16 +276,31 @@ export class PowerupManager {
   }
 
   private drawCoin(ctx: CanvasRenderingContext2D, item: PowerupItem) {
-    if (!(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = '#ffd700';
-    }
+    // Coins ma dynamic light haru use na garne lightweight hunu laro
+    // We completely omit shadow blurs/glows on coins for maximum performance!
+    const gameEngine = (window as any).gameEngine;
+    const score = gameEngine ? gameEngine.score : 0;
 
-    // Spinning gold coin gradient
-    const coinGrad = ctx.createRadialGradient(-2, -2, 1, 0, 0, item.radius);
-    coinGrad.addColorStop(0, '#fff');
-    coinGrad.addColorStop(0.3, '#ffd700');
-    coinGrad.addColorStop(1, '#c59b27');
+    let coinGrad = ctx.createRadialGradient(-2, -2, 1, 0, 0, item.radius);
+
+    if (score >= 300 && score < 500) {
+      // Gradient mixed of light blue and yellow
+      coinGrad.addColorStop(0, '#e0f7fa');   // White/Very Light Blue
+      coinGrad.addColorStop(0.3, '#00e5ff'); // Light Blue
+      coinGrad.addColorStop(0.7, '#ffd700'); // Yellow
+      coinGrad.addColorStop(1, '#c59b27');   // Darker Gold/Yellow
+    } else if (score >= 500) {
+      // Gradient mixed of yellow and red
+      coinGrad.addColorStop(0, '#ffffff');   // White
+      coinGrad.addColorStop(0.3, '#ffea00'); // Yellow
+      coinGrad.addColorStop(0.7, '#ff3d00'); // Red
+      coinGrad.addColorStop(1, '#b30000');   // Dark Red
+    } else {
+      // Standard Yellow/Gold coin gradient
+      coinGrad.addColorStop(0, '#fff');
+      coinGrad.addColorStop(0.3, '#ffd700');
+      coinGrad.addColorStop(1, '#c59b27');
+    }
 
     ctx.fillStyle = coinGrad;
     ctx.beginPath();
@@ -286,12 +308,26 @@ export class PowerupManager {
     const spinWidth = item.radius * (0.8 + Math.sin(item.pulseTimer * 2) * 0.2);
     ctx.ellipse(0, 0, spinWidth, item.radius, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = '#996515';
+
+    // Dark stroke contour
+    if (score >= 300 && score < 500) {
+      ctx.strokeStyle = '#00838f'; // Cyan/Blue stroke
+    } else if (score >= 500) {
+      ctx.strokeStyle = '#800000'; // Dark Red stroke
+    } else {
+      ctx.strokeStyle = '#996515'; // Golden stroke
+    }
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Inner details star
-    ctx.fillStyle = '#996515';
+    // Inner details star / sign
+    if (score >= 300 && score < 500) {
+      ctx.fillStyle = '#00838f';
+    } else if (score >= 500) {
+      ctx.fillStyle = '#800000';
+    } else {
+      ctx.fillStyle = '#996515';
+    }
     ctx.fillRect(-1.5, -3, 3, 6);
   }
 
