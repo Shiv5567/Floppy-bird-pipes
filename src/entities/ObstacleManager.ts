@@ -2667,7 +2667,7 @@ export class ObstacleManager {
       ctx.restore();
 
       // Pulsing neon gap-border glow along inner lips of moving Level columns
-      if (obs.levelNum !== undefined && obs.isMoving) {
+      if (obs.levelNum !== undefined && obs.isMoving && !(window as any).gameDisableShadows) {
         const topShift = obs.shakeX || 0;
         const bottomShift = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
         const leftTop = obs.x + topShift;
@@ -2716,7 +2716,9 @@ export class ObstacleManager {
         const centerY = obs.topHeight + (height - obs.bottomHeight - obs.topHeight) / 2;
         ctx.save();
         ctx.translate(obs.x + obs.width / 2, centerY);
-        ctx.rotate(this.waveTime * 2.0);
+        if (!(window as any).gameDisableShadows) {
+          ctx.rotate(this.waveTime * 2.0);
+        }
         ctx.strokeStyle = 'rgba(0, 243, 255, 0.85)';
         ctx.lineWidth = 3;
         ctx.strokeRect(-18, -18, 36, 36);
@@ -2726,55 +2728,85 @@ export class ObstacleManager {
         ctx.save();
         ctx.translate(obs.x + obs.width / 2, centerY);
         
-        const pulse = 16 + Math.sin(this.waveTime * 8.0) * 5;
-        const grad = ctx.createRadialGradient(0, 0, 2, 0, 0, pulse);
-        grad.addColorStop(0, '#ffffff');
-        grad.addColorStop(0.3, '#ff8800');
-        grad.addColorStop(1, 'rgba(255, 68, 0, 0)');
-        
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(0, 0, pulse, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.rotate(-this.waveTime * 3.5);
-        ctx.strokeStyle = 'rgba(255, 69, 0, 0.9)';
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.arc(0, 0, 25, 0, Math.PI * 1.5);
-        ctx.stroke();
+        const isPerformance = (window as any).gameDisableShadows;
+        if (isPerformance) {
+          ctx.fillStyle = '#ff8800';
+          ctx.beginPath();
+          ctx.arc(0, 0, 16, 0, Math.PI * 2);
+          ctx.fill();
+          
+          ctx.strokeStyle = 'rgba(255, 69, 0, 0.9)';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.arc(0, 0, 25, 0, Math.PI * 1.5);
+          ctx.stroke();
+        } else {
+          const pulse = 16 + Math.sin(this.waveTime * 8.0) * 5;
+          const grad = ctx.createRadialGradient(0, 0, 2, 0, 0, pulse);
+          grad.addColorStop(0, '#ffffff');
+          grad.addColorStop(0.3, '#ff8800');
+          grad.addColorStop(1, 'rgba(255, 68, 0, 0)');
+          
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(0, 0, pulse, 0, Math.PI * 2);
+          ctx.fill();
+          
+          ctx.rotate(-this.waveTime * 3.5);
+          ctx.strokeStyle = 'rgba(255, 69, 0, 0.9)';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.arc(0, 0, 25, 0, Math.PI * 1.5);
+          ctx.stroke();
+        }
         ctx.restore();
       } else if (obs.patternType === 'level40_miniboss') {
         const centerY = obs.topHeight + (height - obs.bottomHeight - obs.topHeight) / 2;
         ctx.save();
         ctx.translate(obs.x + obs.width / 2, centerY);
         
-        // Chromatic rainbow core
-        const pulse = 26 + Math.sin(this.waveTime * 8.0) * 8;
-        const grad = ctx.createRadialGradient(0, 0, 3, 0, 0, pulse);
-        grad.addColorStop(0, '#ffffff');
-        grad.addColorStop(0.2, '#ff007f'); // Neon Pink
-        grad.addColorStop(0.4, '#00f3ff'); // Neon Cyan
-        grad.addColorStop(0.7, '#ffff00'); // Neon Yellow
-        grad.addColorStop(1, 'rgba(57, 255, 20, 0)'); // Fading green glow
-        
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(0, 0, pulse, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Rotating concentric geometric lines
-        ctx.rotate(this.waveTime * 3.5);
-        ctx.strokeStyle = '#00f3ff';
-        ctx.lineWidth = 2.0;
-        ctx.strokeRect(-20, -20, 40, 40);
-        
-        ctx.rotate(-this.waveTime * 7.0);
-        ctx.strokeStyle = '#ffd700';
-        ctx.beginPath();
-        ctx.arc(0, 0, 28, 0, Math.PI * 1.8);
-        ctx.stroke();
-        
+        const isPerformance = (window as any).gameDisableShadows;
+        if (isPerformance) {
+          ctx.fillStyle = '#ff007f';
+          ctx.beginPath();
+          ctx.arc(0, 0, 26, 0, Math.PI * 2);
+          ctx.fill();
+          
+          ctx.strokeStyle = '#00f3ff';
+          ctx.lineWidth = 2.0;
+          ctx.strokeRect(-20, -20, 40, 40);
+          
+          ctx.strokeStyle = '#ffd700';
+          ctx.beginPath();
+          ctx.arc(0, 0, 28, 0, Math.PI * 1.8);
+          ctx.stroke();
+        } else {
+          // Chromatic rainbow core
+          const pulse = 26 + Math.sin(this.waveTime * 8.0) * 8;
+          const grad = ctx.createRadialGradient(0, 0, 3, 0, 0, pulse);
+          grad.addColorStop(0, '#ffffff');
+          grad.addColorStop(0.2, '#ff007f'); // Neon Pink
+          grad.addColorStop(0.4, '#00f3ff'); // Neon Cyan
+          grad.addColorStop(0.7, '#ffff00'); // Neon Yellow
+          grad.addColorStop(1, 'rgba(57, 255, 20, 0)'); // Fading green glow
+          
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(0, 0, pulse, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Rotating concentric geometric lines
+          ctx.rotate(this.waveTime * 3.5);
+          ctx.strokeStyle = '#00f3ff';
+          ctx.lineWidth = 2.0;
+          ctx.strokeRect(-20, -20, 40, 40);
+          
+          ctx.rotate(-this.waveTime * 7.0);
+          ctx.strokeStyle = '#ffd700';
+          ctx.beginPath();
+          ctx.arc(0, 0, 28, 0, Math.PI * 1.8);
+          ctx.stroke();
+        }
         ctx.restore();
       }
 
@@ -2858,7 +2890,7 @@ export class ObstacleManager {
 
     // Dynamic but optimized rivets
     ctx.fillStyle = rivetCol;
-    if (rivetGlow) {
+    if (rivetGlow && !(window as any).gameDisableShadows) {
       ctx.shadowBlur = 4;
       ctx.shadowColor = rivetCol;
     }
@@ -2890,20 +2922,21 @@ export class ObstacleManager {
     let stop0 = '#1b5e20', stop3 = '#73c93e', stop5 = '#a3e635', stop7 = '#387c12', stop1 = '#0f3204'; // Style 1: Retro Green
     let capStop0 = '#b45309', capStop5 = '#fef08a', capStop1 = '#b45309'; // Style 1 Cap: Gold stepped
     let borderCol = '#000000', capBorder = '#000000';
-    let bulbColor = Math.sin((obs.x || 0) * 0.15) > 0 ? '#ef4444' : '#eab308'; // red/yellow pixel bulbs
+    const isPerf = (window as any).gameDisableShadows;
+    let bulbColor = isPerf ? '#ef4444' : (Math.sin((obs.x || 0) * 0.15) > 0 ? '#ef4444' : '#eab308'); // red/yellow pixel bulbs
 
     if (styleIdx === 1) {
       // Style 2: Cyber Blue/Cyan 8-Bit
       stop0 = '#082f49'; stop3 = '#0284c7'; stop5 = '#38bdf8'; stop7 = '#0369a1'; stop1 = '#0c4a6e';
       capStop0 = '#0c4a6e'; capStop5 = '#ffffff'; capStop1 = '#0369a1';
       borderCol = '#020617'; capBorder = '#020617';
-      bulbColor = Math.sin((obs.x || 0) * 0.15) > 0 ? '#00f3ff' : '#06b6d4';
+      bulbColor = isPerf ? '#00f3ff' : (Math.sin((obs.x || 0) * 0.15) > 0 ? '#00f3ff' : '#06b6d4');
     } else if (styleIdx === 3) {
       // Style 4: Vaporwave Pink/Purple Grid
       stop0 = '#3b0764'; stop3 = '#a21caf'; stop5 = '#f0abfc'; stop7 = '#86198f'; stop1 = '#300a24';
       capStop0 = '#06b6d4'; capStop5 = '#ffffff'; capStop1 = '#0891b2'; // cyan caps
       borderCol = '#db2777'; capBorder = '#020617';
-      bulbColor = Math.sin((obs.x || 0) * 0.12) > 0 ? '#ff007f' : '#00f3ff';
+      bulbColor = isPerf ? '#ff007f' : (Math.sin((obs.x || 0) * 0.12) > 0 ? '#ff007f' : '#00f3ff');
     }
 
     const bodyGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
@@ -3159,8 +3192,10 @@ export class ObstacleManager {
 
     // Cyan neon nodes on tech caps
     ctx.fillStyle = beaconCol;
-    ctx.shadowBlur = 6;
-    ctx.shadowColor = beaconCol;
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = beaconCol;
+    }
     ctx.fillRect(rx + 8, capY1 + 10, 4, 4);
     ctx.fillRect(rx + rw - 12, capY1 + 10, 4, 4);
     ctx.fillRect(rx + 8, capY2 + 10, 4, 4);
@@ -3494,10 +3529,13 @@ export class ObstacleManager {
     ctx.strokeRect(rx - 6, capY2, rw + 12, 24);
 
     // Flashing beacons
-    const beaconColor = Math.sin((obs.x || 0) * 0.15) > 0 ? beaconCol1 : beaconCol2;
+    const isPerfSpace = (window as any).gameDisableShadows;
+    const beaconColor = isPerfSpace ? beaconCol1 : (Math.sin((obs.x || 0) * 0.15) > 0 ? beaconCol1 : beaconCol2);
     ctx.fillStyle = beaconColor;
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = beaconColor;
+    if (!isPerfSpace) {
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = beaconColor;
+    }
     ctx.beginPath();
     ctx.arc(rx + rw / 2, capY1 + 12, 3.5, 0, Math.PI * 2);
     ctx.arc(rx + rw / 2, capY2 + 12, 3.5, 0, Math.PI * 2);
@@ -3580,8 +3618,10 @@ export class ObstacleManager {
 
     // Glowing pearls
     ctx.fillStyle = pearlColor;
-    ctx.shadowBlur = 4;
-    ctx.shadowColor = pearlColor;
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 4;
+      ctx.shadowColor = pearlColor;
+    }
     ctx.beginPath();
     ctx.arc(rx + 12, capY1 + 12, 3, 0, Math.PI * 2);
     ctx.arc(rx + rw - 12, capY1 + 12, 3, 0, Math.PI * 2);
@@ -3676,10 +3716,13 @@ export class ObstacleManager {
     ctx.strokeRect(rx - 8, capY2, rw + 16, 24);
 
     // Blinking halo star
-    const starColor = Math.sin((obs.x || 0) * 0.12) > 0 ? starColorVal : '#ffffff';
+    const isPerfHeaven = (window as any).gameDisableShadows;
+    const starColor = isPerfHeaven ? starColorVal : (Math.sin((obs.x || 0) * 0.12) > 0 ? starColorVal : '#ffffff');
     ctx.fillStyle = starColor;
-    ctx.shadowBlur = 6;
-    ctx.shadowColor = '#ffd700';
+    if (!isPerfHeaven) {
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = '#ffd700';
+    }
     ctx.beginPath();
     ctx.arc(rx + rw / 2, capY1 + 12, 4.5, 0, Math.PI * 2);
     ctx.arc(rx + rw / 2, capY2 + 12, 4.5, 0, Math.PI * 2);
@@ -3699,7 +3742,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = false;
+    const isPerformance = (window as any).gameDisableShadows;
     if (isPerformance) {
       ctx.fillStyle = colorTop;
       ctx.strokeStyle = outlineColor;
@@ -3799,7 +3842,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = false;
+    const isPerformance = (window as any).gameDisableShadows;
     if (isPerformance) {
       ctx.fillStyle = '#1e3a8a';
       ctx.strokeStyle = '#fbbf24';
@@ -3863,7 +3906,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = false;
+    const isPerformance = (window as any).gameDisableShadows;
     if (isPerformance) {
       ctx.fillStyle = '#ec4899';
       ctx.strokeStyle = '#06b6d4';
@@ -3937,7 +3980,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = false;
+    const isPerformance = (window as any).gameDisableShadows;
     if (isPerformance) {
       ctx.fillStyle = '#102a12';
       ctx.strokeStyle = 'rgba(217, 160, 24, 0.70)';
@@ -4027,7 +4070,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = false;
+    const isPerformance = (window as any).gameDisableShadows;
     if (isPerformance) {
       ctx.fillStyle = '#0e0b1c';
       ctx.strokeStyle = '#8a2be2';
@@ -4092,7 +4135,8 @@ export class ObstacleManager {
       // Pulsing central holographic core
       ctx.save();
       ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      const corePulse = 4 + Math.sin((obs.x || 0) * 0.05) * 1.5;
+      const isPerfCore = (window as any).gameDisableShadows;
+      const corePulse = isPerfCore ? 4 : (4 + Math.sin((obs.x || 0) * 0.05) * 1.5);
       ctx.fillRect(rx + rw / 2 - corePulse / 2, yStart, corePulse, h);
       ctx.restore();
 
@@ -4137,7 +4181,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = false;
+    const isPerformance = (window as any).gameDisableShadows;
     if (isPerformance) {
       ctx.fillStyle = '#3b82f6';
       ctx.strokeStyle = '#ffffff';
@@ -4206,7 +4250,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = false;
+    const isPerformance = (window as any).gameDisableShadows;
     if (isPerformance) {
       ctx.fillStyle = '#fbbf24';
       ctx.strokeStyle = '#ef4444';
@@ -4294,7 +4338,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = false;
+    const isPerformance = (window as any).gameDisableShadows;
     if (isPerformance) {
       ctx.fillStyle = '#0a0505';
       ctx.strokeStyle = '#f97316';
@@ -4357,7 +4401,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = false;
+    const isPerformance = (window as any).gameDisableShadows;
     if (isPerformance) {
       ctx.fillStyle = '#15062b';
       ctx.strokeStyle = '#a855f7';
@@ -4428,7 +4472,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = false;
+    const isPerformance = (window as any).gameDisableShadows;
     if (isPerformance) {
       ctx.fillStyle = '#081e26';
       ctx.strokeStyle = '#ec4899';
@@ -4499,7 +4543,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = false;
+    const isPerformance = (window as any).gameDisableShadows;
     if (isPerformance) {
       ctx.fillStyle = '#ffffff';
       ctx.strokeStyle = '#fcd34d';
@@ -4622,9 +4666,12 @@ export class ObstacleManager {
       ctx.stroke();
 
       // Embedded gems
+      const isPerfTemple = (window as any).gameDisableShadows;
       ctx.fillStyle = jewelCol;
-      ctx.shadowBlur = 6;
-      ctx.shadowColor = jewelCol;
+      if (!isPerfTemple) {
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = jewelCol;
+      }
       ctx.beginPath();
       ctx.arc(rx + rw * 0.5, rY, 4, 0, Math.PI * 2);
       ctx.fill();
@@ -4644,10 +4691,12 @@ export class ObstacleManager {
       ctx.strokeRect(rx - 6, capY, rw + 12, 24);
 
       // Flashing ruby
-      const blinkColor = Math.sin((obs.x || 0) * 0.15) > 0 ? rubyColor : '#7f1d1d';
+      const blinkColor = isPerfTemple ? rubyColor : (Math.sin((obs.x || 0) * 0.15) > 0 ? rubyColor : '#7f1d1d');
       ctx.fillStyle = blinkColor;
-      ctx.shadowBlur = 6;
-      ctx.shadowColor = rubyColor;
+      if (!isPerfTemple) {
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = rubyColor;
+      }
       ctx.beginPath();
       ctx.arc(rx + rw / 2, capY + 12, 4, 0, Math.PI * 2);
       ctx.fill();
@@ -4674,7 +4723,7 @@ export class ObstacleManager {
     const rw = obs.width;
     const rTop = obs.topHeight;
     const rBottom = obs.bottomHeight;
-    const isPerformance = false;
+    const isPerformance = (window as any).gameDisableShadows;
     if (isPerformance) {
       ctx.fillStyle = '#344237';
       ctx.strokeStyle = '#0a0d0b';

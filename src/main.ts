@@ -4,6 +4,17 @@ import { SoundManager } from './engine/SoundManager.ts';
 import { GameEngine } from './engine/GameEngine.ts';
 import { UIManager } from './ui/UIManager.ts';
 
+// Bulletproof global shadow neutralization to boost low-end mobile performance
+Object.defineProperty(CanvasRenderingContext2D.prototype, 'shadowBlur', {
+  set: function() {},
+  get: function() { return 0; }
+});
+Object.defineProperty(CanvasRenderingContext2D.prototype, 'shadowColor', {
+  set: function() {},
+  get: function() { return 'transparent'; }
+});
+
+
 // Global error catcher overlay for instant live debugging
 window.onerror = function(message, source, lineno, colno, error) {
   const errorDiv = document.createElement('div');
