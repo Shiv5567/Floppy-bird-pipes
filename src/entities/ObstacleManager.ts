@@ -1137,7 +1137,29 @@ export class ObstacleManager {
         // Dynamically scale horizontal obstacle spacing with bird horizontal velocity to preserve constant reaction time
         const speedFactor = scrollSpeed / 4.2;
         // Scale by endless difficulty scaling factor & speed factor!
-        this.nextSpawnDistance = baseDist * this.currentEndlessDistScale * (1.0 - pct) * speedFactor;
+        let dist = baseDist * this.currentEndlessDistScale * (1.0 - pct) * speedFactor;
+
+        // Dynamic Spacing Balance: Increase horizontal distance by 50% if the next pipe has a maximum vertical alignment difference
+        if (this.list.length > 0) {
+          const justSpawned = this.list[this.list.length - 1];
+          if (this.endlessPatternQueue.length > 0) {
+            const nextPat = this.endlessPatternQueue[0];
+            let endlessShiftScale = 1.0;
+            if (score >= 100 && score < 200) {
+              endlessShiftScale = 1.15;
+            } else if (score >= 200 && score < 300) {
+              endlessShiftScale = 1.25;
+            } else if (score >= 300) {
+              endlessShiftScale = 1.30;
+            }
+            const nextCenterY = height / 2 + nextPat.centerYOffset * endlessShiftScale;
+            const diffY = Math.abs((justSpawned.spawnCenterY ?? (height / 2)) - nextCenterY);
+            if (diffY >= 100) {
+              dist *= 1.5; // 50% increase
+            }
+          }
+        }
+        this.nextSpawnDistance = dist;
       }
     }
   }
