@@ -1008,51 +1008,63 @@ export class ObstacleManager {
         }
       } else {
         // Endless mode obstacle movement
-        if (score >= 100) {
-          let centerY = obs.spawnCenterY !== undefined ? obs.spawnCenterY : (obs.initialTopHeight + (height - obs.initialBottomHeight - obs.initialTopHeight) / 2);
-          let currentGap = obs.gapHeight !== undefined ? obs.gapHeight : (height - obs.initialBottomHeight - obs.initialTopHeight);
+        let centerY = obs.spawnCenterY !== undefined ? obs.spawnCenterY : (obs.initialTopHeight + (height - obs.initialBottomHeight - obs.initialTopHeight) / 2);
+        let currentGap = obs.gapHeight !== undefined ? obs.gapHeight : (height - obs.initialBottomHeight - obs.initialTopHeight);
 
-          // Pipe gaps are kept completely constant and unchanged as requested, only shifting centerY up and down!
-          let verticalShift = 0;
-          if (score >= 100 && score < 200) {
-            // Completely static pipes as requested by the user, no vertical movement animation!
-            verticalShift = 0;
-          } else if (score >= 200 && score < 300) {
-            // 10% + 15% = 25% difficulty: shift centerY up and down by 50px
-            const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
-            if (motionStyle === 0) {
-              verticalShift = Math.sin(this.waveTime * 2.2 + (obs.obstacleIdx || 0) * 0.5) * 50;
-            } else {
-              const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-              verticalShift = Math.sin(this.waveTime * 1.8) * 45 * elevatorDir;
-            }
-          } else if (score >= 300) {
-            // Score >= 300: full high difficulty sways up to 60px
-            const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
-            if (motionStyle === 0) {
-              verticalShift = Math.sin(this.waveTime * 2.5 + (obs.obstacleIdx || 0) * 0.5) * 60;
-            } else {
-              const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-              verticalShift = Math.sin(this.waveTime * 2.0) * 55 * elevatorDir;
-            }
-
-            // Global wave motion if score is 500 or above
-            if (score >= 500) {
-              const globalWave = Math.sin(this.waveTime * 1.5 + obs.x * 0.004) * 45;
-              verticalShift += globalWave;
-            }
+        // Pipe gaps are kept completely constant and unchanged as requested, only shifting centerY up and down!
+        let verticalShift = 0;
+        if (score >= 100 && score < 200) {
+          // Completely static pipes as requested by the user, no vertical movement animation!
+          verticalShift = 0;
+        } else if (score >= 200 && score < 300) {
+          // 10% + 15% = 25% difficulty: shift centerY up and down by 50px
+          const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
+          if (motionStyle === 0) {
+            verticalShift = Math.sin(this.waveTime * 2.2 + (obs.obstacleIdx || 0) * 0.5) * 50;
+          } else {
+            const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
+            verticalShift = Math.sin(this.waveTime * 1.8) * 45 * elevatorDir;
+          }
+        } else if (score >= 300) {
+          // Score >= 300: full high difficulty sways up to 60px
+          const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
+          if (motionStyle === 0) {
+            verticalShift = Math.sin(this.waveTime * 2.5 + (obs.obstacleIdx || 0) * 0.5) * 60;
+          } else {
+            const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
+            verticalShift = Math.sin(this.waveTime * 2.0) * 55 * elevatorDir;
           }
 
-          centerY += verticalShift;
+          // Global wave motion if score is 500 or above
+          if (score >= 500) {
+            const globalWave = Math.sin(this.waveTime * 1.5 + obs.x * 0.004) * 45;
+            verticalShift += globalWave;
+          }
+        }
 
-          // Keep centerY within screen bounds so that both top and bottom pipes are at least 45px high
-          const minCenterY = 45 + currentGap / 2;
-          const maxCenterY = height - 45 - currentGap / 2;
-          centerY = Math.max(minCenterY, Math.min(maxCenterY, centerY));
+        // Playability Safeguard: Clamp vertical shift to [-40, 40] if pipes are horizontally close (minimum horizontal gap)
+        let isTightHorizontalGap = false;
+        for (let j = 0; j < this.list.length; j++) {
+          const other = this.list[j];
+          if (other !== obs && Math.abs(obs.x - other.x) < 320) {
+            isTightHorizontalGap = true;
+            break;
+          }
+        }
+        if (isTightHorizontalGap) {
+          verticalShift = Math.max(-40, Math.min(40, verticalShift));
+        }
 
-          // Apply coordinates
-          obs.topHeight = centerY - currentGap / 2;
-          obs.bottomHeight = height - centerY - currentGap / 2;
+        centerY += verticalShift;
+
+        // Keep centerY within screen bounds so that both top and bottom pipes are at least 45px high
+        const minCenterY = 45 + currentGap / 2;
+        const maxCenterY = height - 45 - currentGap / 2;
+        centerY = Math.max(minCenterY, Math.min(maxCenterY, centerY));
+
+        // Apply coordinates
+        obs.topHeight = centerY - currentGap / 2;
+        obs.bottomHeight = height - centerY - currentGap / 2;
 
           // 4. Visual effects - spawn dynamic movement particles
           if (_particleEngine && Math.random() < 0.08) {
@@ -1070,7 +1082,6 @@ export class ObstacleManager {
               'spark'
             );
           }
-        }
       }
 
       // Handle Cyberpunk pulsing lasers
