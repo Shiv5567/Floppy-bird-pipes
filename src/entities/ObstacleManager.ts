@@ -171,9 +171,12 @@ export class ObstacleManager {
     } else if (score > 300 && score <= 400) {
       pct = 0.10 + 0.05 * ((score - 300) / 100.0);
     } else if (score > 400 && score <= 500) {
-      pct = 0.15 + 0.05 * ((score - 400) / 100.0);
+      pct = 0.15 + 0.05 * ((score - 400) / 100.0) + 0.10; // Added 10% difficulty increase
     } else if (score > 500) {
       pct = 0.20;
+      if (score >= 700) {
+        pct = 0.20 + 0.10; // Added 10% difficulty increase
+      }
     }
 
     // Smooth, step-by-step progressive difficulty scaling ratio over 60 points
