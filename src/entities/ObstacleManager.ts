@@ -1159,6 +1159,10 @@ export class ObstacleManager {
             }
           }
         }
+        // Dynamic Spacing Safeguard: Increase the horizontally minimum gap/distance by 10% for playability
+        if (this.currentEndlessDistScale <= 0.65) {
+          dist *= 1.10; // 10% increase
+        }
         this.nextSpawnDistance = dist;
       }
     }
@@ -2012,7 +2016,14 @@ export class ObstacleManager {
     let targetCenterY = height / 2 + nextPattern.centerYOffset * endlessShiftScale;
 
     // Apply safe gap height scaling per step
-    const currentStepGap = gapHeight * (nextPattern.gapScale !== undefined ? nextPattern.gapScale : 1.0);
+    let gapScaleFactor = nextPattern.gapScale !== undefined ? nextPattern.gapScale : 1.0;
+
+    // Playability Safeguard: Increase the vertical gap height by 10% if the horizontal spacing is at its minimum
+    if (nextPattern.distScale !== undefined && nextPattern.distScale <= 0.65) {
+      gapScaleFactor *= 1.10;
+    }
+
+    const currentStepGap = gapHeight * gapScaleFactor;
 
     // Safeguard boundaries to keep safe gap consistent and within bounds
     const minCenterY = margin + currentStepGap / 2;
