@@ -1061,8 +1061,8 @@ export class ObstacleManager {
               const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
               verticalShift = Math.sin(this.waveTime * 1.8) * 45 * elevatorDir;
             }
-          } else if (score >= 300) {
-            // Score >= 300: full high difficulty sways up to 60px
+          } else if (score >= 300 && score < 500) {
+            // Score 300-500: full high difficulty sways up to 60px
             const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
             if (motionStyle === 0) {
               verticalShift = Math.sin(this.waveTime * 2.5 + (obs.obstacleIdx || 0) * 0.5) * 60;
@@ -1070,12 +1070,12 @@ export class ObstacleManager {
               const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
               verticalShift = Math.sin(this.waveTime * 2.0) * 55 * elevatorDir;
             }
-
-            // Global wave motion if score is 500 or above
-            if (score >= 500) {
-              const globalWave = Math.sin(this.waveTime * 1.5 + obs.x * 0.004) * 45;
-              verticalShift += globalWave;
-            }
+          } else if (score >= 500) {
+            // Score >= 500: Dedicated smooth sequential wave animation flow undulating sequentially across columns
+            const waveFrequency = 1.8;
+            const waveLength = 0.0035;
+            const waveAmplitude = 55;
+            verticalShift = Math.sin(this.waveTime * waveFrequency + obs.x * waveLength) * waveAmplitude;
           }
 
           // Playability Safeguard: Clamp vertical shift to [-40, 40] if pipes are horizontally close (minimum horizontal gap)
