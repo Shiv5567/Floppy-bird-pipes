@@ -72,16 +72,20 @@ export class Bird {
     } else if (score <= 500) {
       // From score 400 onwards, increase the bird's upward velocity by 10%
       jumpScale = maxScale400 * 1.10; // ~1.26103
-    } else if (score <= 700) {
+    } else if (score < 600) {
       // From score 500 onwards, increase the Bird's upward velocity per tap by another 8%
-      // Scale progressively up to 700
-      const progress = (score - 500) / 200;
-      jumpScale = maxScale400 * 1.10 * 1.08 * (1.0 + progress * 0.15); // up to ~1.56 at 700
+      const progress = (score - 500) / 100;
+      jumpScale = maxScale400 * 1.10 * 1.08 * (1.0 + progress * 0.075);
+    } else if (score <= 700) {
+      // From score 600 onwards, decrease upward jump distance per tap by 60% (so multiply by 0.40)
+      const progress = (score - 600) / 100;
+      const baseScale = maxScale400 * 1.10 * 1.08 * 1.075; // ~1.46
+      jumpScale = baseScale * 0.40 * (1.0 + progress * 0.08); // small micro-jump scaling
     } else {
-      // Above score 700, increase tap power exponentially to counter heavy gravity
-      // Increase jump force by 8% for every 50 score points above 700!
+      // Above score 700, keep jump distance 60% decreased, with minor progressive increase for higher scores
       const over700Factor = Math.floor((score - 700) / 50);
-      jumpScale = maxScale400 * 1.10 * 1.08 * 1.15 * Math.pow(1.08, over700Factor);
+      const baseScale = maxScale400 * 1.10 * 1.08 * 1.15; // ~1.56
+      jumpScale = baseScale * 0.40 * Math.pow(1.08, over700Factor);
     }
     return jumpScale;
   }
@@ -110,11 +114,19 @@ export class Bird {
     
     // Synchronize physics gravity and max fall speed caps with 5% speed increase every 25 score
     const speedMultiplier = 1.0 + Math.floor(score / 25.0) * 0.05;
-    const currentGravity = this.gravity * speedMultiplier;
-    const currentMaxFallSpeed = this.maxFallSpeed * speedMultiplier;
+    let currentGravity = this.gravity * speedMultiplier;
+    let currentMaxFallSpeed = this.maxFallSpeed * speedMultiplier;
     
     // Custom progressive score-based jump scaling:
     const jumpScale = this.getJumpScale(score);
+    
+    if (score >= 600) {
+      // Balance gravity with the 60% reduced jump lift/distance so vertical reaction speed remains balanced & snappy
+      const baseGravityScale = 0.35;
+      const difficultyFactor = 1.0 + (score - 600) * 0.0012; // slow progressive difficulty scaling
+      currentGravity = baseGravityScale * difficultyFactor;
+      currentMaxFallSpeed = this.maxFallSpeed * 0.5 * difficultyFactor;
+    }
     
     // Scale maximum rise speed dynamically to stay fully synchronized with jump impulse scaling!
     const currentMaxRiseSpeed = this.maxRiseSpeed * jumpScale;
