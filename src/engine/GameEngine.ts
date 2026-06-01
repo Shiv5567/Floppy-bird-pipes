@@ -353,6 +353,11 @@ export class GameEngine {
             speedMultiplier = 1.0815 * (1.0 + progress * 0.02);
           } else {
             speedMultiplier = 1.05 * 1.03 * 1.02; // Fixed maximum multiplier: 1.10313
+            // Scale horizontal scroll speed progressively: 5% increase every 100 obstacles passed from score 500
+            if (this.score >= 500) {
+              const over500Factor = Math.floor((this.score - 500) / 100);
+              speedMultiplier *= (1.0 + over500Factor * 0.05);
+            }
           }
 
           if (this.activePowerupsList['turbo']) {

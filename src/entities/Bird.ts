@@ -72,9 +72,16 @@ export class Bird {
     } else if (score <= 500) {
       // From score 400 onwards, increase the bird's upward velocity by 10%
       jumpScale = maxScale400 * 1.10; // ~1.26103
-    } else {
+    } else if (score <= 700) {
       // From score 500 onwards, increase the Bird's upward velocity per tap by another 8%
-      jumpScale = maxScale400 * 1.10 * 1.08; // ~1.36191
+      // Scale progressively up to 700
+      const progress = (score - 500) / 200;
+      jumpScale = maxScale400 * 1.10 * 1.08 * (1.0 + progress * 0.15); // up to ~1.56 at 700
+    } else {
+      // Above score 700, increase tap power exponentially to counter heavy gravity
+      // Increase jump force by 8% for every 50 score points above 700!
+      const over700Factor = Math.floor((score - 700) / 50);
+      jumpScale = maxScale400 * 1.10 * 1.08 * 1.15 * Math.pow(1.08, over700Factor);
     }
     return jumpScale;
   }

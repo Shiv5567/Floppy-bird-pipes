@@ -200,7 +200,8 @@ export class ObstacleManager {
     const baseDistance = (width / 1.35) * distMultiplier;
     const minDistance = width / 2.0;
     
-    // Scale horizontal distance according to user specs
+    // Scale horizontal distance according to bird horizontal scrollSpeed to maintain playable reaction times
+    const speedFactor = scrollSpeed / 4.2;
     let targetDistance;
     if (zone === 'classic') {
       // Classic Mode standard spacing: Default (Medium/Hard) classic gap uses 0.80 multiplier
@@ -208,13 +209,13 @@ export class ObstacleManager {
       const defaultDistance = baseDistanceClassic * 1.15;
       
       if (difficulty === 'easy') {
-        targetDistance = defaultDistance * 1.20;
+        targetDistance = defaultDistance * 1.20 * speedFactor;
       } else {
-        targetDistance = defaultDistance;
+        targetDistance = defaultDistance * speedFactor;
       }
     } else {
       // Wave Zone spacing
-      targetDistance = (baseDistance - (baseDistance - minDistance) * progressRatio) * 0.60;
+      targetDistance = (baseDistance - (baseDistance - minDistance) * progressRatio) * 0.60 * speedFactor;
     }
 
     // If not set or invalid, initialize nextSpawnDistance
@@ -1119,8 +1120,10 @@ export class ObstacleManager {
         const baseDistanceClassic = (width / 1.35) * 0.80;
         const defaultDistance = baseDistanceClassic * 1.15;
         const baseDist = difficulty === 'easy' ? defaultDistance * 1.20 : defaultDistance;
-        // Scale by endless difficulty scaling factor!
-        this.nextSpawnDistance = baseDist * this.currentEndlessDistScale * (1.0 - pct);
+        // Dynamically scale horizontal obstacle spacing with bird horizontal velocity to preserve constant reaction time
+        const speedFactor = scrollSpeed / 4.2;
+        // Scale by endless difficulty scaling factor & speed factor!
+        this.nextSpawnDistance = baseDist * this.currentEndlessDistScale * (1.0 - pct) * speedFactor;
       }
     }
   }
