@@ -63,7 +63,7 @@ export class GameEngine {
   public boosterTimer = 0.0;
   public boosterDeactivating = false;
   public boosterDeactivateTimer = 0.0;
-  private boosterSpawnTimer = 5.0;
+  public boosterSpawnTimer = 5.0;
   private boosterScoreAccumulator = 0.0;
   
   // Powerups timers
@@ -149,7 +149,7 @@ export class GameEngine {
     this.boosterTimer = 0.0;
     this.boosterDeactivating = false;
     this.boosterDeactivateTimer = 0.0;
-    this.boosterSpawnTimer = 5.0;
+    this.boosterSpawnTimer = 0.0; // Button starts fully charged and ready at start!
     this.boosterScoreAccumulator = 0.0;
     
     // Reset ultimate skill status
@@ -431,18 +431,14 @@ export class GameEngine {
         const selectedZone = this.progressManager.getState().selectedZone;
         const selectedDifficulty = this.progressManager.getState().selectedDifficulty;
 
-        // Spawn booster item every 5 seconds in Endless Mode
-        if (this.gameMode === 'endless') {
-          this.boosterSpawnTimer -= dt;
-          if (this.boosterSpawnTimer <= 0) {
-            this.powerupManager.spawnItem('booster', width, height);
-            this.boosterSpawnTimer = 5.0; // Reset spawn timer
-          }
+        // Tick booster button charge timer in Endless Mode
+        if (this.gameMode === 'endless' && !this.boosterActive && !this.boosterDeactivating) {
+          this.boosterSpawnTimer = Math.max(0, this.boosterSpawnTimer - dt);
         }
 
         // Standard scrolling hazards
         this.obstacleManager.update(dt, this.scrollSpeed, this.score, this.progressManager.getState().activeWorld, width, height, activeTimeScale, selectedZone, selectedDifficulty, this.bird.x);
-        this.powerupManager.update(dt, this.scrollSpeed, this.bird.x, this.bird.y, !!this.activePowerupsList['magnet'], width, height, activeTimeScale, this.obstacleManager.getList(), this.particleEngine);
+        this.powerupManager.update(dt, this.scrollSpeed, this.bird.x, this.bird.y, !!this.activePowerupsList['magnet'], width, height, activeTimeScale, this.obstacleManager.getList());
 
         // Check near-miss grazes
         const obstacles = this.obstacleManager.getList();

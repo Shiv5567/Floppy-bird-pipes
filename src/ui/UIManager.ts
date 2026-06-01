@@ -307,6 +307,50 @@ export class UIManager {
         }
       }
     }
+
+    // 7. Booster Static Cooldown Button In-place updates in Endless Mode
+    if (this.engine.gameMode === 'endless') {
+      const boosterBtn = document.getElementById('btn-hud-booster');
+      if (boosterBtn) {
+        const bTimer = this.engine.boosterSpawnTimer;
+        const bReady = bTimer <= 0;
+        const bPercent = Math.min(100, Math.floor((1 - bTimer / 5.0) * 100));
+
+        // Toggle ready states in place
+        if (bReady) {
+          boosterBtn.classList.add('ult-ready-pulse');
+          boosterBtn.style.border = '2px solid #ffd700';
+          boosterBtn.style.background = 'rgba(255,215,0,0.12)';
+          boosterBtn.style.boxShadow = '0 0 15px rgba(255,215,0,0.4)';
+          boosterBtn.style.opacity = '1';
+          
+          const icon = boosterBtn.querySelector('span');
+          if (icon && icon.innerText !== '⚡') {
+            icon.innerText = '⚡';
+            icon.style.textShadow = '0 0 8px #ffd700';
+          }
+        } else {
+          boosterBtn.classList.remove('ult-ready-pulse');
+          boosterBtn.style.border = '2px solid rgba(255,255,255,0.2)';
+          boosterBtn.style.background = 'rgba(255,255,255,0.03)';
+          boosterBtn.style.boxShadow = 'none';
+          boosterBtn.style.opacity = '0.65';
+
+          const icon = boosterBtn.querySelector('span');
+          if (icon && icon.innerText !== '⏳') {
+            icon.innerText = '⏳';
+            icon.style.textShadow = 'none';
+          }
+        }
+
+        const progressFill = boosterBtn.querySelector('.booster-progress-fill') as HTMLElement;
+        if (progressFill) {
+          const circumference = 157;
+          const offset = circumference - (bPercent / 100) * circumference;
+          progressFill.style.strokeDashoffset = `${offset}`;
+        }
+      }
+    }
   }
 
   private renderPreloader() {
@@ -1323,6 +1367,29 @@ export class UIManager {
       `;
     }
 
+    let boosterBtnHTML = '';
+    if (this.engine.gameMode === 'endless') {
+      const bTimer = this.engine.boosterSpawnTimer;
+      const bReady = bTimer <= 0;
+      const bPercent = Math.min(100, Math.floor((1 - bTimer / 5.0) * 100));
+      
+      boosterBtnHTML = `
+        <div class="hud-booster-btn glass-card ${bReady ? 'ult-ready-pulse' : ''}" 
+             style="pointer-events: auto; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 62px; height: 62px; border-radius: 50%; border: 2px solid ${bReady ? '#ffd700' : 'rgba(255,255,255,0.2)'}; background: ${bReady ? 'rgba(255,215,0,0.12)' : 'rgba(255,255,255,0.03)'}; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: all 0.3s ease; box-shadow: ${bReady ? '0 0 15px rgba(255,215,0,0.4)' : 'none'}; position: relative; margin-bottom: 6px; -webkit-tap-highlight-color: transparent; opacity: ${bReady ? '1' : '0.65'};" 
+             id="btn-hud-booster" 
+             title="Tap to Activate Hyper Booster!">
+          <div style="position: absolute; inset: 2px; border-radius: 50%; background: ${bReady ? 'rgba(255,215,0,0.15)' : 'transparent'}; pointer-events: none;"></div>
+          <svg width="58" height="58" viewBox="0 0 58 58" style="position: absolute; transform: rotate(-90deg); pointer-events: none;">
+            <circle cx="29" cy="29" r="25" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="3"></circle>
+            <circle cx="29" cy="29" r="25" fill="none" stroke="#ffd700" stroke-width="4.5" 
+                    stroke-dasharray="157" stroke-dashoffset="${157 - (157 * bPercent) / 100}" 
+                    stroke-linecap="round" class="booster-progress-fill" style="transition: stroke-dashoffset 0.15s ease-out; stroke: #ffd700;"></circle>
+          </svg>
+          <span style="font-size: 26px; z-index: 2; transition: transform 0.2s ease; margin: 0; line-height: 1; text-shadow: ${bReady ? '0 0 8px #ffd700' : 'none'};">${bReady ? '⚡' : '⏳'}</span>
+        </div>
+      `;
+    }
+
     const hudHTML = `
       <div class="hud fade-in">
         ${boosterOverlayHTML}
@@ -1346,19 +1413,23 @@ export class UIManager {
             ${powerupBadges}
           </div>
 
-          <!-- Ultimate Special Ability Transparent Circular Button (Shifted from Double-Tap) -->
-          <div class="hud-ult-circle-btn glass-card ${ultReady ? 'ult-ready-pulse' : ''} ${ultActive ? 'ult-active-glow' : ''}" 
-               style="pointer-events: auto; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 62px; height: 62px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.06); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2); position: relative; margin-bottom: 6px; -webkit-tap-highlight-color: transparent;" 
-               id="btn-hud-ultimate" 
-               title="Tap to Activate Ultimate Special Ability!">
-            <div class="ult-inner-glow" style="position: absolute; inset: 2px; border-radius: 50%; background: ${ultActive ? 'rgba(255, 0, 127, 0.25)' : ultReady ? 'rgba(255, 215, 0, 0.18)' : 'transparent'}; pointer-events: none;"></div>
-            <svg class="ult-ring" width="58" height="58" viewBox="0 0 58 58" style="position: absolute; transform: rotate(-90deg); pointer-events: none;">
-              <circle cx="29" cy="29" r="25" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"></circle>
-              <circle cx="29" cy="29" r="25" fill="none" stroke="${ultBarBg}" stroke-width="4.5" 
-                      stroke-dasharray="157" stroke-dashoffset="${157 - (157 * ultPercent) / 100}" 
-                      stroke-linecap="round" class="ult-progress-fill" style="transition: stroke-dashoffset 0.15s ease-out; stroke: ${ultBarBg};"></circle>
-            </svg>
-            <span class="ult-icon" style="font-size: 24px; z-index: 2; transition: transform 0.2s ease; margin: 0; line-height: 1;">${ultActive ? '⚡' : ultReady ? '🔥' : '✨'}</span>
+          <div style="display: flex; flex-direction: row; align-items: center; gap: 12px; pointer-events: auto;">
+            ${boosterBtnHTML}
+
+            <!-- Ultimate Special Ability Transparent Circular Button (Shifted from Double-Tap) -->
+            <div class="hud-ult-circle-btn glass-card ${ultReady ? 'ult-ready-pulse' : ''} ${ultActive ? 'ult-active-glow' : ''}" 
+                 style="pointer-events: auto; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 62px; height: 62px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.06); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2); position: relative; margin-bottom: 6px; -webkit-tap-highlight-color: transparent;" 
+                 id="btn-hud-ultimate" 
+                 title="Tap to Activate Ultimate Special Ability!">
+              <div class="ult-inner-glow" style="position: absolute; inset: 2px; border-radius: 50%; background: ${ultActive ? 'rgba(255, 0, 127, 0.25)' : ultReady ? 'rgba(255, 215, 0, 0.18)' : 'transparent'}; pointer-events: none;"></div>
+              <svg class="ult-ring" width="58" height="58" viewBox="0 0 58 58" style="position: absolute; transform: rotate(-90deg); pointer-events: none;">
+                <circle cx="29" cy="29" r="25" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"></circle>
+                <circle cx="29" cy="29" r="25" fill="none" stroke="${ultBarBg}" stroke-width="4.5" 
+                        stroke-dasharray="157" stroke-dashoffset="${157 - (157 * ultPercent) / 100}" 
+                        stroke-linecap="round" class="ult-progress-fill" style="transition: stroke-dashoffset 0.15s ease-out; stroke: ${ultBarBg};"></circle>
+              </svg>
+              <span class="ult-icon" style="font-size: 24px; z-index: 2; transition: transform 0.2s ease; margin: 0; line-height: 1;">${ultActive ? '⚡' : ultReady ? '🔥' : '✨'}</span>
+            </div>
           </div>
 
           <div class="run-stats">
@@ -1415,6 +1486,25 @@ export class UIManager {
       this.engine.triggerUltimate();
       this.render();
     });
+
+    // Bind booster trigger instantly on touch/pointerdown for zero delay
+    const boosterBtn = document.getElementById('btn-hud-booster');
+    if (boosterBtn) {
+      const triggerBooster = (e: Event) => {
+        e.stopPropagation();
+        e.preventDefault();
+        
+        if (this.engine.boosterSpawnTimer <= 0 && !this.engine.boosterActive && !this.engine.boosterDeactivating) {
+          this.engine.activatePowerup('booster');
+          // Reset charge timer
+          this.engine.boosterSpawnTimer = 5.0;
+          this.render(); // update visual ready state
+        }
+      };
+      
+      boosterBtn.addEventListener('pointerdown', triggerBooster);
+      boosterBtn.addEventListener('touchstart', triggerBooster);
+    }
 
     const pBtn = document.getElementById('btn-hud-pause');
     if (pBtn) pBtn.addEventListener('click', () => {
