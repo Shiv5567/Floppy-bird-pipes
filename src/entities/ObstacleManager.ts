@@ -1104,6 +1104,40 @@ export class ObstacleManager {
 
           centerY += verticalShift;
 
+          // Intersection Safeguard (Score >= 200, specially 400+): Enforce minimum 30% gap overlap for adjacent pipes
+          if (score >= 200) {
+            let nearestOther: Obstacle | null = null;
+            let minDistance = Infinity;
+            for (let j = 0; j < this.list.length; j++) {
+              const other = this.list[j];
+              if (other !== obs) {
+                const distX = Math.abs(obs.x - other.x);
+                if (distX < minDistance) {
+                  minDistance = distX;
+                  nearestOther = other;
+                }
+              }
+            }
+
+            if (nearestOther && minDistance < 450) {
+              const otherGap = height - nearestOther.bottomHeight - nearestOther.topHeight;
+              const otherCenterY = nearestOther.topHeight + otherGap / 2;
+              
+              // Ensure at least 30% overlap (intersection) of the gap height
+              const overlapPercentage = 0.30;
+              const maxCenterDiff = currentGap * (1.0 - overlapPercentage);
+              
+              const diffY = centerY - otherCenterY;
+              if (Math.abs(diffY) > maxCenterDiff) {
+                if (diffY > 0) {
+                  centerY = otherCenterY + maxCenterDiff;
+                } else {
+                  centerY = otherCenterY - maxCenterDiff;
+                }
+              }
+            }
+          }
+
           // Keep centerY within screen bounds so that both top and bottom pipes are at least 45px high
           const minCenterY = 45 + currentGap / 2;
           const maxCenterY = height - 45 - currentGap / 2;
