@@ -1123,12 +1123,9 @@ export class ObstacleManager {
               const otherGap = height - nearestOther.bottomHeight - nearestOther.topHeight;
               const otherCenterY = nearestOther.topHeight + otherGap / 2;
               
-              // Dynamic Overlap Constraints based on Horizontal Spacing:
-              // - If horizontally very close (minDistance < 320), keep them highly parallel (vertical offset <= 30% of gap, i.e., 70% parallel path alignment)
-              // - Otherwise, keep at least a 30% intersection overlap (vertical offset <= 70% of gap)
-              const maxCenterDiff = minDistance < 320 
-                ? currentGap * 0.30  // Highly parallel / 30% maximum center offset
-                : currentGap * 0.70; // Standard overlap safeguard / 70% maximum center offset
+              // Ensure at least 30% overlap (intersection) of the gap height
+              const overlapPercentage = 0.30;
+              const maxCenterDiff = currentGap * (1.0 - overlapPercentage);
               
               const diffY = centerY - otherCenterY;
               if (Math.abs(diffY) > maxCenterDiff) {
