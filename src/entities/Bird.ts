@@ -55,39 +55,28 @@ export class Bird {
     return this.activeSkin;
   }
 
-  private getJumpScale(score: number, apply30PercentReduction = false): number {
+  private getJumpScale(score: number): number {
+    const effectiveScore = Math.min(600, score);
     let jumpScale = 1.0;
     const maxScale400 = 1.05 * 1.06 * 1.03; // ~1.14639
-    if (score <= 100) {
+    if (effectiveScore <= 100) {
       jumpScale = 1.0;
-    } else if (score <= 200) {
-      const progress = (score - 100) / 100;
+    } else if (effectiveScore <= 200) {
+      const progress = (effectiveScore - 100) / 100;
       jumpScale = 1.0 + progress * 0.05;
-    } else if (score <= 300) {
-      const progress = (score - 200) / 100;
+    } else if (effectiveScore <= 300) {
+      const progress = (effectiveScore - 200) / 100;
       jumpScale = 1.05 * (1.0 + progress * 0.06);
-    } else if (score <= 400) {
-      const progress = (score - 300) / 100;
+    } else if (effectiveScore <= 400) {
+      const progress = (effectiveScore - 300) / 100;
       jumpScale = 1.05 * 1.06 * (1.0 + progress * 0.03);
-    } else if (score <= 500) {
-      // From score 400 onwards, increase the bird's upward velocity by 10%
+    } else if (effectiveScore <= 500) {
       jumpScale = maxScale400 * 1.10; // ~1.26103
-    } else if (score <= 700) {
-      // From score 500 onwards, increase the Bird's upward velocity per tap progressively to counter heavy gravity
-      const progress = (score - 500) / 200;
-      jumpScale = maxScale400 * 1.10 * 1.08 * (1.0 + progress * 0.20); // up to ~1.63 at score 700
     } else {
-      // Above score 700, increase tap power exponentially to counter heavy progressive gravity
-      const over700Factor = Math.floor((score - 700) / 50);
-      const baseScale = maxScale400 * 1.10 * 1.08 * 1.20; // ~1.63
-      jumpScale = baseScale * Math.pow(1.10, over700Factor);
+      // From score 500 to 600, keep progressive scaling identical to how 500-600 is set
+      const progress = (effectiveScore - 500) / 100;
+      jumpScale = maxScale400 * 1.10 * 1.08 * (1.0 + progress * 0.075); // reaches ~1.464 at 600
     }
-
-    // Reduce per tap jump distance by 30% above score 600 as requested
-    if (apply30PercentReduction && score >= 600) {
-      jumpScale *= 0.70;
-    }
-
     return jumpScale;
   }
 
@@ -97,8 +86,8 @@ export class Bird {
     // Jump lift scaled with skin upgrade level (minor bonus)
     const levelBonus = (this.activeSkin.upgradeLevel - 1) * 0.05;
     
-    // Custom progressive score-based jump scaling (with 30% reduction applied to impulse above score 600)
-    const jumpScale = this.getJumpScale(score, true);
+    // Custom progressive score-based jump scaling:
+    const jumpScale = this.getJumpScale(score);
     const impulse = this.jumpLift * (1 + levelBonus) * jumpScale;
     
     // Instant, sharp, predictable and completely constant jump:
@@ -112,16 +101,19 @@ export class Bird {
   public update(deltaTime: number, particleEngine: ParticleEngine, isPlaying: boolean, timeScale: number, score = 0) {
     const dtCoeff = deltaTime * 60 * timeScale;
     
+    // Freeze vertical physics at exactly score 600 (keeping it identical to score 500-600 setting all the way to infinity!)
+    const effectiveScore = Math.min(600, score);
+    
     // Synchronize physics gravity and max fall speed caps with 5% speed increase every 25 score
-    const speedMultiplier = 1.0 + Math.floor(score / 25.0) * 0.05;
+    const speedMultiplier = 1.0 + Math.floor(effectiveScore / 25.0) * 0.05;
     const currentGravity = this.gravity * speedMultiplier;
     const currentMaxFallSpeed = this.maxFallSpeed * speedMultiplier;
     
     // Custom progressive score-based jump scaling:
-    const unreducedJumpScale = this.getJumpScale(score, false);
+    const jumpScale = this.getJumpScale(effectiveScore);
     
     // Scale maximum rise speed dynamically to stay fully synchronized with jump impulse (unreduced for upward speed!)
-    const currentMaxRiseSpeed = this.maxRiseSpeed * unreducedJumpScale;
+    const currentMaxRiseSpeed = this.maxRiseSpeed * jumpScale;
     
     if (isPlaying) {
       // Apply gravity
