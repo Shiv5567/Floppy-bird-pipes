@@ -1071,17 +1071,24 @@ export class ObstacleManager {
               verticalShift = Math.sin(this.waveTime * 2.0) * 55 * elevatorDir;
             }
           } else if (score >= 500) {
-            // Apply the same vertical motion or animation as score 200 to 300 starting from score 500
+            // Apply the same vertical motion or animation as score 200 to 300 but progressively increased so it can be felt!
+            let intervals = Math.floor((score - 500) / 100);
+            if (intervals < 0) intervals = 0;
+            
+            // Progressive difficulty: increase amplitude (starting at 1.3x) and frequency (starting at 1.25x)
+            const amplitudeMultiplier = Math.min(1.8, 1.3 + intervals * 0.10);
+            const frequencyMultiplier = Math.min(1.5, 1.25 + intervals * 0.05);
+
             const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
             if (motionStyle === 0) {
-              verticalShift = Math.sin(this.waveTime * 2.2 + (obs.obstacleIdx || 0) * 0.5) * 50;
+              verticalShift = Math.sin(this.waveTime * 2.2 * frequencyMultiplier + (obs.obstacleIdx || 0) * 0.5) * 50 * amplitudeMultiplier;
             } else {
               const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-              verticalShift = Math.sin(this.waveTime * 1.8) * 45 * elevatorDir;
+              verticalShift = Math.sin(this.waveTime * 1.8 * frequencyMultiplier) * 45 * amplitudeMultiplier * elevatorDir;
             }
           }
 
-          // Playability Safeguard: Clamp vertical shift to [-40, 40] if pipes are horizontally close (minimum horizontal gap)
+          // Playability Safeguard: Clamp vertical shift to prevent physically impossible transitions
           let isTightHorizontalGap = false;
           for (let j = 0; j < this.list.length; j++) {
             const other = this.list[j];
@@ -1091,7 +1098,8 @@ export class ObstacleManager {
             }
           }
           if (isTightHorizontalGap) {
-            verticalShift = Math.max(-40, Math.min(40, verticalShift));
+            const maxClamp = score >= 500 ? 70 : 40; // Relax clamp at score >= 500 so the movement can be felt clearly!
+            verticalShift = Math.max(-maxClamp, Math.min(maxClamp, verticalShift));
           }
 
           centerY += verticalShift;
