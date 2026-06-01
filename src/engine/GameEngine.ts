@@ -857,7 +857,7 @@ export class GameEngine {
   }
 
   // Activate game changing powerup mechanics
-  private activatePowerup(type: string) {
+  public activatePowerup(type: string) {
     let duration = 8.0; // Seconds base
     let max = 8.0;
 

@@ -78,13 +78,42 @@ function init() {
 }
 
 function setupInputs() {
-  const onActionInput = (e: Event) => {
+  const onActionInput = (e: PointerEvent) => {
     const target = e.target as HTMLElement;
     if (target.closest('button') || target.closest('input') || target.closest('a') || target.closest('.hud-ultimate-container') || target.closest('.hud-ult-circle-btn')) {
       return;
     }
 
     if (gameEngine.state === 'PLAYING' || gameEngine.state === 'BOSS_FIGHT') {
+      // Check if user tapped a booster icon on the canvas!
+      const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+      if (canvas && e.target === canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+        
+        // Convert screen coordinates to world camera coordinates
+        const width = canvas.width / gameEngine.renderer.dpr;
+        const height = canvas.height / gameEngine.renderer.dpr;
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const zoom = gameEngine.renderer.zoomFactor || 1.0;
+        
+        const worldX = (clickX - centerX) / zoom + centerX;
+        const worldY = (clickY - centerY) / zoom + centerY + gameEngine.renderer.getCameraY();
+        
+        const tappedBooster = gameEngine.powerupManager.checkBoosterTap(
+          worldX,
+          worldY,
+          gameEngine.particleEngine
+        );
+        
+        if (tappedBooster) {
+          gameEngine.activatePowerup('booster');
+          return; // Suppress early jump!
+        }
+      }
+
       // ALWAYS jump instantly on every single click/tap! No blocking or delay!
       gameEngine.jump();
     } else if (gameEngine.state === 'MENU' && uiManager.getActiveTab() === 'main') {
@@ -96,7 +125,7 @@ function setupInputs() {
     }
   };
 
-  window.addEventListener('pointerdown', onActionInput);
+  window.addEventListener('pointerdown', onActionInput as any);
 
   window.addEventListener('keydown', (e) => {
     if (e.code === 'Space' || e.code === 'ArrowUp') {

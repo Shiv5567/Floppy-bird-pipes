@@ -36,7 +36,7 @@ export class Renderer {
   private cameraY = 0;
   private shakeIntensity = 0;
   private shakeDuration = 0;
-  private zoomFactor = 0.90;
+  public zoomFactor = 0.90;
   public scale = 1.0;
   private jungleTempleBgImg: HTMLImageElement | null = null;
 

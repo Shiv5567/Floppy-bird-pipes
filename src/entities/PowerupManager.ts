@@ -170,6 +170,8 @@ export class PowerupManager {
   ): PowerupItem['type'] | null {
     for (let i = this.list.length - 1; i >= 0; i--) {
       const item = this.list[i];
+      if ((item.type as string) === 'booster') continue; // Booster ignored in bird physical collision checks!
+
       const dx = birdX - item.x;
       const dy = birdY - item.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
@@ -186,7 +188,7 @@ export class PowerupManager {
           soundManager.playGem();
         } else {
           particleEngine.emitRing(item.x, item.y, this.getPowerupGlowColor(item.type));
-          if (item.type === 'booster') {
+          if ((item.type as string) === 'booster') {
             soundManager.playLevelUp();
           } else {
             soundManager.playShieldDeflect();
@@ -198,6 +200,32 @@ export class PowerupManager {
       }
     }
     return null;
+  }
+
+  // Check if pointer click/tap hits any booster icon on screen with a generous radius (55px)
+  public checkBoosterTap(
+    worldX: number,
+    worldY: number,
+    particleEngine: ParticleEngine
+  ): boolean {
+    for (let i = this.list.length - 1; i >= 0; i--) {
+      const item = this.list[i];
+      if (item.type !== 'booster') continue;
+
+      const dx = worldX - item.x;
+      const dy = worldY - item.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      // 55px tap target radius represents the perfect tactile finger collection zone
+      const tapRadius = 55;
+
+      if (dist < tapRadius) {
+        particleEngine.emitRing(item.x, item.y, '#ffd700', 24);
+        this.list.splice(i, 1);
+        return true;
+      }
+    }
+    return false;
   }
 
   private getPowerupGlowColor(type: PowerupItem['type']): string {
