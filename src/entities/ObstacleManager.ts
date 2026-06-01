@@ -1074,7 +1074,15 @@ export class ObstacleManager {
             // Score >= 500: Dedicated smooth sequential wave animation flow undulating sequentially across columns
             const waveFrequency = 1.8;
             const waveLength = 0.0035;
-            const waveAmplitude = 55;
+            const baseAmplitude = 55;
+
+            // Progressive difficulty: increase wave amplitude by 10% for every 100 obstacles passed starting from score 500
+            let intervals = Math.floor((score - 500) / 100);
+            if (intervals < 0) intervals = 0;
+            // Cap the dynamic multiplier at 1.6x (60% increase) to preserve beautiful visible undulating contours
+            const multiplier = Math.min(1.6, 1.0 + intervals * 0.10);
+            const waveAmplitude = baseAmplitude * multiplier;
+
             verticalShift = Math.sin(this.waveTime * waveFrequency + obs.x * waveLength) * waveAmplitude;
           }
 
