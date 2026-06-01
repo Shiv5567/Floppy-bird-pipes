@@ -58,6 +58,14 @@ export class GameEngine {
   public timeScale = 1.0;
   private scoreMultiplier = 1;
   
+  // Booster System state variables
+  public boosterActive = false;
+  public boosterTimer = 0.0;
+  public boosterDeactivating = false;
+  public boosterDeactivateTimer = 0.0;
+  private boosterSpawnTimer = 5.0;
+  private boosterScoreAccumulator = 0.0;
+  
   // Powerups timers
   private activePowerupsList: Record<string, ActivePowerup> = {};
   
@@ -135,6 +143,14 @@ export class GameEngine {
     this.timeScale = 1.0;
     this.scoreMultiplier = 1;
     this.activePowerupsList = {};
+    
+    // Reset booster system variables
+    this.boosterActive = false;
+    this.boosterTimer = 0.0;
+    this.boosterDeactivating = false;
+    this.boosterDeactivateTimer = 0.0;
+    this.boosterSpawnTimer = 5.0;
+    this.boosterScoreAccumulator = 0.0;
     
     // Reset ultimate skill status
     this.ultimateEnergy = 0;
@@ -239,6 +255,14 @@ export class GameEngine {
 
       this.bird.update(dt, this.particleEngine, true, activeTimeScale, this.score);
       
+      // Booster automatic vertical centering cruised flight
+      if (this.boosterActive) {
+        const targetCenterY = height / 2;
+        this.bird.y += (targetCenterY - this.bird.y) * 0.12 * (dt * 60);
+        this.bird.vy = 0;
+        this.bird.angle = 0.05 * Math.sin(performance.now() * 0.05);
+      }
+      
       // Update Ultimate Ability Energy Charging & Durations (Visual Upgrade Option 2)
       if (this.ultimateActive) {
         this.ultimateDurationLeft -= dt;
@@ -339,15 +363,86 @@ export class GameEngine {
         }
       }
 
+      // Booster overrides scroll speed and active effects
+      if (this.boosterActive) {
+        this.boosterTimer -= dt;
+        
+        // Suppress collisions and enforce invincibility
+        this.bird.isInvincible = true;
+
+        if (this.boosterTimer <= 0) {
+          // Enter deactivation cooldown phase
+          this.boosterActive = false;
+          this.boosterDeactivating = true;
+          this.boosterDeactivateTimer = 0.5;
+        } else {
+          // Set speed to 15.0x
+          this.scrollSpeed = this.baseScrollSpeed * 15.0;
+
+          // Increment score smoothly over the 2-second boost (100 points total, ~50 per second)
+          this.boosterScoreAccumulator += dt * 50;
+          if (this.boosterScoreAccumulator >= 1.0) {
+            const pointsToAdd = Math.floor(this.boosterScoreAccumulator);
+            this.boosterScoreAccumulator -= pointsToAdd;
+            this.score += pointsToAdd;
+            this.particleEngine.emitCoinSparkle(this.bird.x + 30, this.bird.y, '#ffd700');
+          }
+
+          // Emit supersonic speed sparks from bird
+          if (Math.random() < 0.8) {
+            this.particleEngine.spawn(
+              this.bird.x - this.bird.radius,
+              this.bird.y + (Math.random() - 0.5) * 12,
+              -this.scrollSpeed * 0.3 - Math.random() * 5,
+              (Math.random() - 0.5) * 3,
+              Math.random() > 0.3 ? '#ffd700' : '#ffffff',
+              4 + Math.random() * 5,
+              1.0,
+              0.04,
+              'spark',
+              true,
+              '#ffd700'
+            );
+          }
+
+          // Trigger screen shake on every frame during booster mode
+          this.renderer.triggerScreenShake(6, 0.05);
+        }
+      } else if (this.boosterDeactivating) {
+        this.boosterDeactivateTimer -= dt;
+        
+        // Maintain invincibility for safety
+        this.bird.isInvincible = true;
+
+        if (this.boosterDeactivateTimer <= 0) {
+          this.boosterDeactivating = false;
+          this.bird.isInvincible = false;
+        } else {
+          // Smoothly lerp scrollSpeed multiplier from 15.0x back to 1.0x
+          const lerpFactor = this.boosterDeactivateTimer / 0.5; // 1.0 down to 0.0
+          const speedMult = 1.0 + (15.0 - 1.0) * lerpFactor;
+          this.scrollSpeed = this.scrollSpeed * speedMult;
+        }
+      }
+
       this.renderer.update(dt, this.scrollSpeed, this.bird.y, activeTimeScale);
 
       if (this.state === 'PLAYING') {
         const selectedZone = this.progressManager.getState().selectedZone;
         const selectedDifficulty = this.progressManager.getState().selectedDifficulty;
 
+        // Spawn booster item every 5 seconds in Endless Mode
+        if (this.gameMode === 'endless') {
+          this.boosterSpawnTimer -= dt;
+          if (this.boosterSpawnTimer <= 0) {
+            this.powerupManager.spawnItem('booster', width, height);
+            this.boosterSpawnTimer = 5.0; // Reset spawn timer
+          }
+        }
+
         // Standard scrolling hazards
         this.obstacleManager.update(dt, this.scrollSpeed, this.score, this.progressManager.getState().activeWorld, width, height, activeTimeScale, selectedZone, selectedDifficulty, this.bird.x);
-        this.powerupManager.update(dt, this.scrollSpeed, this.bird.x, this.bird.y, !!this.activePowerupsList['magnet'], width, height, activeTimeScale, this.obstacleManager.getList());
+        this.powerupManager.update(dt, this.scrollSpeed, this.bird.x, this.bird.y, !!this.activePowerupsList['magnet'], width, height, activeTimeScale, this.obstacleManager.getList(), this.particleEngine);
 
         // Check near-miss grazes
         const obstacles = this.obstacleManager.getList();
@@ -432,7 +527,7 @@ export class GameEngine {
         }
 
         // Evaluate standard collisions & enforce boundaries
-        if (!this.bird.isInvincible && !this.bird.isGhost) {
+        if (!this.bird.isInvincible && !this.bird.isGhost && !this.boosterActive && !this.boosterDeactivating) {
           const collidedObs = this.obstacleManager.enforceBoundariesAndCheckCollisions(
             this.bird,
             height,
@@ -766,6 +861,24 @@ export class GameEngine {
     let duration = 8.0; // Seconds base
     let max = 8.0;
 
+    if (type === 'booster') {
+      this.boosterActive = true;
+      this.boosterTimer = 2.0;
+      this.boosterScoreAccumulator = 0.0;
+      this.bird.isInvincible = true;
+      
+      this.soundManager.playSpeedBoost();
+      this.renderer.triggerScreenShake(20, 0.4);
+      
+      window.dispatchEvent(new CustomEvent('hud_alert', { 
+        detail: { 
+          text: '⚡ BOOSTER ACTIVE ⚡', 
+          sub: 'HYPER-DRIVE PROGRESSION ACTIVATED!' 
+        } 
+      }));
+      return;
+    }
+
     if (type === 'coin') {
       this.coinsCollectedThisRun += 1;
       this.progressManager.addCoins(1);
@@ -873,6 +986,7 @@ export class GameEngine {
   }
 
   public jump() {
+    if (this.boosterActive) return;
     this.bird.jump(this.soundManager, this.score);
   }
 

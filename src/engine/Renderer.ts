@@ -559,6 +559,35 @@ export class Renderer {
 
     // Layer 1-3: Parallax mountains, silhouettes, ruins
     this.drawParallaxHills(worldId, width, height);
+
+    // Procedural Glowing Golden Speed Lines during hyper booster active state
+    const engine = (window as any).gameEngine;
+    if (engine && engine.boosterActive) {
+      this.drawSpeedLines(width, height);
+    }
+  }
+
+  private drawSpeedLines(width: number, height: number) {
+    const numLines = 25;
+    this.ctx.save();
+    this.ctx.strokeStyle = 'rgba(255, 215, 0, 0.28)'; // Glowing golden speed lines
+    this.ctx.lineWidth = 2.0;
+
+    for (let i = 0; i < numLines; i++) {
+      // Procedural speed line positions
+      const y = (Math.sin(i * 913.7) * 0.5 + 0.5) * height;
+      const speed = 2500 + (Math.cos(i * 123.4) * 0.5 + 0.5) * 1500; // super fast
+      const len = 120 + (Math.sin(i * 567.8) * 0.5 + 0.5) * 180;
+      
+      const xOffset = (this.weatherTime * speed + i * 400) % (width + len * 2);
+      const x = width - xOffset;
+
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, y);
+      this.ctx.lineTo(x + len, y);
+      this.ctx.stroke();
+    }
+    this.ctx.restore();
   }
 
   public restoreScreen() {

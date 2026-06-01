@@ -284,6 +284,29 @@ export class UIManager {
       this.bossHealthFill = null;
       this.renderHUD();
     }
+
+    // 6. Booster System HUD Overlay In-place updates
+    const isBoosterActive = this.engine.boosterActive;
+    const hasBoosterOverlay = !!document.querySelector('.hud-booster-overlay');
+    if (isBoosterActive !== hasBoosterOverlay) {
+      this.renderHUD();
+      return;
+    }
+
+    if (isBoosterActive) {
+      const overlayEl = this.container.querySelector('.hud-booster-overlay') as HTMLElement;
+      if (overlayEl) {
+        const timerText = overlayEl.querySelector('.hud-booster-title') as HTMLElement;
+        const barInner = overlayEl.querySelector('.hud-booster-fill') as HTMLElement;
+        if (timerText) {
+          timerText.innerText = `⚡ HYPER BOOST: ${this.engine.boosterTimer.toFixed(1)}s`;
+        }
+        if (barInner) {
+          const bPct = Math.max(0, Math.min(100, (this.engine.boosterTimer / 2.0) * 100));
+          barInner.style.width = `${bPct}%`;
+        }
+      }
+    }
   }
 
   private renderPreloader() {
@@ -1285,8 +1308,24 @@ export class UIManager {
       `;
     }
 
+    let boosterOverlayHTML = '';
+    if (this.engine.boosterActive) {
+      const bPct = Math.max(0, Math.min(100, (this.engine.boosterTimer / 2.0) * 100));
+      boosterOverlayHTML = `
+        <div class="hud-booster-overlay fade-in glass-card" style="position: absolute; top: 85px; left: 50%; transform: translateX(-50%); padding: 10px 24px; border-radius: 12px; border: 2px solid #ffd700; background: rgba(20, 15, 0, 0.85); box-shadow: 0 0 20px rgba(255, 215, 0, 0.45); display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; z-index: 100;">
+          <div class="hud-booster-title" style="font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 900; color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.6); display: flex; align-items: center; gap: 8px;">
+            ⚡ HYPER BOOST: ${this.engine.boosterTimer.toFixed(1)}s
+          </div>
+          <div style="width: 140px; height: 6px; background: rgba(255, 255, 255, 0.15); border-radius: 3px; overflow: hidden; margin-top: 6px;">
+            <div class="hud-booster-fill" style="width: ${bPct}%; height: 100%; background: linear-gradient(90deg, #ffaa00, #ffd700); box-shadow: 0 0 8px #ffd700; transition: width 0.05s linear;"></div>
+          </div>
+        </div>
+      `;
+    }
+
     const hudHTML = `
       <div class="hud fade-in">
+        ${boosterOverlayHTML}
         <div class="hud-top">
           <div class="score-container">
             <span class="hud-label">SCORE</span>

@@ -1,7 +1,7 @@
 import { ParticleEngine } from '../engine/ParticleEngine.ts';
 import type { Obstacle } from './ObstacleManager.ts';
 
-export type PowerupType = 'shield' | 'slowmo' | 'magnet' | 'double' | 'revive' | 'turbo' | 'ghost' | 'mini';
+export type PowerupType = 'shield' | 'slowmo' | 'magnet' | 'double' | 'revive' | 'turbo' | 'ghost' | 'mini' | 'booster';
 
 export interface PowerupItem {
   x: number;
@@ -35,7 +35,8 @@ export class PowerupManager {
     width: number,
     height: number,
     timeScale: number,
-    obstacles: Obstacle[]
+    obstacles: Obstacle[],
+    particleEngine?: ParticleEngine
   ) {
     const dtCoeff = deltaTime * 60 * timeScale;
     const actualScrollSpeed = scrollSpeed * dtCoeff;
@@ -46,6 +47,24 @@ export class PowerupManager {
 
       // Float hovering animation via sine wave
       item.pulseTimer += deltaTime * 4 * timeScale;
+      
+      if (item.type === 'booster' && particleEngine) {
+        if (Math.random() < 0.15 * dtCoeff) {
+          particleEngine.spawn(
+            item.x + (Math.random() - 0.5) * 16,
+            item.y + (Math.random() - 0.5) * 16,
+            -scrollSpeed * 0.2 + (Math.random() - 0.5) * 0.5,
+            (Math.random() - 0.5) * 0.8,
+            '#ffd700',
+            1.5 + Math.random() * 2,
+            0.8,
+            0.02,
+            'star',
+            true,
+            '#ffd700'
+          );
+        }
+      }
       
       if (hasMagnet && (item.type === 'coin' || item.type === 'gem' || Math.random() < 0.2)) {
         // Pull items towards the bird!
@@ -167,7 +186,11 @@ export class PowerupManager {
           soundManager.playGem();
         } else {
           particleEngine.emitRing(item.x, item.y, this.getPowerupGlowColor(item.type));
-          soundManager.playShieldDeflect();
+          if (item.type === 'booster') {
+            soundManager.playLevelUp();
+          } else {
+            soundManager.playShieldDeflect();
+          }
         }
 
         this.list.splice(i, 1);
@@ -187,6 +210,7 @@ export class PowerupManager {
       case 'ghost': return '#9400d3';
       case 'mini': return '#00ff7f';
       case 'revive': return '#ffa07a';
+      case 'booster': return '#ffd700';
       default: return '#ffffff';
     }
   }
@@ -203,12 +227,49 @@ export class PowerupManager {
         this.drawCoin(ctx, item);
       } else if (item.type === 'gem') {
         this.drawGem(ctx, item);
+      } else if (item.type === 'booster') {
+        this.drawLightningBolt(ctx, item);
       } else {
         this.drawPowerupBox(ctx, item);
       }
 
       ctx.restore();
     }
+  }
+
+  private drawLightningBolt(ctx: CanvasRenderingContext2D, item: PowerupItem) {
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 18 + Math.sin(item.pulseTimer * 3) * 6; // Pulsing glow!
+      ctx.shadowColor = '#ffd700';
+    }
+
+    const rad = item.radius;
+    // Pulsing size animation
+    const pulseScale = 1.0 + Math.sin(item.pulseTimer * 4) * 0.12;
+    ctx.scale(pulseScale, pulseScale);
+
+    // Glowing golden gradient
+    const grad = ctx.createLinearGradient(-rad, -rad, rad, rad);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(0.3, '#ffea00');
+    grad.addColorStop(1, '#ffd700');
+
+    ctx.fillStyle = grad;
+    ctx.strokeStyle = '#e6ad00';
+    ctx.lineWidth = 1.5;
+
+    ctx.beginPath();
+    // Lightning shape centered at (0,0)
+    ctx.moveTo(rad * 0.1, -rad * 0.9);  // Top point
+    ctx.lineTo(rad * 0.5, -rad * 0.15); // Top right bend
+    ctx.lineTo(rad * 0.15, -rad * 0.15); // Middle inner bend
+    ctx.lineTo(rad * 0.4, rad * 0.85);  // Bottom point
+    ctx.lineTo(-rad * 0.35, rad * 0.1);  // Lower left bend
+    ctx.lineTo(0.0, rad * 0.1);       // Middle inner bend left
+    ctx.closePath();
+    
+    ctx.fill();
+    ctx.stroke();
   }
 
   private drawCoin(ctx: CanvasRenderingContext2D, item: PowerupItem) {

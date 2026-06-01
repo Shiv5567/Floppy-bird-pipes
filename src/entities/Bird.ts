@@ -239,6 +239,25 @@ export class Bird {
 
   // Draw procedural birds depending on active skin
   public render(ctx: CanvasRenderingContext2D) {
+    // Trailing golden motion-blur warp wedge behind the bird when booster is active!
+    const engine = (window as any).gameEngine;
+    if (engine && engine.boosterActive) {
+      ctx.save();
+      const wedgeGrad = ctx.createLinearGradient(this.x - 90, this.y, this.x, this.y);
+      wedgeGrad.addColorStop(0, 'rgba(255, 215, 0, 0.0)');
+      wedgeGrad.addColorStop(0.5, 'rgba(255, 230, 100, 0.24)');
+      wedgeGrad.addColorStop(1, 'rgba(255, 215, 0, 0.65)');
+      
+      ctx.fillStyle = wedgeGrad;
+      ctx.beginPath();
+      ctx.moveTo(this.x - 90, this.y);
+      ctx.lineTo(this.x, this.y - this.radius * 0.95);
+      ctx.lineTo(this.x, this.y + this.radius * 0.95);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
     ctx.save();
     
     // Add organic airbeat body bobbing (lift-push response)
