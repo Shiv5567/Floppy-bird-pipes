@@ -55,6 +55,7 @@ export interface Obstacle {
   baseTopHeight?: number;
   baseBottomHeight?: number;
   obstacleIdx?: number;
+  spawnScore?: number;
 }
 
 export class ObstacleManager {
@@ -117,6 +118,7 @@ export class ObstacleManager {
       gapHeight: 0,
       spawnCenterY: 0,
       obstacleIdx: undefined,
+      spawnScore: undefined,
       isSpecialSplit: false,
       baseTopHeight: 0,
       baseBottomHeight: 0
@@ -1043,7 +1045,11 @@ export class ObstacleManager {
 
           // Pipe gaps are kept completely constant and unchanged as requested, only shifting centerY up and down!
           let verticalShift = 0;
-          if (score >= 100 && score < 200) {
+          
+          // Use the score at spawn time to keep transitions completely smooth and stutter-free!
+          const activeScore = obs.spawnScore !== undefined ? obs.spawnScore : score;
+
+          if (activeScore >= 100 && activeScore < 200) {
             // 10% difficulty: shift centerY up and down by 25px
             const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
             if (motionStyle === 0) {
@@ -1052,7 +1058,7 @@ export class ObstacleManager {
               const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
               verticalShift = Math.sin(this.waveTime * 1.2) * 20 * elevatorDir;
             }
-          } else if (score >= 200 && score < 300) {
+          } else if (activeScore >= 200 && activeScore < 300) {
             // 10% + 15% = 25% difficulty: shift centerY up and down by 50px
             const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
             if (motionStyle === 0) {
@@ -1061,7 +1067,7 @@ export class ObstacleManager {
               const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
               verticalShift = Math.sin(this.waveTime * 1.8) * 45 * elevatorDir;
             }
-          } else if (score >= 300 && score < 500) {
+          } else if (activeScore >= 300 && activeScore < 500) {
             // Score 300-500: full high difficulty sways up to 60px
             const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
             if (motionStyle === 0) {
@@ -1070,9 +1076,9 @@ export class ObstacleManager {
               const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
               verticalShift = Math.sin(this.waveTime * 2.0) * 55 * elevatorDir;
             }
-          } else if (score >= 500) {
+          } else if (activeScore >= 500) {
             // Apply the same vertical motion or animation as score 200 to 300 but progressively increased so it can be felt!
-            let intervals = Math.floor((score - 500) / 100);
+            let intervals = Math.floor((activeScore - 500) / 100);
             if (intervals < 0) intervals = 0;
             
             // Progressive difficulty: increase amplitude (starting at 1.3x) and frequency (starting at 1.25x)
@@ -2186,6 +2192,7 @@ export class ObstacleManager {
       gapHeight: currentStepGap,
       spawnCenterY: targetCenterY,
       obstacleIdx: this.endlessObstacleCount++,
+      spawnScore: score,
       approachAnimType,
       targetTopHeight: targetCenterY - currentStepGap / 2,
       targetBottomHeight: height - targetCenterY - currentStepGap / 2,
