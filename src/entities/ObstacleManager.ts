@@ -2079,8 +2079,8 @@ export class ObstacleManager {
     let animDuration = 0.35;
     let triggerDistance = this.nextSpawnDistance * 0.50;
 
-    // 40% of obstacles for score 1 to 150 in Endless Mode
-    if (!this.activeLevelConfig && score >= 1 && score <= 150 && Math.random() < 0.40) {
+    // 40% of obstacles for score 1 to 200 in Endless Mode
+    if (!this.activeLevelConfig && score >= 1 && score <= 200 && Math.random() < 0.40) {
       approachAnimType = Math.random() < 0.5 ? 'open' : 'close';
       if (approachAnimType === 'open') {
         // Start closed (tiny 10px gap at center) and split open
