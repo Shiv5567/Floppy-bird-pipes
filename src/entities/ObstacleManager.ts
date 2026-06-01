@@ -1008,40 +1008,52 @@ export class ObstacleManager {
         }
       } else {
         // Endless mode obstacle movement
-        if (score >= 300) {
+        if (score >= 100) {
           let centerY = obs.spawnCenterY !== undefined ? obs.spawnCenterY : (obs.initialTopHeight + (height - obs.initialBottomHeight - obs.initialTopHeight) / 2);
           let currentGap = obs.gapHeight !== undefined ? obs.gapHeight : (height - obs.initialBottomHeight - obs.initialTopHeight);
 
-          // 1. Individual unique motion style based on obstacle index/position
-          const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 3;
-          
-          if (motionStyle === 0) {
-            // Style 0: Smooth sinusoidal vertical sliding
-            centerY += Math.sin(this.waveTime * 2.0 + (obs.obstacleIdx || 0) * 0.5) * 45;
-          } else if (motionStyle === 1) {
-            // Style 1: Breathing gap pulsation
-            currentGap += Math.sin(this.waveTime * 2.5) * 22;
-          } else {
-            // Style 2: Alternating elevator motion
-            const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-            centerY += Math.sin(this.waveTime * 1.8) * 40 * elevatorDir;
+          // Pipe gaps are kept completely constant and unchanged as requested, only shifting centerY up and down!
+          let verticalShift = 0;
+          if (score >= 100 && score < 200) {
+            // 10% difficulty: shift centerY up and down by 25px
+            const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
+            if (motionStyle === 0) {
+              verticalShift = Math.sin(this.waveTime * 1.5 + (obs.obstacleIdx || 0) * 0.5) * 25;
+            } else {
+              const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
+              verticalShift = Math.sin(this.waveTime * 1.2) * 20 * elevatorDir;
+            }
+          } else if (score >= 200 && score < 300) {
+            // 10% + 15% = 25% difficulty: shift centerY up and down by 50px
+            const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
+            if (motionStyle === 0) {
+              verticalShift = Math.sin(this.waveTime * 2.2 + (obs.obstacleIdx || 0) * 0.5) * 50;
+            } else {
+              const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
+              verticalShift = Math.sin(this.waveTime * 1.8) * 45 * elevatorDir;
+            }
+          } else if (score >= 300) {
+            // Score >= 300: full high difficulty sways up to 60px
+            const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
+            if (motionStyle === 0) {
+              verticalShift = Math.sin(this.waveTime * 2.5 + (obs.obstacleIdx || 0) * 0.5) * 60;
+            } else {
+              const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
+              verticalShift = Math.sin(this.waveTime * 2.0) * 55 * elevatorDir;
+            }
+
+            // Global wave motion if score is 500 or above
+            if (score >= 500) {
+              const globalWave = Math.sin(this.waveTime * 1.5 + obs.x * 0.004) * 45;
+              verticalShift += globalWave;
+            }
           }
 
-          // 2. Global wave motion if score is 500 or above
-          if (score >= 500) {
-            const globalWave = Math.sin(this.waveTime * 1.5 + obs.x * 0.004) * 45;
-            centerY += globalWave;
-          }
+          centerY += verticalShift;
 
-          // 3. Safeguards & limits
-          // Keep gap at a safe size (minimum 165px)
-          if (currentGap < 165) {
-            currentGap = 165;
-          }
-
-          // Keep centerY within screen bounds so that both top and bottom pipes are at least 50px high
-          const minCenterY = 50 + currentGap / 2;
-          const maxCenterY = height - 50 - currentGap / 2;
+          // Keep centerY within screen bounds so that both top and bottom pipes are at least 45px high
+          const minCenterY = 45 + currentGap / 2;
+          const maxCenterY = height - 45 - currentGap / 2;
           centerY = Math.max(minCenterY, Math.min(maxCenterY, centerY));
 
           // Apply coordinates
@@ -1099,11 +1111,8 @@ export class ObstacleManager {
         ? startGap 
         : (startGap - (startGap - minGap) * progressRatio);
       
-      // Apply endless progressive difficulty gap scaling
+      // Apply endless progressive difficulty gap scaling (kept completely constant as requested)
       let gapWithDifficulty = dynamicGap;
-      if (!this.activeLevelConfig) {
-        gapWithDifficulty = dynamicGap * (1.0 - pct);
-      }
       
       this.spawnObstacle(worldId, width, height, gapWithDifficulty, zone, difficulty, progressRatio, score);
 
