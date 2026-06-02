@@ -323,9 +323,9 @@ export class ObstacleManager {
             obs.targetTopHeight = obs.baseTopHeight! + shift;
             obs.targetBottomHeight = obs.baseBottomHeight! - shift;
           } else if (obs.patternType === 'level4_snake') {
-            // LEVEL 4: "The Laser Grid Gauntlet" (Pulsing neon/electronic blink gates: lasers active, lights blink on/off - speed reduced)
+            // LEVEL 4: "The Laser Grid Gauntlet" (Pulsing neon/electronic blink gates: lasers active, lights blink on/off - speed reduced by additional 30%)
             obs.isLaser = true;
-            const neonBlink = Math.sin(this.waveTime * 1.8 + actualIdx * 0.5) > 0.3 ? 20 : -10;
+            const neonBlink = Math.sin(this.waveTime * 1.25 + actualIdx * 0.5) > 0.3 ? 20 : -10;
             obs.targetTopHeight = obs.baseTopHeight! + neonBlink;
             obs.targetBottomHeight = obs.baseBottomHeight! - neonBlink;
           } else if (obs.patternType === 'level5_hourglass') {
@@ -2003,9 +2003,9 @@ export class ObstacleManager {
         targetBottomHeight = height - targetCenterY - localGapHeight / 2;
       }
 
-      // Enable special different-direction split opening animation specifically for all obstacles in Levels 1-20 (excluding Level 11) and special legacy levels
+      // Enable special different-direction split opening animation specifically for all obstacles in Levels 1-20 (excluding Level 11, 2, 4) and special legacy levels
       const isSpecialSplit = 
-        (levelNum !== undefined && levelNum >= 1 && levelNum <= 20 && levelNum !== 11 && levelNum !== 2) ||
+        (levelNum !== undefined && levelNum >= 1 && levelNum <= 20 && levelNum !== 11 && levelNum !== 2 && levelNum !== 4) ||
         (patternType === 'level5_hourglass' && groupIdx === 0) ||
         (patternType === 'level17_heartbeat' && groupIdx === 0);
 
