@@ -2455,62 +2455,90 @@ export class Bird {
     ctx.stroke();
     ctx.shadowBlur = 0;
 
-    // --- 9. Heavy Bladed Mechanical Wings (Cyber Navy/Indigo plates with Glowing Cyan/Neon-Blue edges) ---
+    // --- 9. Upgraded Large Realistic Royal Kingfisher Wings (Matching pattern with cyan speckles, 25% larger) ---
     ctx.save();
     ctx.translate(-4, 2);
     // Flapping movement angle
-    const flapAngle = Math.sin(this.flapCycle) * 0.7;
+    const flapAngle = Math.sin(this.flapCycle) * 0.75;
     ctx.rotate(flapAngle);
 
-    // Segmented feathers/blades
-    const bladeColors = ['#0c1033', '#1565c0', '#29b6f6']; // Indigo to neon blue
-    
-    // Blade 1 (Main/Top heavy blade)
-    ctx.fillStyle = bladeColors[0];
+    // Main wing gradient: Navy blue base to royal blue to bright cyan tip
+    const wingGrad = ctx.createLinearGradient(0, 0, -38, 5);
+    wingGrad.addColorStop(0, '#0c1033'); // Dark navy joint
+    wingGrad.addColorStop(0.4, '#1565c0'); // Royal blue middle
+    wingGrad.addColorStop(0.8, '#00b0ff'); // Sky blue outer
+    wingGrad.addColorStop(1, '#00e5ff'); // Glowing cyan tips
+
+    ctx.fillStyle = wingGrad;
     ctx.strokeStyle = '#00e5ff';
     ctx.lineWidth = 1.5;
+    
     if (!(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 6;
-      ctx.shadowColor = '#00e5ff';
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = 'rgba(0, 229, 255, 0.6)';
     }
+
+    // Draw a large, layered, sharp wing silhouette (epic, dangerous, realistic layout)
     ctx.beginPath();
     ctx.moveTo(0, 0);
-    ctx.lineTo(-24, -16);
-    ctx.lineTo(-28, -6);
-    ctx.lineTo(-8, 3);
+    // Top primary feathers (Longer and sweeping back, size increased by ~25%)
+    ctx.bezierCurveTo(-15, -22, -35, -12, -42, 2);
+    // Layered feather tips (serrated/bladed tips for dangerous matching look)
+    ctx.lineTo(-38, 6);
+    ctx.lineTo(-44, 11); // Second long primary feather tip
+    ctx.lineTo(-34, 13);
+    ctx.lineTo(-38, 19); // Third secondary feather tip
+    ctx.lineTo(-24, 16);
+    ctx.lineTo(-26, 22); // Fourth secondary feather tip
+    ctx.lineTo(-12, 12);
+    ctx.quadraticCurveTo(-6, 6, 0, 0);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Blade 2 (Middle sharp blade)
-    ctx.fillStyle = bladeColors[1];
+    // Turn off shadow for detailed inner patterns
+    ctx.shadowBlur = 0;
+
+    // --- Real Matching Detail: Cyan/Turquoise spots & feather bars ---
+    // In real kingfishers, wings have rows of glowing turquoise spots
+    ctx.fillStyle = '#00e5ff'; // High intensity cyan/turquoise spots
+    const spots = [
+      { x: -12, y: -2, r: 1.8 },
+      { x: -20, y: -4, r: 1.8 },
+      { x: -28, y: -4, r: 1.8 },
+      { x: -16, y: 3, r: 1.5 },
+      { x: -24, y: 4, r: 1.5 },
+      { x: -32, y: 3, r: 1.5 },
+      { x: -18, y: 10, r: 1.2 },
+      { x: -26, y: 11, r: 1.2 },
+    ];
+    for (const spot of spots) {
+      ctx.beginPath();
+      ctx.arc(spot.x, spot.y, spot.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Glowing feather shaft lines for a premium metallic/energy look
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(-4, 2);
-    ctx.lineTo(-31, -2);
-    ctx.lineTo(-33, 5);
-    ctx.lineTo(-10, 8);
-    ctx.closePath();
-    ctx.fill();
+    // Shaft 1
+    ctx.moveTo(-4, -1);
+    ctx.lineTo(-32, -5);
+    // Shaft 2
+    ctx.moveTo(-6, 2);
+    ctx.lineTo(-30, 4);
+    // Shaft 3
+    ctx.moveTo(-8, 5);
+    ctx.lineTo(-24, 10);
     ctx.stroke();
 
-    // Blade 3 (Bottom smaller blade)
-    ctx.fillStyle = bladeColors[2];
-    ctx.beginPath();
-    ctx.moveTo(-6, 4);
-    ctx.lineTo(-28, 10);
-    ctx.lineTo(-26, 16);
-    ctx.lineTo(-8, 9);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Wing joint cover (Gold armored cap)
+    // Wing joint cover (Gold armored cap matching the torso accents)
     ctx.fillStyle = '#ffb300';
     ctx.strokeStyle = '#3e2723';
-    ctx.lineWidth = 1.0;
-    ctx.shadowBlur = 0;
+    ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.arc(0, 2, 4, 0, Math.PI * 2);
+    ctx.arc(0, 0, 5, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
