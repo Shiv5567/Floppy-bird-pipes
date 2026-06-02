@@ -11,7 +11,7 @@ export interface Particle {
   growth: number;
   glow: boolean;
   glowColor?: string;
-  shape: 'circle' | 'square' | 'snowflake' | 'star' | 'bubble' | 'spark';
+  shape: 'circle' | 'square' | 'snowflake' | 'star' | 'bubble' | 'spark' | 'leaf' | 'flower';
   angle: number;
   rotationSpeed: number;
 }
@@ -117,7 +117,7 @@ export class ParticleEngine {
       if (!p.active) continue;
 
       // Direct draw mode for performance!
-      if (!p.glow || disableShadows) {
+      if ((!p.glow || disableShadows) && p.shape !== 'leaf' && p.shape !== 'flower') {
         ctx.globalAlpha = p.alpha;
 
         if (p.glow && p.glowColor) {
@@ -279,6 +279,38 @@ export class ParticleEngine {
           }
           ctx.lineWidth = 1.2;
           ctx.stroke();
+          break;
+
+        case 'leaf':
+          ctx.beginPath();
+          ctx.moveTo(0, -p.size * 1.5);
+          ctx.quadraticCurveTo(p.size * 0.7, -p.size * 0.5, 0, p.size * 1.5);
+          ctx.quadraticCurveTo(-p.size * 0.7, -p.size * 0.5, 0, -p.size * 1.5);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+          ctx.lineWidth = p.size * 0.12;
+          ctx.beginPath();
+          ctx.moveTo(0, -p.size * 1.5);
+          ctx.lineTo(0, p.size * 1.5);
+          ctx.stroke();
+          break;
+
+        case 'flower':
+          ctx.fillStyle = p.color;
+          for (let k = 0; k < 5; k++) {
+            const petalAngle = (k * 2 * Math.PI) / 5;
+            const petalX = Math.cos(petalAngle) * p.size * 0.6;
+            const petalY = Math.sin(petalAngle) * p.size * 0.6;
+            ctx.beginPath();
+            ctx.arc(petalX, petalY, p.size * 0.45, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.fillStyle = 'rgba(255, 235, 59, 0.9)';
+          ctx.beginPath();
+          ctx.arc(0, 0, p.size * 0.3, 0, Math.PI * 2);
+          ctx.fill();
           break;
       }
 

@@ -415,7 +415,8 @@ export class Renderer {
           break;
         }
         case 'jungle_fog': {
-          if (Math.random() < 0.45) {
+          // Keep the ambient golden energy rising from ground (represents sacred golden light)
+          if (Math.random() < 0.35) {
             this.particleEngine.spawn(
               Math.random() * width,
               height + 10,
@@ -430,20 +431,49 @@ export class Renderer {
               'rgba(255, 170, 0, 0.5)'
             );
           }
-          if (Math.random() < 0.28) {
-            const windShift = Math.sin(this.weatherTime * 0.8) * 1.2 - this.currentSpeed * 0.25;
+          // Spawn horizontal flowing leaves and flowers from the right side of the screen
+          if (Math.random() < 0.40) {
+            const isLeaf = Math.random() > 0.35; // 65% leaves, 35% flowers
+            const size = 5 + Math.random() * 7;
+            const decay = 0.0015 + Math.random() * 0.002; // Slow decay to let them drift across the screen
+            const spawnY = Math.random() * (height - 100) + 30; // Spawn within screen heights
+            const vx = -this.currentSpeed * 0.85 - 1.5 - Math.random() * 2.0; // Horizontal sweep to the left
+            const vy = (Math.random() - 0.5) * 0.8 + Math.sin(this.weatherTime * 1.2 + spawnY) * 0.3; // Wavy wind drift
+            
+            let color = '';
+            if (isLeaf) {
+              const leafColors = [
+                'rgba(46, 125, 50, 0.85)',   // Forest Green
+                'rgba(76, 175, 80, 0.85)',   // Vibrant Green
+                'rgba(139, 195, 74, 0.85)',  // Lime Green
+                'rgba(230, 81, 0, 0.85)',    // Autumn Amber/Orange
+                'rgba(255, 167, 38, 0.85)'   // Gold Orange
+              ];
+              color = leafColors[Math.floor(Math.random() * leafColors.length)];
+            } else {
+              const flowerColors = [
+                'rgba(244, 143, 177, 0.9)',  // Cherry Blossom Pink
+                'rgba(255, 64, 129, 0.9)',   // Deep Pink
+                'rgba(224, 64, 251, 0.9)',   // Orchid Purple
+                'rgba(255, 235, 59, 0.9)',   // Golden Jasmine Yellow
+                'rgba(255, 255, 255, 0.9)'   // White Lotus
+              ];
+              color = flowerColors[Math.floor(Math.random() * flowerColors.length)];
+            }
+
             this.particleEngine.spawn(
-              Math.random() * (width + 200) - 100,
-              -10,
-              windShift,
-              1.2 + Math.random() * 2.0,
-              'rgba(34, 139, 34, 0.75)',
-              3.0 + Math.random() * 4.0,
-              0.85,
-              0.005,
-              'snowflake'
+              width + 20,
+              spawnY,
+              vx,
+              vy,
+              color,
+              size,
+              0.9,
+              decay,
+              isLeaf ? 'leaf' : 'flower'
             );
           }
+          // Ambient soft background mist/fog
           if (Math.random() < 0.15) {
             this.particleEngine.spawn(
               Math.random() * width,
