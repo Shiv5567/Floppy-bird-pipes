@@ -1214,8 +1214,6 @@ export class ObstacleManager {
         const idx = this.currentPatternIdx - 1;
         if (idx === groupSize - 1 || idx === (groupSize * 2) - 1) {
           this.nextSpawnDistance = this.obstacleWidth * 3.5; // Safe transition gap between obstacle groups
-        } else if (this.activeLevelConfig.levelNum === 6) {
-          this.nextSpawnDistance = this.obstacleWidth * 4.0; // 4x horizontal spacing gap for Level 6 moving pillars
         } else {
           this.nextSpawnDistance = this.obstacleWidth; // Connected side-by-side inside group
         }
@@ -1376,7 +1374,7 @@ export class ObstacleManager {
         // LEVEL 6: "The Folding Accordion Gates" (Clean triangle-wave folding layout)
         localGapHeight = Math.round((gapHeight - 5) * 0.7 * 1.2); // Decreased by 30% then increased by 20% (approx 131px)
         const modIdx = obstacleIdx % 6;
-        const triangleOffset = modIdx < 3 ? (modIdx * 73 - 73) : ((5 - modIdx) * 73 - 73); // Step size increased by 20% (from 61 to 73)
+        const triangleOffset = modIdx < 3 ? (modIdx * 30 - 30) : ((5 - modIdx) * 30 - 30); // Step size decreased to 30px for a less zigzag path
         targetCenterY = height / 2 + triangleOffset;
         triggerDistance = 280;
         animDuration = 0.38;
