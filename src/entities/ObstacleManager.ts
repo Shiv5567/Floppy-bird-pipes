@@ -1355,7 +1355,7 @@ export class ObstacleManager {
         animDuration = 0.42;
       } else if (patternType === 'level5_hourglass') {
         // LEVEL 5: Stair-step arrangement (5 pipes ascending, 5 pipes descending)
-        localGapHeight = gapHeight; // Challenging gap height (166px instead of 191px)
+        localGapHeight = Math.round(gapHeight * 0.8); // Challenging gap height decreased by 20% (133px instead of 166px)
         
         const cycleIdx = actualPatternIdx % 10;
         let stepOffset = 0;
