@@ -1354,21 +1354,20 @@ export class ObstacleManager {
         triggerDistance = 320;
         animDuration = 0.42;
       } else if (patternType === 'level5_hourglass') {
-        // LEVEL 5: "The Helix Vortex" (Corridor with constant gap height equal to starting gap height)
-        localGapHeight = gapHeight + 25; // Constant starting gap height (191px)
+        // LEVEL 5: Stair-step arrangement (5 pipes ascending, 5 pipes descending)
+        localGapHeight = gapHeight; // Challenging gap height (166px instead of 191px)
         
-        // Base center Y
-        const baseCenterY = height / 2 + Math.sin(obstacleIdx * 1.2) * 35;
+        const cycleIdx = actualPatternIdx % 10;
+        let stepOffset = 0;
+        if (cycleIdx < 5) {
+          // Ascend: Y decreases, going up in space
+          stepOffset = 90 - cycleIdx * 45; // 90, 45, 0, -45, -90
+        } else {
+          // Descend: Y increases, going down in space
+          stepOffset = -90 + (cycleIdx - 5) * 45; // -90, -45, 0, 45, 90
+        }
         
-        // Alternating 30% gap shift every 20 obstacles shaped as a smooth arc
-        const period = 20;
-        const blockIdx = Math.floor(actualPatternIdx / period);
-        const idxInBlock = actualPatternIdx % period;
-        const shiftSign = (blockIdx % 2 === 0) ? -1 : 1; // Alternating UP (-1) and DOWN (+1)
-        const arcFactor = Math.sin((idxInBlock / 19) * Math.PI);
-        const verticalShift = shiftSign * (localGapHeight * 0.30) * arcFactor;
-        
-        targetCenterY = baseCenterY + verticalShift;
+        targetCenterY = height / 2 + stepOffset;
         triggerDistance = 300;
         animDuration = 0.45;
       } else if (patternType === 'level6_infinity') {
