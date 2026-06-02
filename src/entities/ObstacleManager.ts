@@ -898,8 +898,8 @@ export class ObstacleManager {
           obs.topHeight = obs.closedTopHeight! + (obs.targetTopHeight! - obs.closedTopHeight!) * easedOpen;
           obs.bottomHeight = obs.closedBottomHeight! + (obs.targetBottomHeight! - obs.closedBottomHeight!) * easedOpen;
 
-          // Centralized Dynamic Gameplay Safeguard for Levels 11-20
-          if (obs.levelNum !== undefined && obs.levelNum >= 11 && obs.levelNum <= 20) {
+          // Centralized Dynamic Gameplay Safeguard for Levels 11-20 (excluding level 13)
+          if (obs.levelNum !== undefined && obs.levelNum >= 11 && obs.levelNum <= 20 && obs.levelNum !== 13) {
             let currentGap = height - obs.topHeight - obs.bottomHeight;
             if (currentGap < 165) {
               const center = obs.topHeight + currentGap / 2;
@@ -916,9 +916,9 @@ export class ObstacleManager {
             }
           }
 
-          // Centralized Dynamic Gameplay Safeguard for Levels 1-10
-          if (obs.levelNum !== undefined && obs.levelNum >= 1 && obs.levelNum <= 10) {
-            const minAllowedGap = 125; // extremely challenging but physically passable
+          // Centralized Dynamic Gameplay Safeguard for Levels 1-10 and Level 13
+          if (obs.levelNum !== undefined && ((obs.levelNum >= 1 && obs.levelNum <= 10) || obs.levelNum === 13)) {
+            const minAllowedGap = (obs.levelNum === 4 || obs.levelNum === 13) ? 115 : 125; // allow Level 4/13's 120px gap
             let currentGap = height - obs.topHeight - obs.bottomHeight;
             if (currentGap < minAllowedGap) {
               const center = obs.topHeight + currentGap / 2;

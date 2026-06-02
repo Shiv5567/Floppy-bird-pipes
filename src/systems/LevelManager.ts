@@ -71,9 +71,12 @@ export class LevelManager {
         // Redesign levels 1 to 10 to be highly progressive and challenging!
         // Level 2 starts at 184px and Level 10 is 136px
         gapHeight = 190 - (levelNum - 1) * 6;
+        if (levelNum === 4) {
+          gapHeight = Math.round(gapHeight * 0.70); // Decreased by 30% (from 172 to 120)
+        }
       } else if (levelNum === 13) {
-        // Completely replaced by Level 4
-        gapHeight = 190 - (4 - 1) * 6;
+        // Completely replaced by Level 4, decreased by 30%
+        gapHeight = Math.round((190 - (4 - 1) * 6) * 0.70); // 120px
       } else if (levelNum === 14) {
         // Completely replaced by Level 3
         gapHeight = 190 - (3 - 1) * 6;
