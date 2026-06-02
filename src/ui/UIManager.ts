@@ -486,7 +486,7 @@ export class UIManager {
         <!-- ===== TOP BAR ===== -->
         <div class="menu-top-bar">
           <div class="top-bar-player">
-            <div class="top-bar-avatar">🦅</div>
+            <canvas class="top-bar-avatar-canvas" width="40" height="40" style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #1a4fd6, #6c14e0); border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 0 10px rgba(108, 20, 224, 0.5);"></canvas>
             <div>
               <div class="top-bar-name">LEGENDARY AVIATOR</div>
               <div class="top-bar-level">Level ${progress.level}</div>
@@ -584,7 +584,7 @@ export class UIManager {
     this.drawSkinPreviews();
   }
 
-  private drawSkinPreviews() {
+  public drawSkinPreviews() {
     // 1. Draw main menu bird canvas if present
     const mainCanvas = document.getElementById('main-menu-bird-canvas') as HTMLCanvasElement | null;
     if (mainCanvas) {
@@ -595,7 +595,27 @@ export class UIManager {
       }
     }
 
-    // 2. Draw character selection grid previews
+    // 2. Draw top bar player avatar preview if present
+    const avatarCanvas = this.container.querySelector('.top-bar-avatar-canvas') as HTMLCanvasElement | null;
+    if (avatarCanvas) {
+      const activeSkin = this.engine.progressManager.getActiveSkinInfo();
+      const ctx = avatarCanvas.getContext('2d');
+      if (ctx) {
+        this.engine.bird.renderPreview(ctx, avatarCanvas.width, avatarCanvas.height, activeSkin);
+      }
+    }
+
+    // 3. Draw skins tab spotlight preview canvas if present
+    const spotlightCanvas = this.container.querySelector('#spotlight-skin-canvas') as HTMLCanvasElement | null;
+    if (spotlightCanvas) {
+      const activeSkin = this.engine.progressManager.getActiveSkinInfo();
+      const ctx = spotlightCanvas.getContext('2d');
+      if (ctx) {
+        this.engine.bird.renderPreview(ctx, spotlightCanvas.width, spotlightCanvas.height, activeSkin);
+      }
+    }
+
+    // 4. Draw character selection grid previews
     if (this.activeTab === 'skins') {
       const canvases = this.container.querySelectorAll('.skin-preview-canvas');
       const skins = this.engine.progressManager.getSkins();
@@ -668,7 +688,10 @@ export class UIManager {
         <!-- ===== HERO FEATURE SPOTLIGHT ===== -->
         <div class="tab-hero-spotlight">
           <div class="tab-spotlight-glow" style="background:radial-gradient(circle,${meta.color}33 0%,transparent 70%)"></div>
-          <div class="tab-spotlight-icon">${meta.heroIcon}</div>
+          ${this.activeTab === 'skins' ? 
+            `<canvas id="spotlight-skin-canvas" width="100" height="100" style="width: 100px; height: 100px; z-index: 1; filter: drop-shadow(0 0 12px ${meta.color}55);"></canvas>` : 
+            `<div class="tab-spotlight-icon">${meta.heroIcon}</div>`
+          }
           <div class="tab-spotlight-label" style="color:${meta.color}">${meta.title}</div>
         </div>
 

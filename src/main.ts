@@ -209,6 +209,8 @@ function loop(time: number) {
       lastUltPercent = currentUltPercent;
       uiManager.render();
     }
+    // Animate character previews continuously in hangar/menus when not actively playing
+    uiManager.drawSkinPreviews();
   }
 
   requestAnimationFrame(loop);

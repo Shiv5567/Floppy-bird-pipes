@@ -388,16 +388,16 @@ export class Bird {
     const origAuraAngle = this.auraAngle;
     const origVy = this.vy;
 
-    // Apply mock parameters for a pristine, centered flight-pose preview
+    // Apply mock parameters for a pristine, centered flight-pose preview (dynamic animation loop)
     this.activeSkin = skin;
-    this.flapCycle = 0.5; // Halfway flapped wings
-    this.angle = -0.05;    // Slight upward flying angle
-    this.auraPulse = 1.0;
-    this.auraAngle = 0.8;
-    this.vy = 0;
+    this.flapCycle = (Date.now() / 150) % (Math.PI * 2); // Dynamically flap wings!
+    this.angle = Math.sin(Date.now() / 250) * 0.08 - 0.04; // Dynamically float up/down!
+    this.auraPulse = (Date.now() / 350) % (Math.PI * 2);
+    this.auraAngle = (Date.now() / 800) % (Math.PI * 2);
+    this.vy = Math.cos(Date.now() / 250) * 1.5;
 
-    // Apply standard scaling (preview matches the bird's active collision radius aspect ratio)
-    const scale = 1.0;
+    // Apply standard scaling (preview scales dynamically based on canvas dimensions)
+    const scale = Math.min(width, height) / 95;
     ctx.scale(scale, scale);
 
     // Render the beautiful rotating Magic Aura
@@ -3720,10 +3720,10 @@ export class Bird {
     ctx.lineWidth = 1.5;
 
     ctx.beginPath();
-    ctx.moveTo(-26, 4);
-    ctx.bezierCurveTo(-20, -16, 12, -16, 18, -4);
-    ctx.bezierCurveTo(23, 2, 18, 14, 8, 15);
-    ctx.bezierCurveTo(-4, 16, -18, 12, -26, 4);
+    ctx.moveTo(-34, 4); // Elongated tail base connection
+    ctx.bezierCurveTo(-26, -18, 14, -18, 22, -4); // Elongated upper back curve
+    ctx.bezierCurveTo(27, 2, 20, 16, 9, 17); // Sleek aerodynamic chest swell
+    ctx.bezierCurveTo(-5, 17, -22, 13, -34, 4); // Lower belly taper
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
@@ -3901,41 +3901,72 @@ export class Bird {
 
     // --- 10. MASSIVE ORANGE-GOLD WINGS (Swept-back layered shapes with clean outlines) ---
     ctx.save();
-    ctx.translate(-4, 0);
+    ctx.translate(-6, 1);
     const flapAngle = Math.sin(this.flapCycle) * 0.65;
     ctx.rotate(flapAngle);
 
-    // Massive Wing base gradient: bright orange to rich gold
-    const wingGrad = ctx.createLinearGradient(10, -5, -60, 15);
-    wingGrad.addColorStop(0, '#ffb74d'); // Warm gold-orange
-    wingGrad.addColorStop(0.5, '#ff8f00'); // Strong orange
-    wingGrad.addColorStop(1, '#e65100'); // Rich fiery deep orange
-
-    ctx.fillStyle = wingGrad;
-    ctx.strokeStyle = '#3d2503'; // Solid outline
-    ctx.lineWidth = 1.5;
-
-    // Draw the massive wing with a clean, low-detail feather silhouette
+    // LAYER A: Shadow/Background Wing (Dark crimson/rust red for depth)
+    ctx.fillStyle = '#b71c1c';
+    ctx.strokeStyle = '#3d0c0c';
+    ctx.lineWidth = 1.0;
     ctx.beginPath();
-    ctx.moveTo(10, -4);
-    // Swept-back shape, larger than default wings
-    ctx.bezierCurveTo(-15, -35, -50, -30, -65, 8);
-    // Clean stylized feather edges (fewer curves for low-detail and higher readability)
-    ctx.bezierCurveTo(-58, 16, -48, 12, -43, 21); // Feather group 1
-    ctx.bezierCurveTo(-36, 23, -31, 16, -26, 24); // Feather group 2
-    ctx.bezierCurveTo(-18, 23, -13, 16, 10, -4);   // Wing joint connection
+    ctx.moveTo(8, -2);
+    ctx.bezierCurveTo(-15, -38, -52, -32, -68, 12);
+    ctx.bezierCurveTo(-60, 20, -50, 15, -45, 25);
+    ctx.bezierCurveTo(-38, 26, -32, 18, -27, 26);
+    ctx.bezierCurveTo(-19, 25, -14, 18, 8, -2);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Simple flat wing highlight lines (low-detail shaft lines)
-    ctx.strokeStyle = '#ffe082';
+    // LAYER B: Primary Foreground Wing (Fiery orange-gold gradient)
+    const wingGrad = ctx.createLinearGradient(12, -4, -62, 16);
+    wingGrad.addColorStop(0, '#ffd54f'); // Bright gold
+    wingGrad.addColorStop(0.4, '#ff9100'); // Vibrant orange
+    wingGrad.addColorStop(0.8, '#ff3d00'); // Fiery red-orange
+    wingGrad.addColorStop(1, '#d84315'); // Deep rust tip
+
+    ctx.fillStyle = wingGrad;
+    ctx.strokeStyle = '#3d2503'; // Sharp bronze outline
+    ctx.lineWidth = 1.5;
+
+    ctx.beginPath();
+    ctx.moveTo(10, -4);
+    ctx.bezierCurveTo(-12, -36, -48, -32, -64, 8);
+    // Outer feathers
+    ctx.bezierCurveTo(-57, 15, -47, 11, -42, 20); // Primary 1
+    ctx.bezierCurveTo(-35, 22, -30, 15, -25, 23); // Primary 2
+    ctx.bezierCurveTo(-18, 22, -13, 15, 10, -4);   // Joint
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // LAYER C: Layered Wing Coverts (Shoulder protection feathers - Gold plates)
+    const covertGrad = ctx.createLinearGradient(10, -4, -15, 10);
+    covertGrad.addColorStop(0, '#ffe082'); // Shiny yellow-gold
+    covertGrad.addColorStop(0.7, '#ffb300'); // Mid gold
+    covertGrad.addColorStop(1, '#ff8f00'); // Deep gold
+    ctx.fillStyle = covertGrad;
+    ctx.strokeStyle = '#3d2503';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(10, -4);
+    ctx.bezierCurveTo(-3, -20, -22, -14, -25, 3);
+    ctx.bezierCurveTo(-18, 10, -8, 8, 10, -4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // LAYER D: Ultra-detailed feather ribs/highlights (3D rendering metallic sheen feel)
+    ctx.strokeStyle = '#fff8e1'; // Bright white-gold highlight
     ctx.lineWidth = 1.2;
     ctx.beginPath();
     ctx.moveTo(2, -6);
-    ctx.quadraticCurveTo(-26, -15, -58, 7);
+    ctx.quadraticCurveTo(-24, -16, -56, 7);
     ctx.stroke();
 
+    ctx.strokeStyle = 'rgba(255,215,0,0.5)';
+    ctx.lineWidth = 1.0;
     ctx.beginPath();
     ctx.moveTo(2, -3);
     ctx.quadraticCurveTo(-20, -9, -38, 18);
