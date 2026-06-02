@@ -272,6 +272,18 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5
+      },
+      {
+        id: 'kingfisher',
+        name: 'Royal Kingfisher',
+        rarity: 'Legendary',
+        glowColor: 'rgba(255, 112, 67, 0.75)',
+        particleType: 'feathers',
+        costCoins: 5000,
+        costGems: 0,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5
       }
     ];
   }

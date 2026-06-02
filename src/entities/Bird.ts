@@ -350,6 +350,9 @@ export class Bird {
       case 'obsidian_gargoyle':
         this.drawObsidianGargoyle(ctx);
         break;
+      case 'kingfisher':
+        this.drawKingfisher(ctx);
+        break;
       default:
         this.drawEagle(ctx); // Default Eagle
     }
@@ -2135,5 +2138,143 @@ export class Bird {
 
     // Heavy bat wings
     this.drawFlappingWing(ctx, '#37474f', '#ff9100');
+  }
+
+  private drawKingfisher(ctx: CanvasRenderingContext2D) {
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = 'rgba(255, 112, 67, 0.5)';
+    }
+
+    // 2.5D Face shift offset based on bird movement angle
+    const faceX = Math.cos(this.angle) * 1.5;
+    const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.1;
+
+    // --- 1. Orange feet & legs (tucked in flying posture) ---
+    ctx.fillStyle = '#ff7043'; // Vibrant red-orange
+    ctx.strokeStyle = '#d84315';
+    ctx.lineWidth = 1;
+    // Left foot
+    ctx.beginPath();
+    ctx.ellipse(-4, 15, 2.5, 5, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // Right foot
+    ctx.beginPath();
+    ctx.ellipse(3, 14, 2.5, 5, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // --- 2. Torso (Belly/Breast: Warm yellow transitioning to orange at sides) ---
+    const bellyGrad = ctx.createLinearGradient(-15, -15, 15, 15);
+    bellyGrad.addColorStop(0, '#ffd54f'); // Yellow
+    bellyGrad.addColorStop(0.6, '#ff9100'); // Deep Orange
+    bellyGrad.addColorStop(1, '#ff3d00'); // Red-Orange base
+
+    ctx.fillStyle = bellyGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+    // --- 3. Bright Pink & Magenta Tail Feathers ---
+    ctx.save();
+    ctx.translate(-14, 6);
+    const tailTilt = -this.vy * 0.05 + Math.sin(this.flapCycle) * 0.1;
+    ctx.rotate(tailTilt);
+    
+    // Gradient: Bright violet-pink to reddish-orange tip
+    const tailGrad = ctx.createLinearGradient(0, -5, -15, 10);
+    tailGrad.addColorStop(0, '#ff007f'); // Hot pink / Magenta
+    tailGrad.addColorStop(0.5, '#e040fb'); // Bright violet
+    tailGrad.addColorStop(1, '#ff3d00'); // Red-orange tip
+
+    ctx.fillStyle = tailGrad;
+    ctx.strokeStyle = '#b9006e';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(0, -6);
+    ctx.quadraticCurveTo(-14, -8, -25, 4);
+    ctx.quadraticCurveTo(-8, 12, 0, 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // --- 4. Back / Cape / Scapular feathers (Rich Royal Blue & dark navy wings/shoulders) ---
+    const backGrad = ctx.createLinearGradient(-12, -12, 4, 8);
+    backGrad.addColorStop(0, '#000000');   // Deep black/navy base
+    backGrad.addColorStop(0.4, '#1a237e'); // Dark indigo
+    backGrad.addColorStop(0.8, '#2979ff'); // Royal blue highlight
+    backGrad.addColorStop(1, '#29b6f6');   // Light blue edge
+
+    ctx.fillStyle = backGrad;
+    ctx.beginPath();
+    // Beautiful curved wing cape on back
+    ctx.moveTo(-16, -2);
+    ctx.bezierCurveTo(-10, -12, 2, -10, 0, 2);
+    ctx.bezierCurveTo(-2, 10, -12, 12, -16, 4);
+    ctx.closePath();
+    ctx.fill();
+
+    // --- 5. Royal Kingfisher Crown & Head (Purple/Magenta crown with red/orange base) ---
+    const headGrad = ctx.createLinearGradient(-6, -16, 12, -4);
+    headGrad.addColorStop(0, '#8e24aa'); // Purple crown
+    headGrad.addColorStop(0.4, '#d81b60'); // Magenta/Pink
+    headGrad.addColorStop(0.8, '#ff3d00'); // Red-orange eyebrow ridge
+    headGrad.addColorStop(1, '#ffea00');   // Yellow face connection
+
+    ctx.fillStyle = headGrad;
+    ctx.beginPath();
+    ctx.arc(faceX, -6 + faceY, 12.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // --- 6. Cheeks & Throat (Light cream/yellow patch under eye) ---
+    ctx.fillStyle = '#fff9c4'; // Cream/soft yellow cheek highlight
+    ctx.beginPath();
+    ctx.ellipse(3 + faceX, 1 + faceY, 4, 3, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // --- 7. Large Expressive Black Eye with prominent highlight ---
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.arc(4 + faceX, -6 + faceY, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // White eye reflections
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(5.2 + faceX, -7.2 + faceY, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(3.0 + faceX, -5.2 + faceY, 0.6, 0, Math.PI * 2); // Secondary micro reflection
+    ctx.fill();
+
+    // --- 8. Giant Red-Orange Beak (Instantly recognizable, pointing slightly upwards) ---
+    const beakGrad = ctx.createLinearGradient(faceX, -8 + faceY, 32 + faceX, -2 + faceY);
+    beakGrad.addColorStop(0, '#ff3d00'); // Orange-red base
+    beakGrad.addColorStop(0.8, '#ff3d00'); // Bright red center
+    beakGrad.addColorStop(1, '#ff6e40'); // Highlighted tip
+
+    ctx.fillStyle = beakGrad;
+    ctx.strokeStyle = '#b71c1c'; // Dark red lip line separator
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(8 + faceX, -10 + faceY); // Top base
+    ctx.lineTo(34 + faceX * 1.4, -6 + faceY); // Sharp tip (pointing up!)
+    ctx.lineTo(7 + faceX, -1 + faceY); // Bottom base
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Split line in beak
+    ctx.strokeStyle = '#b71c1c';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(8 + faceX, -5 + faceY);
+    ctx.lineTo(33 + faceX * 1.4, -6 + faceY);
+    ctx.stroke();
+
+    // --- 9. Flapping Wings (Navy/Indigo main with Royal Blue tips) ---
+    this.drawFlappingWing(ctx, '#0c1033', '#2979ff');
   }
 }

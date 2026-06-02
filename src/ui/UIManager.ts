@@ -449,7 +449,8 @@ export class UIManager {
     // Bird emoji per skin
     const skinEmojis: Record<string, string> = {
       default: '🐦', phoenix: '🔥', cyber: '🤖', ice: '❄️',
-      shadow: '🌑', dragon: '🐲', nebula: '🌌', bubble: '🐳'
+      shadow: '🌑', dragon: '🐲', nebula: '🌌', bubble: '🐳',
+      kingfisher: '🐦'
     };
     const birdEmoji = skinEmojis[activeSkin.id] || '🐦';
 
@@ -680,7 +681,8 @@ export class UIManager {
             default: '🦅', phoenix: '🔥', cyber: '🤖', ice: '❄️',
             shadow: '👿', dragon: '🐲', nebula: '🌌', bubble: '🐳',
             cyber_owl: '🦉', neon_crow: '🐦‍⬛', goofy_pilot: '🦜', white_dragon: '🐉',
-            storm_griffin: '⚡', void_sentinel: '🌀', crimson_valkyrie: '⚔️', emerald_wyvern: '🦎', obsidian_gargoyle: '🗿'
+            storm_griffin: '⚡', void_sentinel: '🌀', crimson_valkyrie: '⚔️', emerald_wyvern: '🦎', obsidian_gargoyle: '🗿',
+            kingfisher: '🐦'
           };
           const rarityColors: Record<string, string> = {
             common: '#aaa', rare: '#00f3ff', epic: '#a855f7', legendary: '#ffd700'
