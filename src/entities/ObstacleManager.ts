@@ -323,9 +323,9 @@ export class ObstacleManager {
             obs.targetTopHeight = obs.baseTopHeight! + shift;
             obs.targetBottomHeight = obs.baseBottomHeight! - shift;
           } else if (obs.patternType === 'level4_snake') {
-            // LEVEL 4: "The Laser Grid Gauntlet" (Pulsing neon/electronic blink gates: lasers active, lights blink on/off - speed reduced by additional 30%)
+            // LEVEL 4: "The Laser Grid Gauntlet" (Smooth neon/electronic oscillating gates: lasers active, vertical height moves smoothly)
             obs.isLaser = true;
-            const neonBlink = Math.sin(this.waveTime * 1.25 + actualIdx * 0.5) > 0.3 ? 20 : -10;
+            const neonBlink = Math.sin(this.waveTime * 1.25 + actualIdx * 0.5) * 15;
             obs.targetTopHeight = obs.baseTopHeight! + neonBlink;
             obs.targetBottomHeight = obs.baseBottomHeight! - neonBlink;
           } else if (obs.patternType === 'level5_hourglass') {
@@ -918,7 +918,7 @@ export class ObstacleManager {
 
           // Centralized Dynamic Gameplay Safeguard for Levels 1-10 and Level 13
           if (obs.levelNum !== undefined && ((obs.levelNum >= 1 && obs.levelNum <= 10) || obs.levelNum === 13)) {
-            const minAllowedGap = (obs.levelNum === 4 || obs.levelNum === 13) ? 115 : 125; // allow Level 4/13's 120px gap
+            const minAllowedGap = (obs.levelNum === 4 || obs.levelNum === 13) ? 107 : 125; // allow Level 4/13's 112px gap
             let currentGap = height - obs.topHeight - obs.bottomHeight;
             if (currentGap < minAllowedGap) {
               const center = obs.topHeight + currentGap / 2;
