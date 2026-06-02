@@ -1374,18 +1374,18 @@ export class ObstacleManager {
         animDuration = 0.45;
       } else if (patternType === 'level6_infinity') {
         // LEVEL 6: "The Folding Accordion Gates" (Clean triangle-wave folding layout)
-        const baseGap = Math.round((gapHeight - 5) * 0.7 * 1.2); // Base gap (approx 130px)
+        const baseGap = Math.round((gapHeight - 5) * 0.7 * 1.5); // Base gap increased 25% vertically (approx 163px)
         const blockIdx = Math.floor(actualPatternIdx / 20); // Block of 20 pillars
         const isShiftedBlock = (blockIdx % 2 === 1); // After 20 obstacles (obstacles 20-39, 60-79, etc.)
         
-        // Gap is 25% less (approx 98px) only for the shifted-down block after 20 obstacles, otherwise 130px
+        // Gap is 25% less only for the shifted-down block after 20 obstacles, otherwise 163px
         localGapHeight = isShiftedBlock ? Math.round(baseGap * 0.75) : baseGap;
         
         const modIdx = obstacleIdx % 20;
-        // Triangle wave across 20 pillars: rises from -30 to +30 over first 10, falls back to -30 over next 10
+        // Triangle wave across 20 pillars: rises from -37 to +37 over first 10, falls back to -37 over next 10 (25% wider vertical path)
         const halfCycle = 10;
         const normT = modIdx < halfCycle ? modIdx / (halfCycle - 1) : (19 - modIdx) / (halfCycle - 1);
-        const triangleOffset = Math.round(normT * 60 - 30); // Smooth -30px to +30px triangle wave
+        const triangleOffset = Math.round(normT * 75 - 37); // Smooth -37px to +37px triangle wave (+25%)
         
         // Alternates path offset UP and DOWN by 24% of the gap height every 20 obstacles
         const shiftSign = isShiftedBlock ? 1 : -1; // Alternating UP (-1) and DOWN (+1)
