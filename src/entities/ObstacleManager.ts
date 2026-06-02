@@ -1214,6 +1214,8 @@ export class ObstacleManager {
         const idx = this.currentPatternIdx - 1;
         if (idx === groupSize - 1 || idx === (groupSize * 2) - 1) {
           this.nextSpawnDistance = this.obstacleWidth * 3.5; // Safe transition gap between obstacle groups
+        } else if (this.activeLevelConfig.levelNum === 6) {
+          this.nextSpawnDistance = this.obstacleWidth * 4.0; // 4x horizontal spacing gap for Level 6 moving pillars
         } else {
           this.nextSpawnDistance = this.obstacleWidth; // Connected side-by-side inside group
         }
