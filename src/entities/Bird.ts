@@ -3660,14 +3660,12 @@ export class Bird {
     const faceX = Math.cos(this.angle) * 2.2;
     const faceY = Math.sin(this.angle) * 1.5 - this.vy * 0.12;
 
-    // --- 1. CONFIDENT WARRIOR LEGS & SHARP BLACK CLAWS ---
+    // --- 1. CONFIDENT WARRIOR LEGS WITH GILDED ARMOR GREAVES ---
     ctx.save();
-    // Thighs: white feathers
+    // Rear thigh (white feathers)
     ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#3d2503';
+    ctx.strokeStyle = '#263238';
     ctx.lineWidth = 1.2;
-
-    // Rear thigh and leg
     ctx.beginPath();
     ctx.moveTo(-7, 8);
     ctx.quadraticCurveTo(-11, 15, -6, 19);
@@ -3677,19 +3675,35 @@ export class Bird {
     ctx.fill();
     ctx.stroke();
 
-    // Rear claw toes (black talons)
+    // Rear leg armor (gold-plated greave with bronze trim)
+    const legArmorGrad = ctx.createLinearGradient(-10, 10, -3, 19);
+    legArmorGrad.addColorStop(0, '#ffd54f'); // shiny gold
+    legArmorGrad.addColorStop(1, '#ff6f00'); // dark bronze-gold
+    ctx.fillStyle = legArmorGrad;
+    ctx.strokeStyle = '#3d2503';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(-9, 11);
+    ctx.lineTo(-6, 18);
+    ctx.lineTo(-3, 17);
+    ctx.lineTo(-6, 10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Rear claw toes (black talons with white highlights)
     ctx.strokeStyle = '#111111';
     ctx.lineWidth = 1.8;
     ctx.beginPath();
     ctx.moveTo(-6, 19);
-    ctx.quadraticCurveTo(-10, 23, -12, 22);
+    ctx.quadraticCurveTo(-10, 23, -13, 22); // back toe
     ctx.moveTo(-6, 19);
-    ctx.quadraticCurveTo(-5, 24, -5, 25);
+    ctx.quadraticCurveTo(-5, 24, -5, 25); // center toe
     ctx.stroke();
 
-    // Front thigh and leg (assertive stance)
+    // Front thigh (white feathers)
     ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#3d2503';
+    ctx.strokeStyle = '#263238';
     ctx.lineWidth = 1.2;
     ctx.beginPath();
     ctx.moveTo(1, 8);
@@ -3699,7 +3713,19 @@ export class Bird {
     ctx.fill();
     ctx.stroke();
 
-    // Front claw toes (gilded guard and black talons)
+    // Front leg armor (gold-plated greave)
+    ctx.fillStyle = legArmorGrad;
+    ctx.strokeStyle = '#3d2503';
+    ctx.beginPath();
+    ctx.moveTo(2, 9);
+    ctx.lineTo(8, 17);
+    ctx.lineTo(11, 16);
+    ctx.lineTo(5, 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Front claw toes (black talons)
     ctx.strokeStyle = '#111111';
     ctx.lineWidth = 2.0;
     ctx.beginPath();
@@ -3710,13 +3736,14 @@ export class Bird {
     ctx.stroke();
     ctx.restore();
 
-    // --- 2. AERODYNAMIC WHITE-FEATHERED TORSO ---
-    // Smooth white/light-grey body gradient for flat depth
-    const bodyGrad = ctx.createLinearGradient(-25, -15, 20, 15);
-    bodyGrad.addColorStop(0, '#f5f5f7');
-    bodyGrad.addColorStop(1, '#e1e1e6');
+    // --- 2. ELONGATED AERODYNAMIC WHITE-FEATHERED TORSO ---
+    // White/light-silver gradient body
+    const bodyGrad = ctx.createLinearGradient(-35, -15, 24, 15);
+    bodyGrad.addColorStop(0, '#ffffff');
+    bodyGrad.addColorStop(0.5, '#f5f5f7');
+    bodyGrad.addColorStop(1, '#cfd8dc'); // shadow silver
     ctx.fillStyle = bodyGrad;
-    ctx.strokeStyle = '#263238'; // Dark slate-grey clean outline for body
+    ctx.strokeStyle = '#263238'; // Clean outline
     ctx.lineWidth = 1.5;
 
     ctx.beginPath();
@@ -3728,66 +3755,96 @@ export class Bird {
     ctx.fill();
     ctx.stroke();
 
-    // --- 3. GOLDEN FEATHER EMBELLISHMENTS & SIMPLE CHEST ARMOR ---
-    // Gilded breast/neck armor plate
-    const armorGrad = ctx.createLinearGradient(0, -12, 16, 12);
-    armorGrad.addColorStop(0, '#ffe082'); // Soft warm gold
-    armorGrad.addColorStop(1, '#ffb300'); // Deep amber gold
-    ctx.fillStyle = armorGrad;
-    ctx.strokeStyle = '#3d2503'; // Dark bronze outline
+    // Layers of detailed stylized feathers on body (adds volume and premium texture)
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
     ctx.lineWidth = 1.2;
+    for (let r = 0; r < 4; r++) {
+      const fx = -22 + r * 6;
+      ctx.beginPath();
+      ctx.arc(fx, 2, 5, 0, Math.PI);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(fx + 3, -4, 4, 0, Math.PI);
+      ctx.stroke();
+    }
+
+    // --- 3. GOLDEN FEATHER EMBELLISHMENTS & CELESTIAL BREASTPLATE (Fantasy RPG Boss) ---
+    // Gilded breastplate
+    const armorGrad = ctx.createLinearGradient(-4, -12, 18, 12);
+    armorGrad.addColorStop(0, '#fff176'); // Shiny gold
+    armorGrad.addColorStop(0.5, '#ffd54f'); // Gold
+    armorGrad.addColorStop(1, '#ff6f00'); // Deep amber-gold
+    ctx.fillStyle = armorGrad;
+    ctx.strokeStyle = '#3d2503'; // Dark bronze-gold outline
+    ctx.lineWidth = 1.5;
 
     ctx.beginPath();
-    ctx.moveTo(3, -12);
-    ctx.bezierCurveTo(15, -7, 18, 4, 14, 12);
-    ctx.bezierCurveTo(8, 14, 0, 10, -4, 2);
+    ctx.moveTo(2, -12);
+    ctx.bezierCurveTo(16, -7, 19, 4, 15, 12);
+    ctx.bezierCurveTo(7, 14, -1, 10, -5, 2);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Low-detail layered gold feather patterns on armor
-    ctx.strokeStyle = '#5d4037';
-    ctx.lineWidth = 1.0;
+    // Inner collar shield layer
+    ctx.fillStyle = '#ff8f00';
     ctx.beginPath();
-    ctx.moveTo(4, -5); ctx.quadraticCurveTo(8, -4, 10, -8);
-    ctx.moveTo(2, 0);  ctx.quadraticCurveTo(7, 2, 11, -2);
-    ctx.moveTo(0, 5);  ctx.quadraticCurveTo(5, 7, 9, 3);
+    ctx.moveTo(3, -7);
+    ctx.bezierCurveTo(12, -4, 14, 3, 11, 8);
+    ctx.bezierCurveTo(6, 9, 1, 7, -2, 2);
+    ctx.closePath();
+    ctx.fill();
     ctx.stroke();
 
-    // --- 4. MAJESTIC FAN TAIL (White feathers with gold tips) ---
+    // Central glowing ruby gem (boss skin theme)
+    const gemGrad = ctx.createRadialGradient(5, 1, 1, 5, 1, 4);
+    gemGrad.addColorStop(0, '#ff8a80'); // bright ruby center
+    gemGrad.addColorStop(1, '#c62828'); // deep red gem border
+    ctx.fillStyle = gemGrad;
+    ctx.strokeStyle = '#3d0c0c';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(5, -3);
+    ctx.lineTo(9, 1);
+    ctx.lineTo(5, 5);
+    ctx.lineTo(1, 1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // --- 4. MAJESTIC FAN TAIL (5 Layered White-and-Gold Feathers) ---
     ctx.save();
-    ctx.translate(-24, 3);
+    ctx.translate(-30, 3);
     const tailTilt = -this.vy * 0.05 + Math.sin(this.flapCycle) * 0.07;
     ctx.rotate(tailTilt);
 
-    // Draw fan-out tail feathers
-    for (let i = 0; i < 3; i++) {
-      const angleOffset = (i - 1) * 0.15;
+    for (let i = 0; i < 5; i++) {
+      const angleOffset = (i - 2) * 0.12;
       ctx.save();
       ctx.rotate(angleOffset);
       
-      // Feather base
-      ctx.fillStyle = '#ffffff';
+      const isEven = i % 2 === 0;
+      ctx.fillStyle = isEven ? '#ffffff' : '#ffd54f';
       ctx.strokeStyle = '#3d2503';
       ctx.lineWidth = 1.0;
       ctx.beginPath();
-      ctx.moveTo(0, -3);
-      ctx.lineTo(-24, -5);
-      ctx.lineTo(-28, 0);
-      ctx.lineTo(-24, 5);
-      ctx.lineTo(0, 3);
+      ctx.moveTo(0, -2);
+      ctx.lineTo(-28, -4);
+      ctx.lineTo(-32, 0);
+      ctx.lineTo(-28, 4);
+      ctx.lineTo(0, 2);
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
 
-      // Gold tip
-      ctx.fillStyle = '#ffc107';
+      // Alternate white/gold tip highlight
+      ctx.fillStyle = isEven ? '#ff9100' : '#ffffff';
       ctx.beginPath();
-      ctx.moveTo(-18, -4.5);
-      ctx.lineTo(-24, -5);
-      ctx.lineTo(-28, 0);
-      ctx.lineTo(-24, 5);
-      ctx.lineTo(-18, 4.5);
+      ctx.moveTo(-18, -3);
+      ctx.lineTo(-28, -4);
+      ctx.lineTo(-32, 0);
+      ctx.lineTo(-28, 4);
+      ctx.lineTo(-18, 3);
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
@@ -3796,17 +3853,24 @@ export class Bird {
     }
     ctx.restore();
 
-    // --- 5. SHOULDERS & CELESTIAL SPAULDER (Simple Fantasy Armor) ---
+    // --- 5. SHOULDERS & CELÈSTIAL SPAULDER (Heavy Fantasy Spaulder) ---
     ctx.fillStyle = '#ffca28'; // Polished gold
     ctx.strokeStyle = '#3d2503';
-    ctx.lineWidth = 1.2;
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.arc(-8, -4, 7, 0, Math.PI * 2);
+    ctx.arc(-8, -4, 7.5, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
-    // Star/gem inlay in spaulder
-    ctx.fillStyle = '#e3f2fd'; // Glowing crystal
+    // Double ring trim
+    ctx.strokeStyle = '#ff8f00';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.arc(-8, -4, 5.5, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Star/gem inlay in spaulder (glowing crystal blue)
+    ctx.fillStyle = '#00e5ff';
     ctx.beginPath();
     ctx.moveTo(-8, -9);
     ctx.lineTo(-6, -4);
@@ -3815,7 +3879,22 @@ export class Bird {
     ctx.closePath();
     ctx.fill();
 
-    // --- 6. PROUD WHITE EAGLE HEAD ---
+    // --- 6. PROUD EAGLE HEAD WITH BACKWARD SPIKED CREST ---
+    // Spiked crest feathers at the back of head for dramatic silhouette
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#263238';
+    ctx.lineWidth = 1.2;
+    for (let k = 0; k < 3; k++) {
+      ctx.beginPath();
+      ctx.moveTo(faceX - 8, faceY - 12 + k * 4);
+      ctx.lineTo(faceX - 20, faceY - 8 + k * 4);
+      ctx.lineTo(faceX - 10, faceY - 4 + k * 4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    // Main head base
     ctx.fillStyle = '#ffffff';
     ctx.strokeStyle = '#263238';
     ctx.lineWidth = 1.5;
@@ -3824,24 +3903,26 @@ export class Bird {
     ctx.fill();
     ctx.stroke();
 
-    // --- 7. AMBER IRIS & WARRIOR BROW ---
-    // Amber Eye
-    ctx.fillStyle = '#ff8f00'; // Amber-orange
+    // --- 7. INTENSE AMBER WARRIOR EYE & BROW ---
+    // Amber iris
+    ctx.fillStyle = '#ff6f00'; // Intense amber
     ctx.beginPath();
     ctx.arc(3.5 + faceX, -6.5 + faceY, 3.8, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = '#000000'; // Pupil
+    // Pupil
+    ctx.fillStyle = '#000000';
     ctx.beginPath();
     ctx.arc(3.5 + faceX, -6.5 + faceY, 1.8, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = '#ffffff'; // Glimmer
+    // Shine catchlight
+    ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(4.2 + faceX, -7.2 + faceY, 0.7, 0, Math.PI * 2);
+    ctx.arc(4.2 + faceX, -7.2 + faceY, 0.8, 0, Math.PI * 2);
     ctx.fill();
 
-    // Proud Warrior Brow
+    // Menacing Warrior Brow Line
     ctx.strokeStyle = '#3e2723';
     ctx.lineWidth = 2.0;
     ctx.beginPath();
@@ -3849,34 +3930,44 @@ export class Bird {
     ctx.lineTo(8 + faceX, -8 + faceY);
     ctx.stroke();
 
-    // --- 8. SHARP GOLDEN EAGLE BEAK ---
+    // --- 8. POLISHED GOLDEN EAGLE BEAK ---
     const beakGrad = ctx.createLinearGradient(8 + faceX, -8 + faceY, 20 + faceX, 3 + faceY);
-    beakGrad.addColorStop(0, '#ffd54f');
-    beakGrad.addColorStop(1, '#ff8f00');
+    beakGrad.addColorStop(0, '#fff59d'); // bright gold top shine
+    beakGrad.addColorStop(0.5, '#ffd54f'); // gold
+    beakGrad.addColorStop(1, '#f57f17'); // warm amber bottom
     ctx.fillStyle = beakGrad;
     ctx.strokeStyle = '#3d2503';
-    ctx.lineWidth = 1.2;
+    ctx.lineWidth = 1.3;
 
     ctx.beginPath();
-    ctx.moveTo(9 + faceX, -8.5 + faceY); // Top base
-    ctx.quadraticCurveTo(21.5 + faceX, -7.0 + faceY, 17.5 + faceX, 3 + faceY); // Sharp hook curving down
+    ctx.moveTo(9 + faceX, -8.5 + faceY);
+    ctx.quadraticCurveTo(21.5 + faceX, -7.0 + faceY, 17.5 + faceX, 3 + faceY); // Hook tip
     ctx.lineTo(13.8 + faceX, 1.0 + faceY);
-    ctx.quadraticCurveTo(11 + faceX, -1.0 + faceY, 8.0 + faceX, -3.0 + faceY); // Bottom base
+    ctx.quadraticCurveTo(11 + faceX, -1.0 + faceY, 8.0 + faceX, -3.0 + faceY);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // --- 9. ROYAL GOLDEN CROWN ---
+    // Beak highlight reflection line (gives 3D shiny metallic feel)
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(10 + faceX, -7.5 + faceY);
+    ctx.quadraticCurveTo(17 + faceX, -6.0 + faceY, 14 + faceX, -1.0 + faceY);
+    ctx.stroke();
+
+    // --- 9. DECORATED ROYAL GOLDEN CROWN ---
     ctx.save();
     ctx.translate(faceX - 2, faceY - 16);
-    ctx.rotate(-0.05); // Slight tilt
+    ctx.rotate(-0.05);
 
     const crownGrad = ctx.createLinearGradient(-10, -8, 10, 2);
-    crownGrad.addColorStop(0, '#fff176');
+    crownGrad.addColorStop(0, '#fff59d');
+    crownGrad.addColorStop(0.5, '#fbc02d');
     crownGrad.addColorStop(1, '#f57f17');
     ctx.fillStyle = crownGrad;
     ctx.strokeStyle = '#3d2503';
-    ctx.lineWidth = 1.2;
+    ctx.lineWidth = 1.3;
 
     // Ornate crown spikes
     ctx.beginPath();
@@ -3891,21 +3982,38 @@ export class Bird {
     ctx.fill();
     ctx.stroke();
 
-    // Crown base plate
+    // Base plate with small gems
     ctx.fillStyle = '#ff8f00';
     ctx.beginPath();
-    ctx.rect(-10, 2, 20, 3);
+    ctx.rect(-10, 2, 20, 3.5);
     ctx.fill();
     ctx.stroke();
+
+    // Inset Gems in crown base (rubies and cyan diamonds)
+    ctx.fillStyle = '#d50000'; // red ruby left
+    ctx.beginPath();
+    ctx.arc(-5, 3.8, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#00e5ff'; // blue gem center
+    ctx.beginPath();
+    ctx.arc(0, 3.8, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#d50000'; // red ruby right
+    ctx.beginPath();
+    ctx.arc(5, 3.8, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+
     ctx.restore();
 
-    // --- 10. MASSIVE ORANGE-GOLD WINGS (Swept-back layered shapes with clean outlines) ---
+    // --- 10. MULTI-LAYERED FIERY ORANGE-GOLD WINGS (Premium 3D Shading) ---
     ctx.save();
     ctx.translate(-6, 1);
     const flapAngle = Math.sin(this.flapCycle) * 0.65;
     ctx.rotate(flapAngle);
 
-    // LAYER A: Shadow/Background Wing (Dark crimson/rust red for depth)
+    // LAYER A: Deep Crimson Backing Wing (adds volumetric 3D shadow depth)
     ctx.fillStyle = '#b71c1c';
     ctx.strokeStyle = '#3d0c0c';
     ctx.lineWidth = 1.0;
@@ -3919,11 +4027,12 @@ export class Bird {
     ctx.fill();
     ctx.stroke();
 
-    // LAYER B: Primary Foreground Wing (Fiery orange-gold gradient)
+    // LAYER B: Primary Foreground Wing (Warm fiery gradient)
     const wingGrad = ctx.createLinearGradient(12, -4, -62, 16);
-    wingGrad.addColorStop(0, '#ffd54f'); // Bright gold
-    wingGrad.addColorStop(0.4, '#ff9100'); // Vibrant orange
-    wingGrad.addColorStop(0.8, '#ff3d00'); // Fiery red-orange
+    wingGrad.addColorStop(0, '#ffe082'); // Shiny gold shoulder
+    wingGrad.addColorStop(0.3, '#ffb300'); // Golden yellow
+    wingGrad.addColorStop(0.6, '#ff9100'); // Vibrant orange
+    wingGrad.addColorStop(0.85, '#ff3d00'); // Fiery orange-red primaries
     wingGrad.addColorStop(1, '#d84315'); // Deep rust tip
 
     ctx.fillStyle = wingGrad;
@@ -3933,7 +4042,6 @@ export class Bird {
     ctx.beginPath();
     ctx.moveTo(10, -4);
     ctx.bezierCurveTo(-12, -36, -48, -32, -64, 8);
-    // Outer feathers
     ctx.bezierCurveTo(-57, 15, -47, 11, -42, 20); // Primary 1
     ctx.bezierCurveTo(-35, 22, -30, 15, -25, 23); // Primary 2
     ctx.bezierCurveTo(-18, 22, -13, 15, 10, -4);   // Joint
@@ -3941,11 +4049,11 @@ export class Bird {
     ctx.fill();
     ctx.stroke();
 
-    // LAYER C: Layered Wing Coverts (Shoulder protection feathers - Gold plates)
+    // LAYER C: Layered Wing Coverts (Polished gold plate wing armor overlay)
     const covertGrad = ctx.createLinearGradient(10, -4, -15, 10);
-    covertGrad.addColorStop(0, '#ffe082'); // Shiny yellow-gold
-    covertGrad.addColorStop(0.7, '#ffb300'); // Mid gold
-    covertGrad.addColorStop(1, '#ff8f00'); // Deep gold
+    covertGrad.addColorStop(0, '#fff59d'); // Shiny pale-gold highlights
+    covertGrad.addColorStop(0.6, '#ffd54f'); // Gold
+    covertGrad.addColorStop(1, '#f57f17'); // Dark gold
     ctx.fillStyle = covertGrad;
     ctx.strokeStyle = '#3d2503';
     ctx.lineWidth = 1.2;
@@ -3957,15 +4065,25 @@ export class Bird {
     ctx.fill();
     ctx.stroke();
 
-    // LAYER D: Ultra-detailed feather ribs/highlights (3D rendering metallic sheen feel)
-    ctx.strokeStyle = '#fff8e1'; // Bright white-gold highlight
+    // Wing armor runic details (premium visual ornament)
+    ctx.strokeStyle = 'rgba(61, 37, 3, 0.4)';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(-2, -8);
+    ctx.lineTo(-12, -4);
+    ctx.moveTo(-5, -5);
+    ctx.lineTo(-15, -1);
+    ctx.stroke();
+
+    // LAYER D: Ultra-detailed feather shaft highlighting (metallic sheen reflections)
+    ctx.strokeStyle = '#fff9c4'; // Volumetric white-gold glow lines
     ctx.lineWidth = 1.2;
     ctx.beginPath();
     ctx.moveTo(2, -6);
     ctx.quadraticCurveTo(-24, -16, -56, 7);
     ctx.stroke();
 
-    ctx.strokeStyle = 'rgba(255,215,0,0.5)';
+    ctx.strokeStyle = 'rgba(255, 235, 59, 0.4)';
     ctx.lineWidth = 1.0;
     ctx.beginPath();
     ctx.moveTo(2, -3);
