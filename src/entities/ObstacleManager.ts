@@ -1372,7 +1372,7 @@ export class ObstacleManager {
         animDuration = 0.45;
       } else if (patternType === 'level6_infinity') {
         // LEVEL 6: "The Folding Accordion Gates" (Clean triangle-wave folding layout)
-        localGapHeight = gapHeight - 5;
+        localGapHeight = Math.round((gapHeight - 5) * 0.7); // Decreased by 30% (from 155px to 109px)
         const modIdx = obstacleIdx % 6;
         const triangleOffset = modIdx < 3 ? (modIdx * 61 - 61) : ((5 - modIdx) * 61 - 61); // Step size increased by 35% (from 45 to 61)
         targetCenterY = height / 2 + triangleOffset;
@@ -2000,9 +2000,9 @@ export class ObstacleManager {
         targetBottomHeight = height - targetCenterY - localGapHeight / 2;
       }
 
-      // Enable special different-direction split opening animation specifically for all obstacles in Levels 1-20 (excluding Level 11, 2, 4, 5) and special legacy levels
+      // Enable special different-direction split opening animation specifically for all obstacles in Levels 1-20 (excluding Level 11, 2, 4, 5, 6) and special legacy levels
       const isSpecialSplit = 
-        (levelNum !== undefined && levelNum >= 1 && levelNum <= 20 && levelNum !== 11 && levelNum !== 2 && levelNum !== 4 && levelNum !== 5) ||
+        (levelNum !== undefined && levelNum >= 1 && levelNum <= 20 && levelNum !== 11 && levelNum !== 2 && levelNum !== 4 && levelNum !== 5 && levelNum !== 6) ||
         (patternType === 'level17_heartbeat' && groupIdx === 0);
 
       // Level 11 gets a dedicated smooth slide-in from edges (not a split)
