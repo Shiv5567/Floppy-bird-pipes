@@ -343,8 +343,8 @@ export class ObstacleManager {
             obs.shakeX = Math.sin(phaseTop) * 26;
             obs.shakeX2 = Math.cos(phaseBottom) * 26;
             
-            const topBob = Math.cos(phaseTop) * 38; // Bobbing range (path interaction) increased by 30% again (from 29 to 38)
-            const botBob = Math.sin(phaseBottom) * 38; // Bobbing range (path interaction) increased by 30% again (from 29 to 38)
+            const topBob = Math.cos(phaseTop) * 53; // Bobbing range (path interaction) increased by 40% again (from 38 to 53)
+            const botBob = Math.sin(phaseBottom) * 53; // Bobbing range (path interaction) increased by 40% again (from 38 to 53)
             obs.targetTopHeight = obs.baseTopHeight! + topBob;
             obs.targetBottomHeight = obs.baseBottomHeight! - botBob;
           } else if (obs.patternType === 'level7_dna') {
