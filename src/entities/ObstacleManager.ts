@@ -1374,7 +1374,7 @@ export class ObstacleManager {
         // LEVEL 6: "The Folding Accordion Gates" (Clean triangle-wave folding layout)
         localGapHeight = gapHeight - 5;
         const modIdx = obstacleIdx % 6;
-        const triangleOffset = modIdx < 3 ? (modIdx * 45 - 45) : ((5 - modIdx) * 45 - 45);
+        const triangleOffset = modIdx < 3 ? (modIdx * 61 - 61) : ((5 - modIdx) * 61 - 61); // Step size increased by 35% (from 45 to 61)
         targetCenterY = height / 2 + triangleOffset;
         triggerDistance = 280;
         animDuration = 0.38;
