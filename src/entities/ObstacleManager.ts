@@ -1375,7 +1375,13 @@ export class ObstacleManager {
         localGapHeight = Math.round((gapHeight - 5) * 0.7 * 1.2); // Decreased by 30% then increased by 20% (approx 131px)
         const modIdx = obstacleIdx % 6;
         const triangleOffset = modIdx < 3 ? (modIdx * 30 - 30) : ((5 - modIdx) * 30 - 30); // Step size decreased to 30px for a less zigzag path
-        targetCenterY = height / 2 + triangleOffset;
+        
+        // Alternates path offset UP and DOWN by 40% of the gap height every 6 obstacles
+        const blockIdx = Math.floor(actualPatternIdx / 6);
+        const shiftSign = (blockIdx % 2 === 0) ? -1 : 1; // Alternating UP (-1) and DOWN (+1)
+        const pathShift = shiftSign * (localGapHeight * 0.40);
+        
+        targetCenterY = height / 2 + triangleOffset + pathShift;
         triggerDistance = 280;
         animDuration = 0.38;
       } else if (patternType === 'level7_dna') {
