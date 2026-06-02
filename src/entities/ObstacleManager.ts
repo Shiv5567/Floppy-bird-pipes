@@ -917,7 +917,7 @@ export class ObstacleManager {
 
           // Centralized Dynamic Gameplay Safeguard for Levels 1-10 and Level 13
           if (obs.levelNum !== undefined && ((obs.levelNum >= 1 && obs.levelNum <= 10) || obs.levelNum === 13)) {
-            const minAllowedGap = (obs.levelNum === 4 || obs.levelNum === 13) ? 107 : 125; // allow Level 4/13's 112px gap
+            const minAllowedGap = (obs.levelNum === 4 || obs.levelNum === 13) ? 107 : (obs.levelNum === 6 ? 93 : 125); // allow Level 6's 98px gap
             let currentGap = height - obs.topHeight - obs.bottomHeight;
             if (currentGap < minAllowedGap) {
               const center = obs.topHeight + currentGap / 2;
@@ -1372,7 +1372,7 @@ export class ObstacleManager {
         animDuration = 0.45;
       } else if (patternType === 'level6_infinity') {
         // LEVEL 6: "The Folding Accordion Gates" (Clean triangle-wave folding layout)
-        localGapHeight = Math.round((gapHeight - 5) * 0.7 * 1.2); // Decreased by 30% then increased by 20% (approx 131px)
+        localGapHeight = Math.round((gapHeight - 5) * 0.7 * 1.2 * 0.75); // Decreased by 25% (approx 98px)
         const modIdx = obstacleIdx % 6;
         const triangleOffset = modIdx < 3 ? (modIdx * 30 - 30) : ((5 - modIdx) * 30 - 30); // Step size decreased to 30px for a less zigzag path
         
