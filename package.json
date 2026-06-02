@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc && vite build",
-    "preview": "vite preview --host 0.0.0.0"
+    "preview": "vite preview --host 0.0.0.0",
+    "sync-android": "xcopy /E /I /Y dist android-app\\app\\src\\main\\assets\\dist",
+    "build-android": "npm run build && npm run sync-android"
   },
   "devDependencies": {
     "typescript": "~6.0.2",
