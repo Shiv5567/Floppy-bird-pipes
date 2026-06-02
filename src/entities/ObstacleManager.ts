@@ -1212,10 +1212,12 @@ export class ObstacleManager {
       if (this.activeLevelConfig) {
         const groupSize = Math.floor(this.activeLevelConfig.targetScore / 3);
         const idx = this.currentPatternIdx - 1;
+        const isLevel6 = this.activeLevelConfig.levelNum === 6;
         if (idx === groupSize - 1 || idx === (groupSize * 2) - 1) {
           this.nextSpawnDistance = this.obstacleWidth * 3.5; // Safe transition gap between obstacle groups
         } else {
-          this.nextSpawnDistance = this.obstacleWidth; // Connected side-by-side inside group
+          // Level 6: horizontal path gap increased by 25% for more breathing room between pillars
+          this.nextSpawnDistance = isLevel6 ? this.obstacleWidth * 1.25 : this.obstacleWidth; // Connected side-by-side inside group
         }
       } else {
         const baseDistanceClassic = (width / 1.35) * 0.80;
@@ -1373,16 +1375,19 @@ export class ObstacleManager {
       } else if (patternType === 'level6_infinity') {
         // LEVEL 6: "The Folding Accordion Gates" (Clean triangle-wave folding layout)
         const baseGap = Math.round((gapHeight - 5) * 0.7 * 1.2); // Base gap (approx 130px)
-        const blockIdx = Math.floor(actualPatternIdx / 6);
-        const isShiftedBlock = (blockIdx % 2 === 1); // After 6 obstacles (obstacles 6-11, 18-23, etc.)
+        const blockIdx = Math.floor(actualPatternIdx / 20); // Block of 20 pillars
+        const isShiftedBlock = (blockIdx % 2 === 1); // After 20 obstacles (obstacles 20-39, 60-79, etc.)
         
-        // Gap is 25% less (approx 98px) only for the shifted-down block after 6 obstacles, otherwise 130px
+        // Gap is 25% less (approx 98px) only for the shifted-down block after 20 obstacles, otherwise 130px
         localGapHeight = isShiftedBlock ? Math.round(baseGap * 0.75) : baseGap;
         
-        const modIdx = obstacleIdx % 6;
-        const triangleOffset = modIdx < 3 ? (modIdx * 30 - 30) : ((5 - modIdx) * 30 - 30); // Step size decreased to 30px for a less zigzag path
+        const modIdx = obstacleIdx % 20;
+        // Triangle wave across 20 pillars: rises from -30 to +30 over first 10, falls back to -30 over next 10
+        const halfCycle = 10;
+        const normT = modIdx < halfCycle ? modIdx / (halfCycle - 1) : (19 - modIdx) / (halfCycle - 1);
+        const triangleOffset = Math.round(normT * 60 - 30); // Smooth -30px to +30px triangle wave
         
-        // Alternates path offset UP and DOWN by 24% of the gap height every 6 obstacles (difference decreased by 40%)
+        // Alternates path offset UP and DOWN by 24% of the gap height every 20 obstacles
         const shiftSign = isShiftedBlock ? 1 : -1; // Alternating UP (-1) and DOWN (+1)
         const pathShift = shiftSign * (baseGap * 0.24);
         
