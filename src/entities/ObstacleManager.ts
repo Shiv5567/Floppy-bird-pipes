@@ -1372,9 +1372,9 @@ export class ObstacleManager {
         animDuration = 0.45;
       } else if (patternType === 'level6_infinity') {
         // LEVEL 6: "The Folding Accordion Gates" (Clean triangle-wave folding layout)
-        localGapHeight = Math.round((gapHeight - 5) * 0.7); // Decreased by 30% (from 155px to 109px)
+        localGapHeight = Math.round((gapHeight - 5) * 0.7 * 1.2); // Decreased by 30% then increased by 20% (approx 131px)
         const modIdx = obstacleIdx % 6;
-        const triangleOffset = modIdx < 3 ? (modIdx * 61 - 61) : ((5 - modIdx) * 61 - 61); // Step size increased by 35% (from 45 to 61)
+        const triangleOffset = modIdx < 3 ? (modIdx * 73 - 73) : ((5 - modIdx) * 73 - 73); // Step size increased by 20% (from 61 to 73)
         targetCenterY = height / 2 + triangleOffset;
         triggerDistance = 280;
         animDuration = 0.38;
