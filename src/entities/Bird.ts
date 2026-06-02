@@ -1973,18 +1973,18 @@ export class Bird {
     const headX = 10 + faceX;
     const headY = -8 + faceY;
 
-    // --- 1. DRAGON TAIL (Undulating, starts at rear of torso: -16, 6) ---
+    // --- 1. DRAGON TAIL (Undulating, reduced by 50% length: only 3 segments instead of 6) ---
     ctx.save();
-    ctx.translate(-16, 6);
+    ctx.translate(-20, 6); // Position slightly adjusted due to increased body size
     let prevX = 0;
     let prevY = 0;
     ctx.strokeStyle = '#f8fafc';
-    ctx.lineWidth = 6;
+    ctx.lineWidth = 5;
     ctx.lineCap = 'round';
     
     ctx.beginPath();
     ctx.moveTo(prevX, prevY);
-    for (let i = 1; i <= 6; i++) {
+    for (let i = 1; i <= 3; i++) { // 3 segments is exactly 50% less than 6
       const tailSegLength = 5.0;
       const angleOffset = i * 0.4;
       const waveAngle = Math.sin(this.flapCycle * 1.3 - angleOffset) * 0.35 + (this.vy * 0.05);
@@ -1999,76 +1999,74 @@ export class Bird {
     ctx.fillStyle = '#c084fc';
     ctx.beginPath();
     ctx.moveTo(prevX, prevY);
-    ctx.bezierCurveTo(prevX - 6, prevY - 6, prevX - 12, prevY, prevX - 14, prevY + 2);
-    ctx.bezierCurveTo(prevX - 12, prevY + 4, prevX - 6, prevY + 10, prevX, prevY);
+    ctx.bezierCurveTo(prevX - 4, prevY - 4, prevX - 8, prevY, prevX - 9, prevY + 1.5);
+    ctx.bezierCurveTo(prevX - 8, prevY + 3, prevX - 4, prevY + 7, prevX, prevY);
     ctx.closePath();
     ctx.fill();
     ctx.restore();
 
-    // --- 2. DRAGON LEGS (Tucked claw legs) ---
+    // --- 2. DRAGON LEGS (Tucked claw legs, scaled up for body increase) ---
     // Hind leg
     ctx.save();
-    ctx.translate(-10, 10);
+    ctx.translate(-12, 11);
     ctx.rotate(Math.sin(this.flapCycle) * 0.15);
     ctx.fillStyle = '#f8fafc';
     ctx.beginPath();
-    ctx.ellipse(0, 0, 3, 6, 0.4, 0, Math.PI * 2);
+    ctx.ellipse(0, 0, 3.5, 7, 0.4, 0, Math.PI * 2); // slightly larger
     ctx.fill();
     // Talons
     ctx.fillStyle = '#c084fc';
     ctx.beginPath();
-    ctx.moveTo(-1, 5);
-    ctx.lineTo(-4, 9);
-    ctx.lineTo(-1, 8);
-    ctx.lineTo(2, 9);
-    ctx.lineTo(1, 5);
+    ctx.moveTo(-1, 6);
+    ctx.lineTo(-4, 10);
+    ctx.lineTo(-1, 9);
+    ctx.lineTo(2, 10);
+    ctx.lineTo(1, 6);
     ctx.closePath();
     ctx.fill();
     ctx.restore();
 
     // Fore leg
     ctx.save();
-    ctx.translate(2, 10);
+    ctx.translate(2, 11);
     ctx.rotate(Math.sin(this.flapCycle + Math.PI/2) * 0.15);
     ctx.fillStyle = '#fbcfe8';
     ctx.beginPath();
-    ctx.ellipse(0, 0, 3, 6, 0.2, 0, Math.PI * 2);
+    ctx.ellipse(0, 0, 3.5, 7, 0.2, 0, Math.PI * 2); // slightly larger
     ctx.fill();
     // Talons
     ctx.fillStyle = '#c084fc';
     ctx.beginPath();
-    ctx.moveTo(-1, 5);
-    ctx.lineTo(-3, 9);
-    ctx.lineTo(0, 8);
-    ctx.lineTo(3, 9);
-    ctx.lineTo(1, 5);
+    ctx.moveTo(-1, 6);
+    ctx.lineTo(-3, 10);
+    ctx.lineTo(0, 9);
+    ctx.lineTo(3, 10);
+    ctx.lineTo(1, 6);
     ctx.closePath();
     ctx.fill();
     ctx.restore();
 
-    // --- 3. MAJESTIC SERPENTINE TORSO & NECK ---
-    // Torso gradient
-    const bodyGrad = ctx.createLinearGradient(-18, -5, 12, 12);
-    bodyGrad.addColorStop(0, '#f1f5f9'); // Pastel slate/white
+    // --- 3. MAJESTIC SERPENTINE TORSO & NECK (Size increased by ~15%) ---
+    const bodyGrad = ctx.createLinearGradient(-22, -6, 14, 14);
+    bodyGrad.addColorStop(0, '#f1f5f9');
     bodyGrad.addColorStop(0.5, '#f8fafc');
     bodyGrad.addColorStop(1, '#e2e8f0');
 
     ctx.fillStyle = bodyGrad;
     ctx.strokeStyle = '#c084fc';
-    ctx.lineWidth = 1.2;
+    ctx.lineWidth = 1.4;
 
-    // Draw main body shape (neck curving up to head, thick chest, tapering back to tail)
     ctx.beginPath();
-    // Start at head connection point (top of neck)
-    ctx.moveTo(headX - 3, headY + 3);
-    // Outer neck curve down to chest
-    ctx.quadraticCurveTo(8, 0, 4, 8);
-    // Underbelly to rear
-    ctx.bezierCurveTo(0, 14, -12, 12, -18, 5);
-    // Rear transition to tail
-    ctx.lineTo(-16, 1);
+    // Neck starts at head connection
+    ctx.moveTo(headX - 4, headY + 4);
+    // Outer neck curve down to chest (wider chest area)
+    ctx.quadraticCurveTo(7, 0, 4, 10);
+    // Underbelly (deeper, fuller curve)
+    ctx.bezierCurveTo(0, 16, -15, 14, -22, 6);
+    // Rear transition
+    ctx.lineTo(-20, 1);
     // Back ridge line curving up to neck
-    ctx.bezierCurveTo(-10, -4, -2, -1, headX - 8, headY + 6);
+    ctx.bezierCurveTo(-13, -5, -3, -2, headX - 9, headY + 7);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
@@ -2077,56 +2075,64 @@ export class Bird {
     ctx.fillStyle = '#c084fc';
     ctx.beginPath();
     // Spike 1 (Back)
-    ctx.moveTo(-14, 2);
-    ctx.lineTo(-18, -4);
-    ctx.lineTo(-9, 0);
+    ctx.moveTo(-17, 2);
+    ctx.lineTo(-21, -5);
+    ctx.lineTo(-12, 0);
     // Spike 2 (Mid-back)
-    ctx.moveTo(-8, -1);
-    ctx.lineTo(-11, -8);
-    ctx.lineTo(-3, -2);
+    ctx.moveTo(-10, -2);
+    ctx.lineTo(-13, -9);
+    ctx.lineTo(-5, -3);
     // Spike 3 (Lower neck)
-    ctx.moveTo(-2, -3);
-    ctx.lineTo(-4, -10);
-    ctx.lineTo(2, -4);
+    ctx.moveTo(-4, -4);
+    ctx.lineTo(-6, -11);
+    ctx.lineTo(1, -5);
     ctx.closePath();
     ctx.fill();
 
     // --- 5. OVERLAY PROCEDURAL DRAGON SCALES ---
     ctx.strokeStyle = 'rgba(192, 132, 252, 0.4)';
     ctx.lineWidth = 1;
-    // Draw rows of mini scales along torso
+    // Draw scales adjusted for larger body size
     const scalePoints = [
-      {x: -12, y: 4}, {x: -8, y: 5}, {x: -4, y: 6}, {x: 0, y: 7},
-      {x: -10, y: 1}, {x: -6, y: 2}, {x: -2, y: 3}, {x: 2, y: 4},
-      {x: -4, y: -1}, {x: 0, y: 0}, {x: 4, y: 1}
+      {x: -15, y: 4}, {x: -11, y: 5}, {x: -7, y: 6}, {x: -3, y: 7}, {x: 1, y: 7},
+      {x: -13, y: 1}, {x: -9, y: 2}, {x: -5, y: 3}, {x: -1, y: 4}, {x: 3, y: 4},
+      {x: -7, y: -2}, {x: -3, y: -1}, {x: 1, y: 0}, {x: 5, y: 1}
     ];
     scalePoints.forEach(p => {
       ctx.beginPath();
-      ctx.arc(p.x, p.y, 2.5, 0, Math.PI);
+      ctx.arc(p.x, p.y, 2.8, 0, Math.PI);
       ctx.stroke();
     });
 
-    // --- 6. DRAGON HEAD (Reptilian snout, defined jaw, and back horns) ---
+    // --- 6. DRAGON HEAD (Realistic structure: defined brow, curved snout, split jaw) ---
     ctx.fillStyle = '#f8fafc';
     ctx.strokeStyle = '#c084fc';
-    ctx.lineWidth = 1.2;
+    ctx.lineWidth = 1.3;
 
-    // Draw majestic head shape
+    // Draw realistic reptilian dragon head shape
     ctx.beginPath();
-    ctx.moveTo(headX - 8, headY - 4); // Back of head
-    ctx.lineTo(headX + 2, headY - 6);  // Brow line
-    ctx.lineTo(headX + 12, headY - 1); // Top of snout
-    ctx.lineTo(headX + 11, headY + 3); // Snout tip
-    ctx.lineTo(headX + 4, headY + 4);  // Jaw curve
-    ctx.lineTo(headX - 6, headY + 5);  // Back jaw
+    ctx.moveTo(headX - 9, headY - 4);
+    ctx.quadraticCurveTo(headX - 2, headY - 7, headX + 3, headY - 5); // Brow ridge curvature
+    ctx.quadraticCurveTo(headX + 8, headY - 4, headX + 12, headY - 1); // Bridge of snout
+    ctx.quadraticCurveTo(headX + 13, headY + 2.2, headX + 11, headY + 3.2); // Snout tip
+    ctx.quadraticCurveTo(headX + 5, headY + 2.5, headX + 2, headY + 4); // Curved jawline
+    ctx.quadraticCurveTo(headX - 4, headY + 5, headX - 8, headY + 4); // Back of jaw
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Cute pink baby snout nostril (2.5D shift)
+    // Defined mouth split line (gives a realistic closed mouth structure)
+    ctx.strokeStyle = '#c084fc';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(headX + 2, headY + 1);
+    ctx.quadraticCurveTo(headX + 7, headY + 0.8, headX + 11, headY + 1.8);
+    ctx.stroke();
+
+    // Nostril (realistic position)
     ctx.fillStyle = '#fbcfe8';
     ctx.beginPath();
-    ctx.arc(headX + 8, headY + 1, 1.5, 0, Math.PI * 2);
+    ctx.arc(headX + 9, headY + 0.5, 1.1, 0, Math.PI * 2);
     ctx.fill();
 
     // Majestic horns (Lilac/Purple)
@@ -2146,23 +2152,34 @@ export class Bird {
     ctx.closePath();
     ctx.fill();
 
-    // Cute big purple eyes (with sharp reptilian slit and white highlights)
+    // --- 7. INTENSE MINIATURIZED DRAGON EYE (Reduced size from 4.5 to 2.2 for realistic proportions) ---
+    // Outer iris
     ctx.fillStyle = '#7c3aed';
     ctx.beginPath();
-    ctx.arc(headX + 1, headY - 1, 4.5, 0, Math.PI * 2);
+    ctx.arc(headX + 1, headY - 1, 2.2, 0, Math.PI * 2); // 50% decrease in size
     ctx.fill();
-    // Pupil slit
+    
+    // Slit pupil
     ctx.fillStyle = '#1e1b29';
     ctx.beginPath();
-    ctx.ellipse(headX + 1, headY - 1, 1.2, 3.5, 0.1, 0, Math.PI * 2);
+    ctx.ellipse(headX + 1, headY - 1, 0.6, 1.8, 0.1, 0, Math.PI * 2);
     ctx.fill();
-    // Highlights
+    
+    // Tiny reflection highlight
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(headX + 2.2, headY - 2.2, 1.2, 0, Math.PI * 2);
+    ctx.arc(headX + 1.6, headY - 1.6, 0.6, 0, Math.PI * 2);
     ctx.fill();
 
-    // --- 7. WEBBED WINGS (Centered at shoulder: -2, 2) ---
+    // Defined shadow brow line over the eye (gives a sharp, realistic look)
+    ctx.strokeStyle = '#5b21b6';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(headX - 2, headY - 3.5);
+    ctx.quadraticCurveTo(headX + 1.5, headY - 3.8, headX + 4, headY - 2.8);
+    ctx.stroke();
+
+    // --- 8. WEBBED WINGS (Centered at shoulder: -2, 2) ---
     ctx.save();
     ctx.translate(-2, 2);
     const wingFlap = Math.sin(this.flapCycle) * 0.65;
