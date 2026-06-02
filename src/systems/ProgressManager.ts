@@ -275,10 +275,10 @@ export class ProgressManager {
       },
       {
         id: 'kingfisher',
-        name: 'Royal Kingfisher',
+        name: 'Kingfisher Overlord',
         rarity: 'Legendary',
-        glowColor: 'rgba(255, 112, 67, 0.75)',
-        particleType: 'feathers',
+        glowColor: 'rgba(255, 61, 0, 0.95)',
+        particleType: 'valkyrie',
         costCoins: 5000,
         costGems: 0,
         unlocked: false,

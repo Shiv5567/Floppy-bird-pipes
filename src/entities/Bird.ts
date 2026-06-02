@@ -585,8 +585,34 @@ export class Bird {
         ctx.save();
         ctx.rotate(-this.auraAngle * 0.8);
         ctx.setLineDash([5, 5]);
-        ctx.beginPath();
         ctx.arc(0, 0, baseRadius * 1.3, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+        break;
+      }
+      case 'kingfisher': {
+        // Rotating fiery runic boss circle with plasma energy spikes
+        ctx.strokeStyle = '#ff3d00'; // Neon Red-Orange
+        ctx.save();
+        ctx.rotate(this.auraAngle * 1.8);
+        
+        // Draw outer spiked ring
+        ctx.beginPath();
+        for (let i = 0; i < 5; i++) {
+          const angle = (i * Math.PI * 2) / 5;
+          const outerRad = baseRadius * 1.5;
+          const innerRad = baseRadius * 1.1;
+          ctx.lineTo(Math.cos(angle) * outerRad, Math.sin(angle) * outerRad);
+          ctx.lineTo(Math.cos(angle + Math.PI / 5) * innerRad, Math.sin(angle + Math.PI / 5) * innerRad);
+        }
+        ctx.closePath();
+        ctx.stroke();
+
+        // Inner glowing dash ring
+        ctx.strokeStyle = '#e040fb'; // Neon Violet/Magenta
+        ctx.setLineDash([6, 6]);
+        ctx.beginPath();
+        ctx.arc(0, 0, baseRadius * 1.2, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
         break;
@@ -2150,131 +2176,344 @@ export class Bird {
     const faceX = Math.cos(this.angle) * 1.5;
     const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.1;
 
-    // --- 1. Orange feet & legs (tucked in flying posture) ---
-    ctx.fillStyle = '#ff7043'; // Vibrant red-orange
-    ctx.strokeStyle = '#d84315';
+    // --- 1. Steel-colored Curved Talons (Aggressive battle-claws) ---
+    ctx.fillStyle = '#455a64'; // Steel grey
+    ctx.strokeStyle = '#263238'; // Dark charcoal edge
+    ctx.lineWidth = 1.2;
+    // Left talon
+    ctx.beginPath();
+    ctx.moveTo(-6, 13);
+    ctx.quadraticCurveTo(-10, 19, -4, 21); // Curved hook front
+    ctx.quadraticCurveTo(-2, 17, -2, 13);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    // Right talon
+    ctx.beginPath();
+    ctx.moveTo(1, 12);
+    ctx.quadraticCurveTo(-2, 19, 4, 20); // Curved hook
+    ctx.quadraticCurveTo(5, 16, 5, 12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    // Add golden accent claws
+    ctx.fillStyle = '#ffd700';
+    ctx.beginPath();
+    ctx.arc(-4, 21, 1.2, 0, Math.PI * 2);
+    ctx.arc(4, 20, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // --- 2. Torso (Belly/Breast: High-tech layered boss armor plates) ---
+    // Outer shadow / glow border
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+    ctx.beginPath();
+    ctx.arc(0, 0, 17, 0, Math.PI * 2);
+    ctx.fill();
+
+    const armorGrad = ctx.createLinearGradient(-15, -15, 15, 15);
+    armorGrad.addColorStop(0, '#ffe082'); // Gold-yellow top
+    armorGrad.addColorStop(0.5, '#ff8f00'); // Amber orange
+    armorGrad.addColorStop(1, '#e65100'); // Deep dark orange-red base
+
+    // Draw main angular chest shield
+    ctx.fillStyle = armorGrad;
+    ctx.strokeStyle = '#3e2723';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, -16);
+    ctx.lineTo(13, -10);
+    ctx.lineTo(16, 4);
+    ctx.lineTo(8, 14);
+    ctx.lineTo(-8, 14);
+    ctx.lineTo(-16, 4);
+    ctx.lineTo(-13, -10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Layered plates inside chest
+    ctx.strokeStyle = '#ffd700'; // Glowing golden seam lines
     ctx.lineWidth = 1;
-    // Left foot
     ctx.beginPath();
-    ctx.ellipse(-4, 15, 2.5, 5, 0.3, 0, Math.PI * 2);
-    ctx.fill();
+    // Plate 1 horizontal divider
+    ctx.moveTo(-14, -2);
+    ctx.lineTo(0, 4);
+    ctx.lineTo(14, -2);
+    // Plate 2 vertical centerline divider
+    ctx.moveTo(0, 4);
+    ctx.lineTo(0, 14);
     ctx.stroke();
-    // Right foot
-    ctx.beginPath();
-    ctx.ellipse(3, 14, 2.5, 5, -0.3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
 
-    // --- 2. Torso (Belly/Breast: Warm yellow transitioning to orange at sides) ---
-    const bellyGrad = ctx.createLinearGradient(-15, -15, 15, 15);
-    bellyGrad.addColorStop(0, '#ffd54f'); // Yellow
-    bellyGrad.addColorStop(0.6, '#ff9100'); // Deep Orange
-    bellyGrad.addColorStop(1, '#ff3d00'); // Red-Orange base
-
-    ctx.fillStyle = bellyGrad;
-    ctx.beginPath();
-    ctx.arc(0, 0, 16, 0, Math.PI * 2);
-    ctx.fill();
-
-    // --- 3. Bright Pink & Magenta Tail Feathers ---
+    // --- 3. Jagged Pink/Magenta Energy Tail Spikes (Thruster-like) ---
     ctx.save();
-    ctx.translate(-14, 6);
+    ctx.translate(-13, 5);
     const tailTilt = -this.vy * 0.05 + Math.sin(this.flapCycle) * 0.1;
     ctx.rotate(tailTilt);
     
-    // Gradient: Bright violet-pink to reddish-orange tip
-    const tailGrad = ctx.createLinearGradient(0, -5, -15, 10);
-    tailGrad.addColorStop(0, '#ff007f'); // Hot pink / Magenta
-    tailGrad.addColorStop(0.5, '#e040fb'); // Bright violet
-    tailGrad.addColorStop(1, '#ff3d00'); // Red-orange tip
+    // Gradient: Hot pink / magenta to bright violet
+    const energyGrad = ctx.createLinearGradient(0, -8, -26, 12);
+    energyGrad.addColorStop(0, '#e040fb'); // Bright violet
+    energyGrad.addColorStop(0.5, '#ff007f'); // Hot pink / Magenta
+    energyGrad.addColorStop(1, '#ff80ab'); // Light neon pink edge
 
-    ctx.fillStyle = tailGrad;
-    ctx.strokeStyle = '#b9006e';
-    ctx.lineWidth = 1.0;
+    ctx.fillStyle = energyGrad;
+    ctx.strokeStyle = '#4a0072';
+    ctx.lineWidth = 1.5;
+
+    // Draw 3 jagged bladed spikes
+    // Top spike
     ctx.beginPath();
-    ctx.moveTo(0, -6);
-    ctx.quadraticCurveTo(-14, -8, -25, 4);
-    ctx.quadraticCurveTo(-8, 12, 0, 2);
+    ctx.moveTo(0, -8);
+    ctx.lineTo(-24, -14);
+    ctx.lineTo(-10, -3);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-    ctx.restore();
 
-    // --- 4. Back / Cape / Scapular feathers (Rich Royal Blue & dark navy wings/shoulders) ---
-    const backGrad = ctx.createLinearGradient(-12, -12, 4, 8);
-    backGrad.addColorStop(0, '#000000');   // Deep black/navy base
-    backGrad.addColorStop(0.4, '#1a237e'); // Dark indigo
-    backGrad.addColorStop(0.8, '#2979ff'); // Royal blue highlight
-    backGrad.addColorStop(1, '#29b6f6');   // Light blue edge
-
-    ctx.fillStyle = backGrad;
+    // Center/Main spike
     ctx.beginPath();
-    // Beautiful curved wing cape on back
-    ctx.moveTo(-16, -2);
-    ctx.bezierCurveTo(-10, -12, 2, -10, 0, 2);
-    ctx.bezierCurveTo(-2, 10, -12, 12, -16, 4);
+    ctx.moveTo(0, -3);
+    ctx.lineTo(-29, 3);
+    ctx.lineTo(-8, 8);
     ctx.closePath();
     ctx.fill();
+    ctx.stroke();
+
+    // Bottom spike
+    ctx.beginPath();
+    ctx.moveTo(0, 8);
+    ctx.lineTo(-22, 12);
+    ctx.lineTo(2, 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Glow core for energy tail
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#ff007f';
+    }
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.ellipse(-8, 0, 5, 2, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // --- 4. Back / Cape / Scapular feathers (Heavy Metallic Navy/Indigo Armor Plates) ---
+    const plateGrad = ctx.createLinearGradient(-15, -12, 5, 10);
+    plateGrad.addColorStop(0, '#000a12');   // Near black metallic
+    plateGrad.addColorStop(0.4, '#0f1b29'); // Dark navy
+    plateGrad.addColorStop(0.8, '#1565c0'); // Royal blue plate
+    plateGrad.addColorStop(1, '#00e5ff');   // Cyan glowing edge
+
+    ctx.fillStyle = plateGrad;
+    ctx.strokeStyle = '#00e5ff';
+    ctx.lineWidth = 1.2;
+
+    ctx.beginPath();
+    // Angular back plate
+    ctx.moveTo(-16, -4);
+    ctx.lineTo(-5, -13);
+    ctx.lineTo(5, -6);
+    ctx.lineTo(1, 4);
+    ctx.lineTo(-11, 10);
+    ctx.lineTo(-16, 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Additional shoulder blade detail
+    ctx.strokeStyle = '#1565c0';
+    ctx.beginPath();
+    ctx.moveTo(-12, -2);
+    ctx.lineTo(-2, -6);
+    ctx.stroke();
 
     // --- 5. Royal Kingfisher Crown & Head (Purple/Magenta crown with red/orange base) ---
     const headGrad = ctx.createLinearGradient(-6, -16, 12, -4);
-    headGrad.addColorStop(0, '#8e24aa'); // Purple crown
-    headGrad.addColorStop(0.4, '#d81b60'); // Magenta/Pink
-    headGrad.addColorStop(0.8, '#ff3d00'); // Red-orange eyebrow ridge
-    headGrad.addColorStop(1, '#ffea00');   // Yellow face connection
+    headGrad.addColorStop(0, '#6a1b9a'); // Deep purple crown
+    headGrad.addColorStop(0.4, '#c2185b'); // Magenta/Pink
+    headGrad.addColorStop(0.8, '#d84315'); // Red-orange eyebrow ridge
+    headGrad.addColorStop(1, '#ffb300');   // Yellow/Gold face connection
 
     ctx.fillStyle = headGrad;
     ctx.beginPath();
     ctx.arc(faceX, -6 + faceY, 12.5, 0, Math.PI * 2);
     ctx.fill();
 
-    // --- 6. Cheeks & Throat (Light cream/yellow patch under eye) ---
-    ctx.fillStyle = '#fff9c4'; // Cream/soft yellow cheek highlight
+    // Dangerous back-sweeping horns (Magenta energy spikes)
+    ctx.strokeStyle = '#c2185b';
+    ctx.lineWidth = 1.5;
+    
+    // Horn 1 (Top horn)
+    const hornGrad = ctx.createLinearGradient(faceX, -15 + faceY, -18 + faceX, -22 + faceY);
+    hornGrad.addColorStop(0, '#c2185b');
+    hornGrad.addColorStop(1, '#ff007f'); // Menacing neon tip
+    ctx.fillStyle = hornGrad;
     ctx.beginPath();
-    ctx.ellipse(3 + faceX, 1 + faceY, 4, 3, -0.4, 0, Math.PI * 2);
+    ctx.moveTo(-2 + faceX, -16 + faceY);
+    ctx.lineTo(-20 + faceX, -26 + faceY); // Long dangerous swept horn
+    ctx.lineTo(-8 + faceX, -12 + faceY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Horn 2 (Middle horn)
+    ctx.beginPath();
+    ctx.moveTo(-6 + faceX, -13 + faceY);
+    ctx.lineTo(-22 + faceX, -17 + faceY);
+    ctx.lineTo(-10 + faceX, -8 + faceY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // --- 6. Cheeks & Throat (Glowing yellow power plate under eye) ---
+    ctx.fillStyle = '#ffea00'; // High-intensity yellow neon plate
+    ctx.beginPath();
+    ctx.ellipse(3 + faceX, 1 + faceY, 4.5, 2.5, -0.4, 0, Math.PI * 2);
     ctx.fill();
 
-    // --- 7. Large Expressive Black Eye with prominent highlight ---
-    ctx.fillStyle = '#000000';
+    // --- 7. Cybernetic Visor plate with Glowing Menacing Red Eye Slit ---
+    // Dark visor plate
+    ctx.fillStyle = '#212121'; // Charcoal black
+    ctx.strokeStyle = '#c2185b'; // Magenta trim
+    ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.arc(4 + faceX, -6 + faceY, 4, 0, Math.PI * 2);
+    // Angular visor shape
+    ctx.moveTo(-1 + faceX, -9 + faceY);
+    ctx.lineTo(8 + faceX, -8 + faceY);
+    ctx.lineTo(9 + faceX, -4 + faceY);
+    ctx.lineTo(2 + faceX, -2 + faceY);
+    ctx.lineTo(-1 + faceX, -4 + faceY);
+    ctx.closePath();
     ctx.fill();
+    ctx.stroke();
 
-    // White eye reflections
-    ctx.fillStyle = '#ffffff';
+    // Menacing glowing red slit eye
+    ctx.strokeStyle = '#ff1744'; // Glowing neon red
+    ctx.lineWidth = 2.0;
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#ff1744';
+    }
     ctx.beginPath();
-    ctx.arc(5.2 + faceX, -7.2 + faceY, 1.2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(3.0 + faceX, -5.2 + faceY, 0.6, 0, Math.PI * 2); // Secondary micro reflection
-    ctx.fill();
+    // Diagonal angry glowing line
+    ctx.moveTo(1 + faceX, -6 + faceY);
+    ctx.lineTo(7 + faceX, -6 + faceY);
+    ctx.stroke();
 
-    // --- 8. Giant Red-Orange Beak (Instantly recognizable, pointing slightly upwards) ---
+    // Mini hot white laser core inside the red slit
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(3 + faceX, -6 + faceY);
+    ctx.lineTo(6 + faceX, -6 + faceY);
+    ctx.stroke();
+
+    // Reset shadow for subsequent drawings
+    ctx.shadowBlur = 0;
+
+    // --- 8. Giant Red-Orange Beak (Reinforced cyber-alloy plating, pointing slightly upwards) ---
     const beakGrad = ctx.createLinearGradient(faceX, -8 + faceY, 32 + faceX, -2 + faceY);
-    beakGrad.addColorStop(0, '#ff3d00'); // Orange-red base
-    beakGrad.addColorStop(0.8, '#ff3d00'); // Bright red center
-    beakGrad.addColorStop(1, '#ff6e40'); // Highlighted tip
+    beakGrad.addColorStop(0, '#d84315'); // Deep rust base
+    beakGrad.addColorStop(0.5, '#ff3d00'); // Fiery orange-red
+    beakGrad.addColorStop(1, '#ff6e40'); // Glowing orange tip
 
     ctx.fillStyle = beakGrad;
-    ctx.strokeStyle = '#b71c1c'; // Dark red lip line separator
-    ctx.lineWidth = 1.0;
+    ctx.strokeStyle = '#37474f'; // Metallic blue-grey outline
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(8 + faceX, -10 + faceY); // Top base
-    ctx.lineTo(34 + faceX * 1.4, -6 + faceY); // Sharp tip (pointing up!)
+    ctx.moveTo(8 + faceX, -11 + faceY); // Top base
+    ctx.lineTo(35 + faceX * 1.4, -6 + faceY); // Sharp tip pointing up
     ctx.lineTo(7 + faceX, -1 + faceY); // Bottom base
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Split line in beak
-    ctx.strokeStyle = '#b71c1c';
-    ctx.lineWidth = 1.2;
+    // Metal alloy support plate near face
+    ctx.fillStyle = '#546e7a';
     ctx.beginPath();
-    ctx.moveTo(8 + faceX, -5 + faceY);
-    ctx.lineTo(33 + faceX * 1.4, -6 + faceY);
+    ctx.moveTo(8 + faceX, -11 + faceY);
+    ctx.lineTo(13 + faceX, -8 + faceY);
+    ctx.lineTo(11 + faceX, -3 + faceY);
+    ctx.lineTo(7 + faceX, -1 + faceY);
+    ctx.closePath();
+    ctx.fill();
     ctx.stroke();
 
-    // --- 9. Flapping Wings (Navy/Indigo main with Royal Blue tips) ---
-    this.drawFlappingWing(ctx, '#0c1033', '#2979ff');
+    // Laser cutting beam separator along the beak lip
+    ctx.strokeStyle = '#ff9100'; // Heat laser glow
+    ctx.lineWidth = 1.5;
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 5;
+      ctx.shadowColor = '#ff9100';
+    }
+    ctx.beginPath();
+    ctx.moveTo(11 + faceX, -5 + faceY);
+    ctx.lineTo(34 + faceX * 1.4, -6 + faceY);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // --- 9. Heavy Bladed Mechanical Wings (Cyber Navy/Indigo plates with Glowing Cyan/Neon-Blue edges) ---
+    ctx.save();
+    ctx.translate(-4, 2);
+    // Flapping movement angle
+    const flapAngle = Math.sin(this.flapCycle) * 0.7;
+    ctx.rotate(flapAngle);
+
+    // Segmented feathers/blades
+    const bladeColors = ['#0c1033', '#1565c0', '#29b6f6']; // Indigo to neon blue
+    
+    // Blade 1 (Main/Top heavy blade)
+    ctx.fillStyle = bladeColors[0];
+    ctx.strokeStyle = '#00e5ff';
+    ctx.lineWidth = 1.5;
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = '#00e5ff';
+    }
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-24, -16);
+    ctx.lineTo(-28, -6);
+    ctx.lineTo(-8, 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Blade 2 (Middle sharp blade)
+    ctx.fillStyle = bladeColors[1];
+    ctx.beginPath();
+    ctx.moveTo(-4, 2);
+    ctx.lineTo(-31, -2);
+    ctx.lineTo(-33, 5);
+    ctx.lineTo(-10, 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Blade 3 (Bottom smaller blade)
+    ctx.fillStyle = bladeColors[2];
+    ctx.beginPath();
+    ctx.moveTo(-6, 4);
+    ctx.lineTo(-28, 10);
+    ctx.lineTo(-26, 16);
+    ctx.lineTo(-8, 9);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Wing joint cover (Gold armored cap)
+    ctx.fillStyle = '#ffb300';
+    ctx.strokeStyle = '#3e2723';
+    ctx.lineWidth = 1.0;
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    ctx.arc(0, 2, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore();
   }
 }
