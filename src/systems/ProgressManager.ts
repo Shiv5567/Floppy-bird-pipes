@@ -296,6 +296,18 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5
+      },
+      {
+        id: 'aviator_chick',
+        name: 'Aviator Chick',
+        rarity: 'Legendary',
+        glowColor: 'rgba(244, 81, 30, 0.9)',
+        particleType: 'feathers',
+        costCoins: 5000,
+        costGems: 0,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5
       }
     ];
   }

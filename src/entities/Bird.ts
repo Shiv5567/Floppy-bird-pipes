@@ -356,6 +356,9 @@ export class Bird {
       case 'dread_owl':
         this.drawOwl(ctx);
         break;
+      case 'aviator_chick':
+        this.drawAviatorChick(ctx);
+        break;
       default:
         this.drawEagle(ctx); // Default Eagle
     }
@@ -641,6 +644,50 @@ export class Bird {
         ctx.beginPath();
         ctx.arc(0, 0, baseRadius * 1.25, 0, Math.PI * 2);
         ctx.stroke();
+        ctx.restore();
+        break;
+      }
+      case 'aviator_chick': {
+        // Rotating golden aeronautical compass-themed aura
+        ctx.strokeStyle = '#ffd700'; // Gold compass
+        ctx.save();
+        ctx.rotate(this.auraAngle * 0.8);
+        
+        // Outer compass circle
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(0, 0, baseRadius * 1.3, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // 4 cardinal direction ticks (North, South, East, West)
+        ctx.strokeStyle = '#ff9100'; // Orange ticks
+        ctx.lineWidth = 2.0;
+        for (let i = 0; i < 4; i++) {
+          const angle = (i * Math.PI) / 2;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(angle) * baseRadius * 1.2, Math.sin(angle) * baseRadius * 1.2);
+          ctx.lineTo(Math.cos(angle) * baseRadius * 1.4, Math.sin(angle) * baseRadius * 1.4);
+          ctx.stroke();
+        }
+
+        // Inner rotating double needle (North/South indicator)
+        ctx.rotate(this.auraAngle * 1.5); // Fast counter-needle
+        ctx.fillStyle = '#ff3d00'; // Red pointer
+        ctx.beginPath();
+        ctx.moveTo(0, -baseRadius * 1.1);
+        ctx.lineTo(3.5, 0);
+        ctx.lineTo(-3.5, 0);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#cfd8dc'; // Silver pointer
+        ctx.beginPath();
+        ctx.moveTo(0, baseRadius * 1.1);
+        ctx.lineTo(3.5, 0);
+        ctx.lineTo(-3.5, 0);
+        ctx.closePath();
+        ctx.fill();
+
         ctx.restore();
         break;
       }
@@ -2815,5 +2862,299 @@ export class Bird {
     ctx.stroke();
 
     ctx.restore();
+  }
+
+  private drawAviatorChick(ctx: CanvasRenderingContext2D) {
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = 'rgba(255, 112, 67, 0.4)'; // Soft warm orange glow
+    }
+
+    // 2.5D Face shift offset based on bird movement angle
+    const faceX = Math.cos(this.angle) * 1.5;
+    const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.1;
+
+    // --- 1. Pinkish-Grey Bird Feet ---
+    ctx.fillStyle = '#ffab91'; // Pinkish-grey
+    ctx.strokeStyle = '#d84315';
+    ctx.lineWidth = 1;
+    // Left foot
+    ctx.beginPath();
+    ctx.ellipse(-4, 15, 2.5, 4, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // Right foot
+    ctx.beginPath();
+    ctx.ellipse(3, 14, 2.5, 4, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // --- 2. Waving White Scarf Tail (Flows backwards to the left) ---
+    ctx.save();
+    ctx.translate(-10, 4);
+    // Waving animation based on flapCycle
+    const wave = Math.sin(this.flapCycle * 2) * 1.5;
+    ctx.fillStyle = '#f5f5f5';
+    ctx.strokeStyle = '#e0e0e0';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(-12, -4 + wave, -24, 4 + wave, -32, -2 + wave);
+    ctx.lineTo(-30, 4 + wave);
+    ctx.bezierCurveTo(-22, 10 + wave, -10, 2 + wave, 0, 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // --- 3. Body Torso (Orange Flight Jacket) ---
+    // Jacket main base
+    ctx.fillStyle = '#e65100'; // Orange leather jacket
+    ctx.strokeStyle = '#3e2723'; // Dark brown trim
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(0, 3, 15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Golden zipper details
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(0, -9);
+    ctx.lineTo(0, 15);
+    ctx.stroke();
+
+    // Tiny round pilot badge on right chest
+    ctx.fillStyle = '#8d6e63'; // Brown badge background
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.arc(6, 4, 2.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // Tiny star inside badge
+    ctx.fillStyle = '#ffd700';
+    ctx.beginPath();
+    ctx.arc(6, 4, 1.0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // --- 4. Rolled Map Scroll (Beige paper scroll tucked under wing) ---
+    ctx.save();
+    ctx.translate(-11, 6);
+    ctx.rotate(0.25);
+    // Draw cylindrical rolled scroll
+    const scrollGrad = ctx.createLinearGradient(0, -4, 0, 4);
+    scrollGrad.addColorStop(0, '#f5f5dc'); // Beige
+    scrollGrad.addColorStop(0.5, '#eef0d5');
+    scrollGrad.addColorStop(1, '#d8d9b5'); // Shadowed bottom
+    ctx.fillStyle = scrollGrad;
+    ctx.strokeStyle = '#795548';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.rect(-10, -3.5, 20, 7);
+    ctx.fill();
+    ctx.stroke();
+    // End circle of rolled paper
+    ctx.fillStyle = '#795548';
+    ctx.beginPath();
+    ctx.ellipse(-10, 0, 1.2, 3.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Tiny red ribbon tied around center of scroll
+    ctx.fillStyle = '#ff1744';
+    ctx.beginPath();
+    ctx.rect(-1, -4, 2.5, 8);
+    ctx.fill();
+    ctx.restore();
+
+    // --- 5. Fluffy Feathered Head & Face ---
+    // Base head gradient (lighter on top, darker on neck/throat)
+    const headGrad = ctx.createLinearGradient(faceX, -16 + faceY, faceX, 4 + faceY);
+    headGrad.addColorStop(0, '#eceff1'); // Light grey forehead
+    headGrad.addColorStop(0.5, '#b0bec5'); // Mid grey
+    headGrad.addColorStop(0.9, '#546e7a'); // Dark slate-grey neck
+    headGrad.addColorStop(1, '#37474f'); // Dark throat base
+
+    ctx.fillStyle = headGrad;
+    ctx.beginPath();
+    ctx.arc(faceX, -6 + faceY, 13.0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Add fluffy feather tufts around the cheeks
+    ctx.fillStyle = '#b0bec5';
+    ctx.beginPath();
+    // Left cheek fluffy tufts
+    ctx.moveTo(-11 + faceX, -3 + faceY);
+    ctx.lineTo(-16 + faceX, -1 + faceY);
+    ctx.lineTo(-10 + faceX, 3 + faceY);
+    ctx.lineTo(-14 + faceX, 6 + faceY);
+    ctx.lineTo(-8 + faceX, 6 + faceY);
+    // Right cheek fluffy tufts
+    ctx.moveTo(11 + faceX, -3 + faceY);
+    ctx.lineTo(16 + faceX, -1 + faceY);
+    ctx.lineTo(10 + faceX, 3 + faceY);
+    ctx.lineTo(14 + faceX, 6 + faceY);
+    ctx.lineTo(8 + faceX, 6 + faceY);
+    ctx.fill();
+
+    // --- 6. Orange Leather Flight Cap (Helmet) ---
+    // Cap dome
+    ctx.fillStyle = '#e65100'; // Warm orange leather
+    ctx.strokeStyle = '#3e2723';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(faceX, -7.5 + faceY, 13.0, Math.PI, 0); // Cap covering top half of head
+    ctx.lineTo(faceX + 13, -7.5 + faceY);
+    ctx.bezierCurveTo(faceX + 12, -18 + faceY, faceX - 12, -18 + faceY, faceX - 13, -7.5 + faceY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Side leather ear flap loop (Left side)
+    ctx.beginPath();
+    ctx.ellipse(-12 + faceX, -5 + faceY, 3, 5, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // Side leather ear flap loop (Right side)
+    ctx.beginPath();
+    ctx.ellipse(12 + faceX, -5 + faceY, 3, 5, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // --- 7. Large Glassy Aviator Goggles ---
+    ctx.fillStyle = '#1e1e1e'; // Dark goggle frames
+    ctx.strokeStyle = '#3e2723';
+    ctx.lineWidth = 1;
+    // Left Frame
+    ctx.beginPath();
+    ctx.roundRect(-8 + faceX, -16 + faceY, 7.5, 5.5, 2);
+    ctx.fill();
+    ctx.stroke();
+    // Right Frame
+    ctx.beginPath();
+    ctx.roundRect(1.5 + faceX, -16 + faceY, 7.5, 5.5, 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Glassy lens gradient
+    const lensGrad = ctx.createLinearGradient(0, -16 + faceY, 0, -10 + faceY);
+    lensGrad.addColorStop(0, '#b3e5fc'); // Light sky blue
+    lensGrad.addColorStop(0.6, '#0288d1'); // Deep blue glass
+    lensGrad.addColorStop(1, '#01579b'); // Dark blue bottom shadow
+    
+    ctx.fillStyle = lensGrad;
+    // Left Lens
+    ctx.beginPath();
+    ctx.rect(-7 + faceX, -15 + faceY, 5.5, 3.5);
+    ctx.fill();
+    // Right Lens
+    ctx.beginPath();
+    ctx.rect(2.5 + faceX, -15 + faceY, 5.5, 3.5);
+    ctx.fill();
+
+    // Glass glare highlights (White slash lines)
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(-6 + faceX, -14.5 + faceY);
+    ctx.lineTo(-4 + faceX, -12 + faceY);
+    ctx.moveTo(3.5 + faceX, -14.5 + faceY);
+    ctx.lineTo(5.5 + faceX, -12 + faceY);
+    ctx.stroke();
+
+    // Goggles strap (wraps around side of helmet)
+    ctx.strokeStyle = '#1e1e1e';
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    ctx.moveTo(-13 + faceX, -12 + faceY);
+    ctx.lineTo(-8 + faceX, -13 + faceY);
+    ctx.moveTo(9 + faceX, -13 + faceY);
+    ctx.lineTo(13 + faceX, -12 + faceY);
+    ctx.stroke();
+
+    // --- 8. Wide Expressive Brown Eyes ---
+    // White eyeball
+    ctx.fillStyle = '#ffffff';
+    // Left eye ball
+    ctx.beginPath();
+    ctx.ellipse(-4.5 + faceX, -5.5 + faceY, 5.5, 4.5, -0.1, 0, Math.PI * 2);
+    ctx.fill();
+    // Right eye ball
+    ctx.beginPath();
+    ctx.ellipse(5.5 + faceX, -5.5 + faceY, 5.5, 4.5, 0.1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Brown iris
+    ctx.fillStyle = '#8d6e63'; // Warm brown iris
+    // Left iris
+    ctx.beginPath();
+    ctx.arc(-3.5 + faceX, -5.2 + faceY, 2.8, 0, Math.PI * 2);
+    ctx.fill();
+    // Right iris
+    ctx.beginPath();
+    ctx.arc(4.5 + faceX, -5.2 + faceY, 2.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Black pupil
+    ctx.fillStyle = '#000000';
+    // Left pupil
+    ctx.beginPath();
+    ctx.arc(-3.5 + faceX, -5.2 + faceY, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    // Right pupil
+    ctx.beginPath();
+    ctx.arc(4.5 + faceX, -5.2 + faceY, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // White shininess reflections (calm, shiny highlights)
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(-2.8 + faceX, -6.0 + faceY, 0.8, 0, Math.PI * 2);
+    ctx.arc(5.2 + faceX, -6.0 + faceY, 0.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // --- 9. Curved Dark Grey Beak (Open with Pink Tongue inside) ---
+    // Draw open mouth base
+    ctx.fillStyle = '#37474f'; // Dark beak charcoal
+    ctx.strokeStyle = '#212121';
+    ctx.lineWidth = 1.0;
+
+    // Upper beak (Hooking down)
+    ctx.beginPath();
+    ctx.moveTo(-1.5 + faceX, -7.5 + faceY);
+    ctx.quadraticCurveTo(11 + faceX, -7.5 + faceY, 12 + faceX, -1.5 + faceY); // Sharp tip
+    ctx.quadraticCurveTo(4 + faceX, -2.5 + faceY, 0 + faceX, -4.5 + faceY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Lower beak (Opened mouth cavity)
+    ctx.fillStyle = '#546e7a';
+    ctx.beginPath();
+    ctx.moveTo(0 + faceX, -4.5 + faceY);
+    ctx.quadraticCurveTo(5 + faceX, -2.5 + faceY, 9 + faceX, -0.5 + faceY);
+    ctx.lineTo(4 + faceX, 3.5 + faceY); // Bottom of open beak
+    ctx.quadraticCurveTo(-1 + faceX, 0 + faceY, -1 + faceX, -4.5 + faceY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Pink tongue inside open mouth gap
+    ctx.fillStyle = '#ff8a80'; // Pink tongue
+    ctx.beginPath();
+    ctx.ellipse(3 + faceX, -0.5 + faceY, 2.0, 1.5, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Scarf wrap around neck (White cloth wrap)
+    ctx.fillStyle = '#f5f5f5';
+    ctx.strokeStyle = '#cfd8dc';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.ellipse(faceX, 4 + faceY, 9, 3, 0.05, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // --- 10. Flapping Wings (Ash-grey feathers) ---
+    this.drawFlappingWing(ctx, '#78909c', '#cfd8dc');
   }
 }
