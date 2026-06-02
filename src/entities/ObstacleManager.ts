@@ -343,8 +343,8 @@ export class ObstacleManager {
             obs.shakeX = Math.sin(phaseTop) * 26;
             obs.shakeX2 = Math.cos(phaseBottom) * 26;
             
-            const topBob = Math.cos(phaseTop) * 18;
-            const botBob = Math.sin(phaseBottom) * 18;
+            const topBob = Math.cos(phaseTop) * 29; // Bobbing range (path interaction) increased by 60% (from 18 to 29)
+            const botBob = Math.sin(phaseBottom) * 29; // Bobbing range (path interaction) increased by 60% (from 18 to 29)
             obs.targetTopHeight = obs.baseTopHeight! + topBob;
             obs.targetBottomHeight = obs.baseBottomHeight! - botBob;
           } else if (obs.patternType === 'level7_dna') {
@@ -1382,9 +1382,9 @@ export class ObstacleManager {
         const modIdx = obstacleIdx % 6;
         const triangleOffset = modIdx < 3 ? (modIdx * 30 - 30) : ((5 - modIdx) * 30 - 30); // Step size decreased to 30px for a less zigzag path
         
-        // Alternates path offset UP and DOWN by 40% of the gap height every 6 obstacles
+        // Alternates path offset UP and DOWN by 24% of the gap height every 6 obstacles (difference decreased by 40%)
         const shiftSign = isShiftedBlock ? 1 : -1; // Alternating UP (-1) and DOWN (+1)
-        const pathShift = shiftSign * (baseGap * 0.40);
+        const pathShift = shiftSign * (baseGap * 0.24);
         
         targetCenterY = height / 2 + triangleOffset + pathShift;
         triggerDistance = 280;
