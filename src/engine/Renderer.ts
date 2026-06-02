@@ -741,6 +741,42 @@ export class Renderer {
         this.ctx.restore();
         break;
       }
+      case 'desert': {
+        // Draw a scorching desert mid-day sun with glowing radial halos
+        const sunX = width * 0.65;
+        const sunY = height * 0.20;
+        const baseRadius = 35;
+
+        // Outer heat haze / corona glow
+        const coronaGrad = this.ctx.createRadialGradient(sunX, sunY, baseRadius * 0.8, sunX, sunY, baseRadius * 4.5);
+        coronaGrad.addColorStop(0, 'rgba(255, 230, 150, 0.45)');
+        coronaGrad.addColorStop(0.3, 'rgba(255, 170, 50, 0.22)');
+        coronaGrad.addColorStop(0.7, 'rgba(255, 100, 0, 0.06)');
+        coronaGrad.addColorStop(1, 'rgba(255, 100, 0, 0)');
+        this.ctx.fillStyle = coronaGrad;
+        this.ctx.beginPath();
+        this.ctx.arc(sunX, sunY, baseRadius * 4.5, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Inner bright sun glow
+        const sunGrad = this.ctx.createRadialGradient(sunX, sunY, 2, sunX, sunY, baseRadius);
+        sunGrad.addColorStop(0, '#ffffff'); // bright hot white core
+        sunGrad.addColorStop(0.2, '#fff6d5'); // cream white
+        sunGrad.addColorStop(0.7, '#ffde80'); // bright yellow-gold
+        sunGrad.addColorStop(1, 'rgba(255, 222, 128, 0)');
+        this.ctx.fillStyle = sunGrad;
+        this.ctx.beginPath();
+        this.ctx.arc(sunX, sunY, baseRadius, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Core sun sphere
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.beginPath();
+        this.ctx.arc(sunX, sunY, baseRadius * 0.65, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        break;
+      }
       case 'jungle_temple': {
         const rayGrad = this.ctx.createRadialGradient(0, 0, 50, 0, 0, 500);
         rayGrad.addColorStop(0, 'rgba(255, 223, 137, 0.22)');
