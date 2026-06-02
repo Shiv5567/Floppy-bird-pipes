@@ -1414,12 +1414,13 @@ export class ObstacleManager {
         animDuration = 0.36;
       } else if (patternType === 'level9_magnetic') {
         // LEVEL 9: "The Quantum Entangled Gates" (Interlaced high-low paired gates)
+        // Path shift amplitudes increased 25%: base 60→75px, sine wobble 30→37px (harder at extremes)
         localGapHeight = gapHeight - 10;
         const isEven = (obstacleIdx % 2 === 0);
         if (isEven) {
-          targetCenterY = height / 2 - 60 + Math.sin(obstacleIdx * 0.4) * 30;
+          targetCenterY = height / 2 - 75 + Math.sin(obstacleIdx * 0.4) * 37;
         } else {
-          targetCenterY = height / 2 + 60 - Math.sin((obstacleIdx - 1) * 0.4) * 30;
+          targetCenterY = height / 2 + 75 - Math.sin((obstacleIdx - 1) * 0.4) * 37;
         }
         triggerDistance = 240;
         animDuration = 0.34;
