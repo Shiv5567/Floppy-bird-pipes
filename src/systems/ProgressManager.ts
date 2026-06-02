@@ -284,6 +284,18 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5
+      },
+      {
+        id: 'dread_owl',
+        name: 'Dread Owl Overlord',
+        rarity: 'Legendary',
+        glowColor: 'rgba(0, 230, 118, 0.95)',
+        particleType: 'wyvern',
+        costCoins: 6000,
+        costGems: 0,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5
       }
     ];
   }
