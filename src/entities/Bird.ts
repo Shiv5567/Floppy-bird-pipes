@@ -3209,248 +3209,330 @@ export class Bird {
   private drawFalcon(ctx: CanvasRenderingContext2D) {
     if (!(window as any).gameDisableShadows) {
       ctx.shadowBlur = 12;
-      ctx.shadowColor = 'rgba(255, 191, 0, 0.6)'; // Menacing gold glow
+      ctx.shadowColor = 'rgba(255, 193, 7, 0.55)'; // Majestic amber-gold glow
     }
 
     // 2.5D Face shift offset based on bird movement angle
-    const faceX = Math.cos(this.angle) * 1.5;
-    const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.1;
+    const faceX = Math.cos(this.angle) * 2.2;
+    const faceY = Math.sin(this.angle) * 1.5 - this.vy * 0.12;
 
-    // --- 1. Muscular Yellow Claws (Peregrine yellow legs with sharp black talons) ---
-    ctx.fillStyle = '#ffca28'; // Bright yellow
-    ctx.strokeStyle = '#f57f17'; // Darker orange-yellow shading
-    ctx.lineWidth = 1.2;
-    // Left leg & talon
-    ctx.beginPath();
-    ctx.moveTo(-5, 10);
-    ctx.quadraticCurveTo(-11, 18, -4, 21);
-    ctx.quadraticCurveTo(-1, 15, -1, 10);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Right leg & talon (Larger front leg in profile)
-    ctx.beginPath();
-    ctx.moveTo(2, 9);
-    ctx.quadraticCurveTo(8, 20, 15, 17); // Muscular yellow claw facing forward
-    ctx.quadraticCurveTo(11, 13, 6, 9);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Razor-sharp black claws
-    ctx.fillStyle = '#212121';
-    ctx.beginPath();
-    ctx.arc(-4, 21, 1.5, 0, Math.PI * 2);
-    ctx.arc(15, 17, 1.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    // --- 2. Body/Torso (White Chest with Charcoal Barring pattern) ---
-    const bodyGrad = ctx.createLinearGradient(-16, -16, 16, 16);
-    bodyGrad.addColorStop(0, '#546e7a'); // Slate back base
-    bodyGrad.addColorStop(0.5, '#37474f');
-    bodyGrad.addColorStop(1, '#263238');
-    ctx.fillStyle = bodyGrad;
-    ctx.beginPath();
-    ctx.arc(0, 0, 16, 0, Math.PI * 2);
-    ctx.fill();
-
-    // White breast/belly patch (facing forward/right)
-    ctx.fillStyle = '#f5f5f5'; // Cream white
-    ctx.beginPath();
-    ctx.moveTo(3, -12);
-    ctx.bezierCurveTo(16, -6, 17, 4, 11, 12); // Front breast curve
-    ctx.lineTo(2, 11);
-    ctx.bezierCurveTo(7, 3, 7, -8, 2, -12);
-    ctx.closePath();
-    ctx.fill();
-
-    // Dark grey horizontal bars (barring pattern on chest)
-    ctx.strokeStyle = '#455a64';
+    // --- 1. Realistic Muscular Yellow Legs and Black Curved Talons ---
+    // Leg bases
+    ctx.fillStyle = '#ffca28'; // Peregrine yellow
+    ctx.strokeStyle = '#e65100'; // Shade
     ctx.lineWidth = 1.0;
-    ctx.beginPath();
-    // Bar row 1
-    ctx.moveTo(5, -6); ctx.lineTo(13, -3);
-    // Bar row 2
-    ctx.moveTo(6, -1); ctx.lineTo(14, 2);
-    // Bar row 3
-    ctx.moveTo(5, 4); ctx.lineTo(12, 7);
-    ctx.stroke();
 
-    // --- 3. Fan-shaped Tail Feathers (Pointed, slate-grey, barred) ---
+    // Rear leg
     ctx.save();
-    ctx.translate(-13, 5);
-    const tailTilt = -this.vy * 0.05 + Math.sin(this.flapCycle) * 0.08;
-    ctx.rotate(tailTilt);
-
-    const tailGrad = ctx.createLinearGradient(0, -6, -24, 10);
-    tailGrad.addColorStop(0, '#37474f');
-    tailGrad.addColorStop(1, '#ffd700'); // Glowing golden tips
-    ctx.fillStyle = tailGrad;
-    ctx.strokeStyle = '#263238';
-    ctx.lineWidth = 1;
-
     ctx.beginPath();
-    ctx.moveTo(0, -6);
-    ctx.lineTo(-26, -12); // Long pointed primary feather
-    ctx.lineTo(-29, -2);
-    ctx.lineTo(-25, 8);
-    ctx.lineTo(0, 2);
+    ctx.moveTo(-6, 8);
+    ctx.quadraticCurveTo(-12, 16, -6, 20); // Thick thigh/leg
+    ctx.lineTo(-3, 19);
+    ctx.quadraticCurveTo(-9, 13, -3, 8);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Barring lines on tail
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    // Rear claw toes (sharp black claws gripping)
+    ctx.strokeStyle = '#212121';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(-10, -5); ctx.lineTo(-11, 2);
-    ctx.moveTo(-18, -7); ctx.lineTo(-19, 1);
+    ctx.moveTo(-6, 20);
+    ctx.quadraticCurveTo(-10, 24, -13, 23); // Back toe
+    ctx.moveTo(-6, 20);
+    ctx.quadraticCurveTo(-5, 25, -5, 26); // Middle toe
+    ctx.stroke();
+
+    // Front leg (in profile, more prominent)
+    ctx.fillStyle = '#ffd54f';
+    ctx.beginPath();
+    ctx.moveTo(1, 8);
+    ctx.quadraticCurveTo(7, 18, 13, 19); // Muscular yellow leg pointing forward
+    ctx.quadraticCurveTo(10, 12, 5, 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Front claw toes (three curved toes with black claws)
+    ctx.strokeStyle = '#1e1e1e';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(13, 19);
+    ctx.quadraticCurveTo(18, 22, 22, 20); // Front toe 1
+    ctx.moveTo(13, 19);
+    ctx.quadraticCurveTo(15, 24, 17, 26); // Front toe 2
+    ctx.moveTo(13, 19);
+    ctx.quadraticCurveTo(11, 23, 9, 25); // Back toe
     ctx.stroke();
     ctx.restore();
 
-    // --- 4. Back Scapular Cloak (Armored slate cape) ---
-    ctx.fillStyle = '#37474f';
-    ctx.strokeStyle = '#ffd700'; // Gold border line
-    ctx.lineWidth = 1.0;
+    // --- 2. Elongated Torso (Aerodynamic real body profile, slate back, barred cream belly) ---
+    // Base gradient for body (slate grey-blue back fading to charcoal)
+    const bodyGrad = ctx.createLinearGradient(-30, -18, 24, 18);
+    bodyGrad.addColorStop(0, '#546e7a'); // Slate grey
+    bodyGrad.addColorStop(0.3, '#37474f'); // Dark slate
+    bodyGrad.addColorStop(0.8, '#263238'); // Charcoal
+    bodyGrad.addColorStop(1, '#1c2529');
+    ctx.fillStyle = bodyGrad;
+
+    // Drawing the elongated aerodynamic body
     ctx.beginPath();
-    ctx.moveTo(-17, -3);
-    ctx.bezierCurveTo(-11, -14, 3, -12, 1, 3);
-    ctx.bezierCurveTo(-1, 11, -11, 13, -17, 5);
+    ctx.moveTo(-28, 4); // Tail base connection
+    ctx.bezierCurveTo(-22, -18, 12, -18, 19, -5); // Upper back curve
+    ctx.bezierCurveTo(24, 1, 20, 15, 9, 16); // Aerodynamic chest swell
+    ctx.bezierCurveTo(-3, 17, -19, 13, -28, 4); // Lower belly taper
+    ctx.closePath();
+    ctx.fill();
+
+    // White/Cream Breast and Underparts Patch (extends from chin to lower belly)
+    const chestGrad = ctx.createLinearGradient(-10, 14, 20, -10);
+    chestGrad.addColorStop(0, '#e0f2f1'); // Soft pale teal-grey undertone
+    chestGrad.addColorStop(0.5, '#f5f5f5'); // Cream white breast
+    chestGrad.addColorStop(1, '#ffffff'); // Pure white upper throat
+    ctx.fillStyle = chestGrad;
+
+    ctx.beginPath();
+    ctx.moveTo(4, -13);
+    ctx.bezierCurveTo(19, -8, 22, 4, 17, 13); // Front curve
+    ctx.bezierCurveTo(11, 16, -2, 16, -11, 11); // Tapering down belly
+    ctx.bezierCurveTo(-3, 9, 5, 2, 4, -13); // Inside back boundary
+    ctx.closePath();
+    ctx.fill();
+
+    // Fine dark-grey horizontal barring stripes on belly/breast (realistic falcon trait)
+    ctx.strokeStyle = 'rgba(55, 71, 79, 0.8)';
+    ctx.lineWidth = 1.1;
+    for (let i = 0; i < 7; i++) {
+      const barY = -8 + i * 3.6;
+      const startX = -3 + i * 1.1;
+      const endX = 14 + (6 - i) * 0.9;
+      
+      // Curved horizontal bars wrap around the 3D chest shape
+      ctx.beginPath();
+      ctx.moveTo(startX, barY);
+      ctx.quadraticCurveTo((startX + endX) / 2, barY + 1.2, endX, barY + 0.4);
+      ctx.stroke();
+    }
+
+    // --- 3. Long Narrow Tail Feathers (Barred slate-grey with white tip) ---
+    ctx.save();
+    ctx.translate(-26, 3); // Attached far back on elongated body
+    const tailTilt = -this.vy * 0.05 + Math.sin(this.flapCycle) * 0.07;
+    ctx.rotate(tailTilt);
+
+    const tailGrad = ctx.createLinearGradient(0, -6, -32, 8);
+    tailGrad.addColorStop(0, '#37474f'); // Slate
+    tailGrad.addColorStop(0.7, '#263238'); // Dark charcoal
+    tailGrad.addColorStop(1, '#cfd8dc'); // Pale grey/white tips
+
+    ctx.fillStyle = tailGrad;
+    ctx.strokeStyle = '#1a2327';
+    ctx.lineWidth = 1.0;
+
+    // Layered realistic tail profile
+    ctx.beginPath();
+    ctx.moveTo(0, -6);
+    ctx.lineTo(-32, -10); // Long primary tail feather
+    ctx.lineTo(-35, -2);
+    ctx.lineTo(-31, 8); // Lower feathers
+    ctx.lineTo(0, 3);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // --- 5. Menacing Peregrine Falcon Head (Dark hood, white cheeks) ---
-    // White throat & cheek base
-    ctx.fillStyle = '#f5f5f5';
+    // Real dark bars on tail
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.45)';
+    ctx.lineWidth = 1.5;
+    for (let i = 1; i <= 5; i++) {
+      ctx.beginPath();
+      ctx.moveTo(-i * 6, -7);
+      ctx.lineTo(-i * 6 - 1, 5);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // --- 4. Layered Back/Shoulder Covert Feathers (Armored Slate Cloak) ---
+    ctx.fillStyle = '#455a64';
+    ctx.strokeStyle = '#263238';
+    ctx.lineWidth = 0.8;
     ctx.beginPath();
-    ctx.arc(faceX, -5 + faceY, 12.0, 0, Math.PI * 2);
+    ctx.moveTo(-18, -4);
+    ctx.bezierCurveTo(-11, -15, 6, -13, 4, 3);
+    ctx.bezierCurveTo(2, 11, -11, 14, -18, 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Render feather layering highlights on the back
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.beginPath();
+    ctx.moveTo(-12, -7); ctx.quadraticCurveTo(-6, -10, 0, -6);
+    ctx.moveTo(-14, -2); ctx.quadraticCurveTo(-8, -5, -2, -1);
+    ctx.stroke();
+
+    // --- 5. Realistic Peregrine Falcon Head (Dark hood, clean white cheeks & throat) ---
+    // Pure white throat/cheek base
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(faceX, -6 + faceY, 12.0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Dark grey/black head hood & malar stripe
-    const hoodGrad = ctx.createLinearGradient(-6 + faceX, -16 + faceY, 12 + faceX, -2 + faceY);
-    hoodGrad.addColorStop(0, '#263238'); // Slate-black
+    // Deep slate-black head hood & distinctive malar stripe (mustache mark)
+    const hoodGrad = ctx.createLinearGradient(-7 + faceX, -17 + faceY, 12 + faceX, -2 + faceY);
+    hoodGrad.addColorStop(0, '#212121'); // Blackish crown
+    hoodGrad.addColorStop(0.5, '#263238'); // Slate blue-black
     hoodGrad.addColorStop(1, '#1b1211');
     ctx.fillStyle = hoodGrad;
 
     ctx.beginPath();
-    // Draw hood covering top crown and cheek mustache
-    ctx.arc(faceX, -6 + faceY, 12.5, Math.PI, 0); // Top cap
-    ctx.lineTo(12.5 + faceX, -6 + faceY);
-    // Malar mustache stripe dangling down the cheek
-    ctx.quadraticCurveTo(8 + faceX, 3 + faceY, 4 + faceX, 5 + faceY); 
-    ctx.lineTo(0 + faceX, 1 + faceY);
-    ctx.bezierCurveTo(-10 + faceX, -1 + faceY, -12.5 + faceX, -5 + faceY, -12.5 + faceX, -6 + faceY);
+    // Cap covers the crown and back of the head
+    ctx.arc(faceX, -7 + faceY, 12.5, Math.PI, 0); // Upper cap
+    ctx.lineTo(12.5 + faceX, -7 + faceY);
+    // Malar mustache stripe dangling down the white cheek (iconic peregrine mark)
+    ctx.quadraticCurveTo(8.5 + faceX, 3 + faceY, 4.5 + faceX, 6 + faceY); 
+    ctx.lineTo(0.5 + faceX, 2 + faceY);
+    ctx.bezierCurveTo(-10 + faceX, -1 + faceY, -12.5 + faceX, -6 + faceY, -12.5 + faceX, -7 + faceY);
     ctx.closePath();
     ctx.fill();
 
-    // --- 6. Large Menacing Gold/Ruby Eye (Single profile eye facing Right) ---
-    // Glowing golden orbital ring
-    ctx.fillStyle = '#ffd54f';
+    // --- 6. Realistic Falcon Eye (Dark, intense, bright yellow orbital ring) ---
+    // Bright yellow orbital ring (eye ring)
+    ctx.fillStyle = '#ffc107'; // Bright yellow
     ctx.beginPath();
-    ctx.arc(4.5 + faceX, -6.5 + faceY, 5.0, 0, Math.PI * 2);
+    ctx.arc(4.0 + faceX, -7.5 + faceY, 4.8, 0, Math.PI * 2);
     ctx.fill();
 
-    // Menacing crimson/ruby iris
-    ctx.fillStyle = '#ff1744';
+    // Deep dark brown/black iris
+    ctx.fillStyle = '#2d1a18'; // Dark mahogany brown
     ctx.beginPath();
-    ctx.arc(4.5 + faceX, -6.5 + faceY, 3.8, 0, Math.PI * 2);
+    ctx.arc(4.0 + faceX, -7.5 + faceY, 3.6, 0, Math.PI * 2);
     ctx.fill();
 
-    // Slit pupil looking forward-right
+    // Pitch black pupil
     ctx.fillStyle = '#000000';
     ctx.beginPath();
-    ctx.ellipse(5.0 + faceX, -6.5 + faceY, 1.2, 3.0, 0.15, 0, Math.PI * 2);
+    ctx.arc(4.0 + faceX, -7.5 + faceY, 2.2, 0, Math.PI * 2);
     ctx.fill();
 
-    // Glare dot
+    // Intense tiny white catchlight/glare
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(5.8 + faceX, -7.8 + faceY, 0.9, 0, Math.PI * 2);
+    ctx.arc(5.0 + faceX, -8.5 + faceY, 0.9, 0, Math.PI * 2);
     ctx.fill();
 
-    // --- 7. Hooked Beak on Right (Yellow cere, dark hook) ---
-    // Yellow Cere base
-    ctx.fillStyle = '#ffd54f';
+    // Dark menacing brow ridge line (gives the falcon its sharp focus)
+    ctx.strokeStyle = '#111111';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(9 + faceX, -9 + faceY);
-    ctx.lineTo(12 + faceX, -9 + faceY);
-    ctx.lineTo(10 + faceX, -4 + faceY);
-    ctx.lineTo(8 + faceX, -4 + faceY);
+    ctx.moveTo(0 + faceX, -11 + faceY);
+    ctx.quadraticCurveTo(4.5 + faceX, -11.5 + faceY, 8.5 + faceX, -9.5 + faceY);
+    ctx.stroke();
+
+    // --- 7. Hooked Beak on Right (Yellow cere, dark hook with tomial tooth) ---
+    // Yellow Cere base
+    ctx.fillStyle = '#ffc107';
+    ctx.beginPath();
+    ctx.moveTo(9 + faceX, -9.5 + faceY);
+    ctx.lineTo(12.5 + faceX, -9.5 + faceY);
+    ctx.lineTo(11 + faceX, -4 + faceY);
+    ctx.lineTo(8 + faceX, -4.5 + faceY);
     ctx.closePath();
     ctx.fill();
 
-    // Dark hooked beak (pointing sharply downwards on right side)
-    const beakGrad = ctx.createLinearGradient(8 + faceX, -9 + faceY, 21 + faceX, 4 + faceY);
-    beakGrad.addColorStop(0, '#37474f');
-    beakGrad.addColorStop(1, '#1b1211'); // Dark tip
-    
+    // Dark grey beak with tomial tooth projection
+    const beakGrad = ctx.createLinearGradient(8 + faceX, -9.5 + faceY, 22 + faceX, 4 + faceY);
+    beakGrad.addColorStop(0, '#546e7a'); // Slate grey base
+    beakGrad.addColorStop(0.6, '#263238'); // Dark slate middle
+    beakGrad.addColorStop(1, '#111111'); // Black tip
+
     ctx.fillStyle = beakGrad;
-    ctx.strokeStyle = '#ffd700'; // Golden laser hook line
-    ctx.lineWidth = 1.0;
+    ctx.strokeStyle = '#263238';
+    ctx.lineWidth = 0.8;
+
     ctx.beginPath();
-    ctx.moveTo(10 + faceX, -9 + faceY); // Top base
-    ctx.quadraticCurveTo(22 + faceX, -6 + faceY, 19 + faceX, 5 + faceY); // Downward curve hook
-    ctx.quadraticCurveTo(11 + faceX, 0 + faceY, 9 + faceX, -3 + faceY);
+    ctx.moveTo(11.5 + faceX, -9.5 + faceY); // Top base
+    ctx.quadraticCurveTo(21.5 + faceX, -7.5 + faceY, 18.5 + faceX, 4 + faceY); // Hook tip curving down
+    ctx.lineTo(15 + faceX, 1.5 + faceY);
+    ctx.lineTo(13.8 + faceX, 2.5 + faceY); // Tomial tooth (sharp notch)
+    ctx.quadraticCurveTo(11 + faceX, -0.5 + faceY, 8.5 + faceX, -3.5 + faceY); // Mouth line
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // --- 8. Sharp, Bladed Barred Wings (Obsidian/Slate-grey, profile layout) ---
+    // --- 8. Realistic Swept-Back Falcon Wings (Slate-blue gradients, barred details) ---
     ctx.save();
-    ctx.translate(-3, 1);
-    const flapAngle = Math.sin(this.flapCycle) * 0.7; // Fast flap cycle
+    ctx.translate(-4, 0);
+    // Natural flapping movement angle
+    const flapAngle = Math.sin(this.flapCycle) * 0.65;
     ctx.rotate(flapAngle);
 
-    const wingGrad = ctx.createLinearGradient(0, 0, -45, 6);
-    wingGrad.addColorStop(0, '#263238'); // Dark carbon base
-    wingGrad.addColorStop(0.5, '#37474f'); // Slate grey middle
-    wingGrad.addColorStop(0.9, '#ffd700'); // Glowing golden tips
-    wingGrad.addColorStop(1, '#ffffff');
+    // Main wing gradient: slate blue-grey base to dark tips
+    const wingGrad = ctx.createLinearGradient(8, -4, -55, 12);
+    wingGrad.addColorStop(0, '#607d8b'); // Lighter slate blue-grey at shoulder
+    wingGrad.addColorStop(0.3, '#455a64'); // Mid slate
+    wingGrad.addColorStop(0.7, '#263238'); // Dark slate grey primaries
+    wingGrad.addColorStop(1, '#1e272c'); // Dark tip
 
     ctx.fillStyle = wingGrad;
-    ctx.strokeStyle = '#ffd700';
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = '#1b2429';
+    ctx.lineWidth = 1.2;
 
-    if (!(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = '#ffd700';
-    }
-
-    // Draw long, pointed, aerodynamic falcon wing with bladed feathers
+    // Draw the realistic swept back wing profile
     ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.bezierCurveTo(-15, -22, -40, -14, -48, 6); // Pointed wing sweep
-    // Bladed feather notches
-    ctx.lineTo(-43, 10);
-    ctx.lineTo(-47, 15);
-    ctx.lineTo(-37, 17);
-    ctx.lineTo(-40, 23);
-    ctx.lineTo(-29, 21);
-    ctx.lineTo(-31, 27);
-    ctx.lineTo(-18, 18);
-    ctx.quadraticCurveTo(-9, 9, 0, 0);
+    ctx.moveTo(8, -3);
+    // Sweeping upper edge to the pointed wingtip
+    ctx.bezierCurveTo(-12, -30, -46, -26, -58, 6); 
+    // Realistic curved feather tips along the trailing edge (smooth bezier curves)
+    ctx.bezierCurveTo(-52, 13, -44, 9, -40, 17); // Primary 1
+    ctx.bezierCurveTo(-34, 19, -30, 13, -26, 21); // Primary 2
+    ctx.bezierCurveTo(-20, 21, -16, 15, -12, 19); // Secondary 1
+    ctx.bezierCurveTo(-8, 17, -5, 11, 8, -3);     // Secondary 2
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    ctx.shadowBlur = 0;
-
-    // Dark checkerboard barring markings on wing
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+    // Delicate light grey shafts pointing towards feather tips
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
     ctx.lineWidth = 1.0;
+    
+    // Primary feather shafts
     ctx.beginPath();
-    ctx.moveTo(-15, -6); ctx.lineTo(-25, -2);
-    ctx.moveTo(-12, 1); ctx.lineTo(-28, 6);
-    ctx.moveTo(-10, 8); ctx.lineTo(-22, 13);
+    ctx.moveTo(2, -5);
+    ctx.quadraticCurveTo(-25, -13, -54, 5);
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.moveTo(2, -3);
+    ctx.quadraticCurveTo(-20, -7, -38, 15);
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.moveTo(2, -1);
+    ctx.quadraticCurveTo(-15, -1, -24, 19);
     ctx.stroke();
 
-    // Wing joint cover matching the body armor
-    ctx.fillStyle = '#ffca28';
-    ctx.strokeStyle = '#3e2723';
+    // Dark checkerboard/barring lines on flight feathers
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+    ctx.lineWidth = 1.1;
+    for (let bar = 1; bar <= 6; bar++) {
+      ctx.beginPath();
+      ctx.moveTo(-bar * 8.5, -4 - bar * 1.1);
+      ctx.lineTo(-bar * 6.5 - 3, 10 + bar * 1.6);
+      ctx.stroke();
+    }
+
+    // Wing Coverts Patch (shoulder cover, layered look)
+    const covertGrad = ctx.createLinearGradient(8, -4, -12, 8);
+    covertGrad.addColorStop(0, '#90a4ae'); // Light highlight
+    covertGrad.addColorStop(1, '#546e7a');
+    ctx.fillStyle = covertGrad;
+    ctx.strokeStyle = '#263238';
     ctx.lineWidth = 1.0;
     ctx.beginPath();
-    ctx.arc(0, 1, 4.5, 0, Math.PI * 2);
+    ctx.moveTo(8, -4);
+    ctx.bezierCurveTo(-4, -17, -21, -11, -23, 2);
+    ctx.bezierCurveTo(-16, 8, -6, 6, 8, -4);
+    ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
