@@ -88,7 +88,13 @@ export class Bird {
     
     // Custom progressive score-based jump scaling:
     const jumpScale = this.getJumpScale(score);
-    const impulse = this.jumpLift * (1 + levelBonus) * jumpScale;
+    
+    // Check if playing in Level 4 of level mode
+    const engine = (window as any).gameEngine;
+    const isLevel4 = engine && engine.gameMode === 'level' && engine.currentLevelNum === 4;
+    const jumpReduction = isLevel4 ? 0.78 : 1.0;
+    
+    const impulse = this.jumpLift * (1 + levelBonus) * jumpScale * jumpReduction;
     
     // Instant, sharp, predictable and completely constant jump:
     // Instantly set vertical velocity to the jump impulse to give an immediate constant response on every tap.
@@ -106,14 +112,20 @@ export class Bird {
     
     // Synchronize physics gravity and max fall speed caps with 5% speed increase every 25 score
     const speedMultiplier = 1.0 + Math.floor(effectiveScore / 25.0) * 0.05;
-    const currentGravity = this.gravity * speedMultiplier;
-    const currentMaxFallSpeed = this.maxFallSpeed * speedMultiplier;
+    
+    // Check if playing in Level 4 of level mode
+    const engine = (window as any).gameEngine;
+    const isLevel4 = engine && engine.gameMode === 'level' && engine.currentLevelNum === 4;
+    const speedReduction = isLevel4 ? 0.75 : 1.0;
+    
+    const currentGravity = this.gravity * speedMultiplier * speedReduction;
+    const currentMaxFallSpeed = this.maxFallSpeed * speedMultiplier * speedReduction;
     
     // Custom progressive score-based jump scaling:
     const jumpScale = this.getJumpScale(effectiveScore);
     
     // Scale maximum rise speed dynamically to stay fully synchronized with jump impulse (unreduced for upward speed!)
-    const currentMaxRiseSpeed = this.maxRiseSpeed * jumpScale;
+    const currentMaxRiseSpeed = this.maxRiseSpeed * jumpScale * (isLevel4 ? 0.78 : 1.0);
     
     if (isPlaying) {
       // Apply gravity

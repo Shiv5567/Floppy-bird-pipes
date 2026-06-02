@@ -323,9 +323,9 @@ export class ObstacleManager {
             obs.targetTopHeight = obs.baseTopHeight! + shift;
             obs.targetBottomHeight = obs.baseBottomHeight! - shift;
           } else if (obs.patternType === 'level4_snake') {
-            // LEVEL 4: "The Laser Grid Gauntlet" (Pulsing neon/electronic blink gates: lasers active, lights blink on/off)
+            // LEVEL 4: "The Laser Grid Gauntlet" (Pulsing neon/electronic blink gates: lasers active, lights blink on/off - speed reduced)
             obs.isLaser = true;
-            const neonBlink = Math.sin(this.waveTime * 4.0 + actualIdx * 0.5) > 0.3 ? 20 : -10;
+            const neonBlink = Math.sin(this.waveTime * 1.8 + actualIdx * 0.5) > 0.3 ? 20 : -10;
             obs.targetTopHeight = obs.baseTopHeight! + neonBlink;
             obs.targetBottomHeight = obs.baseBottomHeight! - neonBlink;
           } else if (obs.patternType === 'level5_hourglass') {

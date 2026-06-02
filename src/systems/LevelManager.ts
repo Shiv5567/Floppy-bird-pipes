@@ -88,14 +88,16 @@ export class LevelManager {
       if (levelNum >= 1 && levelNum <= 10) {
         // Scroll speed starts at 3.6 (challenging) and scales to 5.58 at Level 10 (intense!)
         scrollSpeed = 3.6 + (levelNum - 1) * 0.22;
-        if (levelNum === 9) {
+        if (levelNum === 4) {
+          scrollSpeed = 3.1; // Decreased scroll speed for Level 4
+        } else if (levelNum === 9) {
           scrollSpeed = scrollSpeed * 0.80; // Decreased by 20% (from 5.36 to 4.29)
         } else if (levelNum === 10) {
           scrollSpeed = scrollSpeed * 0.60; // Decreased by 40% (from 5.58 to 3.35)
         }
       } else if (levelNum === 13) {
         // Completely replaced by Level 4
-        scrollSpeed = 3.6 + (4 - 1) * 0.22;
+        scrollSpeed = 3.1;
       } else if (levelNum === 14) {
         // Completely replaced by Level 3, then decreased by 15% for Wormhole Vortex
         scrollSpeed = (3.6 + (3 - 1) * 0.22) * 0.85;
