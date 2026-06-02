@@ -329,13 +329,12 @@ export class ObstacleManager {
             obs.targetTopHeight = obs.baseTopHeight! + neonBlink;
             obs.targetBottomHeight = obs.baseBottomHeight! - neonBlink;
           } else if (obs.patternType === 'level5_hourglass') {
-            // LEVEL 5: "The Helix Vortex" (Spiral orbital loops: circular horizontal and vertical shaking + breathing)
+            // LEVEL 5: "The Helix Vortex" (Spiral orbital loops: circular horizontal and vertical shaking - gap kept constant)
             const angle = this.waveTime * 2.5 + actualIdx * 0.6;
             obs.shakeX = Math.sin(angle) * 25;
             obs.shakeX2 = Math.cos(angle) * 25;
-            const breath = Math.sin(this.waveTime * 3.0) * 18;
-            obs.targetTopHeight = obs.baseTopHeight! - breath;
-            obs.targetBottomHeight = obs.baseBottomHeight! - breath;
+            obs.targetTopHeight = obs.baseTopHeight!;
+            obs.targetBottomHeight = obs.baseBottomHeight!;
           } else if (obs.patternType === 'level6_infinity') {
             // LEVEL 6: "The Folding Accordion Gates" (Quadrature phase-shifted horizontal/vertical twisting accordion motion - 30% speed reduction)
             const phaseTop = this.waveTime * 1.96 + actualIdx * 0.5;
@@ -1355,9 +1354,8 @@ export class ObstacleManager {
         triggerDistance = 320;
         animDuration = 0.42;
       } else if (patternType === 'level5_hourglass') {
-        // LEVEL 5: "The Helix Vortex" (Hourglass corridor starting wide, squeezing to bottleneck, and expanding again)
-        const distFromCenter = Math.abs(obstacleIdx - 2.5);
-        localGapHeight = gapHeight - 25 + distFromCenter * 20;
+        // LEVEL 5: "The Helix Vortex" (Corridor with constant gap height equal to starting gap height)
+        localGapHeight = gapHeight + 25; // Constant starting gap height (191px)
         
         // Base center Y
         const baseCenterY = height / 2 + Math.sin(obstacleIdx * 1.2) * 35;
@@ -2003,10 +2001,9 @@ export class ObstacleManager {
         targetBottomHeight = height - targetCenterY - localGapHeight / 2;
       }
 
-      // Enable special different-direction split opening animation specifically for all obstacles in Levels 1-20 (excluding Level 11, 2, 4) and special legacy levels
+      // Enable special different-direction split opening animation specifically for all obstacles in Levels 1-20 (excluding Level 11, 2, 4, 5) and special legacy levels
       const isSpecialSplit = 
-        (levelNum !== undefined && levelNum >= 1 && levelNum <= 20 && levelNum !== 11 && levelNum !== 2 && levelNum !== 4) ||
-        (patternType === 'level5_hourglass' && groupIdx === 0) ||
+        (levelNum !== undefined && levelNum >= 1 && levelNum <= 20 && levelNum !== 11 && levelNum !== 2 && levelNum !== 4 && levelNum !== 5) ||
         (patternType === 'level17_heartbeat' && groupIdx === 0);
 
       // Level 11 gets a dedicated smooth slide-in from edges (not a split)
