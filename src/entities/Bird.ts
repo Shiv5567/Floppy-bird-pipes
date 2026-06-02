@@ -369,6 +369,116 @@ export class Bird {
     ctx.restore();
   }
 
+  // Renders a high-fidelity static preview of the character skin for UI menus/cards
+  public renderPreview(ctx: CanvasRenderingContext2D, width: number, height: number, skin: Skin) {
+    ctx.save();
+    ctx.clearRect(0, 0, width, height);
+    
+    // Translate to center of canvas
+    ctx.translate(width / 2, height / 2);
+
+    // Save original bird parameters to prevent disrupting active gameplay state
+    const origSkin = this.activeSkin;
+    const origFlap = this.flapCycle;
+    const origAngle = this.angle;
+    const origAuraPulse = this.auraPulse;
+    const origAuraAngle = this.auraAngle;
+    const origVy = this.vy;
+
+    // Apply mock parameters for a pristine, centered flight-pose preview
+    this.activeSkin = skin;
+    this.flapCycle = 0.5; // Halfway flapped wings
+    this.angle = -0.05;    // Slight upward flying angle
+    this.auraPulse = 1.0;
+    this.auraAngle = 0.8;
+    this.vy = 0;
+
+    // Apply standard scaling (preview matches the bird's active collision radius aspect ratio)
+    const scale = 1.0;
+    ctx.scale(scale, scale);
+
+    // Render the beautiful rotating Magic Aura
+    this.drawMagicAura(ctx);
+
+    // Draw the corresponding character skin geometry
+    const skinId = skin.id;
+    switch (skinId) {
+      case 'phoenix':
+        this.drawPhoenix(ctx);
+        break;
+      case 'cyber':
+        this.drawCyber(ctx);
+        break;
+      case 'ice':
+        this.drawIce(ctx);
+        break;
+      case 'shadow':
+        this.drawShadow(ctx);
+        break;
+      case 'dragon':
+        this.drawDragon(ctx);
+        break;
+      case 'nebula':
+        this.drawNebula(ctx);
+        break;
+      case 'bubble':
+        this.drawBubbleSiren(ctx);
+        break;
+      case 'cyber_owl':
+        this.drawCyberOwl(ctx);
+        break;
+      case 'neon_crow':
+        this.drawNeonCrow(ctx);
+        break;
+      case 'goofy_pilot':
+        this.drawGoofyPilot(ctx);
+        break;
+      case 'white_dragon':
+        this.drawWhiteDragon(ctx);
+        break;
+      case 'storm_griffin':
+        this.drawStormGriffin(ctx);
+        break;
+      case 'void_sentinel':
+        this.drawVoidSentinel(ctx);
+        break;
+      case 'crimson_valkyrie':
+        this.drawCrimsonValkyrie(ctx);
+        break;
+      case 'emerald_wyvern':
+        this.drawEmeraldWyvern(ctx);
+        break;
+      case 'obsidian_gargoyle':
+        this.drawObsidianGargoyle(ctx);
+        break;
+      case 'kingfisher':
+        this.drawKingfisher(ctx);
+        break;
+      case 'dread_owl':
+        this.drawOwl(ctx);
+        break;
+      case 'aviator_chick':
+        this.drawAviatorChick(ctx);
+        break;
+      case 'dread_falcon':
+        this.drawFalcon(ctx);
+        break;
+      default:
+        this.drawEagle(ctx);
+    }
+
+    // Restore original gameplay parameters
+    this.activeSkin = origSkin;
+    this.flapCycle = origFlap;
+    this.angle = origAngle;
+    this.auraPulse = origAuraPulse;
+    this.auraAngle = origAuraAngle;
+    this.vy = origVy;
+
+    ctx.restore();
+  }
+
+
   // Draw dynamic breathing & rotating skin-themed Magic Aura (Visual Weather & Aura Pack)
   private drawMagicAura(ctx: CanvasRenderingContext2D) {
     const skinId = this.activeSkin.id;

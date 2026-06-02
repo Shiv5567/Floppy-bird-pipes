@@ -422,13 +422,13 @@ export class UIManager {
 
   private renderMenu() {
     const progress = this.engine.progressManager.getState();
-    const activeSkin = this.engine.progressManager.getActiveSkinInfo();
     const worldId = progress.activeWorld;
 
     // If a sub-tab is active, render a full dedicated hero page instead
     if (this.activeTab !== 'main') {
       this.container.innerHTML = this.renderTabPage(worldId);
       this.bindMenuEvents();
+      this.drawSkinPreviews();
       return;
     }
 
@@ -446,13 +446,7 @@ export class UIManager {
     };
     const world = worldMeta[worldId] || { name: 'Tropical Rainforest', emoji: '🌴' };
 
-    // Bird emoji per skin
-    const skinEmojis: Record<string, string> = {
-      default: '🐦', phoenix: '🔥', cyber: '🤖', ice: '❄️',
-      shadow: '🌑', dragon: '🐲', nebula: '🌌', bubble: '🐳',
-      kingfisher: '🐦', dread_owl: '🦉', aviator_chick: '🧑‍✈️', dread_falcon: '🦅'
-    };
-    const birdEmoji = skinEmojis[activeSkin.id] || '🐦';
+
 
     // Level progress
     const levelXpNeeded = progress.level * 1000;
@@ -541,7 +535,9 @@ export class UIManager {
             <div class="bird-aura-outer"></div>
             <div class="bird-aura"></div>
             <div class="bird-floaties">${floatiesHtml}</div>
-            <div class="bird-mascot" id="bird-mascot-tap" style="cursor: pointer;">${birdEmoji}</div>
+            <div class="bird-mascot" id="bird-mascot-tap" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 120px; height: 120px; position: relative; margin: 0 auto;">
+              <canvas id="main-menu-bird-canvas" width="140" height="140" style="width: 140px; height: 140px;"></canvas>
+            </div>
             <div class="bird-select-character-pill" id="btn-mascot-skins-quick" style="position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); background: rgba(0, 243, 255, 0.25); border: 1px solid rgba(0, 243, 255, 0.6); padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; color: #fff; cursor: pointer; text-shadow: 0 0 5px #00f3ff; box-shadow: 0 0 10px rgba(0, 243, 255, 0.3); white-space: nowrap; transition: all 0.2s ease; z-index: 10;">🔄 SELECT CHARACTER</div>
           </div>
 
@@ -585,6 +581,37 @@ export class UIManager {
 
     this.container.innerHTML = menuHTML;
     this.bindMenuEvents();
+    this.drawSkinPreviews();
+  }
+
+  private drawSkinPreviews() {
+    // 1. Draw main menu bird canvas if present
+    const mainCanvas = document.getElementById('main-menu-bird-canvas') as HTMLCanvasElement | null;
+    if (mainCanvas) {
+      const activeSkin = this.engine.progressManager.getActiveSkinInfo();
+      const ctx = mainCanvas.getContext('2d');
+      if (ctx) {
+        this.engine.bird.renderPreview(ctx, mainCanvas.width, mainCanvas.height, activeSkin);
+      }
+    }
+
+    // 2. Draw character selection grid previews
+    if (this.activeTab === 'skins') {
+      const canvases = this.container.querySelectorAll('.skin-preview-canvas');
+      const skins = this.engine.progressManager.getSkins();
+      
+      canvases.forEach((canvasEl) => {
+        const canvas = canvasEl as HTMLCanvasElement;
+        const skinId = canvas.getAttribute('data-skin-id');
+        const skin = skins.find(s => s.id === skinId);
+        if (!skin) return;
+        
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        
+        this.engine.bird.renderPreview(ctx, canvas.width, canvas.height, skin);
+      });
+    }
   }
 
   private renderTabPage(worldId: string): string {
@@ -677,13 +704,7 @@ export class UIManager {
         const skinsCards = skins.map((s: Skin) => {
           const isSelected = s.id === progress.activeSkin;
           const upgradeCost = Math.floor(s.costCoins * 0.4 * s.upgradeLevel) || (s.id === 'default' ? 200 * s.upgradeLevel : 500);
-          const emojiMap: Record<string, string> = {
-            default: '🦅', phoenix: '🔥', cyber: '🤖', ice: '❄️',
-            shadow: '👿', dragon: '🐲', nebula: '🌌', bubble: '🐳',
-            cyber_owl: '🦉', neon_crow: '🐦‍⬛', goofy_pilot: '🦜', white_dragon: '🐉',
-            storm_griffin: '⚡', void_sentinel: '🌀', crimson_valkyrie: '⚔️', emerald_wyvern: '🦎', obsidian_gargoyle: '🗿',
-            kingfisher: '🐦', dread_owl: '🦉', aviator_chick: '🧑‍✈️', dread_falcon: '🦅'
-          };
+
           const rarityColors: Record<string, string> = {
             common: '#aaa', rare: '#00f3ff', epic: '#a855f7', legendary: '#ffd700'
           };
@@ -693,7 +714,9 @@ export class UIManager {
                  data-skin-id="${s.id}"
                  style="${isSelected ? `box-shadow: 0 0 0 2px ${rc}, 0 0 18px ${rc}55;` : ''}"
             >
-              <div class="skin-emoji">${emojiMap[s.id] || '🐦'}</div>
+              <div class="skin-emoji" style="display: flex; align-items: center; justify-content: center; width: 90px; height: 90px; margin-bottom: 8px; position: relative;">
+                <canvas class="skin-preview-canvas" data-skin-id="${s.id}" width="90" height="90" style="width: 90px; height: 90px;"></canvas>
+              </div>
               <div class="grid-card-name">${s.name}</div>
               <span class="tag tag-${s.rarity.toLowerCase()}" style="color:${rc};border-color:${rc}33">${s.rarity}</span>
               ${isSelected ? `<div style="font-size:9px;color:#00ff88;font-weight:800;margin-top:4px">✓ EQUIPPED</div>` : ''}
