@@ -4007,87 +4007,96 @@ export class Bird {
 
     ctx.restore();
 
-    // --- 10. MULTI-LAYERED FIERY ORANGE-GOLD WINGS (Premium 3D Shading) ---
+    // --- 10. MULTI-LAYERED FIERY ORANGE-GOLD WINGS WITH DYNAMIC FEATHER WAVE PROPAGATION ---
     ctx.save();
-    ctx.translate(-6, 1);
-    const flapAngle = Math.sin(this.flapCycle) * 0.65;
-    ctx.rotate(flapAngle);
+    ctx.translate(-8, 0); // Attached to the shoulder
 
-    // LAYER A: Deep Crimson Backing Wing (adds volumetric 3D shadow depth)
-    ctx.fillStyle = '#b71c1c';
-    ctx.strokeStyle = '#3d0c0c';
-    ctx.lineWidth = 1.0;
-    ctx.beginPath();
-    ctx.moveTo(8, -2);
-    ctx.bezierCurveTo(-15, -38, -52, -32, -68, 12);
-    ctx.bezierCurveTo(-60, 20, -50, 15, -45, 25);
-    ctx.bezierCurveTo(-38, 26, -32, 18, -27, 26);
-    ctx.bezierCurveTo(-19, 25, -14, 18, 8, -2);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+    // Base wing rotation (shoulder / inner arm)
+    const baseFlapAngle = Math.sin(this.flapCycle) * 0.55;
+    ctx.rotate(baseFlapAngle);
 
-    // LAYER B: Primary Foreground Wing (Warm fiery gradient)
-    const wingGrad = ctx.createLinearGradient(12, -4, -62, 16);
-    wingGrad.addColorStop(0, '#ffe082'); // Shiny gold shoulder
-    wingGrad.addColorStop(0.3, '#ffb300'); // Golden yellow
-    wingGrad.addColorStop(0.6, '#ff9100'); // Vibrant orange
-    wingGrad.addColorStop(0.85, '#ff3d00'); // Fiery orange-red primaries
-    wingGrad.addColorStop(1, '#d84315'); // Deep rust tip
-
-    ctx.fillStyle = wingGrad;
-    ctx.strokeStyle = '#3d2503'; // Sharp bronze outline
-    ctx.lineWidth = 1.5;
-
-    ctx.beginPath();
-    ctx.moveTo(10, -4);
-    ctx.bezierCurveTo(-12, -36, -48, -32, -64, 8);
-    ctx.bezierCurveTo(-57, 15, -47, 11, -42, 20); // Primary 1
-    ctx.bezierCurveTo(-35, 22, -30, 15, -25, 23); // Primary 2
-    ctx.bezierCurveTo(-18, 22, -13, 15, 10, -4);   // Joint
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // LAYER C: Layered Wing Coverts (Polished gold plate wing armor overlay)
-    const covertGrad = ctx.createLinearGradient(10, -4, -15, 10);
-    covertGrad.addColorStop(0, '#fff59d'); // Shiny pale-gold highlights
-    covertGrad.addColorStop(0.6, '#ffd54f'); // Gold
-    covertGrad.addColorStop(1, '#f57f17'); // Dark gold
-    ctx.fillStyle = covertGrad;
+    // Draw Inner Wing (Secondaries / Coverts base)
+    const innerWingGrad = ctx.createLinearGradient(10, -5, -30, 10);
+    innerWingGrad.addColorStop(0, '#ffe082'); // Gold
+    innerWingGrad.addColorStop(1, '#ff9100'); // Orange
+    ctx.fillStyle = innerWingGrad;
     ctx.strokeStyle = '#3d2503';
-    ctx.lineWidth = 1.2;
+    ctx.lineWidth = 1.3;
     ctx.beginPath();
     ctx.moveTo(10, -4);
-    ctx.bezierCurveTo(-3, -20, -22, -14, -25, 3);
-    ctx.bezierCurveTo(-18, 10, -8, 8, 10, -4);
+    ctx.bezierCurveTo(-5, -25, -25, -20, -32, 2);
+    ctx.bezierCurveTo(-26, 12, -10, 10, 10, -4);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Wing armor runic details (premium visual ornament)
-    ctx.strokeStyle = 'rgba(61, 37, 3, 0.4)';
-    ctx.lineWidth = 1.0;
-    ctx.beginPath();
-    ctx.moveTo(-2, -8);
-    ctx.lineTo(-12, -4);
-    ctx.moveTo(-5, -5);
-    ctx.lineTo(-15, -1);
-    ctx.stroke();
+    // Draw 6 Individual Primary Feathers with propagated wave motion
+    // This creates the realistic feather bending and spreading as it flaps!
+    const featherColors = [
+      '#ffe082', // Yellow-gold
+      '#ffd54f', // Gold
+      '#ffca28', // Rich gold
+      '#ffb300', // Amber gold
+      '#ff9100', // Orange
+      '#ff3d00'  // Fiery red-orange
+    ];
+    const featherStrokes = [
+      '#3d2503', '#3d2503', '#3d2503', '#3d2503', '#3d2503', '#3d0c0c'
+    ];
 
-    // LAYER D: Ultra-detailed feather shaft highlighting (metallic sheen reflections)
-    ctx.strokeStyle = '#fff9c4'; // Volumetric white-gold glow lines
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(2, -6);
-    ctx.quadraticCurveTo(-24, -16, -56, 7);
-    ctx.stroke();
+    for (let j = 0; j < 6; j++) {
+      ctx.save();
+      // Translate to joint of primary feathers
+      ctx.translate(-22, -8);
+      
+      // Bending angle: primary feathers lag behind the main wing flap for a flexible wingtip look
+      const primaryFlapAngle = Math.sin(this.flapCycle - j * 0.12) * 0.25; 
+      ctx.rotate(primaryFlapAngle);
 
-    ctx.strokeStyle = 'rgba(255, 235, 59, 0.4)';
-    ctx.lineWidth = 1.0;
+      // Feather shape: long pointed primary feather
+      const length = 34 + (5 - j) * 4; // Longer primaries at the top, shorter towards the body
+      const width = 6.5;
+
+      const fGrad = ctx.createLinearGradient(0, 0, -length, 10);
+      fGrad.addColorStop(0, featherColors[j]);
+      fGrad.addColorStop(1, '#d84315'); // Reddish tip
+      ctx.fillStyle = fGrad;
+      ctx.strokeStyle = featherStrokes[j];
+      ctx.lineWidth = 1.0;
+
+      ctx.beginPath();
+      ctx.moveTo(0, -width/2);
+      ctx.quadraticCurveTo(-length * 0.4, -width * 1.5, -length, 0); // Pointy tip
+      ctx.quadraticCurveTo(-length * 0.4, width * 1.5, 0, width/2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Shaft line inside feather
+      ctx.strokeStyle = '#fff9c4';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-length * 0.85, 0);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    // Gilded shoulder armor cover plate (Spaulder on joint)
+    const spaulderGrad = ctx.createLinearGradient(12, -4, -10, 8);
+    spaulderGrad.addColorStop(0, '#ffffff'); // Shiny metallic highlight
+    spaulderGrad.addColorStop(0.3, '#fff59d');
+    spaulderGrad.addColorStop(1, '#ffd54f');
+    ctx.fillStyle = spaulderGrad;
+    ctx.strokeStyle = '#3d2503';
+    ctx.lineWidth = 1.3;
     ctx.beginPath();
-    ctx.moveTo(2, -3);
-    ctx.quadraticCurveTo(-20, -9, -38, 18);
+    ctx.moveTo(12, -4);
+    ctx.bezierCurveTo(4, -18, -12, -12, -14, 2);
+    ctx.bezierCurveTo(-8, 8, 2, 6, 12, -4);
+    ctx.closePath();
+    ctx.fill();
     ctx.stroke();
 
     ctx.restore();
