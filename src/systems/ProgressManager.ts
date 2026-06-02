@@ -54,66 +54,7 @@ export interface PlayerProgressState {
 }
 
 export class ProgressManager {
-  private drawEagle(ctx: CanvasRenderingContext2D) {
-    // Existing Eagle drawing (kept as fallback)
-    // ... (original implementation)
-  }
 
-  // New Legendary Eagle King skin rendering
-  private drawLegendaryEagleKing(ctx: CanvasRenderingContext2D) {
-    // Body: white with golden feather pattern
-    ctx.save();
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(0, 0, 26, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#ffd700';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // Wings: massive fiery orange‑gold gradient
-    const wingGrad = ctx.createLinearGradient(-30, -20, 30, 20);
-    wingGrad.addColorStop(0, '#ff8c00');
-    wingGrad.addColorStop(1, '#ffd700');
-    ctx.fillStyle = wingGrad;
-    ctx.beginPath();
-    ctx.moveTo(-26, -5);
-    ctx.bezierCurveTo(-50, -40, -50, 40, -26, 5);
-    ctx.moveTo(26, -5);
-    ctx.bezierCurveTo(50, -40, 50, 40, 26, 5);
-    ctx.fill();
-
-    // Crown: golden royal crown on head
-    ctx.fillStyle = '#ffd700';
-    ctx.beginPath();
-    ctx.moveTo(-12, -20);
-    ctx.lineTo(-8, -30);
-    ctx.lineTo(-4, -20);
-    ctx.lineTo(0, -30);
-    ctx.lineTo(4, -20);
-    ctx.lineTo(8, -30);
-    ctx.lineTo(12, -20);
-    ctx.lineTo(0, -10);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Armor: shoulder plates
-    ctx.fillStyle = '#c0c0c0';
-    ctx.beginPath();
-    ctx.arc(-18, 0, 6, 0, Math.PI * 2);
-    ctx.arc(18, 0, 6, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    // Eyes: glowing amber
-    ctx.fillStyle = '#ffbf00';
-    ctx.beginPath();
-    ctx.arc(-8, -4, 3, 0, Math.PI * 2);
-    ctx.arc(8, -4, 3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
   private state!: PlayerProgressState;
   private skins: Skin[] = [];
   private achievements: Achievement[] = [];
@@ -370,18 +311,25 @@ export class ProgressManager {
         maxUpgrade: 5
       },
       {
-        case 'dread_falcon':
-        this.drawFalcon(ctx);
-        break;
-      case 'legendary_eagle_king':
-        this.drawLegendaryEagleKing(ctx);
-        break;,
+
         id: 'dread_falcon',
         name: 'Dread Falcon Overlord',
         rarity: 'Legendary',
         glowColor: 'rgba(255, 191, 0, 0.95)',
         particleType: 'valkyrie',
         costCoins: 6000,
+        costGems: 0,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5
+      },
+      {
+        id: 'legendary_eagle_king',
+        name: 'Legendary Eagle King',
+        rarity: 'Legendary',
+        glowColor: 'rgba(255, 215, 0, 0.9)',
+        particleType: 'fire',
+        costCoins: 10000,
         costGems: 0,
         unlocked: false,
         upgradeLevel: 1,
