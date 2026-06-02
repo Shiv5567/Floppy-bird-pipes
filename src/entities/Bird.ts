@@ -2575,85 +2575,98 @@ export class Bird {
   private drawOwl(ctx: CanvasRenderingContext2D) {
     if (!(window as any).gameDisableShadows) {
       ctx.shadowBlur = 12;
-      ctx.shadowColor = 'rgba(0, 230, 118, 0.6)'; // Menacing green glow
+      ctx.shadowColor = 'rgba(255, 23, 68, 0.7)'; // Blazing ruby red glow
     }
 
     // 2.5D Face shift offset based on bird movement angle
     const faceX = Math.cos(this.angle) * 1.5;
     const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.1;
 
-    // --- 1. Razor Steel Talons (Large owl claws) ---
+    // --- 1. Razor Steel Talons (Profile view facing right/downwards) ---
     ctx.fillStyle = '#37474f';
-    ctx.strokeStyle = '#00e676'; // Electric green highlights
+    ctx.strokeStyle = '#ff1744'; // Glowing ruby red trim
     ctx.lineWidth = 1.2;
+    // Back talon
+    ctx.beginPath();
+    ctx.moveTo(-4, 12);
+    ctx.quadraticCurveTo(-9, 19, -3, 21);
+    ctx.quadraticCurveTo(-1, 16, -1, 12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Front talon (Larger, facing forward/right)
+    ctx.beginPath();
+    ctx.moveTo(3, 11);
+    ctx.quadraticCurveTo(8, 20, 14, 18); // Facing right
+    ctx.quadraticCurveTo(11, 14, 7, 11);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
     
-    // Left talon
+    // Golden glowing claws
+    ctx.fillStyle = '#ffd700';
     ctx.beginPath();
-    ctx.moveTo(-6, 12);
-    ctx.quadraticCurveTo(-12, 20, -3, 23);
-    ctx.quadraticCurveTo(0, 17, -1, 12);
-    ctx.closePath();
+    ctx.arc(-3, 21, 1.2, 0, Math.PI * 2);
+    ctx.arc(14, 18, 1.2, 0, Math.PI * 2);
     ctx.fill();
-    ctx.stroke();
 
-    // Right talon
-    ctx.beginPath();
-    ctx.moveTo(2, 12);
-    ctx.quadraticCurveTo(-3, 20, 6, 22);
-    ctx.quadraticCurveTo(7, 16, 7, 12);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // --- 2. Body/Torso (Layered armored feather scales - Charcoal & Ash brown) ---
-    const bodyGrad = ctx.createLinearGradient(-16, -16, 16, 16);
-    bodyGrad.addColorStop(0, '#4e342e'); // Deep wood brown
-    bodyGrad.addColorStop(0.5, '#2d1f1d'); // Very dark brown-black
-    bodyGrad.addColorStop(1, '#1b1211'); // Pitch black base
+    // --- 2. Body/Torso (Layered Obsidian & Crimson armor in side profile) ---
+    const bodyGrad = ctx.createLinearGradient(-15, -15, 15, 15);
+    bodyGrad.addColorStop(0, '#1a0033'); // Dark void purple
+    bodyGrad.addColorStop(0.5, '#0d001a'); // Dark obsidian
+    bodyGrad.addColorStop(1, '#000000'); // Shadow base
     ctx.fillStyle = bodyGrad;
     
     ctx.beginPath();
-    ctx.arc(0, 0, 17, 0, Math.PI * 2);
+    ctx.arc(0, 0, 16, 0, Math.PI * 2);
     ctx.fill();
 
-    // Draw armored feather plate markings on belly
-    ctx.strokeStyle = '#00e676'; // Menacing green glowing trim
+    // Armored breast-plates (facing right, layered)
+    ctx.fillStyle = '#cfd8dc'; // Steel silver plates
+    ctx.strokeStyle = '#ff1744'; // Glowing ruby red seams
     ctx.lineWidth = 1.0;
     
-    // Scale row 1
+    // Drawing overlapping curved plates on the breast (right side)
+    // Top plate
     ctx.beginPath();
-    ctx.arc(-8, 4, 4, 0, Math.PI);
-    ctx.arc(0, 4, 4, 0, Math.PI);
-    ctx.arc(8, 4, 4, 0, Math.PI);
+    ctx.moveTo(4, -13);
+    ctx.quadraticCurveTo(16, -6, 15, 2);
+    ctx.lineTo(8, 2);
+    ctx.quadraticCurveTo(8, -8, 4, -13);
+    ctx.closePath();
+    ctx.fill();
     ctx.stroke();
 
-    // Scale row 2
+    // Middle plate
     ctx.beginPath();
-    ctx.arc(-4, 9, 4, 0, Math.PI);
-    ctx.arc(4, 9, 4, 0, Math.PI);
+    ctx.moveTo(8, 2);
+    ctx.quadraticCurveTo(16, 6, 12, 12);
+    ctx.lineTo(3, 9);
+    ctx.quadraticCurveTo(7, 6, 8, 2);
+    ctx.closePath();
+    ctx.fill();
     ctx.stroke();
 
-    // --- 3. Fan-shaped Tail Feathers (Heavy, broad dark feathers) ---
+    // --- 3. Fan-shaped Tail Feathers (Extending back-left in profile) ---
     ctx.save();
-    ctx.translate(-14, 6);
+    ctx.translate(-13, 6);
     const tailTilt = -this.vy * 0.04 + Math.sin(this.flapCycle) * 0.08;
     ctx.rotate(tailTilt);
 
     const tailGrad = ctx.createLinearGradient(0, -6, -20, 12);
-    tailGrad.addColorStop(0, '#2d1f1d');
-    tailGrad.addColorStop(1, '#00e676'); // Glowing tips
+    tailGrad.addColorStop(0, '#0d001a');
+    tailGrad.addColorStop(1, '#ff1744'); // Glowing ruby red tips
     ctx.fillStyle = tailGrad;
-    ctx.strokeStyle = '#1b1211';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#1a0033';
+    ctx.lineWidth = 1.2;
 
-    // Draw fan tail
     ctx.beginPath();
-    ctx.moveTo(0, -8);
-    ctx.lineTo(-24, -14);
-    ctx.lineTo(-28, -4);
-    ctx.lineTo(-28, 6);
-    ctx.lineTo(-22, 14);
-    ctx.lineTo(0, 4);
+    ctx.moveTo(0, -6);
+    ctx.lineTo(-24, -11); // Top feather
+    ctx.lineTo(-27, -1);  // Middle feather
+    ctx.lineTo(-23, 9);   // Bottom feather
+    ctx.lineTo(0, 2);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
@@ -2668,123 +2681,123 @@ export class Bird {
     ctx.closePath();
     ctx.fill();
 
-    // --- 5. Massive Great Horned Owl Head (With large plumicorns/horns) ---
+    // --- 5. Great Horned Owl Head (Side Profile, facing Right) ---
     const headGrad = ctx.createLinearGradient(-8, -18, 12, -4);
-    headGrad.addColorStop(0, '#3e2723'); // Dark brown crown
-    headGrad.addColorStop(0.5, '#212121'); // Ash charcoal
-    headGrad.addColorStop(1, '#00e676'); // Green brow connection
+    headGrad.addColorStop(0, '#1a0033'); // Dark purple
+    headGrad.addColorStop(0.6, '#0d001a'); // Obsidian
+    headGrad.addColorStop(1, '#ff1744'); // Red eyebrow ridge
     ctx.fillStyle = headGrad;
     
     ctx.beginPath();
-    ctx.arc(faceX, -6 + faceY, 14, 0, Math.PI * 2); // Slightly larger head for owl feel
+    ctx.arc(faceX, -6 + faceY, 13.5, 0, Math.PI * 2);
     ctx.fill();
 
-    // Prominent sweeping horned feather tufts (Plumicorns)
-    ctx.fillStyle = '#212121';
-    ctx.strokeStyle = '#00e676';
+    // Plumicorns/Horns sweeping backward (Left side of the head in profile)
+    ctx.fillStyle = '#0d001a';
+    ctx.strokeStyle = '#ff1744';
     ctx.lineWidth = 1.5;
-    
-    // Left Horn
+
+    // Main horn sweeping up and left
     ctx.beginPath();
-    ctx.moveTo(-10 + faceX, -14 + faceY);
-    ctx.quadraticCurveTo(-26 + faceX, -28 + faceY, -28 + faceX, -30 + faceY); // Very tall horned tuft
-    ctx.quadraticCurveTo(-18 + faceX, -20 + faceY, -3 + faceX, -18 + faceY);
+    ctx.moveTo(-6 + faceX, -14 + faceY);
+    ctx.quadraticCurveTo(-24 + faceX, -26 + faceY, -26 + faceX, -28 + faceY); // Horn sweep
+    ctx.quadraticCurveTo(-14 + faceX, -18 + faceY, 1 + faceX, -17 + faceY);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Right Horn
+    // Inner/Secondary horn (partially visible in perspective)
     ctx.beginPath();
-    ctx.moveTo(-4 + faceX, -16 + faceY);
-    ctx.quadraticCurveTo(-12 + faceX, -32 + faceY, -14 + faceX, -34 + faceY); // Symmetrical offset horn
-    ctx.quadraticCurveTo(-6 + faceX, -22 + faceY, 3 + faceX, -18 + faceY);
+    ctx.moveTo(-2 + faceX, -15 + faceY);
+    ctx.quadraticCurveTo(-16 + faceX, -28 + faceY, -18 + faceX, -30 + faceY);
+    ctx.quadraticCurveTo(-9 + faceX, -20 + faceY, 5 + faceX, -16 + faceY);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // --- 6. Flat Heart-shaped Face Disc (Real owl signature face disc) ---
-    ctx.fillStyle = '#d7ccc8'; // Soft ash face disc
-    ctx.strokeStyle = '#3e2723';
+    // --- 6. Flat Heart-shaped Face Disc (Profile crescent facing Right) ---
+    ctx.fillStyle = '#eceff1'; // Ash/white face disc
+    ctx.strokeStyle = '#ff1744';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    // Heart-like boundary of face disc
-    ctx.moveTo(faceX, -12 + faceY);
-    ctx.bezierCurveTo(-10 + faceX, -22 + faceY, -15 + faceX, -2 + faceY, faceX, 3 + faceY);
-    ctx.bezierCurveTo(15 + faceX, -2 + faceY, 10 + faceX, -22 + faceY, faceX, -12 + faceY);
-    ctx.closePath();
+    // Elliptical disc pushed to the right side of the head
+    ctx.ellipse(3.5 + faceX, -6 + faceY, 9, 12.5, 0.1, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
-    // --- 7. Large Glowing Monster Eyes (Huge, round owl eyes) ---
+    // Runic face disc mark (Eldritch scar)
+    ctx.strokeStyle = 'rgba(255, 23, 68, 0.4)';
+    ctx.beginPath();
+    ctx.moveTo(1 + faceX, -15 + faceY);
+    ctx.lineTo(1 + faceX, 3 + faceY);
+    ctx.stroke();
+
+    // --- 7. Large Glowing Menacing Eye (Single dominant eye in profile view) ---
     // Outer black frame
-    ctx.fillStyle = '#1b1211';
-    ctx.beginPath();
-    ctx.arc(-4 + faceX, -6 + faceY, 5, 0, Math.PI * 2);
-    ctx.arc(6 + faceX, -6 + faceY, 5, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Glowing Neon Yellow/Green iris
-    ctx.fillStyle = '#00e676';
-    ctx.beginPath();
-    ctx.arc(-4 + faceX, -6 + faceY, 3.8, 0, Math.PI * 2);
-    ctx.arc(6 + faceX, -6 + faceY, 3.8, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Menacing slit pupils (Monster look)
     ctx.fillStyle = '#000000';
     ctx.beginPath();
-    ctx.ellipse(-4 + faceX, -6 + faceY, 1.0, 3.2, 0, 0, Math.PI * 2);
-    ctx.ellipse(6 + faceX, -6 + faceY, 1.0, 3.2, 0, 0, Math.PI * 2);
+    ctx.arc(3.5 + faceX, -6 + faceY, 5.2, 0, Math.PI * 2);
     ctx.fill();
 
-    // Intense tiny red reflections (Laser focus core)
+    // Glowing crimson/ruby iris
     ctx.fillStyle = '#ff1744';
     ctx.beginPath();
-    ctx.arc(-3.5 + faceX, -7 + faceY, 0.8, 0, Math.PI * 2);
-    ctx.arc(6.5 + faceX, -7 + faceY, 0.8, 0, Math.PI * 2);
+    ctx.arc(4 + faceX, -6 + faceY, 4.0, 0, Math.PI * 2);
     ctx.fill();
 
-    // --- 8. Short, Hooked Black Beak (Owl signature downward-curved beak) ---
-    ctx.fillStyle = '#1b1211';
-    ctx.strokeStyle = '#00e676';
-    ctx.lineWidth = 1.0;
+    // Slit pupil looking forward-right
+    ctx.fillStyle = '#000000';
     ctx.beginPath();
-    ctx.moveTo(0 + faceX, -7 + faceY);
-    ctx.quadraticCurveTo(8 + faceX, -3 + faceY, 6 + faceX, 3 + faceY); // Curved hook down
-    ctx.quadraticCurveTo(0 + faceX, 0 + faceY, 0 + faceX, -7 + faceY);
+    ctx.ellipse(4.5 + faceX, -6 + faceY, 1.2, 3.2, 0.1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Intense white reflection core
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(5.2 + faceX, -7.5 + faceY, 1.0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // --- 8. Large Hooked Beak (Profile view on the right edge, pointing downwards) ---
+    const beakGrad = ctx.createLinearGradient(8 + faceX, -7 + faceY, 20 + faceX, 3 + faceY);
+    beakGrad.addColorStop(0, '#212121'); // Carbon grey base
+    beakGrad.addColorStop(1, '#ff1744'); // Glowing ruby red hook tip
+
+    ctx.fillStyle = beakGrad;
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(10 + faceX, -9 + faceY); // Top base
+    ctx.quadraticCurveTo(21 + faceX, -6 + faceY, 18 + faceX, 4 + faceY); // Sharp downward hook
+    ctx.quadraticCurveTo(11 + faceX, 0 + faceY, 9 + faceX, -3 + faceY);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // --- 9. Broad, Heavy Feathered Wings (Huge owl wings) ---
+    // --- 9. Massive Broad Feathered Wings (Obsidian/Crimson, profile layout) ---
     ctx.save();
     ctx.translate(-3, 2);
-    // Flapping movement angle (slower, heavy wingbeat style)
     const flapAngle = Math.sin(this.flapCycle) * 0.65;
     ctx.rotate(flapAngle);
 
-    // Grad: Charcoal to dark brown to electric green edge
     const wingGrad = ctx.createLinearGradient(0, 0, -42, 8);
-    wingGrad.addColorStop(0, '#1b1211');
-    wingGrad.addColorStop(0.5, '#3e2723');
-    wingGrad.addColorStop(0.9, '#00e676');
-    wingGrad.addColorStop(1, '#ffffff');
+    wingGrad.addColorStop(0, '#0d001a'); // Dark void purple
+    wingGrad.addColorStop(0.5, '#212121'); // Obsidian/Charcoal
+    wingGrad.addColorStop(0.9, '#ff1744'); // Ruby red edge
+    wingGrad.addColorStop(1, '#ff80ab'); // Pink highlight tips
 
     ctx.fillStyle = wingGrad;
-    ctx.strokeStyle = '#00e676';
+    ctx.strokeStyle = '#ff1744';
     ctx.lineWidth = 1.5;
 
     if (!(window as any).gameDisableShadows) {
       ctx.shadowBlur = 8;
-      ctx.shadowColor = '#00e676';
+      ctx.shadowColor = '#ff1744';
     }
 
-    // Draw huge broad owl wing with layered, curved flight feathers
+    // Draw broad wing
     ctx.beginPath();
     ctx.moveTo(0, 0);
-    // Broad wing sweeping backward
-    ctx.bezierCurveTo(-15, -20, -38, -12, -45, 6);
-    // Broad feathered tips
+    ctx.bezierCurveTo(-15, -20, -38, -12, -45, 6); // Extra long broad feathers
     ctx.lineTo(-40, 10);
     ctx.lineTo(-44, 15);
     ctx.lineTo(-34, 17);
@@ -2797,9 +2810,10 @@ export class Bird {
     ctx.fill();
     ctx.stroke();
 
-    // Inner wing bone structure highlights
     ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(0, 230, 118, 0.4)';
+    
+    // Bone structure highlights in ruby red
+    ctx.strokeStyle = 'rgba(255, 23, 68, 0.4)';
     ctx.lineWidth = 1.2;
     ctx.beginPath();
     ctx.moveTo(-5, 0);
@@ -2808,10 +2822,10 @@ export class Bird {
     ctx.lineTo(-32, 9);
     ctx.stroke();
 
-    // Wing joint cap
-    ctx.fillStyle = '#2d1f1d';
-    ctx.strokeStyle = '#00e676';
-    ctx.lineWidth = 1;
+    // Joint cap matching the body armor
+    ctx.fillStyle = '#cfd8dc';
+    ctx.strokeStyle = '#ff1744';
+    ctx.lineWidth = 1.0;
     ctx.beginPath();
     ctx.arc(0, 1, 4.5, 0, Math.PI * 2);
     ctx.fill();
