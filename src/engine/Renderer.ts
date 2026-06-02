@@ -50,7 +50,7 @@ export class Renderer {
 
     // Preload the custom sunset background for Jungle Temple ruins world
     this.jungleTempleBgImg = new Image();
-    this.jungleTempleBgImg.src = '/jungle_temple_bg.jpg';
+    this.jungleTempleBgImg.src = '/jungle_temple_bg.png';
   }
 
   public resize() {
