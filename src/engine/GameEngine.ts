@@ -1027,14 +1027,6 @@ export class GameEngine {
         break;
       }
 
-      case 'cyber': {
-        // Digital EMP Shield: Bird turns invincible + clears all active hazards nearby
-        duration = 5.0;
-        this.bird.isInvincible = true;
-        this.obstacleManager.clear();
-        break;
-      }
-
       case 'ice': {
         // Time Freeze Blizzard: Slows down gameplay/physics to 20% speed
         duration = 6.0;
@@ -1042,32 +1034,10 @@ export class GameEngine {
         break;
       }
 
-      case 'shadow': {
-        // Void Phase: Turns the bird completely ghostly to pass safely through pipes
-        duration = 5.0;
-        this.bird.isGhost = true;
-        break;
-      }
-
-      case 'dragon': {
-        // Jade Strike: Turbo Dash speed blast + invincibility
-        duration = 3.0;
-        this.bird.isInvincible = true;
-        this.scrollSpeed = this.baseScrollSpeed * 2.8;
-        break;
-      }
-
       case 'nebula': {
         // Cosmic Magnet Warp: Activates a strong magnet pulling currency from everywhere
         duration = 7.0;
         this.activatePowerup('magnet');
-        break;
-      }
-
-      case 'bubble': {
-        // Aqua Shield: Spawns a protective shield on the spot
-        duration = 6.0;
-        this.bird.hasShield = true;
         break;
       }
 
@@ -1097,21 +1067,8 @@ export class GameEngine {
     const skinId = this.bird.getSkin().id;
 
     switch (skinId) {
-      case 'cyber':
-        this.bird.isInvincible = false;
-        break;
       case 'ice':
         this.timeScale = 1.0;
-        break;
-      case 'shadow':
-        this.bird.isGhost = false;
-        break;
-      case 'dragon':
-        this.bird.isInvincible = false;
-        this.scrollSpeed = this.baseScrollSpeed;
-        break;
-      case 'bubble':
-        // Shield persists until collision, nothing to do
         break;
       default:
         this.bird.isInvincible = false;

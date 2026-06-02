@@ -95,18 +95,6 @@ export class ProgressManager {
         maxUpgrade: 5
       },
       {
-        id: 'cyber',
-        name: 'Cybernetic Mech',
-        rarity: 'Epic',
-        glowColor: 'rgba(0, 243, 255, 0.8)',
-        particleType: 'neon',
-        costCoins: 2500,
-        costGems: 0,
-        unlocked: false,
-        upgradeLevel: 1,
-        maxUpgrade: 5
-      },
-      {
         id: 'ice',
         name: 'Ice Crystal',
         rarity: 'Rare',
@@ -119,30 +107,6 @@ export class ProgressManager {
         maxUpgrade: 5
       },
       {
-        id: 'shadow',
-        name: 'Shadow Assassin',
-        rarity: 'Epic',
-        glowColor: 'rgba(128, 0, 128, 0.8)',
-        particleType: 'shadow',
-        costCoins: 3000,
-        costGems: 0,
-        unlocked: false,
-        upgradeLevel: 1,
-        maxUpgrade: 5
-      },
-      {
-        id: 'dragon',
-        name: 'Neon Dragon',
-        rarity: 'Legendary',
-        glowColor: 'rgba(255, 0, 255, 0.8)',
-        particleType: 'dragon',
-        costCoins: 0,
-        costGems: 150,
-        unlocked: false,
-        upgradeLevel: 1,
-        maxUpgrade: 5
-      },
-      {
         id: 'nebula',
         name: 'Cosmic Nebula',
         rarity: 'Legendary',
@@ -150,18 +114,6 @@ export class ProgressManager {
         particleType: 'cosmic',
         costCoins: 0,
         costGems: 250,
-        unlocked: false,
-        upgradeLevel: 1,
-        maxUpgrade: 5
-      },
-      {
-        id: 'bubble',
-        name: 'Bubble Siren',
-        rarity: 'Rare',
-        glowColor: 'rgba(30, 144, 255, 0.6)',
-        particleType: 'bubble',
-        costCoins: 800,
-        costGems: 0,
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5
@@ -191,18 +143,6 @@ export class ProgressManager {
         maxUpgrade: 5
       },
       {
-        id: 'goofy_pilot',
-        name: 'Goofy Aviator',
-        rarity: 'Rare',
-        glowColor: 'rgba(255, 170, 0, 0.4)',
-        particleType: 'feathers',
-        costCoins: 1500,
-        costGems: 0,
-        unlocked: false,
-        upgradeLevel: 1,
-        maxUpgrade: 5
-      },
-      {
         id: 'white_dragon',
         name: 'White Dragon',
         rarity: 'Legendary',
@@ -210,66 +150,6 @@ export class ProgressManager {
         particleType: 'purple_sparkle',
         costCoins: 0,
         costGems: 300,
-        unlocked: false,
-        upgradeLevel: 1,
-        maxUpgrade: 5
-      },
-      {
-        id: 'storm_griffin',
-        name: 'Storm Griffin',
-        rarity: 'Epic',
-        glowColor: 'rgba(255, 235, 59, 0.8)',
-        particleType: 'storm',
-        costCoins: 6000,
-        costGems: 0,
-        unlocked: false,
-        upgradeLevel: 1,
-        maxUpgrade: 5
-      },
-      {
-        id: 'void_sentinel',
-        name: 'Void Sentinel',
-        rarity: 'Legendary',
-        glowColor: 'rgba(74, 20, 140, 0.85)',
-        particleType: 'void',
-        costCoins: 0,
-        costGems: 450,
-        unlocked: false,
-        upgradeLevel: 1,
-        maxUpgrade: 5
-      },
-      {
-        id: 'crimson_valkyrie',
-        name: 'Crimson Valkyrie',
-        rarity: 'Legendary',
-        glowColor: 'rgba(211, 47, 47, 0.85)',
-        particleType: 'valkyrie',
-        costCoins: 8000,
-        costGems: 0,
-        unlocked: false,
-        upgradeLevel: 1,
-        maxUpgrade: 5
-      },
-      {
-        id: 'emerald_wyvern',
-        name: 'Emerald Wyvern',
-        rarity: 'Epic',
-        glowColor: 'rgba(0, 230, 118, 0.8)',
-        particleType: 'wyvern',
-        costCoins: 5000,
-        costGems: 0,
-        unlocked: false,
-        upgradeLevel: 1,
-        maxUpgrade: 5
-      },
-      {
-        id: 'obsidian_gargoyle',
-        name: 'Obsidian Gargoyle',
-        rarity: 'Rare',
-        glowColor: 'rgba(255, 110, 64, 0.65)',
-        particleType: 'gargoyle',
-        costCoins: 2000,
-        costGems: 0,
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5
@@ -311,7 +191,6 @@ export class ProgressManager {
         maxUpgrade: 5
       },
       {
-
         id: 'dread_falcon',
         name: 'Dread Falcon Overlord',
         rarity: 'Legendary',
@@ -403,17 +282,17 @@ export class ProgressManager {
       if (i % 10 === 0) {
         rewardType = 'skin';
         if (i === 10) {
-          rewardName = 'Siren Bubble Skin';
-          rewardValue = 'bubble';
-        } else if (i === 20) {
           rewardName = 'Ice Crystal Shard';
           rewardValue = 'ice';
+        } else if (i === 20) {
+          rewardName = 'Cyber Owl Armor';
+          rewardValue = 'cyber_owl';
         } else if (i === 30) {
-          rewardName = 'Cyber Armor Unit';
-          rewardValue = 'cyber';
+          rewardName = 'Neon Rogue Crow';
+          rewardValue = 'neon_crow';
         } else if (i === 40) {
-          rewardName = 'Shadow Core Unit';
-          rewardValue = 'shadow';
+          rewardName = 'Aviator Chick Unit';
+          rewardValue = 'aviator_chick';
         } else {
           rewardName = 'Legendary Cosmic Nebula';
           rewardValue = 'nebula';

@@ -188,38 +188,13 @@ export class Bird {
         particleEngine.spawn(offsetBackX, offsetBackY, -0.5 - Math.random() * 1, (Math.random() - 0.5) * 1.0, 'rgba(255, 215, 0, 0.9)', 2 + Math.random() * 3, 1.0, 0.04, 'circle', true, '#ff4500');
         break;
 
-      case 'neon':
-        particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -2 - Math.random() * 1.5, (Math.random() - 0.5) * 2, 'rgba(0, 243, 255, 0.9)', 3 + Math.random() * 2, 1.0, 0.025, 'square', true, 'rgba(0, 243, 255, 0.8)');
-        break;
-
       case 'ice':
         particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -0.5 - Math.random() * 1, (Math.random() - 0.5) * 1, 'rgba(200, 240, 255, 0.8)', 4 + Math.random() * 3, 0.9, 0.02, 'snowflake', true, 'rgba(173, 216, 230, 0.5)');
-        break;
-
-      case 'shadow':
-        particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -0.5 - Math.random() * 1, (Math.random() - 0.5) * 1, 'rgba(48, 25, 52, 0.8)', 6 + Math.random() * 6, 0.9, 0.02, 'circle', false, undefined, 0.1);
-        particleEngine.spawn(offsetBackX, offsetBackY, -1 - Math.random() * 1, (Math.random() - 0.5) * 0.5, 'rgba(128, 0, 128, 0.7)', 3 + Math.random() * 2, 0.8, 0.03, 'spark', true, 'rgba(128, 0, 128, 0.8)');
-        break;
-
-      case 'gold':
-        particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -1 - Math.random() * 2, (Math.random() - 0.5) * 1, 'rgba(212, 175, 55, 0.9)', 4 + Math.random() * 3, 1.0, 0.02, 'star', true, 'rgba(212, 175, 55, 0.6)');
         break;
 
       case 'cosmic':
         particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -1.5 - Math.random() * 2, (Math.random() - 0.5) * 1.5, 'rgba(255, 20, 147, 0.9)', 3 + Math.random() * 3, 1.0, 0.02, 'star', true, 'rgba(148, 0, 211, 0.8)');
         particleEngine.spawn(offsetBackX, offsetBackY, -0.8 - Math.random() * 1, (Math.random() - 0.5) * 1, 'rgba(0, 191, 255, 0.8)', 2.5 + Math.random() * 2, 0.9, 0.03, 'circle', true, '#ff1493');
-        break;
-
-      case 'bubble':
-        particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -0.5 - Math.random() * 1, -0.2 - Math.random() * 0.8, 'rgba(173, 216, 230, 0.5)', 2.5 + Math.random() * 3, 0.7, 0.015, 'bubble');
-        break;
-
-      case 'storm':
-        particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -2 - Math.random() * 1.5, (Math.random() - 0.5) * 1.5, '#ffd600', 3 + Math.random() * 2, 1.0, 0.025, 'spark', true, '#00e5ff');
-        break;
-
-      case 'void':
-        particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -1 - Math.random() * 2, (Math.random() - 0.5) * 1.5, '#bc00dd', 3 + Math.random() * 3, 1.0, 0.02, 'star', true, 'rgba(74, 20, 140, 0.85)');
         break;
 
       case 'valkyrie':
@@ -228,11 +203,6 @@ export class Bird {
 
       case 'wyvern':
         particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -1 - Math.random() * 1.5, (Math.random() - 0.5) * 1.5, '#00e676', 3 + Math.random() * 2, 0.9, 0.02, 'spark', true, 'rgba(27, 94, 32, 0.5)');
-        break;
-
-      case 'gargoyle':
-        particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -0.8 - Math.random() * 1, (Math.random() - 0.5) * 1, '#37474f', 4 + Math.random() * 3, 0.8, 0.03, 'circle');
-        particleEngine.spawn(offsetBackX, offsetBackY, -1.2 - Math.random() * 1, (Math.random() - 0.5) * 0.5, '#ff3d00', 2.5 + Math.random() * 2, 0.9, 0.04, 'spark', true, '#ff9100');
         break;
 
       default:
@@ -305,23 +275,11 @@ export class Bird {
       case 'phoenix':
         this.drawPhoenix(ctx);
         break;
-      case 'cyber':
-        this.drawCyber(ctx);
-        break;
       case 'ice':
         this.drawIce(ctx);
         break;
-      case 'shadow':
-        this.drawShadow(ctx);
-        break;
-      case 'dragon':
-        this.drawDragon(ctx);
-        break;
       case 'nebula':
         this.drawNebula(ctx);
-        break;
-      case 'bubble':
-        this.drawBubbleSiren(ctx);
         break;
       case 'cyber_owl':
         this.drawCyberOwl(ctx);
@@ -329,26 +287,8 @@ export class Bird {
       case 'neon_crow':
         this.drawNeonCrow(ctx);
         break;
-      case 'goofy_pilot':
-        this.drawGoofyPilot(ctx);
-        break;
       case 'white_dragon':
         this.drawWhiteDragon(ctx);
-        break;
-      case 'storm_griffin':
-        this.drawStormGriffin(ctx);
-        break;
-      case 'void_sentinel':
-        this.drawVoidSentinel(ctx);
-        break;
-      case 'crimson_valkyrie':
-        this.drawCrimsonValkyrie(ctx);
-        break;
-      case 'emerald_wyvern':
-        this.drawEmeraldWyvern(ctx);
-        break;
-      case 'obsidian_gargoyle':
-        this.drawObsidianGargoyle(ctx);
         break;
       case 'kingfisher':
         this.drawKingfisher(ctx);
@@ -409,23 +349,11 @@ export class Bird {
       case 'phoenix':
         this.drawPhoenix(ctx);
         break;
-      case 'cyber':
-        this.drawCyber(ctx);
-        break;
       case 'ice':
         this.drawIce(ctx);
         break;
-      case 'shadow':
-        this.drawShadow(ctx);
-        break;
-      case 'dragon':
-        this.drawDragon(ctx);
-        break;
       case 'nebula':
         this.drawNebula(ctx);
-        break;
-      case 'bubble':
-        this.drawBubbleSiren(ctx);
         break;
       case 'cyber_owl':
         this.drawCyberOwl(ctx);
@@ -433,26 +361,8 @@ export class Bird {
       case 'neon_crow':
         this.drawNeonCrow(ctx);
         break;
-      case 'goofy_pilot':
-        this.drawGoofyPilot(ctx);
-        break;
       case 'white_dragon':
         this.drawWhiteDragon(ctx);
-        break;
-      case 'storm_griffin':
-        this.drawStormGriffin(ctx);
-        break;
-      case 'void_sentinel':
-        this.drawVoidSentinel(ctx);
-        break;
-      case 'crimson_valkyrie':
-        this.drawCrimsonValkyrie(ctx);
-        break;
-      case 'emerald_wyvern':
-        this.drawEmeraldWyvern(ctx);
-        break;
-      case 'obsidian_gargoyle':
-        this.drawObsidianGargoyle(ctx);
         break;
       case 'kingfisher':
         this.drawKingfisher(ctx);
@@ -534,36 +444,6 @@ export class Bird {
         break;
       }
 
-      case 'cyber': {
-        // Futuristic rotating hexagonal tracking HUD
-        ctx.strokeStyle = '#00f3ff';
-        ctx.save();
-        ctx.rotate(-this.auraAngle);
-        
-        // Draw double hexagon outline
-        for (let r = 0; r < 2; r++) {
-          const rad = baseRadius * (1.1 + r * 0.25);
-          ctx.beginPath();
-          for (let i = 0; i < 6; i++) {
-            const angle = (i * Math.PI) / 3;
-            ctx.lineTo(Math.cos(angle) * rad, Math.sin(angle) * rad);
-          }
-          ctx.closePath();
-          ctx.stroke();
-        }
-        
-        // Corner tech nodes
-        ctx.fillStyle = '#ffffff';
-        for (let i = 0; i < 6; i++) {
-          const angle = (i * Math.PI) / 3;
-          ctx.beginPath();
-          ctx.arc(Math.cos(angle) * (baseRadius * 1.35), Math.sin(angle) * (baseRadius * 1.35), 2.5, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.restore();
-        break;
-      }
-
       case 'ice': {
         // Rotating glacial snowflake magic circle
         ctx.strokeStyle = '#80d8ff';
@@ -589,48 +469,6 @@ export class Bird {
         break;
       }
 
-      case 'shadow': {
-        // Dark void orbit eclipse ring
-        ctx.strokeStyle = '#e040fb';
-        ctx.beginPath();
-        ctx.arc(0, 0, baseRadius * 1.25, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // Dual swirling shadow crescent blades
-        ctx.fillStyle = '#4a148c';
-        ctx.save();
-        ctx.rotate(this.auraAngle * 2);
-        for (let i = 0; i < 2; i++) {
-          ctx.rotate(Math.PI);
-          ctx.beginPath();
-          ctx.arc(baseRadius * 1.2, 0, 4, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.restore();
-        break;
-      }
-
-      case 'dragon': {
-        // Jade green ancient serpent/dragon ring
-        ctx.strokeStyle = '#00e676';
-        ctx.save();
-        ctx.rotate(-this.auraAngle * 1.2);
-        ctx.beginPath();
-        ctx.arc(0, 0, baseRadius * 1.25, 0, Math.PI * 2);
-        ctx.stroke();
-        
-        // 3 swirling jade nodes
-        ctx.fillStyle = '#ffffff';
-        for (let i = 0; i < 3; i++) {
-          const angle = (i * Math.PI * 2) / 3;
-          ctx.beginPath();
-          ctx.arc(Math.cos(angle) * (baseRadius * 1.25), Math.sin(angle) * (baseRadius * 1.25), 3, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.restore();
-        break;
-      }
-
       case 'nebula': {
         // Pulsating glowing stardust cloud rings
         ctx.strokeStyle = '#ff007f';
@@ -648,21 +486,6 @@ export class Bird {
         ctx.arc(0, 0, baseRadius * 1.1, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
-        break;
-      }
-
-      case 'bubble': {
-        // Shimmering iridescent water bubble aura with minor ripples
-        ctx.strokeStyle = '#40c4ff';
-        ctx.beginPath();
-        ctx.arc(0, 0, baseRadius * 1.2, 0, Math.PI * 2);
-        ctx.stroke();
-        
-        // Water highlights shining
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-        ctx.beginPath();
-        ctx.arc(-baseRadius * 0.6, -baseRadius * 0.6, 3, 0, Math.PI * 2);
-        ctx.fill();
         break;
       }
 
@@ -688,18 +511,6 @@ export class Bird {
         ctx.setLineDash([10, 6]);
         ctx.beginPath();
         ctx.arc(0, 0, baseRadius * 1.25, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-        break;
-      }
-
-      case 'goofy_pilot': {
-        ctx.strokeStyle = 'rgba(255, 170, 0, 0.65)';
-        ctx.save();
-        ctx.rotate(this.auraAngle * 0.5);
-        ctx.setLineDash([4, 10]);
-        ctx.beginPath();
-        ctx.arc(0, 0, baseRadius * 1.2, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
         break;
@@ -956,44 +767,6 @@ export class Bird {
     this.drawFlappingWing(ctx, '#ff4500', '#ffd700', true);
   }
 
-  private drawCyber(ctx: CanvasRenderingContext2D) {
-    if (!(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = 'rgba(0, 243, 255, 0.8)';
-    }
-
-    // Metallic carbon armor body plates
-    ctx.fillStyle = '#3a3a44';
-    ctx.beginPath();
-    ctx.rect(-15, -13, 28, 26);
-    ctx.fill();
-    ctx.strokeStyle = '#00f3ff';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // Sleek geometric head plate
-    ctx.fillStyle = '#222228';
-    ctx.beginPath();
-    ctx.moveTo(3, -11);
-    ctx.lineTo(16, -6);
-    ctx.lineTo(13, 6);
-    ctx.lineTo(3, 11);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Cyber digital glowing visor eye
-    ctx.strokeStyle = '#ff007f';
-    ctx.fillStyle = '#ff007f';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(6, -3);
-    ctx.lineTo(13, -1);
-    ctx.stroke();
-
-    // Cyber wings (geometric panel lines)
-    this.drawCyberWing(ctx);
-  }
 
   private drawIce(ctx: CanvasRenderingContext2D) {
     if (!(window as any).gameDisableShadows) {
@@ -1039,269 +812,6 @@ export class Bird {
     // Crystal shard wing
     this.drawCrystalWing(ctx);
   }
-
-  private drawShadow(ctx: CanvasRenderingContext2D) {
-    if (!(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 15;
-      ctx.shadowColor = 'rgba(128, 0, 128, 0.8)';
-    }
-
-    // Void smoke body
-    const shadowGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, 16);
-    shadowGrad.addColorStop(0, '#800080');
-    shadowGrad.addColorStop(0.7, '#1a001a');
-    shadowGrad.addColorStop(1, '#000000');
-
-    ctx.fillStyle = shadowGrad;
-    ctx.beginPath();
-    ctx.arc(0, 0, 16, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Shadow glowing purple assassin visor
-    ctx.strokeStyle = '#da70d6';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(5, -4);
-    ctx.lineTo(14, -2);
-    ctx.stroke();
-
-    // Sleek shadow wings
-    this.drawFlappingWing(ctx, '#1a001a', '#800080');
-  }
-
-  private drawDragon(ctx: CanvasRenderingContext2D) {
-    if (!(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 18;
-      ctx.shadowColor = 'rgba(0, 255, 204, 0.8)';
-    }
-
-    // 2.5D Face shift offset
-    const faceX = Math.cos(this.angle) * 2.0;
-    const faceY = Math.sin(this.angle) * 1.5 - this.vy * 0.1;
-
-    const headX = 10 + faceX;
-    const headY = -8 + faceY;
-
-    // --- 1. DRAGON TAIL (Undulating, starts at -16, 6) ---
-    ctx.save();
-    ctx.translate(-16, 6);
-    let prevX = 0;
-    let prevY = 0;
-    ctx.strokeStyle = '#4b0082';
-    ctx.lineWidth = 5.5;
-    ctx.lineCap = 'round';
-    
-    ctx.beginPath();
-    ctx.moveTo(prevX, prevY);
-    for (let i = 1; i <= 6; i++) {
-      const tailSegLength = 5.0;
-      const angleOffset = i * 0.4;
-      const waveAngle = Math.sin(this.flapCycle * 1.3 - angleOffset) * 0.35 + (this.vy * 0.05);
-      
-      prevX -= Math.cos(waveAngle) * tailSegLength;
-      prevY += Math.sin(waveAngle) * tailSegLength;
-      ctx.lineTo(prevX, prevY);
-    }
-    ctx.stroke();
-    
-    // Tail spade (neon glowing spade)
-    ctx.fillStyle = '#00ffcc';
-    ctx.beginPath();
-    ctx.moveTo(prevX, prevY);
-    ctx.bezierCurveTo(prevX - 6, prevY - 6, prevX - 12, prevY, prevX - 14, prevY + 2);
-    ctx.bezierCurveTo(prevX - 12, prevY + 4, prevX - 6, prevY + 10, prevX, prevY);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-
-    // --- 2. DRAGON LEGS ---
-    // Hind leg
-    ctx.save();
-    ctx.translate(-10, 10);
-    ctx.rotate(Math.sin(this.flapCycle) * 0.15);
-    ctx.fillStyle = '#4b0082';
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 3, 6, 0.4, 0, Math.PI * 2);
-    ctx.fill();
-    // Talons
-    ctx.fillStyle = '#ff00ff';
-    ctx.beginPath();
-    ctx.moveTo(-1, 5);
-    ctx.lineTo(-4, 9);
-    ctx.lineTo(-1, 8);
-    ctx.lineTo(2, 9);
-    ctx.lineTo(1, 5);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-
-    // Fore leg
-    ctx.save();
-    ctx.translate(2, 10);
-    ctx.rotate(Math.sin(this.flapCycle + Math.PI/2) * 0.15);
-    ctx.fillStyle = '#310062';
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 3, 6, 0.2, 0, Math.PI * 2);
-    ctx.fill();
-    // Talons
-    ctx.fillStyle = '#ff00ff';
-    ctx.beginPath();
-    ctx.moveTo(-1, 5);
-    ctx.lineTo(-3, 9);
-    ctx.lineTo(0, 8);
-    ctx.lineTo(3, 9);
-    ctx.lineTo(1, 5);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-
-    // --- 3. SERPENTINE TORSO & NECK ---
-    const bodyGrad = ctx.createLinearGradient(-18, -5, 12, 12);
-    bodyGrad.addColorStop(0, '#9400d3');
-    bodyGrad.addColorStop(0.5, '#4b0082');
-    bodyGrad.addColorStop(1, '#1a0033');
-
-    ctx.fillStyle = bodyGrad;
-    ctx.strokeStyle = '#ff00ff';
-    ctx.lineWidth = 1.2;
-
-    ctx.beginPath();
-    ctx.moveTo(headX - 3, headY + 3);
-    ctx.quadraticCurveTo(8, 0, 4, 8);
-    ctx.bezierCurveTo(0, 14, -12, 12, -18, 5);
-    ctx.lineTo(-16, 1);
-    ctx.bezierCurveTo(-10, -4, -2, -1, headX - 8, headY + 6);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // --- 4. BACK SPIKES / DORSAL RIDGE ---
-    ctx.fillStyle = '#ff00ff';
-    ctx.beginPath();
-    ctx.moveTo(-14, 2);
-    ctx.lineTo(-18, -4);
-    ctx.lineTo(-9, 0);
-    ctx.moveTo(-8, -1);
-    ctx.lineTo(-11, -8);
-    ctx.lineTo(-3, -2);
-    ctx.moveTo(-2, -3);
-    ctx.lineTo(-4, -10);
-    ctx.lineTo(2, -4);
-    ctx.closePath();
-    ctx.fill();
-
-    // --- 5. OVERLAY NEON DRAGON SCALES ---
-    ctx.strokeStyle = 'rgba(0, 255, 204, 0.4)';
-    ctx.lineWidth = 1;
-    const scalePoints = [
-      {x: -12, y: 4}, {x: -8, y: 5}, {x: -4, y: 6}, {x: 0, y: 7},
-      {x: -10, y: 1}, {x: -6, y: 2}, {x: -2, y: 3}, {x: 2, y: 4},
-      {x: -4, y: -1}, {x: 0, y: 0}, {x: 4, y: 1}
-    ];
-    scalePoints.forEach(p => {
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, 2.5, 0, Math.PI);
-      ctx.stroke();
-    });
-
-    // --- 6. DRAGON HEAD ---
-    ctx.fillStyle = '#4b0082';
-    ctx.strokeStyle = '#ff00ff';
-    ctx.lineWidth = 1.2;
-
-    ctx.beginPath();
-    ctx.moveTo(headX - 8, headY - 4);
-    ctx.lineTo(headX + 2, headY - 6);
-    ctx.lineTo(headX + 12, headY - 1);
-    ctx.lineTo(headX + 11, headY + 3);
-    ctx.lineTo(headX + 4, headY + 4);
-    ctx.lineTo(headX - 6, headY + 5);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Neon glowing snout detail
-    ctx.fillStyle = '#ff00ff';
-    ctx.beginPath();
-    ctx.arc(headX + 8, headY + 1, 1.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Majestic back horns (Neon Green / Cyan)
-    ctx.fillStyle = '#00ffcc';
-    ctx.beginPath();
-    ctx.moveTo(headX - 5, headY - 5);
-    ctx.quadraticCurveTo(headX - 14, headY - 16, headX - 20, headY - 12);
-    ctx.quadraticCurveTo(headX - 10, headY - 6, headX - 3, headY - 3);
-    ctx.closePath();
-    ctx.fill();
-    
-    ctx.beginPath();
-    ctx.moveTo(headX - 6, headY + 1);
-    ctx.quadraticCurveTo(headX - 12, headY - 6, headX - 16, headY - 4);
-    ctx.quadraticCurveTo(headX - 9, headY + 2, headX - 4, headY + 3);
-    ctx.closePath();
-    ctx.fill();
-
-    // Fierce glowing eyes
-    ctx.fillStyle = '#ff00ff';
-    ctx.beginPath();
-    ctx.arc(headX + 1, headY - 1, 4.0, 0, Math.PI * 2);
-    ctx.fill();
-    // Slit pupil
-    ctx.fillStyle = '#00ffcc';
-    ctx.beginPath();
-    ctx.ellipse(headX + 1, headY - 1, 1.0, 3.0, 0.1, 0, Math.PI * 2);
-    ctx.fill();
-
-    // --- 7. WEBBED WINGS ---
-    ctx.save();
-    ctx.translate(-2, 2);
-    const wingFlap = Math.sin(this.flapCycle) * 0.65;
-    ctx.rotate(wingFlap);
-    
-    // Webbing
-    ctx.fillStyle = 'rgba(255, 0, 255, 0.45)';
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    
-    const bone1X = -26, bone1Y = -14;
-    const bone2X = -17, bone2Y = 6;
-    const bone3X = -8, bone3Y = 15;
-    
-    ctx.lineTo(bone1X, bone1Y);
-    ctx.quadraticCurveTo(-22, -3, bone2X, bone2Y);
-    ctx.quadraticCurveTo(-12, 11, bone3X, bone3Y);
-    ctx.lineTo(0, 0);
-    ctx.closePath();
-    ctx.fill();
-    
-    // Bones
-    ctx.strokeStyle = '#4b0082';
-    ctx.lineWidth = 2.0;
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(-8, -4);
-    const wristX = -8, wristY = -4;
-    
-    ctx.moveTo(wristX, wristY);
-    ctx.lineTo(bone1X, bone1Y);
-    ctx.moveTo(wristX, wristY);
-    ctx.lineTo(bone2X, bone2Y);
-    ctx.moveTo(wristX, wristY);
-    ctx.lineTo(bone3X, bone3Y);
-    ctx.stroke();
-    
-    // Small wrist claw
-    ctx.fillStyle = '#00ffcc';
-    ctx.beginPath();
-    ctx.arc(wristX, wristY, 2.2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-
   private drawNebula(ctx: CanvasRenderingContext2D) {
     if (!(window as any).gameDisableShadows) {
       ctx.shadowBlur = 16;
@@ -1335,39 +845,6 @@ export class Bird {
     this.drawFlappingWing(ctx, '#0b001a', '#ff1493', true);
   }
 
-  private drawBubbleSiren(ctx: CanvasRenderingContext2D) {
-    if (!(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = 'rgba(30, 144, 255, 0.7)';
-    }
-
-    // Translucent bubble body
-    const bubGrad = ctx.createRadialGradient(-3, -3, 2, 0, 0, 16);
-    bubGrad.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
-    bubGrad.addColorStop(0.7, 'rgba(30, 144, 255, 0.4)');
-    bubGrad.addColorStop(1, 'rgba(0, 0, 128, 0.6)');
-
-    ctx.fillStyle = bubGrad;
-    ctx.beginPath();
-    ctx.arc(0, 0, 16, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // Cute large bubbles eye
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(7, -3, 3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#000000';
-    ctx.beginPath();
-    ctx.arc(7.5, -3, 1.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Fin wings
-    this.drawFlappingWing(ctx, 'rgba(0, 191, 255, 0.6)', 'rgba(255, 255, 255, 0.8)');
-  }
 
   // Utility flapping wing math
   private drawFlappingWing(ctx: CanvasRenderingContext2D, color1: string, color2: string, glow = false) {
@@ -1399,34 +876,6 @@ export class Bird {
     ctx.restore();
   }
 
-  private drawCyberWing(ctx: CanvasRenderingContext2D) {
-    ctx.save();
-    ctx.translate(-4, 1);
-    const flapAngle = Math.sin(this.flapCycle) * 0.6;
-    ctx.rotate(flapAngle);
-
-    ctx.fillStyle = '#222228';
-    ctx.strokeStyle = '#00f3ff';
-    ctx.lineWidth = 1.2;
-
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(-18, -10);
-    ctx.lineTo(-26, 0);
-    ctx.lineTo(-14, 8);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Neon panel details
-    ctx.strokeStyle = '#ff007f';
-    ctx.beginPath();
-    ctx.moveTo(-8, -4);
-    ctx.lineTo(-18, -1);
-    ctx.stroke();
-
-    ctx.restore();
-  }
 
   private drawCrystalWing(ctx: CanvasRenderingContext2D) {
     ctx.save();
@@ -1822,142 +1271,6 @@ export class Bird {
     ctx.restore();
   }
 
-  private drawGoofyPilot(ctx: CanvasRenderingContext2D) {
-    // 2.5D Face shift offset
-    const faceX = Math.cos(this.angle) * 1.5;
-    const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.1;
-
-    // Body squash/stretch scaling (squashes when jumping, stretches when diving)
-    ctx.save();
-    const stretchX = 1 - Math.max(-0.12, Math.min(0.12, this.vy * 0.015));
-    const stretchY = 1 + Math.max(-0.12, Math.min(0.12, this.vy * 0.015));
-    ctx.scale(stretchX, stretchY);
-
-    // Goofy brown round body
-    ctx.fillStyle = '#c68a4c';
-    ctx.beginPath();
-    ctx.arc(0, 0, 16, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Retro pilot leather helmet
-    ctx.fillStyle = '#5c4033';
-    ctx.beginPath();
-    ctx.arc(0, -2, 17, Math.PI, 0); // Helmet dome
-    ctx.fill();
-
-    // Hanging ear flaps of helmet - flutters reactively to G-force drag (vy)
-    // Left ear flap
-    ctx.save();
-    ctx.translate(-15, 2);
-    const leftFlapDrag = -this.vy * 0.07 + Math.sin(this.flapCycle * 1.5) * 0.15;
-    ctx.rotate(leftFlapDrag);
-    ctx.fillStyle = '#4b3621';
-    ctx.beginPath();
-    ctx.rect(-2, -4, 4, 15);
-    ctx.fill();
-    ctx.restore();
-
-    // Right ear flap
-    ctx.save();
-    ctx.translate(15, 2);
-    const rightFlapDrag = -this.vy * 0.07 + Math.sin(this.flapCycle * 1.5 + Math.PI) * 0.15;
-    ctx.rotate(rightFlapDrag);
-    ctx.fillStyle = '#4b3621';
-    ctx.beginPath();
-    ctx.rect(-2, -4, 4, 15);
-    ctx.fill();
-    ctx.restore();
-
-    // Googly cartoon eyes (2.5D shift)
-    ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 1;
-    
-    // Left goofy eye
-    ctx.beginPath();
-    ctx.arc(-5 + faceX, -6 + faceY, 5.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    // Pupil looking funny (panicked shake under rise speed)
-    ctx.fillStyle = '#000000';
-    ctx.beginPath();
-    const shake = Math.sin(this.flapCycle * 4) * (this.vy < 0 ? 0.8 : 0.2);
-    ctx.arc(-4 + faceX + shake, -6 + faceY, 2, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Right goofy eye
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(4 + faceX, -6 + faceY, 5.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    // Pupil looking funny (cross-eyed)
-    ctx.fillStyle = '#000000';
-    ctx.beginPath();
-    ctx.arc(2 + faceX - shake, -6 + faceY, 2, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Aviator goggles pushed up (tilt and lag behind)
-    ctx.save();
-    ctx.translate(faceX, faceY - 12);
-    const goggleTilt = this.vy * 0.05;
-    ctx.rotate(goggleTilt);
-    ctx.fillStyle = '#222222';
-    ctx.beginPath();
-    ctx.rect(-12, -2, 24, 4); // Strap
-    ctx.fill();
-    ctx.fillStyle = '#87ceeb';
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.rect(-10, -5, 8, 7); // Left goggle glass
-    ctx.rect(2, -5, 8, 7);  // Right goggle glass
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
-
-    // Wide funny orange smiling beak with teeth (2.5D shift)
-    ctx.fillStyle = '#ff8800';
-    ctx.beginPath();
-    ctx.moveTo(8 + faceX, faceY);
-    ctx.quadraticCurveTo(18 + faceX, 5 + faceY, 22 + faceX * 1.2, faceY);
-    ctx.quadraticCurveTo(18 + faceX, -5 + faceY, 8 + faceX, faceY);
-    ctx.fill();
-
-    // Big happy smile cheeks (2.5D shift)
-    ctx.fillStyle = '#ffaa00';
-    ctx.beginPath();
-    ctx.arc(6 + faceX, 1 + faceY, 4, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Goofy aviator wing bending at elbow joint
-    ctx.save();
-    const wingSpeed = this.vy < 0 ? 1.8 : 1.4;
-    const mainAngle = Math.sin(this.flapCycle * wingSpeed) * 0.7;
-    ctx.translate(-4, 2);
-    ctx.rotate(mainAngle);
-    
-    // Draw upper wing bone
-    ctx.fillStyle = '#8b5a2b';
-    ctx.beginPath();
-    ctx.ellipse(-6, -2, 8, 4, -0.4, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Draw lower wing bending at joint
-    ctx.translate(-10, -2);
-    const elbowBend = Math.sin(this.flapCycle * wingSpeed + 0.6) * 0.5;
-    ctx.rotate(elbowBend);
-    ctx.fillStyle = '#c68a4c';
-    ctx.beginPath();
-    ctx.moveTo(0, -3);
-    ctx.bezierCurveTo(-10, -8, -16, 2, -18, 6);
-    ctx.bezierCurveTo(-12, 8, -4, 4, 0, 3);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-
-    ctx.restore(); // Body scale restore
-  }
 
   private drawWhiteDragon(ctx: CanvasRenderingContext2D) {
     ctx.save();
@@ -2239,198 +1552,6 @@ export class Bird {
     ctx.restore(); // restore the main scale(1.3, 1.3)
   }
 
-  private drawStormGriffin(ctx: CanvasRenderingContext2D) {
-    if (!(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 12;
-      ctx.shadowColor = 'rgba(255, 235, 59, 0.85)';
-    }
-    const grad = ctx.createLinearGradient(-16, -16, 16, 16);
-    grad.addColorStop(0, '#00e5ff');
-    grad.addColorStop(0.5, '#ffd600');
-    grad.addColorStop(1, '#ff6d00');
-
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(0, 0, 16, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Golden electric griffin beak
-    ctx.fillStyle = '#ffe100';
-    ctx.beginPath();
-    ctx.moveTo(10, -5);
-    ctx.lineTo(26, 2);
-    ctx.lineTo(10, 7);
-    ctx.closePath();
-    ctx.fill();
-
-    // Feather crown
-    ctx.fillStyle = '#00e5ff';
-    ctx.beginPath();
-    ctx.moveTo(-4, -15);
-    ctx.lineTo(2, -22);
-    ctx.lineTo(8, -12);
-    ctx.closePath();
-    ctx.fill();
-
-    // Griffin blue eye
-    ctx.fillStyle = '#00b0ff';
-    ctx.beginPath();
-    ctx.arc(7, -4, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Electric wings
-    this.drawFlappingWing(ctx, '#00e5ff', '#ffe100', true);
-  }
-
-  private drawVoidSentinel(ctx: CanvasRenderingContext2D) {
-    if (!(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 15;
-      ctx.shadowColor = 'rgba(188, 0, 221, 0.85)';
-    }
-    ctx.fillStyle = '#1c0a35';
-    ctx.strokeStyle = '#bc00dd';
-    ctx.lineWidth = 2.0;
-
-    // Angular dark void shield armor body
-    ctx.beginPath();
-    ctx.moveTo(-15, -15);
-    ctx.lineTo(15, -10);
-    ctx.lineTo(10, 15);
-    ctx.lineTo(-12, 12);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Glowing purple laser visor
-    ctx.fillStyle = '#d500f9';
-    ctx.beginPath();
-    ctx.rect(4, -4, 10, 3.5);
-    ctx.fill();
-
-    // Void sentinel metal wings
-    this.drawFlappingWing(ctx, '#4a148c', '#d500f9', true);
-  }
-
-  private drawCrimsonValkyrie(ctx: CanvasRenderingContext2D) {
-    if (!(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 14;
-      ctx.shadowColor = 'rgba(211, 47, 47, 0.9)';
-    }
-    const valkGrad = ctx.createLinearGradient(-15, -15, 15, 15);
-    valkGrad.addColorStop(0, '#ffd700');
-    valkGrad.addColorStop(0.5, '#d32f2f');
-    valkGrad.addColorStop(1, '#5d0000');
-
-    ctx.fillStyle = valkGrad;
-    ctx.beginPath();
-    ctx.arc(0, 0, 16, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Majestic golden crest
-    ctx.fillStyle = '#ffd700';
-    ctx.beginPath();
-    ctx.moveTo(-6, -16);
-    ctx.lineTo(6, -24);
-    ctx.lineTo(12, -10);
-    ctx.closePath();
-    ctx.fill();
-
-    // Glowing valkyrie beak
-    ctx.fillStyle = '#ffb300';
-    ctx.beginPath();
-    ctx.moveTo(9, -4);
-    ctx.lineTo(24, -1);
-    ctx.lineTo(9, 5);
-    ctx.closePath();
-    ctx.fill();
-
-    // Valiant golden eye
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(6, -3, 2, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Crimson wings
-    this.drawFlappingWing(ctx, '#ff1744', '#ffd700', true);
-  }
-
-  private drawEmeraldWyvern(ctx: CanvasRenderingContext2D) {
-    if (!(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 12;
-      ctx.shadowColor = 'rgba(0, 230, 118, 0.8)';
-    }
-    const scaleGrad = ctx.createLinearGradient(-16, -16, 16, 16);
-    scaleGrad.addColorStop(0, '#00e676');
-    scaleGrad.addColorStop(0.6, '#00b0ff');
-    scaleGrad.addColorStop(1, '#1b5e20');
-
-    ctx.fillStyle = scaleGrad;
-    ctx.beginPath();
-    ctx.moveTo(-16, -5);
-    ctx.lineTo(0, -16);
-    ctx.lineTo(16, -5);
-    ctx.lineTo(12, 14);
-    ctx.lineTo(-12, 14);
-    ctx.closePath();
-    ctx.fill();
-
-    // Jade horns
-    ctx.fillStyle = '#00e676';
-    ctx.beginPath();
-    ctx.moveTo(5, -15);
-    ctx.lineTo(12, -26);
-    ctx.lineTo(10, -12);
-    ctx.closePath();
-    ctx.fill();
-
-    // Snake slit eye
-    ctx.fillStyle = '#ffe100';
-    ctx.beginPath();
-    ctx.arc(6, -2, 3, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Emerald webbed wings
-    this.drawCrystalWing(ctx);
-  }
-
-  private drawObsidianGargoyle(ctx: CanvasRenderingContext2D) {
-    if (!(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = 'rgba(255, 110, 64, 0.7)';
-    }
-    // Obsidian lava-cracked stone texture
-    ctx.fillStyle = '#263238';
-    ctx.beginPath();
-    ctx.arc(0, 0, 16, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Lava cracks glowing
-    ctx.strokeStyle = '#ff3d00';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(-10, 2);
-    ctx.lineTo(0, -6);
-    ctx.lineTo(10, 8);
-    ctx.stroke();
-
-    // Heavy gargoyle horn
-    ctx.fillStyle = '#37474f';
-    ctx.beginPath();
-    ctx.moveTo(-8, -12);
-    ctx.lineTo(-18, -20);
-    ctx.lineTo(-4, -14);
-    ctx.closePath();
-    ctx.fill();
-
-    // Angry fire eyes
-    ctx.fillStyle = '#ff3d00';
-    ctx.beginPath();
-    ctx.arc(6, -4, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Heavy bat wings
-    this.drawFlappingWing(ctx, '#37474f', '#ff9100');
-  }
 
   private drawKingfisher(ctx: CanvasRenderingContext2D) {
     if (!(window as any).gameDisableShadows) {
