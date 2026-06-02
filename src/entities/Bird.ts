@@ -1960,6 +1960,9 @@ export class Bird {
   }
 
   private drawWhiteDragon(ctx: CanvasRenderingContext2D) {
+    ctx.save();
+    ctx.scale(1.3, 1.3);
+
     if (!(window as any).gameDisableShadows) {
       ctx.shadowBlur = 15;
       ctx.shadowColor = 'rgba(224, 180, 255, 0.7)';
@@ -2104,36 +2107,42 @@ export class Bird {
       ctx.stroke();
     });
 
-    // --- 6. DRAGON HEAD (Realistic structure: defined brow, curved snout, split jaw) ---
+    // --- 6. DRAGON-BIRD HYBRID HEAD (Rounded bird head with sharp golden-lavender beak) ---
     ctx.fillStyle = '#f8fafc';
     ctx.strokeStyle = '#c084fc';
     ctx.lineWidth = 1.3;
 
-    // Draw realistic reptilian dragon head shape
+    // Draw rounded bird head shape
     ctx.beginPath();
-    ctx.moveTo(headX - 9, headY - 4);
-    ctx.quadraticCurveTo(headX - 2, headY - 7, headX + 3, headY - 5); // Brow ridge curvature
-    ctx.quadraticCurveTo(headX + 8, headY - 4, headX + 12, headY - 1); // Bridge of snout
-    ctx.quadraticCurveTo(headX + 13, headY + 2.2, headX + 11, headY + 3.2); // Snout tip
-    ctx.quadraticCurveTo(headX + 5, headY + 2.5, headX + 2, headY + 4); // Curved jawline
-    ctx.quadraticCurveTo(headX - 4, headY + 5, headX - 8, headY + 4); // Back of jaw
+    ctx.arc(headX, headY, 8.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Sharp golden bird beak (falcon-like curved hook)
+    const beakGrad = ctx.createLinearGradient(headX + 4, headY - 5, headX + 18, headY + 5);
+    beakGrad.addColorStop(0, '#ffd54f'); // Golden yellow base
+    beakGrad.addColorStop(0.6, '#ff8f00'); // Deep gold
+    beakGrad.addColorStop(1, '#c084fc'); // Lavender tip (blends with white dragon theme!)
+    ctx.fillStyle = beakGrad;
+    ctx.strokeStyle = '#3d2503';
+    ctx.lineWidth = 1.1;
+
+    ctx.beginPath();
+    ctx.moveTo(headX + 5, headY - 4); // top base of beak
+    ctx.quadraticCurveTo(headX + 16, headY - 3, headX + 14, headY + 4); // curved hook tip pointing down
+    ctx.lineTo(headX + 10, headY + 2); // lower cut
+    ctx.quadraticCurveTo(headX + 7, headY + 0.5, headX + 3, headY + 0.8); // mouth line connection
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Defined mouth split line (gives a realistic closed mouth structure)
-    ctx.strokeStyle = '#c084fc';
-    ctx.lineWidth = 1.0;
+    // Subtle beak highlight reflection line (gives 3D shiny metallic feel)
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 0.8;
     ctx.beginPath();
-    ctx.moveTo(headX + 2, headY + 1);
-    ctx.quadraticCurveTo(headX + 7, headY + 0.8, headX + 11, headY + 1.8);
+    ctx.moveTo(headX + 6, headY - 3);
+    ctx.quadraticCurveTo(headX + 12, headY - 2, headX + 11, headY + 1);
     ctx.stroke();
-
-    // Nostril (realistic position)
-    ctx.fillStyle = '#fbcfe8';
-    ctx.beginPath();
-    ctx.arc(headX + 9, headY + 0.5, 1.1, 0, Math.PI * 2);
-    ctx.fill();
 
     // Majestic horns (Lilac/Purple)
     ctx.fillStyle = '#c084fc';
@@ -2226,6 +2235,8 @@ export class Bird {
     ctx.arc(wristX, wristY, 2.2, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+    
+    ctx.restore(); // restore the main scale(1.3, 1.3)
   }
 
   private drawStormGriffin(ctx: CanvasRenderingContext2D) {
