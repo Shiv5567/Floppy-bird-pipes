@@ -1372,14 +1372,19 @@ export class ObstacleManager {
         animDuration = 0.45;
       } else if (patternType === 'level6_infinity') {
         // LEVEL 6: "The Folding Accordion Gates" (Clean triangle-wave folding layout)
-        localGapHeight = Math.round((gapHeight - 5) * 0.7 * 1.2 * 0.75); // Decreased by 25% (approx 98px)
+        const baseGap = Math.round((gapHeight - 5) * 0.7 * 1.2); // Base gap (approx 130px)
+        const blockIdx = Math.floor(actualPatternIdx / 6);
+        const isShiftedBlock = (blockIdx % 2 === 1); // After 6 obstacles (obstacles 6-11, 18-23, etc.)
+        
+        // Gap is 25% less (approx 98px) only for the shifted-down block after 6 obstacles, otherwise 130px
+        localGapHeight = isShiftedBlock ? Math.round(baseGap * 0.75) : baseGap;
+        
         const modIdx = obstacleIdx % 6;
         const triangleOffset = modIdx < 3 ? (modIdx * 30 - 30) : ((5 - modIdx) * 30 - 30); // Step size decreased to 30px for a less zigzag path
         
         // Alternates path offset UP and DOWN by 40% of the gap height every 6 obstacles
-        const blockIdx = Math.floor(actualPatternIdx / 6);
-        const shiftSign = (blockIdx % 2 === 0) ? -1 : 1; // Alternating UP (-1) and DOWN (+1)
-        const pathShift = shiftSign * (localGapHeight * 0.40);
+        const shiftSign = isShiftedBlock ? 1 : -1; // Alternating UP (-1) and DOWN (+1)
+        const pathShift = shiftSign * (baseGap * 0.40);
         
         targetCenterY = height / 2 + triangleOffset + pathShift;
         triggerDistance = 280;
