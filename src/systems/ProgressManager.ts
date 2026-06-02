@@ -308,6 +308,18 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5
+      },
+      {
+        id: 'dread_falcon',
+        name: 'Dread Falcon Overlord',
+        rarity: 'Legendary',
+        glowColor: 'rgba(255, 191, 0, 0.95)',
+        particleType: 'valkyrie',
+        costCoins: 6000,
+        costGems: 0,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5
       }
     ];
   }

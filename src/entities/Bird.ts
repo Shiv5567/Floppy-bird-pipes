@@ -359,6 +359,9 @@ export class Bird {
       case 'aviator_chick':
         this.drawAviatorChick(ctx);
         break;
+      case 'dread_falcon':
+        this.drawFalcon(ctx);
+        break;
       default:
         this.drawEagle(ctx); // Default Eagle
     }
@@ -687,6 +690,51 @@ export class Bird {
         ctx.lineTo(-3.5, 0);
         ctx.closePath();
         ctx.fill();
+
+        ctx.restore();
+        break;
+      }
+      case 'dread_falcon': {
+        // Rotating golden high-speed targeting reticle aura
+        ctx.strokeStyle = '#ffd700'; // Gold reticle
+        ctx.save();
+        ctx.rotate(this.auraAngle * 2.0); // Fast rotation
+        
+        // Outer dashed reticle circle
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([8, 12]);
+        ctx.beginPath();
+        ctx.arc(0, 0, baseRadius * 1.35, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // 4 corner reticle brackets
+        ctx.setLineDash([]);
+        ctx.lineWidth = 2.0;
+        const bracketSize = 5;
+        const bracketRad = baseRadius * 1.5;
+        for (let i = 0; i < 4; i++) {
+          const angle = (i * Math.PI) / 2 + Math.PI / 4;
+          const bx = Math.cos(angle) * bracketRad;
+          const by = Math.sin(angle) * bracketRad;
+          
+          ctx.save();
+          ctx.translate(bx, by);
+          ctx.rotate(angle + Math.PI); // Align to center
+          ctx.beginPath();
+          ctx.moveTo(-bracketSize, 0);
+          ctx.lineTo(0, 0);
+          ctx.lineTo(0, -bracketSize);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Inner glowing target lock blinking red dot
+        if (Math.sin(this.auraPulse * 3) > 0) {
+          ctx.fillStyle = '#ff1744'; // Glowing red target lock
+          ctx.beginPath();
+          ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
 
         ctx.restore();
         break;
@@ -3156,5 +3204,256 @@ export class Bird {
 
     // --- 10. Flapping Wings (Ash-grey feathers) ---
     this.drawFlappingWing(ctx, '#78909c', '#cfd8dc');
+  }
+
+  private drawFalcon(ctx: CanvasRenderingContext2D) {
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = 'rgba(255, 191, 0, 0.6)'; // Menacing gold glow
+    }
+
+    // 2.5D Face shift offset based on bird movement angle
+    const faceX = Math.cos(this.angle) * 1.5;
+    const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.1;
+
+    // --- 1. Muscular Yellow Claws (Peregrine yellow legs with sharp black talons) ---
+    ctx.fillStyle = '#ffca28'; // Bright yellow
+    ctx.strokeStyle = '#f57f17'; // Darker orange-yellow shading
+    ctx.lineWidth = 1.2;
+    // Left leg & talon
+    ctx.beginPath();
+    ctx.moveTo(-5, 10);
+    ctx.quadraticCurveTo(-11, 18, -4, 21);
+    ctx.quadraticCurveTo(-1, 15, -1, 10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Right leg & talon (Larger front leg in profile)
+    ctx.beginPath();
+    ctx.moveTo(2, 9);
+    ctx.quadraticCurveTo(8, 20, 15, 17); // Muscular yellow claw facing forward
+    ctx.quadraticCurveTo(11, 13, 6, 9);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Razor-sharp black claws
+    ctx.fillStyle = '#212121';
+    ctx.beginPath();
+    ctx.arc(-4, 21, 1.5, 0, Math.PI * 2);
+    ctx.arc(15, 17, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // --- 2. Body/Torso (White Chest with Charcoal Barring pattern) ---
+    const bodyGrad = ctx.createLinearGradient(-16, -16, 16, 16);
+    bodyGrad.addColorStop(0, '#546e7a'); // Slate back base
+    bodyGrad.addColorStop(0.5, '#37474f');
+    bodyGrad.addColorStop(1, '#263238');
+    ctx.fillStyle = bodyGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+    // White breast/belly patch (facing forward/right)
+    ctx.fillStyle = '#f5f5f5'; // Cream white
+    ctx.beginPath();
+    ctx.moveTo(3, -12);
+    ctx.bezierCurveTo(16, -6, 17, 4, 11, 12); // Front breast curve
+    ctx.lineTo(2, 11);
+    ctx.bezierCurveTo(7, 3, 7, -8, 2, -12);
+    ctx.closePath();
+    ctx.fill();
+
+    // Dark grey horizontal bars (barring pattern on chest)
+    ctx.strokeStyle = '#455a64';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    // Bar row 1
+    ctx.moveTo(5, -6); ctx.lineTo(13, -3);
+    // Bar row 2
+    ctx.moveTo(6, -1); ctx.lineTo(14, 2);
+    // Bar row 3
+    ctx.moveTo(5, 4); ctx.lineTo(12, 7);
+    ctx.stroke();
+
+    // --- 3. Fan-shaped Tail Feathers (Pointed, slate-grey, barred) ---
+    ctx.save();
+    ctx.translate(-13, 5);
+    const tailTilt = -this.vy * 0.05 + Math.sin(this.flapCycle) * 0.08;
+    ctx.rotate(tailTilt);
+
+    const tailGrad = ctx.createLinearGradient(0, -6, -24, 10);
+    tailGrad.addColorStop(0, '#37474f');
+    tailGrad.addColorStop(1, '#ffd700'); // Glowing golden tips
+    ctx.fillStyle = tailGrad;
+    ctx.strokeStyle = '#263238';
+    ctx.lineWidth = 1;
+
+    ctx.beginPath();
+    ctx.moveTo(0, -6);
+    ctx.lineTo(-26, -12); // Long pointed primary feather
+    ctx.lineTo(-29, -2);
+    ctx.lineTo(-25, 8);
+    ctx.lineTo(0, 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Barring lines on tail
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.beginPath();
+    ctx.moveTo(-10, -5); ctx.lineTo(-11, 2);
+    ctx.moveTo(-18, -7); ctx.lineTo(-19, 1);
+    ctx.stroke();
+    ctx.restore();
+
+    // --- 4. Back Scapular Cloak (Armored slate cape) ---
+    ctx.fillStyle = '#37474f';
+    ctx.strokeStyle = '#ffd700'; // Gold border line
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(-17, -3);
+    ctx.bezierCurveTo(-11, -14, 3, -12, 1, 3);
+    ctx.bezierCurveTo(-1, 11, -11, 13, -17, 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // --- 5. Menacing Peregrine Falcon Head (Dark hood, white cheeks) ---
+    // White throat & cheek base
+    ctx.fillStyle = '#f5f5f5';
+    ctx.beginPath();
+    ctx.arc(faceX, -5 + faceY, 12.0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Dark grey/black head hood & malar stripe
+    const hoodGrad = ctx.createLinearGradient(-6 + faceX, -16 + faceY, 12 + faceX, -2 + faceY);
+    hoodGrad.addColorStop(0, '#263238'); // Slate-black
+    hoodGrad.addColorStop(1, '#1b1211');
+    ctx.fillStyle = hoodGrad;
+
+    ctx.beginPath();
+    // Draw hood covering top crown and cheek mustache
+    ctx.arc(faceX, -6 + faceY, 12.5, Math.PI, 0); // Top cap
+    ctx.lineTo(12.5 + faceX, -6 + faceY);
+    // Malar mustache stripe dangling down the cheek
+    ctx.quadraticCurveTo(8 + faceX, 3 + faceY, 4 + faceX, 5 + faceY); 
+    ctx.lineTo(0 + faceX, 1 + faceY);
+    ctx.bezierCurveTo(-10 + faceX, -1 + faceY, -12.5 + faceX, -5 + faceY, -12.5 + faceX, -6 + faceY);
+    ctx.closePath();
+    ctx.fill();
+
+    // --- 6. Large Menacing Gold/Ruby Eye (Single profile eye facing Right) ---
+    // Glowing golden orbital ring
+    ctx.fillStyle = '#ffd54f';
+    ctx.beginPath();
+    ctx.arc(4.5 + faceX, -6.5 + faceY, 5.0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Menacing crimson/ruby iris
+    ctx.fillStyle = '#ff1744';
+    ctx.beginPath();
+    ctx.arc(4.5 + faceX, -6.5 + faceY, 3.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Slit pupil looking forward-right
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.ellipse(5.0 + faceX, -6.5 + faceY, 1.2, 3.0, 0.15, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Glare dot
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(5.8 + faceX, -7.8 + faceY, 0.9, 0, Math.PI * 2);
+    ctx.fill();
+
+    // --- 7. Hooked Beak on Right (Yellow cere, dark hook) ---
+    // Yellow Cere base
+    ctx.fillStyle = '#ffd54f';
+    ctx.beginPath();
+    ctx.moveTo(9 + faceX, -9 + faceY);
+    ctx.lineTo(12 + faceX, -9 + faceY);
+    ctx.lineTo(10 + faceX, -4 + faceY);
+    ctx.lineTo(8 + faceX, -4 + faceY);
+    ctx.closePath();
+    ctx.fill();
+
+    // Dark hooked beak (pointing sharply downwards on right side)
+    const beakGrad = ctx.createLinearGradient(8 + faceX, -9 + faceY, 21 + faceX, 4 + faceY);
+    beakGrad.addColorStop(0, '#37474f');
+    beakGrad.addColorStop(1, '#1b1211'); // Dark tip
+    
+    ctx.fillStyle = beakGrad;
+    ctx.strokeStyle = '#ffd700'; // Golden laser hook line
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(10 + faceX, -9 + faceY); // Top base
+    ctx.quadraticCurveTo(22 + faceX, -6 + faceY, 19 + faceX, 5 + faceY); // Downward curve hook
+    ctx.quadraticCurveTo(11 + faceX, 0 + faceY, 9 + faceX, -3 + faceY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // --- 8. Sharp, Bladed Barred Wings (Obsidian/Slate-grey, profile layout) ---
+    ctx.save();
+    ctx.translate(-3, 1);
+    const flapAngle = Math.sin(this.flapCycle) * 0.7; // Fast flap cycle
+    ctx.rotate(flapAngle);
+
+    const wingGrad = ctx.createLinearGradient(0, 0, -45, 6);
+    wingGrad.addColorStop(0, '#263238'); // Dark carbon base
+    wingGrad.addColorStop(0.5, '#37474f'); // Slate grey middle
+    wingGrad.addColorStop(0.9, '#ffd700'); // Glowing golden tips
+    wingGrad.addColorStop(1, '#ffffff');
+
+    ctx.fillStyle = wingGrad;
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 1.5;
+
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#ffd700';
+    }
+
+    // Draw long, pointed, aerodynamic falcon wing with bladed feathers
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(-15, -22, -40, -14, -48, 6); // Pointed wing sweep
+    // Bladed feather notches
+    ctx.lineTo(-43, 10);
+    ctx.lineTo(-47, 15);
+    ctx.lineTo(-37, 17);
+    ctx.lineTo(-40, 23);
+    ctx.lineTo(-29, 21);
+    ctx.lineTo(-31, 27);
+    ctx.lineTo(-18, 18);
+    ctx.quadraticCurveTo(-9, 9, 0, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+
+    // Dark checkerboard barring markings on wing
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(-15, -6); ctx.lineTo(-25, -2);
+    ctx.moveTo(-12, 1); ctx.lineTo(-28, 6);
+    ctx.moveTo(-10, 8); ctx.lineTo(-22, 13);
+    ctx.stroke();
+
+    // Wing joint cover matching the body armor
+    ctx.fillStyle = '#ffca28';
+    ctx.strokeStyle = '#3e2723';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.arc(0, 1, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore();
   }
 }
