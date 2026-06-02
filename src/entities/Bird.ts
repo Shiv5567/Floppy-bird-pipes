@@ -2401,45 +2401,28 @@ export class Bird {
     ctx.ellipse(3 + faceX, 1 + faceY, 4.5, 2.5, -0.4, 0, Math.PI * 2);
     ctx.fill();
 
-    // --- 7. Cybernetic Visor plate with Glowing Menacing Red Eye Slit ---
-    // Dark visor plate
-    ctx.fillStyle = '#212121'; // Charcoal black
-    ctx.strokeStyle = '#c2185b'; // Magenta trim
-    ctx.lineWidth = 1;
+    // --- 7. Normal & Relaxing Eye (Simpler, calm black eye with soft highlights) ---
+    // Soft outer cream/light-blue eye ring for a natural kingfisher detail
+    ctx.fillStyle = '#e1f5fe'; // Soft sky blue/cream
     ctx.beginPath();
-    // Angular visor shape
-    ctx.moveTo(-1 + faceX, -9 + faceY);
-    ctx.lineTo(8 + faceX, -8 + faceY);
-    ctx.lineTo(9 + faceX, -4 + faceY);
-    ctx.lineTo(2 + faceX, -2 + faceY);
-    ctx.lineTo(-1 + faceX, -4 + faceY);
-    ctx.closePath();
+    ctx.arc(4 + faceX, -6 + faceY, 5.0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.stroke();
 
-    // Menacing glowing red slit eye
-    ctx.strokeStyle = '#ff1744'; // Glowing neon red
-    ctx.lineWidth = 2.0;
-    if (!(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = '#ff1744';
-    }
+    // Calm round black eye
+    ctx.fillStyle = '#101726'; // Deep midnight blue/black
     ctx.beginPath();
-    // Diagonal angry glowing line
-    ctx.moveTo(1 + faceX, -6 + faceY);
-    ctx.lineTo(7 + faceX, -6 + faceY);
-    ctx.stroke();
+    ctx.arc(4 + faceX, -6 + faceY, 3.5, 0, Math.PI * 2);
+    ctx.fill();
 
-    // Mini hot white laser core inside the red slit
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 0.8;
+    // Gentle white highlights (making it look friendly and relaxing)
+    ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.moveTo(3 + faceX, -6 + faceY);
-    ctx.lineTo(6 + faceX, -6 + faceY);
-    ctx.stroke();
-
-    // Reset shadow for subsequent drawings
-    ctx.shadowBlur = 0;
+    ctx.arc(5.0 + faceX, -7.2 + faceY, 1.2, 0, Math.PI * 2); // Primary light reflection
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.arc(2.8 + faceX, -5.0 + faceY, 0.6, 0, Math.PI * 2); // Secondary subtle reflection
+    ctx.fill();
 
     // --- 8. Giant Red-Orange Beak (Reinforced cyber-alloy plating, pointing slightly upwards) ---
     const beakGrad = ctx.createLinearGradient(faceX, -8 + faceY, 32 + faceX, -2 + faceY);
