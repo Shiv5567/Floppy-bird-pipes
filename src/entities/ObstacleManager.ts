@@ -56,6 +56,10 @@ export interface Obstacle {
   baseBottomHeight?: number;
   obstacleIdx?: number;
   spawnScore?: number;
+  hasEnergyBall?: boolean;
+  energyBallY?: number;
+  energyBallSpeedY?: number;
+  energyBallRadius?: number;
 }
 
 export class ObstacleManager {
@@ -121,7 +125,11 @@ export class ObstacleManager {
       spawnScore: undefined,
       isSpecialSplit: false,
       baseTopHeight: 0,
-      baseBottomHeight: 0
+      baseBottomHeight: 0,
+      hasEnergyBall: false,
+      energyBallY: undefined,
+      energyBallSpeedY: undefined,
+      energyBallRadius: undefined
     }, props);
     return obs;
   }
@@ -236,6 +244,26 @@ export class ObstacleManager {
     for (let i = this.list.length - 1; i >= 0; i--) {
       const obs = this.list[i];
       obs.x -= actualScrollSpeed;
+
+      // Update moving energy ball Y position inside the gap
+      if (obs.hasEnergyBall && obs.energyBallY !== undefined && obs.energyBallSpeedY !== undefined) {
+        const ballSpeed = obs.energyBallSpeedY * dtCoeff;
+        obs.energyBallY += ballSpeed;
+
+        const rad = obs.energyBallRadius || 16;
+        // Gap boundaries (top pipe bottom and bottom pipe top)
+        const topBound = obs.topHeight + rad;
+        const bottomBound = height - obs.bottomHeight - rad;
+
+        // Bounce checks
+        if (obs.energyBallY <= topBound) {
+          obs.energyBallY = topBound;
+          obs.energyBallSpeedY = Math.abs(obs.energyBallSpeedY); // Move down
+        } else if (obs.energyBallY >= bottomBound) {
+          obs.energyBallY = bottomBound;
+          obs.energyBallSpeedY = -Math.abs(obs.energyBallSpeedY); // Move up
+        }
+      }
 
       // LEVEL CREATIVE PIPE ANIMATION SYSTEM
       if (obs.levelNum !== undefined && obs.patternType) {
@@ -2341,6 +2369,17 @@ export class ObstacleManager {
         }
       }
 
+      // Gap height reductions for Levels 41 to 50 to make them highly challenging
+      if (levelNum !== undefined && levelNum >= 41 && levelNum <= 50) {
+        if (obstacleIdx <= 5) {
+          localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce for Group 1
+        } else if (obstacleIdx <= 11) {
+          localGapHeight = Math.round(gapHeight * 0.75); // 25% reduce for Group 2
+        } else {
+          localGapHeight = Math.round(gapHeight * 0.65); // 35% reduce for Group 3
+        }
+      }
+
       // Safeguard boundaries and calculate target heights
       if (levelNum !== undefined && levelNum >= 11 && levelNum <= 20) {
         localGapHeight = Math.max(165, localGapHeight);
@@ -2396,6 +2435,26 @@ export class ObstacleManager {
       const isMutated = (levelNum % 2 === 0);
       const isStructured = (levelNum % 3 === 0);
 
+      let hasEnergyBall = false;
+      let initEnergyBallY: number | undefined = undefined;
+      let initEnergyBallSpeedY: number | undefined = undefined;
+
+      if (levelNum !== undefined && levelNum >= 40 && levelNum <= 50) {
+        if (levelNum >= 45) {
+          hasEnergyBall = true;
+        } else {
+          // Levels 40 to 44: alternating obstacles
+          hasEnergyBall = (actualPatternIdx % 2 === 0);
+        }
+
+        if (hasEnergyBall) {
+          initEnergyBallY = targetCenterY;
+          // Alternate direction and randomize speed: moving between 2.0 and 3.5 pixels per frame
+          const dir = (actualPatternIdx % 2 === 0 ? 1 : -1);
+          initEnergyBallSpeedY = dir * (2.0 + Math.random() * 1.5);
+        }
+      }
+
       this.list.push(this.acquireObstacle({
         x: width + 50,
         width: this.obstacleWidth,
@@ -2433,7 +2492,11 @@ export class ObstacleManager {
         gapHeight: localGapHeight,
         spawnCenterY: targetCenterY,
         obstacleIdx: actualPatternIdx,
-        spawnScore: score
+        spawnScore: score,
+        hasEnergyBall,
+        energyBallY: initEnergyBallY,
+        energyBallSpeedY: initEnergyBallSpeedY,
+        energyBallRadius: 16
       }));
       return;
     }
@@ -2808,6 +2871,22 @@ export class ObstacleManager {
 
     for (let i = 0; i < this.list.length; i++) {
       const obs = this.list[i];
+
+      // Circle-to-circle collision with the moving energy ball
+      if (obs.hasEnergyBall && obs.energyBallY !== undefined) {
+        const ballX = obs.x + obs.width / 2;
+        const ballY = obs.energyBallY;
+        const ballRad = obs.energyBallRadius || 16;
+        
+        const dx = bird.x - ballX;
+        const dy = bird.y - ballY;
+        const distSq = dx * dx + dy * dy;
+        const radiusSum = effectiveRadius + ballRad;
+        
+        if (distSq <= radiusSum * radiusSum) {
+          return obs; // Collided with the moving ball obstacle!
+        }
+      }
 
       const topShift = obs.shakeX || 0;
       const bottomShift = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
@@ -3218,6 +3297,73 @@ export class ObstacleManager {
           ctx.strokeStyle = '#ffd700';
           ctx.beginPath();
           ctx.arc(0, 0, 28, 0, Math.PI * 1.8);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // Draw moving energy ball obstacle if active
+      if (obs.hasEnergyBall && obs.energyBallY !== undefined) {
+        ctx.save();
+        const ballX = obs.x + obs.width / 2;
+        const ballY = obs.energyBallY;
+        const radius = obs.energyBallRadius || 16;
+        
+        ctx.translate(ballX, ballY);
+        
+        // Draw glow aura
+        const isPerformance = (window as any).gameDisableShadows;
+        let colorCore = '#ffffff';
+        let colorGlow = '#ff007f'; // Default hot pink
+        
+        if (obs.worldId === 'volcano') {
+          colorGlow = '#ff4500'; // Fire orange
+        } else if (obs.worldId === 'ice') {
+          colorGlow = '#00f3ff'; // Ice blue
+        } else if (obs.worldId === 'space' || obs.worldId === 'cyberpunk') {
+          colorGlow = '#a200ff'; // Quantum purple
+        } else if (obs.worldId === 'heaven') {
+          colorGlow = '#ffd700'; // Heavenly gold
+        }
+        
+        if (isPerformance) {
+          ctx.fillStyle = colorGlow;
+          ctx.beginPath();
+          ctx.arc(0, 0, radius, 0, Math.PI * 2);
+          ctx.fill();
+          
+          ctx.fillStyle = colorCore;
+          ctx.beginPath();
+          ctx.arc(0, 0, radius * 0.4, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          // Radial glow gradient
+          const pulse = radius + Math.sin(this.waveTime * 10.0) * 4;
+          const grad = ctx.createRadialGradient(0, 0, radius * 0.2, 0, 0, pulse);
+          grad.addColorStop(0, '#ffffff');
+          grad.addColorStop(0.3, colorCore);
+          grad.addColorStop(0.6, colorGlow);
+          grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(0, 0, pulse, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Rotating orbit ring
+          ctx.rotate(this.waveTime * 4.0);
+          ctx.strokeStyle = colorGlow;
+          ctx.lineWidth = 2.0;
+          ctx.beginPath();
+          ctx.arc(0, 0, radius * 1.1, 0, Math.PI * 1.5);
+          ctx.stroke();
+          
+          // Reverse rotating inner orbit ring
+          ctx.rotate(-this.waveTime * 8.0);
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1.0;
+          ctx.beginPath();
+          ctx.arc(0, 0, radius * 0.8, 0, Math.PI * 1.2);
           ctx.stroke();
         }
         ctx.restore();
