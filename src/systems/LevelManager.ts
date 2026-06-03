@@ -113,8 +113,10 @@ export class LevelManager {
       
       if (levelNum === 21) {
         scrollSpeed = scrollSpeed * 0.80; // Reduce horizontal scroll speed by 20%
-      } else if (levelNum >= 22 && levelNum <= 30) {
+      } else if (levelNum >= 22 && levelNum <= 29) {
         scrollSpeed = scrollSpeed * 0.85; // Reduce horizontal scroll speed by 15%
+      } else if (levelNum >= 30 && levelNum <= 40) {
+        scrollSpeed = scrollSpeed * 0.80; // Reduce horizontal scroll speed by 20%
       }
 
       // Distribute patterns based on level brackets using active wave/moving patterns ONLY
