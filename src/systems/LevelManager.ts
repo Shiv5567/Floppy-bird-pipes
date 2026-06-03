@@ -110,6 +110,10 @@ export class LevelManager {
         // Completely replaced by Level 7
         scrollSpeed = 3.6 + (7 - 1) * 0.22;
       }
+      
+      if (levelNum === 21 || levelNum === 22) {
+        scrollSpeed = scrollSpeed * 0.80; // Reduce horizontal scroll speed by 20%
+      }
 
       // Distribute patterns based on level brackets using active wave/moving patterns ONLY
       let patterns: string[] = [];

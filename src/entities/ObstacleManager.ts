@@ -164,7 +164,8 @@ export class ObstacleManager {
   ) {
     this.currentScore = score;
     const dtCoeff = deltaTime * 60 * timeScale;
-    this.waveTime += deltaTime * timeScale;
+    const isLevel21or22 = this.activeLevelConfig && (this.activeLevelConfig.levelNum === 21 || this.activeLevelConfig.levelNum === 22);
+    this.waveTime += deltaTime * timeScale * (isLevel21or22 ? 0.90 : 1.0); // 10% reduced motion speed for Level 21/22
     
     // Endless progressive difficulty scaling math based on user specifications
     let pct = 0.0;
