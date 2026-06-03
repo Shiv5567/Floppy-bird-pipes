@@ -1973,7 +1973,7 @@ export class ObstacleManager {
         // LEVEL 35: Magma Elevator
         if (actualPatternIdx < groupSize) {
           targetCenterY = height / 2 - 45 + (obstacleIdx % 3) * 30;
-          localGapHeight = gapHeight;
+          localGapHeight = Math.round(gapHeight * 0.80); // 20% reduce
         } else if (actualPatternIdx < groupSize * 2) {
           targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -35 : 35);
           localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce
