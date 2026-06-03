@@ -661,26 +661,26 @@ export class ObstacleManager {
             const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
             
             if (obstacleIdx < groupSize) {
-              // Group 1: Single vortex rotation
-              const angle = this.waveTime * 1.8 + obstacleIdx * 0.4;
-              obs.shakeX = Math.sin(angle) * 18;
-              obs.shakeX2 = Math.cos(angle) * 18;
+              // Group 1: Single vortex rotation (increased by 35%)
+              const angle = this.waveTime * 2.43 + obstacleIdx * 0.4;
+              obs.shakeX = Math.sin(angle) * 24;
+              obs.shakeX2 = Math.cos(angle) * 24;
               obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2;
             } else if (obstacleIdx < groupSize * 2) {
-              // Group 2: Double spiral vortex (top/bottom offset)
-              const angle = this.waveTime * 2.5 + obstacleIdx * 0.5;
-              obs.shakeX = Math.sin(angle) * 24;
-              obs.shakeX2 = Math.cos(angle + Math.PI / 2) * 24;
-              const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 1.5) * 15;
+              // Group 2: Double spiral vortex (top/bottom offset) (increased by 35%)
+              const angle = this.waveTime * 3.37 + obstacleIdx * 0.5;
+              obs.shakeX = Math.sin(angle) * 32;
+              obs.shakeX2 = Math.cos(angle + Math.PI / 2) * 32;
+              const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 2.02) * 20;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else {
-              // Group 3: Black hole squeeze (shrinking vortex)
-              const angle = this.waveTime * 3.2 + obstacleIdx * 0.6;
-              obs.shakeX = Math.sin(angle) * 28;
-              obs.shakeX2 = Math.cos(angle) * 28;
-              const pulse = Math.sin(this.waveTime * 3.0) * 20;
+              // Group 3: Black hole squeeze (shrinking vortex) (increased by 35%)
+              const angle = this.waveTime * 4.32 + obstacleIdx * 0.6;
+              obs.shakeX = Math.sin(angle) * 38;
+              obs.shakeX2 = Math.cos(angle) * 38;
+              const pulse = Math.sin(this.waveTime * 4.05) * 27;
               const breathingGap = obs.gapHeight! - Math.abs(pulse);
               obs.targetTopHeight = obs.spawnCenterY! - breathingGap / 2;
               obs.targetBottomHeight = height - obs.spawnCenterY! - breathingGap / 2;
@@ -1987,13 +1987,13 @@ export class ObstacleManager {
         // LEVEL 36: Wormhole Vortex
         if (actualPatternIdx < groupSize) {
           targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 4.5)) * 40;
-          localGapHeight = gapHeight;
+          localGapHeight = Math.round(gapHeight * 0.65); // 35% reduce
         } else if (actualPatternIdx < groupSize * 2) {
           targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? 35 : -35);
-          localGapHeight = Math.round(gapHeight * 0.83); // 17% reduce
+          localGapHeight = Math.round(gapHeight * 0.62); // 38% reduce
         } else {
           targetCenterY = height / 2 - 40 + (obstacleIdx - 12) * 15;
-          localGapHeight = Math.round(gapHeight * 0.74); // 26% reduce
+          localGapHeight = Math.round(gapHeight * 0.58); // 42% reduce
         }
         triggerDistance = 210;
         animDuration = 0.44;
