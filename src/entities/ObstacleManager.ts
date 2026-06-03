@@ -1918,10 +1918,10 @@ export class ObstacleManager {
         let subPattern = 'wave_10';
         if (levelNum === 21) {
           subPattern = actualPatternIdx < groupSize ? 'wave_10' : (actualPatternIdx < groupSize * 2 ? 'breathing_12' : 'moving_stair_15');
-          localGapHeight = Math.round(localGapHeight * 0.70); // 30% less gap area
+          localGapHeight = Math.round(localGapHeight * 0.805); // Increased gap by 15% (previously 0.70)
         } else if (levelNum === 22) {
           subPattern = actualPatternIdx < groupSize ? 'rotating_17' : (actualPatternIdx < groupSize * 2 ? 'dynamic_w_18' : 'exp_shrink_19');
-          localGapHeight = Math.round(localGapHeight * 0.65); // 35% less gap area (captured by 35%)
+          localGapHeight = Math.round(localGapHeight * 0.7475); // Increased gap by 15% (previously 0.65)
         } else if (levelNum === 23) {
           subPattern = actualPatternIdx < groupSize ? 'hybrid_20' : (actualPatternIdx < groupSize * 2 ? 'snake_21' : 'pulse_22');
         } else if (levelNum === 24) {
