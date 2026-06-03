@@ -724,22 +724,22 @@ export class ObstacleManager {
             } else if (obstacleIdx < groupSize * 2) {
               // Group 2: Polar Vortex (Opposing Rotational Wave with Out-Of-Phase Vertical Shifting)
               const idx = obstacleIdx - groupSize;
-              // Opposing horizontal movement
-              const hShift = Math.sin(this.waveTime * 4.0 + idx * 0.8) * 35;
+              // Opposing horizontal movement (speed reduced by 10% from 4.0 to 3.6)
+              const hShift = Math.sin(this.waveTime * 3.6 + idx * 0.8) * 35;
               obs.shakeX = hShift;
               obs.shakeX2 = -hShift;
-              // Out-of-phase vertical path movement
-              const vShift = Math.cos(this.waveTime * 3.2 + idx * 0.6) * 30;
+              // Out-of-phase vertical path movement (speed reduced by 10% from 3.2 to 2.88)
+              const vShift = Math.cos(this.waveTime * 2.88 + idx * 0.6) * 30;
               obs.targetTopHeight = obs.baseTopHeight! + vShift;
               obs.targetBottomHeight = obs.baseBottomHeight! - vShift;
             } else {
               // Group 3: Quantum Flux Storm (High-frequency Jitter + Synchronized Vertical Waves)
               const idx = obstacleIdx - groupSize * 2;
-              // Rapid horizontal jitter
-              obs.shakeX = Math.sin(this.waveTime * 8.0 + idx) * 15;
-              obs.shakeX2 = Math.cos(this.waveTime * 8.0 + idx) * 15;
-              // High frequency vertical synchronized waves
-              const vJitter = Math.sin(this.waveTime * 5.0 + idx * 1.2) * 35;
+              // Rapid horizontal jitter (speed reduced by 15% from 8.0 to 6.8)
+              obs.shakeX = Math.sin(this.waveTime * 6.8 + idx) * 15;
+              obs.shakeX2 = Math.cos(this.waveTime * 6.8 + idx) * 15;
+              // High frequency vertical synchronized waves (speed reduced by 15% from 5.0 to 4.25)
+              const vJitter = Math.sin(this.waveTime * 4.25 + idx * 1.2) * 35;
               obs.targetTopHeight = obs.baseTopHeight! + vJitter;
               obs.targetBottomHeight = obs.baseBottomHeight! + vJitter;
             }
@@ -2024,11 +2024,11 @@ export class ObstacleManager {
         } else if (actualPatternIdx < groupSize * 2) {
           // Group 2: Polar Vortex (Steep Cosine Wave Layout)
           targetCenterY = height / 2 + Math.cos(obstacleIdx * 1.1) * 60;
-          localGapHeight = Math.round(gapHeight * 0.65); // 35% reduce
+          localGapHeight = Math.round(gapHeight * 0.75); // 25% reduce (10% increase from 35%)
         } else {
           // Group 3: Quantum Flux Storm (Challenging Step/Staircase Layout)
           targetCenterY = height / 2 - 60 + (obstacleIdx % 6) * 24;
-          localGapHeight = Math.round(gapHeight * 0.60); // 40% reduce
+          localGapHeight = Math.round(gapHeight * 0.70); // 30% reduce (10% increase from 40%)
         }
         triggerDistance = 200;
         animDuration = 0.42;
