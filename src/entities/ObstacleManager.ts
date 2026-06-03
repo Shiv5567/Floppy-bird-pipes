@@ -165,7 +165,9 @@ export class ObstacleManager {
     this.currentScore = score;
     const dtCoeff = deltaTime * 60 * timeScale;
     const isLevel21or22 = this.activeLevelConfig && (this.activeLevelConfig.levelNum === 21 || this.activeLevelConfig.levelNum === 22);
-    this.waveTime += deltaTime * timeScale * (isLevel21or22 ? 0.90 : 1.0); // 10% reduced motion speed for Level 21/22
+    const isLevel31to40 = this.activeLevelConfig && (this.activeLevelConfig.levelNum >= 31 && this.activeLevelConfig.levelNum <= 40);
+    const motionSpeedScale = isLevel31to40 ? 1.20 : (isLevel21or22 ? 0.90 : 1.0); // 20% increased difficulty/speed for Levels 31–40
+    this.waveTime += deltaTime * timeScale * motionSpeedScale;
     
     // Endless progressive difficulty scaling math based on user specifications
     let pct = 0.0;
@@ -1942,14 +1944,14 @@ export class ObstacleManager {
         // LEVEL 33: Quantum Entanglement
         if (actualPatternIdx < groupSize) {
           targetCenterY = height / 2;
-          localGapHeight = gapHeight;
+          localGapHeight = Math.round(gapHeight * 0.70); // 30% reduce
         } else if (actualPatternIdx < groupSize * 2) {
           targetCenterY = height / 2 + (obstacleIdx <= 8 ? -30 : 30);
-          localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce
+          localGapHeight = Math.round(gapHeight * 0.80); // 20% reduce
         } else {
           const wOffsets = [35, 10, -20, 10, 35, 10];
           targetCenterY = height / 2 + wOffsets[(obstacleIdx - 12) % wOffsets.length];
-          localGapHeight = Math.round(gapHeight * 0.78); // 22% reduce
+          localGapHeight = Math.round(gapHeight * 0.74); // 26% reduce (increased challenge by 20%)
         }
         triggerDistance = 220;
         animDuration = 0.45;
