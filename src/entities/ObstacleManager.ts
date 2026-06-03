@@ -802,8 +802,12 @@ export class ObstacleManager {
               const angle = this.waveTime * 2.0 + obs.obstacleIdx! * 0.5;
               obs.shakeX = Math.sin(angle) * (20 * animScale);
               obs.shakeX2 = Math.cos(angle) * (20 * animScale);
-              obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2;
+              let centerY = obs.spawnCenterY!;
+              if (levelNum === 24) {
+                centerY += Math.sin(this.waveTime * 2.2 + obs.obstacleIdx! * 0.45) * 32; // Vertical up/down motion
+              }
+              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else if (subPattern === 'dynamic_w_18') {
               const shift = Math.sin(this.waveTime * 2.2 + obs.obstacleIdx! * 0.3) * (35 * animScale);
               const centerY = obs.spawnCenterY! + shift;
@@ -1929,6 +1933,9 @@ export class ObstacleManager {
           localGapHeight = Math.round(localGapHeight * 0.85); // 15% less gap area
         } else if (levelNum === 24) {
           subPattern = actualPatternIdx < groupSize ? 'gravity_23' : (actualPatternIdx < groupSize * 2 ? 'rotating_24' : 'waterfall_25');
+          if (actualPatternIdx < groupSize) {
+            localGapHeight = Math.round(localGapHeight * 0.85); // 15% less gap area for starting group
+          }
         } else if (levelNum === 25) {
           subPattern = actualPatternIdx < groupSize ? 'elevator_26' : (actualPatternIdx < groupSize * 2 ? 'magnetic_27' : 'pendulum_28');
         } else if (levelNum === 26) {
