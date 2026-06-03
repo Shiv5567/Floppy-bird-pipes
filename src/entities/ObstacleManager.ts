@@ -750,15 +750,16 @@ export class ObstacleManager {
             const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
             
             if (obstacleIdx < groupSize) {
-              // Group 1: Symmetrical heat wave breath
-              const breathingGap = obs.gapHeight! + Math.sin(this.waveTime * 2.2) * 16;
-              obs.targetTopHeight = obs.spawnCenterY! - breathingGap / 2;
-              obs.targetBottomHeight = height - obs.spawnCenterY! - breathingGap / 2;
+              // Group 1: Exactly copy Level 3 (The Gravity Pitfalls) see-saw elevator shifts
+              const phase = this.waveTime * 1.95 + (obstacleIdx % 3) * (Math.PI * 2 / 3);
+              const shift = Math.sin(phase) * 35;
+              obs.targetTopHeight = obs.baseTopHeight! + shift;
+              obs.targetBottomHeight = obs.baseBottomHeight! - shift;
             } else if (obstacleIdx < groupSize * 2) {
-              // Group 2: Escalating flame stairs
+              // Group 2: Escalating flame stairs with vertical motion (30% gap height up & down from spawn center)
               const idx = obstacleIdx - groupSize;
-              const stairShift = Math.sin(this.waveTime * 2.8 + idx * 0.5) * 32;
-              const centerY = obs.spawnCenterY! + stairShift;
+              const verticalShift = Math.sin(this.waveTime * 2.8 + idx * 0.5) * (obs.gapHeight! * 0.30);
+              const centerY = obs.spawnCenterY! + verticalShift;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else {
@@ -2035,17 +2036,28 @@ export class ObstacleManager {
       } else if (patternType === 'level39_orbit') {
         // LEVEL 39: Solar Flare
         if (actualPatternIdx < groupSize) {
-          targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 4.5)) * 35;
+          // Group 1: Copy Level 3 (The Gravity Pitfalls) layout (stairs dropping and rising)
+          if (obstacleIdx % 3 === 0) {
+            targetCenterY = height / 2 - 80;
+          } else if (obstacleIdx % 3 === 1) {
+            targetCenterY = height / 2 + 80;
+          } else {
+            targetCenterY = height / 2;
+          }
           localGapHeight = gapHeight;
+          triggerDistance = 350;
+          animDuration = 0.40;
         } else if (actualPatternIdx < groupSize * 2) {
           targetCenterY = height / 2 - 50 + (obstacleIdx - 6) * 20;
           localGapHeight = Math.round(gapHeight * 0.80); // 20% reduce
+          triggerDistance = 195;
+          animDuration = 0.44;
         } else {
           targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -30 : 30);
           localGapHeight = Math.round(gapHeight * 0.70); // 30% reduce
+          triggerDistance = 195;
+          animDuration = 0.44;
         }
-        triggerDistance = 195;
-        animDuration = 0.44;
       } else if (patternType === 'level40_miniboss') {
         // LEVEL 40: Chrono Warp Mini-Boss
         if (actualPatternIdx < groupSize) {
