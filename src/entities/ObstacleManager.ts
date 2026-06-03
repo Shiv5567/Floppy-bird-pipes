@@ -2001,13 +2001,13 @@ export class ObstacleManager {
         // LEVEL 37: Tectonic Cracks
         if (actualPatternIdx < groupSize) {
           targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -35 : 35);
-          localGapHeight = gapHeight;
+          localGapHeight = Math.round(gapHeight * 0.75); // 25% reduce
         } else if (actualPatternIdx < groupSize * 2) {
           targetCenterY = height / 2 + Math.sin((obstacleIdx - 6) * 0.9) * 45;
-          localGapHeight = Math.round(gapHeight * 0.82); // 18% reduce
+          localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce
         } else {
           targetCenterY = height / 2;
-          localGapHeight = Math.round(gapHeight * 0.74); // 26% reduce
+          localGapHeight = Math.round(gapHeight * 0.90); // 10% reduce
         }
         triggerDistance = 190;
         animDuration = 0.4;
