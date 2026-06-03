@@ -2063,7 +2063,7 @@ export class ObstacleManager {
         rangeY: difficulty === 'hard' ? 70 : (difficulty === 'easy' ? 30 : 50),
         initialTopHeight: closedTopHeight,
         initialBottomHeight: closedBottomHeight,
-        isLaser: (worldId === 'cyberpunk' && Math.random() < 0.35),
+        isLaser: false, // Cyberpunk neon lasers disabled
         laserActive: true,
         laserTimer: 0,
         isMutated,
@@ -2149,7 +2149,7 @@ export class ObstacleManager {
     topHeight = targetCenterY - currentStepGap / 2;
     bottomHeight = height - topHeight - currentStepGap;
 
-    isLaser = (nextPattern.isLaser !== undefined) ? nextPattern.isLaser : (worldId === 'cyberpunk' && Math.random() < 0.25); // 25% chance of warning lasers in cyberpunk
+    isLaser = false; // Cyberpunk neon lasers disabled
 
     const levelNum = this.activeLevelConfig ? this.activeLevelConfig.levelNum : undefined;
     const isMutated = this.activeLevelConfig ? (this.activeLevelConfig.levelNum % 2 === 0) : (score >= 20 && score < 50);
