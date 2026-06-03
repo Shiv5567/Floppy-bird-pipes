@@ -1914,10 +1914,10 @@ export class ObstacleManager {
         // LEVEL 31: Cyber Glitch
         if (actualPatternIdx < groupSize) {
           targetCenterY = height / 2;
-          localGapHeight = gapHeight;
+          localGapHeight = Math.round(gapHeight * 0.75); // 25% reduce
         } else if (actualPatternIdx < groupSize * 2) {
           targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -30 : 30);
-          localGapHeight = Math.round(gapHeight * 0.88); // 12% reduce
+          localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce
         } else {
           targetCenterY = height / 2 - 30 + (obstacleIdx - 12) * 15;
           localGapHeight = Math.round(gapHeight * 0.80); // 20% reduce
@@ -1928,7 +1928,7 @@ export class ObstacleManager {
         // LEVEL 32: Geyser Cascades
         if (actualPatternIdx < groupSize) {
           targetCenterY = height / 2 - 50 + obstacleIdx * 15;
-          localGapHeight = gapHeight;
+          localGapHeight = Math.round(gapHeight * 0.75); // 25% reduce
         } else if (actualPatternIdx < groupSize * 2) {
           targetCenterY = height / 2 + 55 - (obstacleIdx - 6) * 20;
           localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce
