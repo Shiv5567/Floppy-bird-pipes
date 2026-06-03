@@ -711,33 +711,37 @@ export class ObstacleManager {
               obs.targetBottomHeight = obs.baseBottomHeight! + tiltBottom;
             }
           } else if (obs.patternType === 'level38_scurve') {
-            // LEVEL 38: Magnetic Tempest
-            // Character similarity: reactive magnetic push and pull
+            // LEVEL 38: Magnetic Tempest (Redesigned Storm Animations)
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
             const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
             
             if (obstacleIdx < groupSize) {
-              // Group 1: Slower magnetic vertical pull
-              const magnet = Math.sin(this.waveTime * 1.8) * 16;
-              obs.targetTopHeight = obs.spawnCenterY! - (obs.gapHeight! + magnet) / 2;
-              obs.targetBottomHeight = height - obs.spawnCenterY! - (obs.gapHeight! - magnet) / 2;
+              // Group 1: Electromagnetic Compression (Pincer Jaw Pulse)
+              const compress = Math.sin(this.waveTime * 3.5) * 35;
+              const currentGap = obs.gapHeight! - compress;
+              obs.targetTopHeight = obs.spawnCenterY! - currentGap / 2;
+              obs.targetBottomHeight = height - obs.spawnCenterY! - currentGap / 2;
             } else if (obstacleIdx < groupSize * 2) {
-              // Group 2: Horizontal magnet squeeze
+              // Group 2: Polar Vortex (Opposing Rotational Wave with Out-Of-Phase Vertical Shifting)
               const idx = obstacleIdx - groupSize;
-              const magnet = Math.sin(this.waveTime * 2.4 + idx * 0.4) * 22;
-              obs.shakeX = magnet;
-              obs.shakeX2 = -magnet;
-              obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2;
+              // Opposing horizontal movement
+              const hShift = Math.sin(this.waveTime * 4.0 + idx * 0.8) * 35;
+              obs.shakeX = hShift;
+              obs.shakeX2 = -hShift;
+              // Out-of-phase vertical path movement
+              const vShift = Math.cos(this.waveTime * 3.2 + idx * 0.6) * 30;
+              obs.targetTopHeight = obs.baseTopHeight! + vShift;
+              obs.targetBottomHeight = obs.baseBottomHeight! - vShift;
             } else {
-              // Group 3: Quantum flux (unstable shifting field)
+              // Group 3: Quantum Flux Storm (High-frequency Jitter + Synchronized Vertical Waves)
               const idx = obstacleIdx - groupSize * 2;
-              const magnet = Math.sin(this.waveTime * 3.0 + idx * 0.5) * 26;
-              const shake = Math.cos(this.waveTime * 3.0 + idx * 0.5) * 20;
-              obs.shakeX = shake;
-              obs.shakeX2 = shake;
-              obs.targetTopHeight = obs.spawnCenterY! - (obs.gapHeight! + magnet) / 2;
-              obs.targetBottomHeight = height - obs.spawnCenterY! - (obs.gapHeight! - magnet) / 2;
+              // Rapid horizontal jitter
+              obs.shakeX = Math.sin(this.waveTime * 8.0 + idx) * 15;
+              obs.shakeX2 = Math.cos(this.waveTime * 8.0 + idx) * 15;
+              // High frequency vertical synchronized waves
+              const vJitter = Math.sin(this.waveTime * 5.0 + idx * 1.2) * 35;
+              obs.targetTopHeight = obs.baseTopHeight! + vJitter;
+              obs.targetBottomHeight = obs.baseBottomHeight! + vJitter;
             }
           } else if (obs.patternType === 'level39_orbit') {
             // LEVEL 39: Solar Flare
@@ -2012,17 +2016,19 @@ export class ObstacleManager {
         triggerDistance = 190;
         animDuration = 0.4;
       } else if (patternType === 'level38_scurve') {
-        // LEVEL 38: Magnetic Tempest
+        // LEVEL 38: Magnetic Tempest (Redesigned Storm Layout)
         if (actualPatternIdx < groupSize) {
-          targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.8) * 45;
-          localGapHeight = gapHeight;
+          // Group 1: Electromagnetic Compression (Jagged Alternating Layout)
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -50 : 50);
+          localGapHeight = Math.round(gapHeight * 0.70); // 30% reduce
         } else if (actualPatternIdx < groupSize * 2) {
-          const wOffsets = [30, 0, -25, 0, 30, 0];
-          targetCenterY = height / 2 + wOffsets[(obstacleIdx - 6) % wOffsets.length];
-          localGapHeight = Math.round(gapHeight * 0.80); // 20% reduce
+          // Group 2: Polar Vortex (Steep Cosine Wave Layout)
+          targetCenterY = height / 2 + Math.cos(obstacleIdx * 1.1) * 60;
+          localGapHeight = Math.round(gapHeight * 0.65); // 35% reduce
         } else {
-          targetCenterY = height / 2 - 40 + (obstacleIdx - 12) * 16;
-          localGapHeight = Math.round(gapHeight * 0.72); // 28% reduce
+          // Group 3: Quantum Flux Storm (Challenging Step/Staircase Layout)
+          targetCenterY = height / 2 - 60 + (obstacleIdx % 6) * 24;
+          localGapHeight = Math.round(gapHeight * 0.60); // 40% reduce
         }
         triggerDistance = 200;
         animDuration = 0.42;
