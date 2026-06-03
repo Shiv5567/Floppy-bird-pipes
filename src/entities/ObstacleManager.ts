@@ -2049,17 +2049,22 @@ export class ObstacleManager {
       } else if (patternType === 'level40_miniboss') {
         // LEVEL 40: Chrono Warp Mini-Boss
         if (actualPatternIdx < groupSize) {
-          targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 3)) * 40 + (obstacleIdx * 10 - 25);
+          // Ascending staircase layout: center rises by 20px per step
+          targetCenterY = height / 2 + 50 - obstacleIdx * 20;
           localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce
+          triggerDistance = 210; // Extra reaction time for split motion
+          animDuration = 0.40;   // Smooth split duration
         } else if (actualPatternIdx < groupSize * 2) {
           targetCenterY = height / 2 + 50 - (obstacleIdx - 6) * 20 + Math.sin((obstacleIdx - 6) * 0.8) * 15;
           localGapHeight = Math.round(gapHeight * 0.75); // 25% reduce
+          triggerDistance = 175;
+          animDuration = 0.32;
         } else {
           targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -35 : 35) + Math.cos((obstacleIdx - 12) * 1.2) * 15;
           localGapHeight = Math.round(gapHeight * 0.65); // 35% reduce
+          triggerDistance = 175;
+          animDuration = 0.32;
         }
-        triggerDistance = 175;
-        animDuration = 0.32;
       } else if (patternType === 'level41_doublew') {
         // Group 1: Double W Tunnel, Group 2: Reverse Snake, Group 3: Dynamic Slope
         if (obstacleIdx <= 5) {
@@ -2317,10 +2322,11 @@ export class ObstacleManager {
         targetBottomHeight = height - targetCenterY - localGapHeight / 2;
       }
 
-      // Enable special different-direction split opening animation specifically for all obstacles in Levels 1-20 (excluding Level 11, 2, 4, 5, 6) and special legacy levels
+      // Enable special different-direction split opening animation specifically for all obstacles in Levels 1-20 (excluding Level 11, 2, 4, 5, 6), special legacy levels, and Level 40 Group 1
       const isSpecialSplit = 
         (levelNum !== undefined && levelNum >= 1 && levelNum <= 20 && levelNum !== 11 && levelNum !== 2 && levelNum !== 4 && levelNum !== 5 && levelNum !== 6) ||
-        (patternType === 'level17_heartbeat' && groupIdx === 0);
+        (patternType === 'level17_heartbeat' && groupIdx === 0) ||
+        (levelNum === 40 && groupIdx === 0);
 
       // Level 11 gets a dedicated smooth slide-in from edges (not a split)
       const isLevel11SmoothEntry = (patternType === 'level11_diamond');
