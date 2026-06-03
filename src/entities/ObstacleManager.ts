@@ -500,7 +500,11 @@ export class ObstacleManager {
             obs.targetBottomHeight = obs.baseBottomHeight! - hybridMove;
           } else if (obs.patternType === 'level30_hybridwave') {
             // Wave flow + breathing effect
-            const waveShift = Math.sin(this.waveTime * 1.8 + obs.obstacleIdx! * 0.45) * 25;
+            let waveShift = Math.sin(this.waveTime * 1.8 + obs.obstacleIdx! * 0.45) * 25;
+            if (obs.obstacleIdx! >= 12) {
+              // Add vertical up/down motion to the static group
+              waveShift += Math.sin(this.waveTime * 2.4 + obs.obstacleIdx! * 0.5) * 20;
+            }
             const breathingGap = obs.gapHeight! + Math.sin(this.waveTime * 2.8) * 12;
             const centerY = obs.spawnCenterY! + waveShift;
             obs.targetTopHeight = centerY - breathingGap / 2;
@@ -1306,6 +1310,7 @@ export class ObstacleManager {
       let animDuration = 0.45;
       let targetCenterY = height / 2;
       let localGapHeight = gapHeight;
+      let subPattern = '';
       let hasAsymmetricHeights = false;
       let targetTopHeight = 0;
       let targetBottomHeight = 0;
@@ -1922,7 +1927,7 @@ export class ObstacleManager {
         animDuration = 0.28;
       } else if (patternType.indexOf('_progress') !== -1) {
         // Levels 21 to 29: 3 completely different wave patterns per level!
-        let subPattern = 'wave_10';
+        subPattern = 'wave_10';
         if (levelNum === 21) {
           subPattern = actualPatternIdx < groupSize ? 'wave_10' : (actualPatternIdx < groupSize * 2 ? 'breathing_12' : 'moving_stair_15');
           localGapHeight = Math.round(localGapHeight * 0.805); // Increased gap by 15% (previously 0.70)
@@ -2012,6 +2017,38 @@ export class ObstacleManager {
       } else if (patternType === 'sliding_29') {
         const offsets = [-50, 0, 50, 0];
         targetCenterY = height / 2 + offsets[obstacleIdx % offsets.length];
+      }
+
+      // Gap height reductions for Levels 25 to 30 based on animation types
+      if (levelNum !== undefined && levelNum >= 25 && levelNum <= 30) {
+        let isStatic = false;
+        let isHorizontal = false;
+        let isVertical = false;
+
+        if (patternType === 'level30_hybridwave') {
+          if (obstacleIdx <= 5) {
+            isVertical = true;
+          } else if (obstacleIdx <= 11) {
+            isVertical = true;
+          } else {
+            isStatic = true; // Group 3 is static straight line arrangement at spawn time
+          }
+        } else if (patternType.indexOf('_progress') !== -1) {
+          // For levels 25-29 progress levels, check subPattern
+          if (subPattern === 'rotating_17' || subPattern === 'rotating_24' || subPattern === 'pendulum_28') {
+            isHorizontal = true;
+          } else {
+            isVertical = true;
+          }
+        }
+
+        if (isVertical) {
+          localGapHeight = Math.round(localGapHeight * 0.80); // 20% reduce
+        } else if (isHorizontal) {
+          localGapHeight = Math.round(localGapHeight * 0.75); // 25% reduce
+        } else if (isStatic) {
+          localGapHeight = Math.round(localGapHeight * 0.70); // 30% reduce
+        }
       }
 
       // Safeguard boundaries and calculate target heights
