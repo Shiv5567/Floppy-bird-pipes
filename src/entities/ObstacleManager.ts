@@ -2441,17 +2441,18 @@ export class ObstacleManager {
 
       if (levelNum !== undefined && levelNum >= 40 && levelNum <= 50) {
         if (levelNum >= 45) {
-          hasEnergyBall = true;
+          // 70% reduction from 100% (now 30% rate, evenly spread)
+          hasEnergyBall = (actualPatternIdx % 10 === 0 || actualPatternIdx % 10 === 3 || actualPatternIdx % 10 === 7);
         } else {
-          // Levels 40 to 44: alternating obstacles
-          hasEnergyBall = (actualPatternIdx % 2 === 0);
+          // 70% reduction from 50% alternating (now 15% rate, evenly spread)
+          hasEnergyBall = (actualPatternIdx % 20 === 0 || actualPatternIdx % 20 === 7 || actualPatternIdx % 20 === 13);
         }
 
         if (hasEnergyBall) {
           initEnergyBallY = targetCenterY;
-          // Alternate direction and randomize speed: moving between 2.0 and 3.5 pixels per frame
+          // Alternate direction and randomize speed: moving between 1.6 and 2.8 pixels per frame (20% reduction from 2.0-3.5 range)
           const dir = (actualPatternIdx % 2 === 0 ? 1 : -1);
-          initEnergyBallSpeedY = dir * (2.0 + Math.random() * 1.5);
+          initEnergyBallSpeedY = dir * (1.6 + Math.random() * 1.2);
         }
       }
 
