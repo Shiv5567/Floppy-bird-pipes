@@ -111,9 +111,9 @@ export class PowerupManager {
       } else if (rand < 0.62) {
         // Spawn a gem in the center
         this.spawnItem('gem', width, height, targetX, gapCenterY);
-      } else if (rand < 0.72) {
-        // Spawn a powerup in the center
-        const types: PowerupType[] = ['shield', 'slowmo', 'magnet', 'double', 'turbo', 'ghost', 'mini', 'revive'];
+      } else if (rand < 0.655) {
+        // Spawn a powerup in the center (reduced from 10% rate to 3.5% rate: 65% reduction)
+        const types: PowerupType[] = ['shield', 'slowmo', 'magnet', 'turbo', 'mini'];
         const randomType = types[Math.floor(Math.random() * types.length)];
         this.spawnItem(randomType, width, height, targetX, gapCenterY);
       }
