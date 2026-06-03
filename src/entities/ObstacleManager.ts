@@ -761,6 +761,7 @@ export class ObstacleManager {
             const groupSize = Math.floor(this.activeLevelConfig.targetScore / 3);
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
             const levelNum = this.activeLevelConfig.levelNum;
+            const animScale = (levelNum === 21 || levelNum === 22) ? 1.30 : 1.0;
             
             let subPattern = 'wave_10';
             if (levelNum === 21) {
@@ -784,31 +785,31 @@ export class ObstacleManager {
             }
             
             if (subPattern === 'wave_10') {
-              const centerY = height / 2 + Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.5) * 55;
+              const centerY = height / 2 + Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.5) * (55 * animScale);
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else if (subPattern === 'breathing_12') {
-              const currentGap = obs.gapHeight! + Math.sin(this.waveTime * 2.5) * 30;
+              const currentGap = obs.gapHeight! + Math.sin(this.waveTime * 2.5) * (30 * animScale);
               obs.targetTopHeight = obs.spawnCenterY! - currentGap / 2;
               obs.targetBottomHeight = height - obs.spawnCenterY! - currentGap / 2;
             } else if (subPattern === 'moving_stair_15') {
-              const shift = Math.sin(this.waveTime * 1.8 + obs.obstacleIdx! * 0.4) * 45;
+              const shift = Math.sin(this.waveTime * 1.8 + obs.obstacleIdx! * 0.4) * (45 * animScale);
               const centerY = obs.spawnCenterY! + shift;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else if (subPattern === 'rotating_17' || subPattern === 'rotating_24') {
               const angle = this.waveTime * 2.0 + obs.obstacleIdx! * 0.5;
-              obs.shakeX = Math.sin(angle) * 20;
-              obs.shakeX2 = Math.cos(angle) * 20;
+              obs.shakeX = Math.sin(angle) * (20 * animScale);
+              obs.shakeX2 = Math.cos(angle) * (20 * animScale);
               obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2;
             } else if (subPattern === 'dynamic_w_18') {
-              const shift = Math.sin(this.waveTime * 2.2 + obs.obstacleIdx! * 0.3) * 35;
+              const shift = Math.sin(this.waveTime * 2.2 + obs.obstacleIdx! * 0.3) * (35 * animScale);
               const centerY = obs.spawnCenterY! + shift;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else if (subPattern === 'exp_shrink_19') {
-              const currentGap = obs.gapHeight! + Math.sin(this.waveTime * 2.2) * 20;
+              const currentGap = obs.gapHeight! + Math.sin(this.waveTime * 2.2) * (20 * animScale);
               obs.targetTopHeight = obs.spawnCenterY! - currentGap / 2;
               obs.targetBottomHeight = height - obs.spawnCenterY! - currentGap / 2;
             } else if (subPattern === 'hybrid_20') {
@@ -1917,8 +1918,10 @@ export class ObstacleManager {
         let subPattern = 'wave_10';
         if (levelNum === 21) {
           subPattern = actualPatternIdx < groupSize ? 'wave_10' : (actualPatternIdx < groupSize * 2 ? 'breathing_12' : 'moving_stair_15');
+          localGapHeight = Math.round(localGapHeight * 0.70); // 30% less gap area
         } else if (levelNum === 22) {
           subPattern = actualPatternIdx < groupSize ? 'rotating_17' : (actualPatternIdx < groupSize * 2 ? 'dynamic_w_18' : 'exp_shrink_19');
+          localGapHeight = Math.round(localGapHeight * 0.65); // 35% less gap area (captured by 35%)
         } else if (levelNum === 23) {
           subPattern = actualPatternIdx < groupSize ? 'hybrid_20' : (actualPatternIdx < groupSize * 2 ? 'snake_21' : 'pulse_22');
         } else if (levelNum === 24) {
@@ -1935,20 +1938,22 @@ export class ObstacleManager {
           subPattern = actualPatternIdx < groupSize ? 'pulse_22' : (actualPatternIdx < groupSize * 2 ? 'gravity_23' : 'rotating_24');
         }
         
+        const spawnAnimScale = (levelNum === 21 || levelNum === 22) ? 1.30 : 1.0;
+
         // Retrieve values for standard wave subPattern
         if (subPattern === 'wave_10') {
           const step = actualPatternIdx % 12;
-          targetCenterY = height / 2 + Math.sin(step * (Math.PI * 2 / 12)) * 55;
+          targetCenterY = height / 2 + Math.sin(step * (Math.PI * 2 / 12)) * (55 * spawnAnimScale);
         } else if (subPattern === 'breathing_12' || subPattern === 'exp_shrink_19') {
           targetCenterY = height / 2;
         } else if (subPattern === 'moving_stair_15') {
           const offsets = [80, 40, 0, -40, -80, -40, 0, 40];
-          targetCenterY = height / 2 + offsets[actualPatternIdx % offsets.length];
+          targetCenterY = height / 2 + offsets[actualPatternIdx % offsets.length] * spawnAnimScale;
         } else if (subPattern === 'rotating_17' || subPattern === 'rotating_24') {
-          targetCenterY = height / 2 + Math.sin(actualPatternIdx * (Math.PI / 4)) * 40;
+          targetCenterY = height / 2 + Math.sin(actualPatternIdx * (Math.PI / 4)) * (40 * spawnAnimScale);
         } else if (subPattern === 'dynamic_w_18') {
           const offsets = [-80, -40, 0, 40, 80, 40, 0, -40];
-          targetCenterY = height / 2 + offsets[actualPatternIdx % offsets.length];
+          targetCenterY = height / 2 + offsets[actualPatternIdx % offsets.length] * spawnAnimScale;
         } else if (subPattern === 'hybrid_20') {
           const offsets = [-60, -30, 0, 30, 60, 30, 0, -30];
           targetCenterY = height / 2 + offsets[actualPatternIdx % offsets.length];
