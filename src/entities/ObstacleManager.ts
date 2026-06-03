@@ -1581,6 +1581,20 @@ export class ObstacleManager {
         } else {
           targetCenterY = height / 2;
         }
+        
+        hasAsymmetricHeights = true;
+        const minCenterY = 75 + localGapHeight / 2;
+        const maxCenterY = height - 75 - localGapHeight / 2;
+        const clampedCenterY = Math.max(minCenterY, Math.min(maxCenterY, targetCenterY));
+        
+        targetTopHeight = clampedCenterY - localGapHeight / 2;
+        targetBottomHeight = height - clampedCenterY - localGapHeight / 2;
+        
+        // If the path gap is shifted up or down, reduce the first pipe (top pipe) size by 30%
+        if (obstacleIdx % 3 === 0 || obstacleIdx % 3 === 1) {
+          targetTopHeight = Math.round(targetTopHeight * 0.70);
+        }
+        
         triggerDistance = 350;
         animDuration = 0.40;
       } else if (patternType === 'level4_snake') {
