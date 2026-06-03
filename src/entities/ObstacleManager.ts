@@ -601,29 +601,29 @@ export class ObstacleManager {
             const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
             
             if (obstacleIdx < groupSize) {
-              // Group 1: Slow pendulum sweep
-              const swingAngle = Math.sin(this.waveTime * 1.5 + obstacleIdx * 0.4) * 0.25;
+              // Group 1 (Easy): Slow gentle pendulum swing
+              const swingAngle = Math.sin(this.waveTime * 1.5 + obstacleIdx * 0.4) * 0.22;
               obs.shakeX = Math.sin(swingAngle) * 20;
               obs.shakeX2 = obs.shakeX;
-              const swingDrop = (1 - Math.cos(swingAngle)) * 30;
+              const swingDrop = (1 - Math.cos(swingAngle)) * 25;
               const centerY = obs.spawnCenterY! + swingDrop;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else if (obstacleIdx < groupSize * 2) {
-              // Group 2: Opposing double pendulum sweeps
-              const swingAngle = Math.sin(this.waveTime * 2.2 + obstacleIdx * 0.4) * 0.35;
-              obs.shakeX = Math.sin(swingAngle) * 25;
+              // Group 2 (Medium): Opposing double pendulum sweeps with faster rates
+              const swingAngle = Math.sin(this.waveTime * 2.2 + obstacleIdx * 0.45) * 0.35;
+              obs.shakeX = Math.sin(swingAngle) * 26;
               obs.shakeX2 = -obs.shakeX;
-              const swingDrop = (1 - Math.cos(swingAngle)) * 40;
+              const swingDrop = (1 - Math.cos(swingAngle)) * 35;
               const centerY = obs.spawnCenterY! + swingDrop;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else {
-              // Group 3: Rotating circular swing + vertical wave
-              const angle = this.waveTime * 2.8 + obstacleIdx * 0.6;
-              obs.shakeX = Math.sin(angle) * 30;
-              obs.shakeX2 = Math.cos(angle) * 30;
-              const wave = Math.sin(this.waveTime * 2.2 + obstacleIdx * 0.5) * 28;
+              // Group 3 (Hard): High-speed rotating circular swing + vertical wave
+              const angle = this.waveTime * 3.2 + obstacleIdx * 0.6;
+              obs.shakeX = Math.sin(angle) * 32;
+              obs.shakeX2 = Math.cos(angle) * 32;
+              const wave = Math.sin(this.waveTime * 2.6 + obstacleIdx * 0.5) * 30;
               const centerY = obs.spawnCenterY! + wave;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
@@ -1958,14 +1958,14 @@ export class ObstacleManager {
       } else if (patternType === 'level34_pendulum') {
         // LEVEL 34: Pendulum Swings
         if (actualPatternIdx < groupSize) {
-          targetCenterY = height / 2 + 25;
-          localGapHeight = gapHeight;
+          targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 4.5)) * 30;
+          localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce
         } else if (actualPatternIdx < groupSize * 2) {
-          targetCenterY = height / 2 + Math.sin((obstacleIdx - 6) * (Math.PI / 4.5)) * 40;
-          localGapHeight = Math.round(gapHeight * 0.83); // 17% reduce
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -45 : 45);
+          localGapHeight = Math.round(gapHeight * 0.76); // 24% reduce
         } else {
-          targetCenterY = height / 2 + Math.cos((obstacleIdx - 12) * (Math.PI / 4.5)) * 40;
-          localGapHeight = Math.round(gapHeight * 0.75); // 25% reduce
+          targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 3)) * 50 + (obstacleIdx % 2 === 0 ? -15 : 15);
+          localGapHeight = Math.round(gapHeight * 0.66); // 34% reduce
         }
         triggerDistance = 195;
         animDuration = 0.42;
