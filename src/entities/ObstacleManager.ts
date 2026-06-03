@@ -846,7 +846,8 @@ export class ObstacleManager {
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else if (subPattern === 'elevator_26') {
-              const shift = Math.sin(this.waveTime * 1.8 + (obs.obstacleIdx! % 2) * Math.PI) * 40;
+              const elevatorScale = (levelNum === 25) ? 0.70 : 1.0;
+              const shift = Math.sin(this.waveTime * 1.8 + (obs.obstacleIdx! % 2) * Math.PI) * (40 * elevatorScale); // Reduced 30% for Level 25
               const centerY = obs.spawnCenterY! + shift;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
@@ -1937,7 +1938,7 @@ export class ObstacleManager {
             localGapHeight = Math.round(localGapHeight * 0.85); // 15% less gap area for starting group
           }
         } else if (levelNum === 25) {
-          subPattern = actualPatternIdx < groupSize ? 'elevator_26' : (actualPatternIdx < groupSize * 2 ? 'magnetic_27' : 'pendulum_28');
+          subPattern = actualPatternIdx < groupSize ? 'pendulum_28' : (actualPatternIdx < groupSize * 2 ? 'magnetic_27' : 'elevator_26'); // Swapped first and last group
         } else if (levelNum === 26) {
           subPattern = actualPatternIdx < groupSize ? 'sliding_29' : (actualPatternIdx < groupSize * 2 ? 'wave_10' : 'breathing_12');
         } else if (levelNum === 27) {
@@ -1978,7 +1979,8 @@ export class ObstacleManager {
           const offsets = [-80, -40, 0, 40, 80, 80, 40, 0, -40, -80];
           targetCenterY = height / 2 + offsets[actualPatternIdx % offsets.length];
         } else if (subPattern === 'elevator_26') {
-          targetCenterY = height / 2 + (actualPatternIdx % 2 === 0 ? -70 : 70);
+          const elevatorSpawnScale = (levelNum === 25) ? 0.70 : 1.0;
+          targetCenterY = height / 2 + (actualPatternIdx % 2 === 0 ? -70 : 70) * elevatorSpawnScale;
         } else if (subPattern === 'magnetic_27') {
           targetCenterY = height / 2 + (actualPatternIdx % 4 === 0 ? -40 : 40);
         } else if (subPattern === 'pendulum_28') {
