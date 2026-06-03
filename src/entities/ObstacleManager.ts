@@ -500,8 +500,9 @@ export class ObstacleManager {
             obs.targetBottomHeight = obs.baseBottomHeight! - hybridMove;
           } else if (obs.patternType === 'level30_hybridwave') {
             // Wave flow + breathing effect
+            const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 10;
             let waveShift = Math.sin(this.waveTime * 1.8 + obs.obstacleIdx! * 0.45) * 25;
-            if (obs.obstacleIdx! >= 12) {
+            if (obs.obstacleIdx! >= groupSize * 2) {
               // Add vertical up/down motion to the static group
               waveShift += Math.sin(this.waveTime * 2.4 + obs.obstacleIdx! * 0.5) * 20;
             }
@@ -513,16 +514,17 @@ export class ObstacleManager {
             // LEVEL 31: Cyber Glitch
             // Character similarity: high-frequency horizontal-vertical glitchy shifts
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
+            const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
             const glitchTime = Math.floor(this.waveTime * 12);
             const glitchShake = Math.sin(glitchTime * 1.5) * 8;
             
-            if (obstacleIdx <= 5) {
+            if (obstacleIdx < groupSize) {
               // Group 1: Gentle horizontal glitch vibration
               obs.shakeX = glitchShake;
               obs.shakeX2 = glitchShake;
               obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2;
-            } else if (obstacleIdx <= 11) {
+            } else if (obstacleIdx < groupSize * 2) {
               // Group 2: Horizontal glitch + vertical sine wobble
               obs.shakeX = glitchShake * 1.5;
               obs.shakeX2 = glitchShake * 1.5;
@@ -543,24 +545,25 @@ export class ObstacleManager {
             // LEVEL 32: Geyser Cascades
             // Character similarity: delayed cascading vertical geysers
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
+            const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
             
-            if (obstacleIdx <= 5) {
+            if (obstacleIdx < groupSize) {
               // Group 1: Slower cascading waterfall
               const delay = (obstacleIdx * 0.5 - this.waveTime * 1.6) % 2.0;
               const cascade = delay * 20;
               const centerY = obs.spawnCenterY! + cascade;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-            } else if (obstacleIdx <= 11) {
+            } else if (obstacleIdx < groupSize * 2) {
               // Group 2: Alternating cascading pincer movement
-              const idx = obstacleIdx - 6;
+              const idx = obstacleIdx - groupSize;
               const delay = (idx * 0.4 - this.waveTime * 2.2) % 2.0;
               const pincerShift = delay * 16;
               obs.targetTopHeight = obs.baseTopHeight! + pincerShift;
               obs.targetBottomHeight = obs.baseBottomHeight! + pincerShift;
             } else {
               // Group 3: Geyser eruptions (fast reactive popups)
-              const idx = obstacleIdx - 12;
+              const idx = obstacleIdx - groupSize * 2;
               const eruption = Math.max(0, Math.sin(this.waveTime * 3.0 - idx * 0.8)) * 50;
               const centerY = obs.spawnCenterY! - eruption;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
@@ -570,13 +573,14 @@ export class ObstacleManager {
             // LEVEL 33: Quantum Entanglement
             // Character similarity: mirrored/symmetric breathing gap pulses
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
+            const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
             
-            if (obstacleIdx <= 5) {
+            if (obstacleIdx < groupSize) {
               // Group 1: Slower symmetric breathing gap
               const breathingGap = obs.gapHeight! + Math.sin(this.waveTime * 2.2) * 15;
               obs.targetTopHeight = obs.spawnCenterY! - breathingGap / 2;
               obs.targetBottomHeight = height - obs.spawnCenterY! - breathingGap / 2;
-            } else if (obstacleIdx <= 11) {
+            } else if (obstacleIdx < groupSize * 2) {
               // Group 2: Out-of-phase breathing (top/bottom invert)
               const shift = Math.sin(this.waveTime * 2.6 + obstacleIdx * 0.5) * 18;
               obs.targetTopHeight = obs.baseTopHeight! + shift;
@@ -592,8 +596,9 @@ export class ObstacleManager {
             // LEVEL 34: Pendulum Swings
             // Character similarity: arc sweeps and circular swing motions
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
+            const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
             
-            if (obstacleIdx <= 5) {
+            if (obstacleIdx < groupSize) {
               // Group 1: Slow pendulum sweep
               const swingAngle = Math.sin(this.waveTime * 1.5 + obstacleIdx * 0.4) * 0.25;
               obs.shakeX = Math.sin(swingAngle) * 20;
@@ -602,7 +607,7 @@ export class ObstacleManager {
               const centerY = obs.spawnCenterY! + swingDrop;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-            } else if (obstacleIdx <= 11) {
+            } else if (obstacleIdx < groupSize * 2) {
               // Group 2: Opposing double pendulum sweeps
               const swingAngle = Math.sin(this.waveTime * 2.2 + obstacleIdx * 0.4) * 0.35;
               obs.shakeX = Math.sin(swingAngle) * 25;
@@ -625,14 +630,15 @@ export class ObstacleManager {
             // LEVEL 35: Magma Elevator
             // Character similarity: vertical elevator rises and steps
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
+            const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
             
-            if (obstacleIdx <= 5) {
+            if (obstacleIdx < groupSize) {
               // Group 1: Alternating even/odd elevators
               const shift = Math.sin(this.waveTime * 2.0 + (obstacleIdx % 2) * Math.PI) * 28;
               const centerY = obs.spawnCenterY! + shift;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-            } else if (obstacleIdx <= 11) {
+            } else if (obstacleIdx < groupSize * 2) {
               // Group 2: Symmetrical group block elevators
               const blockIdx = Math.floor(obstacleIdx / 3);
               const shift = Math.sin(this.waveTime * 2.5 + blockIdx * Math.PI) * 35;
@@ -650,15 +656,16 @@ export class ObstacleManager {
             // LEVEL 36: Wormhole Vortex
             // Character similarity: swirling, rotating paths with optical offsets
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
+            const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
             
-            if (obstacleIdx <= 5) {
+            if (obstacleIdx < groupSize) {
               // Group 1: Single vortex rotation
               const angle = this.waveTime * 1.8 + obstacleIdx * 0.4;
               obs.shakeX = Math.sin(angle) * 18;
               obs.shakeX2 = Math.cos(angle) * 18;
               obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2;
-            } else if (obstacleIdx <= 11) {
+            } else if (obstacleIdx < groupSize * 2) {
               // Group 2: Double spiral vortex (top/bottom offset)
               const angle = this.waveTime * 2.5 + obstacleIdx * 0.5;
               obs.shakeX = Math.sin(angle) * 24;
@@ -680,21 +687,22 @@ export class ObstacleManager {
             // LEVEL 37: Tectonic Cracks
             // Character similarity: asymmetrical slants, jagged blocks, tilting centers
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
+            const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
             
-            if (obstacleIdx <= 5) {
+            if (obstacleIdx < groupSize) {
               // Group 1: Gentle tilting slanted path
               const tilt = Math.sin(this.waveTime * 1.6 + obstacleIdx * 0.3) * 24;
               obs.targetTopHeight = obs.baseTopHeight! + tilt;
               obs.targetBottomHeight = obs.baseBottomHeight! - tilt;
-            } else if (obstacleIdx <= 11) {
+            } else if (obstacleIdx < groupSize * 2) {
               // Group 2: Symmetrical ridge peak wave (W-shape)
-              const idx = obstacleIdx - 6;
+              const idx = obstacleIdx - groupSize;
               const tilt = Math.sin(this.waveTime * 2.2 + idx * (Math.PI / 3)) * 32;
               obs.targetTopHeight = obs.baseTopHeight! + tilt;
               obs.targetBottomHeight = obs.baseBottomHeight! + tilt;
             } else {
               // Group 3: Jagged pincer tilt shifts (independent caps)
-              const idx = obstacleIdx - 12;
+              const idx = obstacleIdx - groupSize * 2;
               const tiltTop = Math.sin(this.waveTime * 2.8 + idx * 0.5) * 36;
               const tiltBottom = Math.cos(this.waveTime * 2.8 + idx * 0.5) * 36;
               obs.targetTopHeight = obs.baseTopHeight! + tiltTop;
@@ -704,15 +712,16 @@ export class ObstacleManager {
             // LEVEL 38: Magnetic Tempest
             // Character similarity: reactive magnetic push and pull
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
+            const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
             
-            if (obstacleIdx <= 5) {
+            if (obstacleIdx < groupSize) {
               // Group 1: Slower magnetic vertical pull
               const magnet = Math.sin(this.waveTime * 1.8) * 16;
               obs.targetTopHeight = obs.spawnCenterY! - (obs.gapHeight! + magnet) / 2;
               obs.targetBottomHeight = height - obs.spawnCenterY! - (obs.gapHeight! - magnet) / 2;
-            } else if (obstacleIdx <= 11) {
+            } else if (obstacleIdx < groupSize * 2) {
               // Group 2: Horizontal magnet squeeze
-              const idx = obstacleIdx - 6;
+              const idx = obstacleIdx - groupSize;
               const magnet = Math.sin(this.waveTime * 2.4 + idx * 0.4) * 22;
               obs.shakeX = magnet;
               obs.shakeX2 = -magnet;
@@ -720,7 +729,7 @@ export class ObstacleManager {
               obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2;
             } else {
               // Group 3: Quantum flux (unstable shifting field)
-              const idx = obstacleIdx - 12;
+              const idx = obstacleIdx - groupSize * 2;
               const magnet = Math.sin(this.waveTime * 3.0 + idx * 0.5) * 26;
               const shake = Math.cos(this.waveTime * 3.0 + idx * 0.5) * 20;
               obs.shakeX = shake;
@@ -732,22 +741,23 @@ export class ObstacleManager {
             // LEVEL 39: Solar Flare
             // Character similarity: pulsating heat waves & firestorms
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
+            const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
             
-            if (obstacleIdx <= 5) {
+            if (obstacleIdx < groupSize) {
               // Group 1: Symmetrical heat wave breath
               const breathingGap = obs.gapHeight! + Math.sin(this.waveTime * 2.2) * 16;
               obs.targetTopHeight = obs.spawnCenterY! - breathingGap / 2;
               obs.targetBottomHeight = height - obs.spawnCenterY! - breathingGap / 2;
-            } else if (obstacleIdx <= 11) {
+            } else if (obstacleIdx < groupSize * 2) {
               // Group 2: Escalating flame stairs
-              const idx = obstacleIdx - 6;
+              const idx = obstacleIdx - groupSize;
               const stairShift = Math.sin(this.waveTime * 2.8 + idx * 0.5) * 32;
               const centerY = obs.spawnCenterY! + stairShift;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else {
               // Group 3: Random vertical solar eruptions (spikes)
-              const idx = obstacleIdx - 12;
+              const idx = obstacleIdx - groupSize * 2;
               const flare = Math.sin(this.waveTime * 3.6 + idx * 1.2) * 36;
               const centerY = obs.spawnCenterY! + flare;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
@@ -757,23 +767,24 @@ export class ObstacleManager {
             // LEVEL 40: Chrono Warp
             // Character similarity: dilated warp tunnels, helix + collapses
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
+            const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
             
-            if (obstacleIdx <= 5) {
+            if (obstacleIdx < groupSize) {
               // Group 1: Chrono helix (3D orbital)
               const angle = this.waveTime * 2.4 + obstacleIdx * 0.5;
               obs.shakeX = Math.sin(angle) * 22;
               obs.shakeX2 = Math.cos(angle) * 22;
               obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2;
-            } else if (obstacleIdx <= 11) {
+            } else if (obstacleIdx < groupSize * 2) {
               // Group 2: Chrono pincer (vertical close-in)
-              const idx = obstacleIdx - 6;
+              const idx = obstacleIdx - groupSize;
               const pincer = Math.sin(this.waveTime * 3.0 + idx * 0.4) * 28;
               obs.targetTopHeight = obs.baseTopHeight! + pincer;
               obs.targetBottomHeight = obs.baseBottomHeight! + pincer;
             } else {
               // Group 3: Chrono collapse (extreme rotate/shrink maze)
-              const idx = obstacleIdx - 12;
+              const idx = obstacleIdx - groupSize * 2;
               const angle = this.waveTime * 3.8 + idx * 0.6;
               obs.shakeX = Math.sin(angle) * 28;
               obs.shakeX2 = Math.cos(angle) * 28;
@@ -1890,9 +1901,9 @@ export class ObstacleManager {
         animDuration = 0.35;
       } else if (patternType === 'level30_hybridwave') {
         // Obstacle 1: Wave, Obstacle 2: Stair, Obstacle 3: Pulse
-        if (obstacleIdx <= 5) {
+        if (actualPatternIdx < groupSize) {
           targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 3)) * 45;
-        } else if (obstacleIdx <= 11) {
+        } else if (actualPatternIdx < groupSize * 2) {
           targetCenterY = height / 2 + 45 - (obstacleIdx - 6) * 18;
         } else {
           targetCenterY = height / 2 - 45;
@@ -1901,10 +1912,10 @@ export class ObstacleManager {
         animDuration = 0.45;
       } else if (patternType === 'level31_snakemotion') {
         // LEVEL 31: Cyber Glitch
-        if (obstacleIdx <= 5) {
+        if (actualPatternIdx < groupSize) {
           targetCenterY = height / 2;
           localGapHeight = gapHeight;
-        } else if (obstacleIdx <= 11) {
+        } else if (actualPatternIdx < groupSize * 2) {
           targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -30 : 30);
           localGapHeight = Math.round(gapHeight * 0.88); // 12% reduce
         } else {
@@ -1915,10 +1926,10 @@ export class ObstacleManager {
         animDuration = 0.44;
       } else if (patternType === 'level32_waterfall') {
         // LEVEL 32: Geyser Cascades
-        if (obstacleIdx <= 5) {
+        if (actualPatternIdx < groupSize) {
           targetCenterY = height / 2 - 50 + obstacleIdx * 15;
           localGapHeight = gapHeight;
-        } else if (obstacleIdx <= 11) {
+        } else if (actualPatternIdx < groupSize * 2) {
           targetCenterY = height / 2 + 55 - (obstacleIdx - 6) * 20;
           localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce
         } else {
@@ -1929,10 +1940,10 @@ export class ObstacleManager {
         animDuration = 0.43;
       } else if (patternType === 'level33_magneticpush') {
         // LEVEL 33: Quantum Entanglement
-        if (obstacleIdx <= 5) {
+        if (actualPatternIdx < groupSize) {
           targetCenterY = height / 2;
           localGapHeight = gapHeight;
-        } else if (obstacleIdx <= 11) {
+        } else if (actualPatternIdx < groupSize * 2) {
           targetCenterY = height / 2 + (obstacleIdx <= 8 ? -30 : 30);
           localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce
         } else {
@@ -1944,10 +1955,10 @@ export class ObstacleManager {
         animDuration = 0.45;
       } else if (patternType === 'level34_pendulum') {
         // LEVEL 34: Pendulum Swings
-        if (obstacleIdx <= 5) {
+        if (actualPatternIdx < groupSize) {
           targetCenterY = height / 2 + 25;
           localGapHeight = gapHeight;
-        } else if (obstacleIdx <= 11) {
+        } else if (actualPatternIdx < groupSize * 2) {
           targetCenterY = height / 2 + Math.sin((obstacleIdx - 6) * (Math.PI / 4.5)) * 40;
           localGapHeight = Math.round(gapHeight * 0.83); // 17% reduce
         } else {
@@ -1958,10 +1969,10 @@ export class ObstacleManager {
         animDuration = 0.42;
       } else if (patternType === 'level35_triplestair') {
         // LEVEL 35: Magma Elevator
-        if (obstacleIdx <= 5) {
+        if (actualPatternIdx < groupSize) {
           targetCenterY = height / 2 - 45 + (obstacleIdx % 3) * 30;
           localGapHeight = gapHeight;
-        } else if (obstacleIdx <= 11) {
+        } else if (actualPatternIdx < groupSize * 2) {
           targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -35 : 35);
           localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce
         } else {
@@ -1972,10 +1983,10 @@ export class ObstacleManager {
         animDuration = 0.42;
       } else if (patternType === 'level36_spiralflow') {
         // LEVEL 36: Wormhole Vortex
-        if (obstacleIdx <= 5) {
+        if (actualPatternIdx < groupSize) {
           targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 4.5)) * 40;
           localGapHeight = gapHeight;
-        } else if (obstacleIdx <= 11) {
+        } else if (actualPatternIdx < groupSize * 2) {
           targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? 35 : -35);
           localGapHeight = Math.round(gapHeight * 0.83); // 17% reduce
         } else {
@@ -1986,10 +1997,10 @@ export class ObstacleManager {
         animDuration = 0.44;
       } else if (patternType === 'level37_elevator') {
         // LEVEL 37: Tectonic Cracks
-        if (obstacleIdx <= 5) {
+        if (actualPatternIdx < groupSize) {
           targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -35 : 35);
           localGapHeight = gapHeight;
-        } else if (obstacleIdx <= 11) {
+        } else if (actualPatternIdx < groupSize * 2) {
           targetCenterY = height / 2 + Math.sin((obstacleIdx - 6) * 0.9) * 45;
           localGapHeight = Math.round(gapHeight * 0.82); // 18% reduce
         } else {
@@ -2000,10 +2011,10 @@ export class ObstacleManager {
         animDuration = 0.4;
       } else if (patternType === 'level38_scurve') {
         // LEVEL 38: Magnetic Tempest
-        if (obstacleIdx <= 5) {
+        if (actualPatternIdx < groupSize) {
           targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.8) * 45;
           localGapHeight = gapHeight;
-        } else if (obstacleIdx <= 11) {
+        } else if (actualPatternIdx < groupSize * 2) {
           const wOffsets = [30, 0, -25, 0, 30, 0];
           targetCenterY = height / 2 + wOffsets[(obstacleIdx - 6) % wOffsets.length];
           localGapHeight = Math.round(gapHeight * 0.80); // 20% reduce
@@ -2015,10 +2026,10 @@ export class ObstacleManager {
         animDuration = 0.42;
       } else if (patternType === 'level39_orbit') {
         // LEVEL 39: Solar Flare
-        if (obstacleIdx <= 5) {
+        if (actualPatternIdx < groupSize) {
           targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 4.5)) * 35;
           localGapHeight = gapHeight;
-        } else if (obstacleIdx <= 11) {
+        } else if (actualPatternIdx < groupSize * 2) {
           targetCenterY = height / 2 - 50 + (obstacleIdx - 6) * 20;
           localGapHeight = Math.round(gapHeight * 0.80); // 20% reduce
         } else {
@@ -2029,10 +2040,10 @@ export class ObstacleManager {
         animDuration = 0.44;
       } else if (patternType === 'level40_miniboss') {
         // LEVEL 40: Chrono Warp Mini-Boss
-        if (obstacleIdx <= 5) {
+        if (actualPatternIdx < groupSize) {
           targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 3)) * 40 + (obstacleIdx * 10 - 25);
           localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce
-        } else if (obstacleIdx <= 11) {
+        } else if (actualPatternIdx < groupSize * 2) {
           targetCenterY = height / 2 + 50 - (obstacleIdx - 6) * 20 + Math.sin((obstacleIdx - 6) * 0.8) * 15;
           localGapHeight = Math.round(gapHeight * 0.75); // 25% reduce
         } else {
