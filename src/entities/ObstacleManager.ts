@@ -751,8 +751,14 @@ export class ObstacleManager {
             
             if (obstacleIdx < groupSize) {
               // Group 1: Exactly copy Level 3 (The Gravity Pitfalls) see-saw elevator shifts
+              const activeScore = obs.spawnScore !== undefined ? obs.spawnScore : 0;
+              const isExtreme = (obstacleIdx % 3 === 0 || obstacleIdx % 3 === 1);
+              let swayAmp = 35;
+              if (activeScore >= 11 && activeScore <= 15 && isExtreme) {
+                swayAmp = Math.round(35 * 0.70); // 30% reduction in see-saw shift amplitude (from 35 to 25)
+              }
               const phase = this.waveTime * 1.95 + (obstacleIdx % 3) * (Math.PI * 2 / 3);
-              const shift = Math.sin(phase) * 35;
+              const shift = Math.sin(phase) * swayAmp;
               obs.targetTopHeight = obs.baseTopHeight! + shift;
               obs.targetBottomHeight = obs.baseBottomHeight! - shift;
             } else if (obstacleIdx < groupSize * 2) {
@@ -2037,14 +2043,22 @@ export class ObstacleManager {
         // LEVEL 39: Solar Flare
         if (actualPatternIdx < groupSize) {
           // Group 1: Copy Level 3 (The Gravity Pitfalls) layout (stairs dropping and rising)
+          let shiftVal = 80;
+          const isExtreme = (obstacleIdx % 3 === 0 || obstacleIdx % 3 === 1);
+          
+          localGapHeight = gapHeight;
+          if (score >= 11 && score <= 15 && isExtreme) {
+            shiftVal = Math.round(80 * 0.70); // 30% reduction in shift displacement (from 80 to 56)
+            localGapHeight = Math.round(gapHeight * 1.30); // 30% reduction in pipe obstacle size (increases gap by 30%)
+          }
+
           if (obstacleIdx % 3 === 0) {
-            targetCenterY = height / 2 - 80;
+            targetCenterY = height / 2 - shiftVal;
           } else if (obstacleIdx % 3 === 1) {
-            targetCenterY = height / 2 + 80;
+            targetCenterY = height / 2 + shiftVal;
           } else {
             targetCenterY = height / 2;
           }
-          localGapHeight = gapHeight;
           triggerDistance = 350;
           animDuration = 0.40;
         } else if (actualPatternIdx < groupSize * 2) {
@@ -2404,7 +2418,8 @@ export class ObstacleManager {
         shakeX2: 0,
         gapHeight: localGapHeight,
         spawnCenterY: targetCenterY,
-        obstacleIdx: actualPatternIdx
+        obstacleIdx: actualPatternIdx,
+        spawnScore: score
       }));
       return;
     }
