@@ -825,7 +825,8 @@ export class ObstacleManager {
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else if (subPattern === 'pulse_22') {
-              const pulse = Math.pow(Math.sin(this.waveTime * 2.2), 4) * 25;
+              const pulseScale = (levelNum === 23) ? 1.15 : 1.0;
+              const pulse = Math.pow(Math.sin(this.waveTime * 2.2), 4) * (25 * pulseScale);
               const currentGap = obs.gapHeight! - pulse;
               obs.targetTopHeight = obs.spawnCenterY! - currentGap / 2;
               obs.targetBottomHeight = height - obs.spawnCenterY! - currentGap / 2;
@@ -1925,6 +1926,7 @@ export class ObstacleManager {
           localGapHeight = Math.round(localGapHeight * 0.7475); // Increased gap by 15% (previously 0.65)
         } else if (levelNum === 23) {
           subPattern = actualPatternIdx < groupSize ? 'hybrid_20' : (actualPatternIdx < groupSize * 2 ? 'snake_21' : 'pulse_22');
+          localGapHeight = Math.round(localGapHeight * 0.85); // 15% less gap area
         } else if (levelNum === 24) {
           subPattern = actualPatternIdx < groupSize ? 'gravity_23' : (actualPatternIdx < groupSize * 2 ? 'rotating_24' : 'waterfall_25');
         } else if (levelNum === 25) {
@@ -1961,7 +1963,8 @@ export class ObstacleManager {
         } else if (subPattern === 'snake_21') {
           targetCenterY = height / 2 + Math.sin(actualPatternIdx * 0.7) * 45;
         } else if (subPattern === 'pulse_22') {
-          targetCenterY = height / 2 + (actualPatternIdx % 2 === 0 ? -25 : 25);
+          const pulseSpawnScale = (levelNum === 23) ? 1.15 : 1.0;
+          targetCenterY = height / 2 + (actualPatternIdx % 2 === 0 ? -25 : 25) * pulseSpawnScale;
         } else if (subPattern === 'gravity_23') {
           targetCenterY = height / 2 + (actualPatternIdx % 3 === 0 ? -40 : 20);
         } else if (subPattern === 'waterfall_25') {
