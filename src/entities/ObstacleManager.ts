@@ -2450,9 +2450,9 @@ export class ObstacleManager {
 
         if (hasEnergyBall) {
           initEnergyBallY = targetCenterY;
-          // Alternate direction and randomize speed: moving between 1.6 and 2.8 pixels per frame (20% reduction from 2.0-3.5 range)
+          // Alternate direction and randomize speed: moving between 1.2 and 2.1 pixels per frame (40% reduction from 2.0-3.5 range)
           const dir = (actualPatternIdx % 2 === 0 ? 1 : -1);
-          initEnergyBallSpeedY = dir * (1.6 + Math.random() * 1.2);
+          initEnergyBallSpeedY = dir * (1.2 + Math.random() * 0.9);
         }
       }
 

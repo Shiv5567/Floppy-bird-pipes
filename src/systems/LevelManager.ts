@@ -115,7 +115,7 @@ export class LevelManager {
         scrollSpeed = scrollSpeed * 0.80; // Reduce horizontal scroll speed by 20%
       } else if (levelNum >= 22 && levelNum <= 29) {
         scrollSpeed = scrollSpeed * 0.85; // Reduce horizontal scroll speed by 15%
-      } else if (levelNum >= 30 && levelNum <= 40) {
+      } else if (levelNum >= 30 && levelNum <= 50) {
         scrollSpeed = scrollSpeed * 0.80; // Reduce horizontal scroll speed by 20%
       }
 
