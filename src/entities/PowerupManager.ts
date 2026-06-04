@@ -128,7 +128,6 @@ export class PowerupManager {
       const baseOffset = unrewardedObstacle.width / 2;
       const targetX = unrewardedObstacle.x + baseOffset;
 
-      let spawnedPowerup = false;
       if (gameMode === 'endless') {
         const obsIdx = unrewardedObstacle.obstacleIdx !== undefined ? unrewardedObstacle.obstacleIdx : 0;
         const blockNum = Math.floor(obsIdx / 100);
@@ -137,13 +136,20 @@ export class PowerupManager {
         const planItem = plan.find(item => item.index === indexInBlock);
         
         if (planItem) {
-          // Spawn exactly in the center of the gap (targetX, gapCenterY) as requested
+          // Spawn exactly in the center of the gap (targetX, gapCenterY)
           this.spawnItem(planItem.type, width, height, targetX, gapCenterY);
-          spawnedPowerup = true;
+        } else if (indexInBlock % 3 === 0) {
+          // Spawn 3 coins group in the center at equal intervals (every 3rd obstacle, except on powerup indices)
+          this.spawnItem('coin', width, height, targetX - 55, gapCenterY);
+          this.spawnItem('coin', width, height, targetX, gapCenterY);
+          this.spawnItem('coin', width, height, targetX + 55, gapCenterY);
+        } else if (indexInBlock % 10 === 5) {
+          // Spawn a gem at equal intervals (every 10th obstacle, except on powerup indices)
+          this.spawnItem('gem', width, height, targetX, gapCenterY);
         }
       }
 
-      if (!spawnedPowerup) {
+      if (gameMode === 'level') {
         const rand = Math.random();
         if (rand < 0.50) {
           // Spawn a beautiful horizontal row of 3 coins guiding the player through the center of the gap (Avg: 0.50 * 3 = 1.5 coins per pipe = 150 coins per 100 score!)
@@ -153,7 +159,7 @@ export class PowerupManager {
         } else if (rand < 0.62) {
           // Spawn a gem in the center
           this.spawnItem('gem', width, height, targetX, gapCenterY);
-        } else if (rand < 0.655 && gameMode === 'level') {
+        } else if (rand < 0.655) {
           // Spawn a powerup in the center (reduced from 10% rate to 3.5% rate: 65% reduction)
           const types: PowerupType[] = ['shield', 'slowmo', 'magnet', 'turbo', 'mini'];
           const randomType = types[Math.floor(Math.random() * types.length)];
