@@ -2422,13 +2422,13 @@ export class ObstacleManager {
       // Gap height adjustments for Levels 41 to 50 to make them highly challenging (except Level 50 which has gap increases)
       if (levelNum !== undefined && levelNum >= 41 && levelNum <= 50) {
         if (levelNum === 50) {
-          // Level 50 path gap increases: 25% for Group 1, 35% for Group 2, 45% for Group 3, then increased by an additional 10%
+          // Level 50 path gap increases: 25% for Group 1, 35% for Group 2, 45% for Group 3, then increased by an additional 10% and decreased by 20%
           if (obstacleIdx <= 5) {
-            localGapHeight = Math.round(gapHeight * 1.25 * 1.10);
+            localGapHeight = Math.round(gapHeight * 1.25 * 1.10 * 0.80);
           } else if (obstacleIdx <= 11) {
-            localGapHeight = Math.round(gapHeight * 1.35 * 1.10);
+            localGapHeight = Math.round(gapHeight * 1.35 * 1.10 * 0.80);
           } else {
-            localGapHeight = Math.round(gapHeight * 1.45 * 1.10);
+            localGapHeight = Math.round(gapHeight * 1.45 * 1.10 * 0.80);
           }
         } else {
           if (obstacleIdx <= 5) {
