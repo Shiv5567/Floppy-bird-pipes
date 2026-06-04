@@ -25,14 +25,8 @@ export class PowerupManager {
 
   private getEndlessSpawnPlan(blockNum: number): { index: number, type: PowerupType }[] {
     if (!this.endlessSpawnPlans[blockNum]) {
-      const indices: number[] = [];
-      while (indices.length < 3) {
-        const idx = Math.floor(Math.random() * 100);
-        if (!indices.includes(idx)) {
-          indices.push(idx);
-        }
-      }
-      indices.sort((a, b) => a - b);
+      // Spawn at equal intervals (25, 50, 75) in the 100-obstacle block
+      const indices = [25, 50, 75];
 
       const pool: PowerupType[] = ['shield', 'slowmo', 'magnet', 'turbo', 'mini'];
       const chosenTypes: PowerupType[] = [];
@@ -143,20 +137,8 @@ export class PowerupManager {
         const planItem = plan.find(item => item.index === indexInBlock);
         
         if (planItem) {
-          const randomOffsetX = (Math.random() - 0.5) * 220;
-          const spawnX = targetX + randomOffsetX;
-          let spawnY = gapCenterY;
-          
-          const overlapsPipe = spawnX >= (unrewardedObstacle.x - 20) && spawnX <= (unrewardedObstacle.x + unrewardedObstacle.width + 20);
-          if (overlapsPipe) {
-            const minY = gapTop + 22;
-            const maxY = gapBottom - 22;
-            spawnY = minY + Math.random() * (maxY - minY);
-          } else {
-            spawnY = 80 + Math.random() * (height - 160);
-          }
-          
-          this.spawnItem(planItem.type, width, height, spawnX, spawnY);
+          // Spawn exactly in the center of the gap (targetX, gapCenterY) as requested
+          this.spawnItem(planItem.type, width, height, targetX, gapCenterY);
           spawnedPowerup = true;
         }
       }
