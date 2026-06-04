@@ -2477,7 +2477,7 @@ export class ObstacleManager {
       let initEnergyBallY: number | undefined = undefined;
       let initEnergyBallSpeedY: number | undefined = undefined;
 
-      if (levelNum !== undefined && levelNum >= 40 && levelNum <= 50) {
+      if (levelNum !== undefined && levelNum >= 40 && levelNum <= 50 && levelNum !== 50 && levelNum !== 3) {
         if (levelNum >= 45) {
           // Reduced by an additional 40% (down from 30% rate to ~18% rate, using modulo 11)
           hasEnergyBall = (actualPatternIdx % 11 === 0 || actualPatternIdx % 11 === 5);
