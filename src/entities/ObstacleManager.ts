@@ -2401,11 +2401,11 @@ export class ObstacleManager {
         targetBottomHeight = height - targetCenterY - localGapHeight / 2;
       }
 
-      // Enable special different-direction split opening animation specifically for all obstacles in Levels 1-20 (excluding Level 11, 2, 4, 5, 6), special legacy levels, and Level 40 Group 1
+      // Enable special different-direction split opening animation specifically for all obstacles in Levels 1-20 (excluding Level 11, 2, 4, 5, 6), special legacy levels, and the Chrono Warp Miniboss Group 1
       const isSpecialSplit = 
         (levelNum !== undefined && levelNum >= 1 && levelNum <= 20 && levelNum !== 11 && levelNum !== 2 && levelNum !== 4 && levelNum !== 5 && levelNum !== 6) ||
         (patternType === 'level17_heartbeat' && groupIdx === 0) ||
-        (levelNum === 40 && groupIdx === 0);
+        (patternType === 'level40_miniboss' && groupIdx === 0);
 
       // Level 11 gets a dedicated smooth slide-in from edges (not a split)
       const isLevel11SmoothEntry = (patternType === 'level11_diamond');

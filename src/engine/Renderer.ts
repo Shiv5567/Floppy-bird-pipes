@@ -509,7 +509,7 @@ export class Renderer {
       return;
     }
 
-    if (this.activeLevelNum === 50) {
+    if (this.activeLevelNum === 44) {
       // Final Boss level dramatic dark void backdrop
       const bossGrad = this.ctx.createLinearGradient(0, 0, 0, height);
       bossGrad.addColorStop(0, '#0f001a'); // Dark Void Purple
@@ -629,7 +629,7 @@ export class Renderer {
     if (isPerformance) return;
     this.ctx.save();
 
-    if (this.activeLevelNum === 50) {
+    if (this.activeLevelNum === 44) {
       // Swirling digital neon grid storm or giant vortex in the sky for the Final Boss!
       this.ctx.save();
       this.ctx.translate(width / 2, height * 0.4);

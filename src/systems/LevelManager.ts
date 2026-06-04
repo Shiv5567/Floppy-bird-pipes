@@ -221,6 +221,36 @@ export class LevelManager {
         patterns
       });
     }
+
+    // Swap Level Configurations (Option 2: 40-44 exchanged with 46-50, 45 in the middle)
+    const swapPairs = [
+      [40, 46],
+      [41, 47],
+      [42, 48],
+      [43, 49],
+      [44, 50]
+    ];
+    for (const [a, b] of swapPairs) {
+      const idxA = this.levels.findIndex(l => l.levelNum === a);
+      const idxB = this.levels.findIndex(l => l.levelNum === b);
+      if (idxA !== -1 && idxB !== -1) {
+        // Swap targetScore, scrollSpeed, gapHeight, patterns
+        const tempTargetScore = this.levels[idxA].targetScore;
+        const tempScrollSpeed = this.levels[idxA].scrollSpeed;
+        const tempGapHeight = this.levels[idxA].gapHeight;
+        const tempPatterns = this.levels[idxA].patterns;
+
+        this.levels[idxA].targetScore = this.levels[idxB].targetScore;
+        this.levels[idxA].scrollSpeed = this.levels[idxB].scrollSpeed;
+        this.levels[idxA].gapHeight = this.levels[idxB].gapHeight;
+        this.levels[idxA].patterns = this.levels[idxB].patterns;
+
+        this.levels[idxB].targetScore = tempTargetScore;
+        this.levels[idxB].scrollSpeed = tempScrollSpeed;
+        this.levels[idxB].gapHeight = tempGapHeight;
+        this.levels[idxB].patterns = tempPatterns;
+      }
+    }
   }
 
   public static getLevel(levelNum: number): LevelConfig | undefined {
