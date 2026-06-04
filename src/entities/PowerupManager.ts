@@ -231,7 +231,7 @@ export class PowerupManager {
           const gameScore = (window as any).gameEngine ? (window as any).gameEngine.score : 0;
           let sparkleColor = '#ffd700';
           if (gameScore >= 300 && gameScore < 500) {
-            sparkleColor = '#00e5ff';
+            sparkleColor = '#1e88e5'; // Royal blue sparkle for 2x coins
           } else if (gameScore >= 500) {
             sparkleColor = '#ff3d00';
           }
@@ -333,11 +333,11 @@ export class PowerupManager {
     let coinGrad = ctx.createRadialGradient(-2, -2, 1, 0, 0, item.radius);
 
     if (score >= 300 && score < 500) {
-      // Gradient mixed of light blue and yellow
-      coinGrad.addColorStop(0, '#e0f7fa');   // White/Very Light Blue
-      coinGrad.addColorStop(0.3, '#00e5ff'); // Light Blue
-      coinGrad.addColorStop(0.7, '#ffd700'); // Yellow
-      coinGrad.addColorStop(1, '#c59b27');   // Darker Gold/Yellow
+      // Dark blue on the outer layer, yellow on the inner layer
+      coinGrad.addColorStop(0, '#ffffff');   // White center shine
+      coinGrad.addColorStop(0.3, '#ffd700'); // Inner Yellow
+      coinGrad.addColorStop(0.7, '#1e88e5'); // Blue middle layer
+      coinGrad.addColorStop(1, '#0d47a1');   // Dark Blue outer edge
     } else if (score >= 500) {
       // Gradient mixed of yellow and red
       coinGrad.addColorStop(0, '#ffffff');   // White
@@ -360,7 +360,7 @@ export class PowerupManager {
 
     // Dark stroke contour
     if (score >= 300 && score < 500) {
-      ctx.strokeStyle = '#00838f'; // Cyan/Blue stroke
+      ctx.strokeStyle = '#0d47a1'; // Dark Blue stroke for outer layer
     } else if (score >= 500) {
       ctx.strokeStyle = '#800000'; // Dark Red stroke
     } else {
@@ -371,7 +371,7 @@ export class PowerupManager {
 
     // Inner details star / sign
     if (score >= 300 && score < 500) {
-      ctx.fillStyle = '#00838f';
+      ctx.fillStyle = '#0d47a1'; // Dark Blue detail
     } else if (score >= 500) {
       ctx.fillStyle = '#800000';
     } else {
