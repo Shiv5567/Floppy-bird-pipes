@@ -831,31 +831,39 @@ export class ObstacleManager {
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
             const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
             
-            if (obstacleIdx < groupSize) {
-              // Group 1: Chrono helix (3D orbital)
-              const angle = this.waveTime * 2.4 + obstacleIdx * 0.5;
-              obs.shakeX = Math.sin(angle) * 22;
-              obs.shakeX2 = Math.cos(angle) * 22;
-              obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2;
-            } else if (obstacleIdx < groupSize * 2) {
-              // Group 2: Chrono pincer (vertical close-in)
+            if (obs.levelNum === 46) {
+              // Single obstacles arrangement: always use Group 2 Chrono pincer layout and behavior
               const idx = obstacleIdx - groupSize;
               const pincer = Math.sin(this.waveTime * 3.0 + idx * 0.4) * 28;
               obs.targetTopHeight = obs.baseTopHeight! + pincer;
               obs.targetBottomHeight = obs.baseBottomHeight! + pincer;
             } else {
-              // Group 3: Chrono collapse (extreme rotate/shrink maze)
-              const idx = obstacleIdx - groupSize * 2;
-              const angle = this.waveTime * 3.8 + idx * 0.6;
-              obs.shakeX = Math.sin(angle) * 28;
-              obs.shakeX2 = Math.cos(angle) * 28;
-              const pulse = Math.pow(Math.sin(this.waveTime * 4.0), 2) * 24;
-              const breathingGap = obs.gapHeight! - pulse;
-              const waveShift = Math.sin(this.waveTime * 3.0 + idx * 0.4) * 20;
-              const centerY = obs.spawnCenterY! + waveShift;
-              obs.targetTopHeight = centerY - breathingGap / 2;
-              obs.targetBottomHeight = height - centerY - breathingGap / 2;
+              if (obstacleIdx < groupSize) {
+                // Group 1: Chrono helix (3D orbital)
+                const angle = this.waveTime * 2.4 + obstacleIdx * 0.5;
+                obs.shakeX = Math.sin(angle) * 22;
+                obs.shakeX2 = Math.cos(angle) * 22;
+                obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2;
+                obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2;
+              } else if (obstacleIdx < groupSize * 2) {
+                // Group 2: Chrono pincer (vertical close-in)
+                const idx = obstacleIdx - groupSize;
+                const pincer = Math.sin(this.waveTime * 3.0 + idx * 0.4) * 28;
+                obs.targetTopHeight = obs.baseTopHeight! + pincer;
+                obs.targetBottomHeight = obs.baseBottomHeight! + pincer;
+              } else {
+                // Group 3: Chrono collapse (extreme rotate/shrink maze)
+                const idx = obstacleIdx - groupSize * 2;
+                const angle = this.waveTime * 3.8 + idx * 0.6;
+                obs.shakeX = Math.sin(angle) * 28;
+                obs.shakeX2 = Math.cos(angle) * 28;
+                const pulse = Math.pow(Math.sin(this.waveTime * 4.0), 2) * 24;
+                const breathingGap = obs.gapHeight! - pulse;
+                const waveShift = Math.sin(this.waveTime * 3.0 + idx * 0.4) * 20;
+                const centerY = obs.spawnCenterY! + waveShift;
+                obs.targetTopHeight = centerY - breathingGap / 2;
+                obs.targetBottomHeight = height - centerY - breathingGap / 2;
+              }
             }
           } else if (obs.patternType === 'level41_doublew') {
             // Alternating movement cycles: odd/even pillars shift in opposite directions
@@ -2137,22 +2145,30 @@ export class ObstacleManager {
         }
       } else if (patternType === 'level40_miniboss') {
         // LEVEL 40: Chrono Warp Mini-Boss
-        if (actualPatternIdx < groupSize) {
-          // Ascending staircase layout: center rises by 20px per step
-          targetCenterY = height / 2 + 50 - obstacleIdx * 20;
-          localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce
-          triggerDistance = 210; // Extra reaction time for split motion
-          animDuration = 0.40;   // Smooth split duration
-        } else if (actualPatternIdx < groupSize * 2) {
+        if (levelNum === 46) {
+          // Playable Level 46 uses Group 2 layout and settings throughout
           targetCenterY = height / 2 + 50 - (obstacleIdx - 6) * 20 + Math.sin((obstacleIdx - 6) * 0.8) * 15;
-          localGapHeight = Math.round(gapHeight * 0.75); // 25% reduce
+          localGapHeight = Math.round(gapHeight * 0.75);
           triggerDistance = 175;
           animDuration = 0.32;
         } else {
-          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -35 : 35) + Math.cos((obstacleIdx - 12) * 1.2) * 15;
-          localGapHeight = Math.round(gapHeight * 0.65); // 35% reduce
-          triggerDistance = 175;
-          animDuration = 0.32;
+          if (actualPatternIdx < groupSize) {
+            // Ascending staircase layout: center rises by 20px per step
+            targetCenterY = height / 2 + 50 - obstacleIdx * 20;
+            localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce
+            triggerDistance = 210; // Extra reaction time for split motion
+            animDuration = 0.40;   // Smooth split duration
+          } else if (actualPatternIdx < groupSize * 2) {
+            targetCenterY = height / 2 + 50 - (obstacleIdx - 6) * 20 + Math.sin((obstacleIdx - 6) * 0.8) * 15;
+            localGapHeight = Math.round(gapHeight * 0.75); // 25% reduce
+            triggerDistance = 175;
+            animDuration = 0.32;
+          } else {
+            targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -35 : 35) + Math.cos((obstacleIdx - 12) * 1.2) * 15;
+            localGapHeight = Math.round(gapHeight * 0.65); // 35% reduce
+            triggerDistance = 175;
+            animDuration = 0.32;
+          }
         }
       } else if (patternType === 'level41_doublew') {
         // Group 1: Double W Tunnel, Group 2: Reverse Snake, Group 3: Dynamic Slope
@@ -2210,14 +2226,8 @@ export class ObstacleManager {
         triggerDistance = 175;
         animDuration = 0.32;
       } else if (patternType === 'level46_triplespiral') {
-        // Group 1: Triple spiral, Group 2: Snake Wave, Group 3: Orbit connector
-        if (obstacleIdx <= 5) {
-          targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 4)) * 35;
-        } else if (obstacleIdx <= 11) {
-          targetCenterY = height / 2 - Math.sin((obstacleIdx - 6) * 0.8) * 40;
-        } else {
-          targetCenterY = height / 2;
-        }
+        // Single obstacles arrangement: all groups use the middle group's Snake Wave layout
+        targetCenterY = height / 2 - Math.sin((obstacleIdx - 6) * 0.8) * 40;
         triggerDistance = 180;
         animDuration = 0.34;
       } else if (patternType === 'level47_diamond') {
