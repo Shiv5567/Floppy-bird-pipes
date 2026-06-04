@@ -2419,14 +2419,25 @@ export class ObstacleManager {
         }
       }
 
-      // Gap height reductions for Levels 41 to 50 to make them highly challenging
+      // Gap height adjustments for Levels 41 to 50 to make them highly challenging (except Level 50 which has gap increases)
       if (levelNum !== undefined && levelNum >= 41 && levelNum <= 50) {
-        if (obstacleIdx <= 5) {
-          localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce for Group 1
-        } else if (obstacleIdx <= 11) {
-          localGapHeight = Math.round(gapHeight * 0.75); // 25% reduce for Group 2
+        if (levelNum === 50) {
+          // Level 50 path gap increases: 25% for Group 1, 35% for Group 2, 45% for Group 3
+          if (obstacleIdx <= 5) {
+            localGapHeight = Math.round(gapHeight * 1.25);
+          } else if (obstacleIdx <= 11) {
+            localGapHeight = Math.round(gapHeight * 1.35);
+          } else {
+            localGapHeight = Math.round(gapHeight * 1.45);
+          }
         } else {
-          localGapHeight = Math.round(gapHeight * 0.65); // 35% reduce for Group 3
+          if (obstacleIdx <= 5) {
+            localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce for Group 1
+          } else if (obstacleIdx <= 11) {
+            localGapHeight = Math.round(gapHeight * 0.75); // 25% reduce for Group 2
+          } else {
+            localGapHeight = Math.round(gapHeight * 0.65); // 35% reduce for Group 3
+          }
         }
       }
 
@@ -2506,7 +2517,7 @@ export class ObstacleManager {
       let initEnergyBallY: number | undefined = undefined;
       let initEnergyBallSpeedY: number | undefined = undefined;
 
-      if (levelNum !== undefined && levelNum >= 40 && levelNum <= 50 && levelNum !== 50 && levelNum !== 3) {
+      if (levelNum !== undefined && levelNum >= 40 && levelNum <= 50 && levelNum !== 3) {
         if (levelNum >= 45) {
           // Reduced by an additional 40% (down from 30% rate to ~18% rate, using modulo 11)
           hasEnergyBall = (actualPatternIdx % 11 === 0 || actualPatternIdx % 11 === 5);
