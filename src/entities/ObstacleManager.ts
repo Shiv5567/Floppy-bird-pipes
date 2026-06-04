@@ -3124,23 +3124,32 @@ export class ObstacleManager {
       const topShift = obs.shakeX || 0;
       const bottomShift = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
 
-      // Draw Top Column (Shifted by shakeX) - Extended upwards by 1000px to prevent visual cut-off during camera pans
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(obs.x - 200, -1000, obs.width + 400, obs.topHeight + 40 + 1000);
-      ctx.clip();
-      ctx.translate(topShift, 0);
-      drawPillars();
-      ctx.restore();
+      // Fast-path Optimization: If top and bottom columns shift by the same amount,
+      // we can draw them in a single call without using expensive canvas clipping masks!
+      if (topShift === bottomShift) {
+        ctx.save();
+        ctx.translate(topShift, 0);
+        drawPillars();
+        ctx.restore();
+      } else {
+        // Draw Top Column (Shifted by shakeX) - Extended upwards by 1000px to prevent visual cut-off during camera pans
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(obs.x - 200, -1000, obs.width + 400, obs.topHeight + 40 + 1000);
+        ctx.clip();
+        ctx.translate(topShift, 0);
+        drawPillars();
+        ctx.restore();
 
-      // Draw Bottom Column (Shifted by shakeX2) - Extended downwards by 1000px to prevent visual cut-off during camera pans
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(obs.x - 200, height - obs.bottomHeight - 40, obs.width + 400, obs.bottomHeight + 40 + 1000);
-      ctx.clip();
-      ctx.translate(bottomShift, 0);
-      drawPillars();
-      ctx.restore();
+        // Draw Bottom Column (Shifted by shakeX2) - Extended downwards by 1000px to prevent visual cut-off during camera pans
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(obs.x - 200, height - obs.bottomHeight - 40, obs.width + 400, obs.bottomHeight + 40 + 1000);
+        ctx.clip();
+        ctx.translate(bottomShift, 0);
+        drawPillars();
+        ctx.restore();
+      }
 
       // Pulsing neon gap-border glow along inner lips of moving Level columns
       if (obs.levelNum !== undefined && obs.isMoving && !(window as any).gameDisableShadows) {
