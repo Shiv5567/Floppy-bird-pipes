@@ -317,7 +317,20 @@ export class GameEngine {
             this.scrollSpeed = this.activeLevelConfig.scrollSpeed * 2.3;
           } else {
             const progressiveFactor = 1.0 + Math.floor(this.score / 5) * 0.02;
-            this.scrollSpeed = this.activeLevelConfig.scrollSpeed * progressiveFactor;
+            let currentSpeed = this.activeLevelConfig.scrollSpeed * progressiveFactor;
+
+            // For levels 40-50, reduce scrollSpeed based on the current obstacle block/group (5% in middle group, 10% in last group)
+            const levelNum = this.activeLevelConfig.levelNum;
+            if (levelNum >= 40 && levelNum <= 50) {
+              const groupSize = Math.floor(this.activeLevelConfig.targetScore / 3);
+              const groupIdx = Math.min(2, Math.floor(this.score / groupSize));
+              if (groupIdx === 1) {
+                currentSpeed *= 0.95; // 5% reduce
+              } else if (groupIdx === 2) {
+                currentSpeed *= 0.90; // 10% reduce
+              }
+            }
+            this.scrollSpeed = currentSpeed;
           }
         } else {
           const selectedZone = this.progressManager.getState().selectedZone;

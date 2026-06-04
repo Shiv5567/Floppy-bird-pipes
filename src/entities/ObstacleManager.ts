@@ -174,7 +174,18 @@ export class ObstacleManager {
     const dtCoeff = deltaTime * 60 * timeScale;
     const isLevel21or22 = this.activeLevelConfig && (this.activeLevelConfig.levelNum === 21 || this.activeLevelConfig.levelNum === 22);
     const isLevel31to40 = this.activeLevelConfig && (this.activeLevelConfig.levelNum >= 31 && this.activeLevelConfig.levelNum <= 40);
-    const motionSpeedScale = isLevel31to40 ? 1.20 : (isLevel21or22 ? 0.90 : 1.0); // 20% increased difficulty/speed for Levels 31–40
+    let motionSpeedScale = isLevel31to40 ? 1.20 : (isLevel21or22 ? 0.90 : 1.0); // 20% increased difficulty/speed for Levels 31–40
+
+    if (this.activeLevelConfig && this.activeLevelConfig.levelNum >= 40 && this.activeLevelConfig.levelNum <= 50) {
+      const groupSize = Math.floor(this.activeLevelConfig.targetScore / 3);
+      const groupIdx = Math.min(2, Math.floor(score / groupSize));
+      if (groupIdx === 1) {
+        motionSpeedScale *= 0.95; // 5% reduce
+      } else if (groupIdx === 2) {
+        motionSpeedScale *= 0.90; // 10% reduce
+      }
+    }
+
     this.waveTime += deltaTime * timeScale * motionSpeedScale;
     
     // Endless progressive difficulty scaling math based on user specifications
@@ -247,8 +258,18 @@ export class ObstacleManager {
 
       // Update moving energy ball Y position inside the gap
       if (obs.hasEnergyBall && obs.energyBallY !== undefined && obs.energyBallSpeedY !== undefined) {
-        const ballSpeed = obs.energyBallSpeedY * dtCoeff;
-        obs.energyBallY += ballSpeed;
+        let currentBallSpeed = obs.energyBallSpeedY * dtCoeff;
+        if (obs.levelNum !== undefined && obs.levelNum >= 40 && obs.levelNum <= 50) {
+          const groupSize = Math.floor((this.activeLevelConfig?.targetScore || 150) / 3);
+          const actualIdx = obs.obstacleIdx || 0;
+          const groupIdx = Math.min(2, Math.floor(actualIdx / groupSize));
+          if (groupIdx === 1) {
+            currentBallSpeed *= 0.95; // 5% reduce
+          } else if (groupIdx === 2) {
+            currentBallSpeed *= 0.90; // 10% reduce
+          }
+        }
+        obs.energyBallY += currentBallSpeed;
 
         const rad = obs.energyBallRadius || 16;
         // Gap boundaries (top pipe bottom and bottom pipe top)
