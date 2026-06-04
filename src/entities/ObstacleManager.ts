@@ -2519,8 +2519,8 @@ export class ObstacleManager {
 
       if (levelNum !== undefined && levelNum >= 40 && levelNum <= 50 && levelNum !== 3) {
         if (levelNum === 50) {
-          // Level 50: 30% increase in energy ball frequency (~23% rate instead of ~18% rate)
-          hasEnergyBall = (actualPatternIdx % 13 === 0 || actualPatternIdx % 13 === 4 || actualPatternIdx % 13 === 8);
+          // Level 50: 25% increase in energy ball frequency (~28.57% rate instead of ~23% rate)
+          hasEnergyBall = (actualPatternIdx % 7 === 0 || actualPatternIdx % 7 === 3);
         } else if (levelNum >= 45) {
           // Reduced by an additional 40% (down from 30% rate to ~18% rate, using modulo 11)
           hasEnergyBall = (actualPatternIdx % 11 === 0 || actualPatternIdx % 11 === 5);
