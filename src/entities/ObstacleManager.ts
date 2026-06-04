@@ -2422,13 +2422,13 @@ export class ObstacleManager {
       // Gap height adjustments for Levels 41 to 50 to make them highly challenging (except Level 50 which has gap increases)
       if (levelNum !== undefined && levelNum >= 41 && levelNum <= 50) {
         if (levelNum === 50) {
-          // Level 50 path gap increases: 25% for Group 1, 35% for Group 2, 45% for Group 3
+          // Level 50 path gap increases: 25% for Group 1, 35% for Group 2, 45% for Group 3, then increased by an additional 10%
           if (obstacleIdx <= 5) {
-            localGapHeight = Math.round(gapHeight * 1.25);
+            localGapHeight = Math.round(gapHeight * 1.25 * 1.10);
           } else if (obstacleIdx <= 11) {
-            localGapHeight = Math.round(gapHeight * 1.35);
+            localGapHeight = Math.round(gapHeight * 1.35 * 1.10);
           } else {
-            localGapHeight = Math.round(gapHeight * 1.45);
+            localGapHeight = Math.round(gapHeight * 1.45 * 1.10);
           }
         } else {
           if (obstacleIdx <= 5) {
@@ -2518,7 +2518,10 @@ export class ObstacleManager {
       let initEnergyBallSpeedY: number | undefined = undefined;
 
       if (levelNum !== undefined && levelNum >= 40 && levelNum <= 50 && levelNum !== 3) {
-        if (levelNum >= 45) {
+        if (levelNum === 50) {
+          // Level 50: 30% increase in energy ball frequency (~23% rate instead of ~18% rate)
+          hasEnergyBall = (actualPatternIdx % 13 === 0 || actualPatternIdx % 13 === 4 || actualPatternIdx % 13 === 8);
+        } else if (levelNum >= 45) {
           // Reduced by an additional 40% (down from 30% rate to ~18% rate, using modulo 11)
           hasEnergyBall = (actualPatternIdx % 11 === 0 || actualPatternIdx % 11 === 5);
         } else {
