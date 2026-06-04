@@ -2808,8 +2808,8 @@ export class ObstacleManager {
     // Procedural variation: tempo spacing scale multiplier (0.9 to 1.1)
     const tempoScale = 0.90 + Math.random() * 0.20;
 
-    // Apply moving effect randomly to standard patterns (30% chance)
-    const isMovingPattern = randPattern.forceMoving || (Math.random() < 0.3);
+    // Apply moving effect randomly to standard patterns (20% chance)
+    const isMovingPattern = randPattern.forceMoving || (Math.random() < 0.2);
 
     // Populate the queue
     for (let i = 0; i < offsets.length; i++) {
