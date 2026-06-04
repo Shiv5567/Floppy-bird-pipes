@@ -15,6 +15,7 @@ export interface PowerupItem {
 
 export class PowerupManager {
   private list: PowerupItem[] = [];
+  private endlessSpawnPlans: Record<number, { index: number, type: PowerupType }[]> = {};
 
   constructor() {}
 
@@ -22,8 +23,38 @@ export class PowerupManager {
     return this.list;
   }
 
+  private getEndlessSpawnPlan(blockNum: number): { index: number, type: PowerupType }[] {
+    if (!this.endlessSpawnPlans[blockNum]) {
+      const indices: number[] = [];
+      while (indices.length < 3) {
+        const idx = Math.floor(Math.random() * 100);
+        if (!indices.includes(idx)) {
+          indices.push(idx);
+        }
+      }
+      indices.sort((a, b) => a - b);
+
+      const pool: PowerupType[] = ['shield', 'slowmo', 'magnet', 'turbo', 'mini'];
+      const chosenTypes: PowerupType[] = [];
+      while (chosenTypes.length < 3) {
+        const type = pool[Math.floor(Math.random() * pool.length)];
+        if (!chosenTypes.includes(type)) {
+          chosenTypes.push(type);
+        }
+      }
+
+      this.endlessSpawnPlans[blockNum] = [
+        { index: indices[0], type: chosenTypes[0] },
+        { index: indices[1], type: chosenTypes[1] },
+        { index: indices[2], type: chosenTypes[2] }
+      ];
+    }
+    return this.endlessSpawnPlans[blockNum];
+  }
+
   public clear() {
     this.list = [];
+    this.endlessSpawnPlans = {};
   }
 
   public update(
@@ -36,6 +67,7 @@ export class PowerupManager {
     height: number,
     timeScale: number,
     obstacles: Obstacle[],
+    gameMode: 'endless' | 'level' = 'endless',
     particleEngine?: ParticleEngine
   ) {
     const dtCoeff = deltaTime * 60 * timeScale;
@@ -102,20 +134,49 @@ export class PowerupManager {
       const baseOffset = unrewardedObstacle.width / 2;
       const targetX = unrewardedObstacle.x + baseOffset;
 
-      const rand = Math.random();
-      if (rand < 0.50) {
-        // Spawn a beautiful horizontal row of 3 coins guiding the player through the center of the gap (Avg: 0.50 * 3 = 1.5 coins per pipe = 150 coins per 100 score!)
-        this.spawnItem('coin', width, height, targetX - 55, gapCenterY);
-        this.spawnItem('coin', width, height, targetX, gapCenterY);
-        this.spawnItem('coin', width, height, targetX + 55, gapCenterY);
-      } else if (rand < 0.62) {
-        // Spawn a gem in the center
-        this.spawnItem('gem', width, height, targetX, gapCenterY);
-      } else if (rand < 0.655) {
-        // Spawn a powerup in the center (reduced from 10% rate to 3.5% rate: 65% reduction)
-        const types: PowerupType[] = ['shield', 'slowmo', 'magnet', 'turbo', 'mini'];
-        const randomType = types[Math.floor(Math.random() * types.length)];
-        this.spawnItem(randomType, width, height, targetX, gapCenterY);
+      let spawnedPowerup = false;
+      if (gameMode === 'endless') {
+        const obsIdx = unrewardedObstacle.obstacleIdx !== undefined ? unrewardedObstacle.obstacleIdx : 0;
+        const blockNum = Math.floor(obsIdx / 100);
+        const indexInBlock = obsIdx % 100;
+        const plan = this.getEndlessSpawnPlan(blockNum);
+        const planItem = plan.find(item => item.index === indexInBlock);
+        
+        if (planItem) {
+          const randomOffsetX = (Math.random() - 0.5) * 220;
+          const spawnX = targetX + randomOffsetX;
+          let spawnY = gapCenterY;
+          
+          const overlapsPipe = spawnX >= (unrewardedObstacle.x - 20) && spawnX <= (unrewardedObstacle.x + unrewardedObstacle.width + 20);
+          if (overlapsPipe) {
+            const minY = gapTop + 22;
+            const maxY = gapBottom - 22;
+            spawnY = minY + Math.random() * (maxY - minY);
+          } else {
+            spawnY = 80 + Math.random() * (height - 160);
+          }
+          
+          this.spawnItem(planItem.type, width, height, spawnX, spawnY);
+          spawnedPowerup = true;
+        }
+      }
+
+      if (!spawnedPowerup) {
+        const rand = Math.random();
+        if (rand < 0.50) {
+          // Spawn a beautiful horizontal row of 3 coins guiding the player through the center of the gap (Avg: 0.50 * 3 = 1.5 coins per pipe = 150 coins per 100 score!)
+          this.spawnItem('coin', width, height, targetX - 55, gapCenterY);
+          this.spawnItem('coin', width, height, targetX, gapCenterY);
+          this.spawnItem('coin', width, height, targetX + 55, gapCenterY);
+        } else if (rand < 0.62) {
+          // Spawn a gem in the center
+          this.spawnItem('gem', width, height, targetX, gapCenterY);
+        } else if (rand < 0.655 && gameMode === 'level') {
+          // Spawn a powerup in the center (reduced from 10% rate to 3.5% rate: 65% reduction)
+          const types: PowerupType[] = ['shield', 'slowmo', 'magnet', 'turbo', 'mini'];
+          const randomType = types[Math.floor(Math.random() * types.length)];
+          this.spawnItem(randomType, width, height, targetX, gapCenterY);
+        }
       }
     }
 
