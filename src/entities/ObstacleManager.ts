@@ -2380,6 +2380,23 @@ export class ObstacleManager {
         }
       }
 
+      // Apply Level 40-45 path gap adjustments (5% increase for middle group, 10% increase for last/3rd group)
+      const isLevel40To45 = (levelNum !== undefined && levelNum >= 40 && levelNum <= 45) ||
+        (patternType === 'level40_miniboss' || 
+         patternType === 'level41_doublew' || 
+         patternType === 'level42_infinity' || 
+         patternType === 'level43_dnahelix' || 
+         patternType === 'level44_pendulum' || 
+         patternType === 'level45_scurve');
+
+      if (isLevel40To45) {
+        if (groupIdx === 1) {
+          localGapHeight = Math.round(localGapHeight * 1.05);
+        } else if (groupIdx === 2) {
+          localGapHeight = Math.round(localGapHeight * 1.10);
+        }
+      }
+
       // Safeguard boundaries and calculate target heights
       if (levelNum !== undefined && levelNum >= 11 && levelNum <= 20) {
         localGapHeight = Math.max(165, localGapHeight);
