@@ -2572,24 +2572,7 @@ export class ObstacleManager {
     let animDuration = 0.35;
     let triggerDistance = this.nextSpawnDistance * 0.50;
 
-    // 40% of obstacles for score 1 to 200 in Endless Mode
-    if (!this.activeLevelConfig && score >= 1 && score <= 200 && Math.random() < 0.40) {
-      approachAnimType = Math.random() < 0.5 ? 'open' : 'close';
-      if (approachAnimType === 'open') {
-        // Start closed (tiny 10px gap at center) and split open
-        closedTopHeight = targetCenterY - 5;
-        closedBottomHeight = height - targetCenterY - 5;
-        topHeight = closedTopHeight;
-        bottomHeight = closedBottomHeight;
-      } else {
-        // Start wide (1.4x larger gap) and close down to target position
-        const wideGap = currentStepGap * 1.40;
-        closedTopHeight = targetCenterY - wideGap / 2;
-        closedBottomHeight = height - targetCenterY - wideGap / 2;
-        topHeight = closedTopHeight;
-        bottomHeight = closedBottomHeight;
-      }
-    }
+    // Proximity approach animations removed in Endless Mode as requested
 
     this.list.push(this.acquireObstacle({
       x: width + 50,
@@ -2819,8 +2802,8 @@ export class ObstacleManager {
     const invert = Math.random() > 0.5 ? -1 : 1;
     offsets = offsets.map(o => o * invert);
 
-    // Random vertical shift offset (+-20px) to change spawn positions randomly
-    const shift = (Math.random() - 0.5) * 40;
+    // Random vertical shift offset (+-20px) disabled as requested
+    const shift = 0;
 
     // Procedural variation: tempo spacing scale multiplier (0.9 to 1.1)
     const tempoScale = 0.90 + Math.random() * 0.20;
