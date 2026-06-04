@@ -379,8 +379,27 @@ export class PowerupManager {
     ctx.fill();
     ctx.stroke();
 
+    // Glossy light reflection highlight on the bubble surface
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+    ctx.beginPath();
+    ctx.ellipse(-item.radius * 0.35, -item.radius * 0.35, item.radius * 0.3, item.radius * 0.18, -Math.PI / 4, 0, Math.PI * 2);
+    ctx.fill();
+
     // Draw customized symbolic vector logo inside
     ctx.save();
+
+    // Radial highlight glow behind logo inside bubble
+    const logoGlow = ctx.createRadialGradient(0, 0, 0, 0, 0, item.radius * 0.75);
+    logoGlow.addColorStop(0, 'rgba(255, 255, 255, 0.85)');
+    logoGlow.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = logoGlow;
+    ctx.beginPath();
+    ctx.arc(0, 0, item.radius * 0.75, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Increase logo size inside bubble by 1.35x
+    ctx.scale(1.35, 1.35);
+
     if (item.type === 'shield') {
       // Shield logo
       ctx.beginPath();
