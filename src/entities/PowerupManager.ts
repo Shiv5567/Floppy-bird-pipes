@@ -379,22 +379,120 @@ export class PowerupManager {
     ctx.fill();
     ctx.stroke();
 
-    // Draw customized symbolic letter inside
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 11px Outfit, Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    
-    let symbol = 'P';
-    if (item.type === 'shield') symbol = 'S';
-    else if (item.type === 'slowmo') symbol = 'T'; // Time Stop
-    else if (item.type === 'magnet') symbol = 'M';
-    else if (item.type === 'double') symbol = '2x';
-    else if (item.type === 'turbo') symbol = 'F'; // Fast
-    else if (item.type === 'ghost') symbol = 'G';
-    else if (item.type === 'mini') symbol = 'm';
-    else if (item.type === 'revive') symbol = 'R';
-
-    ctx.fillText(symbol, 0, 0.5);
+    // Draw customized symbolic vector logo inside
+    ctx.save();
+    if (item.type === 'shield') {
+      // Shield logo
+      ctx.beginPath();
+      ctx.moveTo(0, -7);
+      ctx.lineTo(5.5, -4);
+      ctx.lineTo(4.5, 1.5);
+      ctx.quadraticCurveTo(4.5, 4.5, 0, 7.5);
+      ctx.quadraticCurveTo(-4.5, 4.5, -4.5, 1.5);
+      ctx.lineTo(-5.5, -4);
+      ctx.closePath();
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      
+      // Inner cross line
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(0, -3.5);
+      ctx.lineTo(0, 4);
+      ctx.moveTo(-2.5, -0.5);
+      ctx.lineTo(2.5, -0.5);
+      ctx.stroke();
+    } else if (item.type === 'slowmo') {
+      // Clock face
+      ctx.beginPath();
+      ctx.arc(0, 0.5, 6, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      
+      // Clock hands
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(0, 0.5);
+      ctx.lineTo(0, -3.0); // 12 o'clock
+      ctx.moveTo(0, 0.5);
+      ctx.lineTo(2.5, 2.0); // 4 o'clock
+      ctx.stroke();
+      
+      // Stopwatch top trigger ring
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.0;
+      ctx.beginPath();
+      ctx.arc(0, -7.5, 2, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (item.type === 'magnet') {
+      // U-Magnet
+      ctx.lineWidth = 3.0;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineCap = 'square';
+      ctx.beginPath();
+      ctx.moveTo(-4, -4);
+      ctx.lineTo(-4, 0.5);
+      ctx.arc(0, 0.5, 4, Math.PI, 0, true);
+      ctx.lineTo(4, -4);
+      ctx.stroke();
+      
+      // Red pole tips
+      ctx.lineWidth = 3.0;
+      ctx.strokeStyle = '#ff3d00';
+      ctx.beginPath();
+      ctx.moveTo(-4, -4);
+      ctx.lineTo(-4, -6.5);
+      ctx.moveTo(4, -4);
+      ctx.lineTo(4, -6.5);
+      ctx.stroke();
+    } else if (item.type === 'turbo') {
+      // Double chevron >>
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2.2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      // First chevron
+      ctx.moveTo(-4.5, -4.5);
+      ctx.lineTo(0, 0);
+      ctx.lineTo(-4.5, 4.5);
+      // Second chevron
+      ctx.moveTo(0.5, -4.5);
+      ctx.lineTo(5, 0);
+      ctx.lineTo(0.5, 4.5);
+      ctx.stroke();
+    } else if (item.type === 'mini') {
+      // Mini Bird head
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(0.5, 0.5, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Beak
+      ctx.fillStyle = '#ff9100';
+      ctx.beginPath();
+      ctx.moveTo(-3, -0.5);
+      ctx.lineTo(-6.5, 0.5);
+      ctx.lineTo(-3, 1.5);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Eye
+      ctx.fillStyle = '#000000';
+      ctx.beginPath();
+      ctx.arc(-1.0, -1.0, 1.0, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // Fallback text drawing for any other unregistered powerups
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 11px Outfit, Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('P', 0, 0.5);
+    }
+    ctx.restore();
   }
 }
