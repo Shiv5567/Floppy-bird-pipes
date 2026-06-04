@@ -16,6 +16,7 @@ export interface PowerupItem {
 export class PowerupManager {
   private list: PowerupItem[] = [];
   private endlessSpawnPlans: Record<number, { index: number, type: PowerupType }[]> = {};
+  private levelSpawnPlan: { index: number, type: PowerupType }[] | null = null;
 
   constructor() {}
 
@@ -46,9 +47,36 @@ export class PowerupManager {
     return this.endlessSpawnPlans[blockNum];
   }
 
+  private getLevelSpawnPlan(targetScore: number): { index: number, type: PowerupType }[] {
+    if (!this.levelSpawnPlan) {
+      // Spawn at equal intervals (25%, 50%, 75% of targetScore)
+      const idx1 = Math.floor(targetScore * 0.25);
+      const idx2 = Math.floor(targetScore * 0.50);
+      const idx3 = Math.floor(targetScore * 0.75);
+      const indices = [idx1, idx2, idx3];
+
+      const pool: PowerupType[] = ['shield', 'slowmo', 'magnet', 'turbo', 'mini'];
+      const chosenTypes: PowerupType[] = [];
+      while (chosenTypes.length < 3) {
+        const type = pool[Math.floor(Math.random() * pool.length)];
+        if (!chosenTypes.includes(type)) {
+          chosenTypes.push(type);
+        }
+      }
+
+      this.levelSpawnPlan = [
+        { index: indices[0], type: chosenTypes[0] },
+        { index: indices[1], type: chosenTypes[1] },
+        { index: indices[2], type: chosenTypes[2] }
+      ];
+    }
+    return this.levelSpawnPlan;
+  }
+
   public clear() {
     this.list = [];
     this.endlessSpawnPlans = {};
+    this.levelSpawnPlan = null;
   }
 
   public update(
@@ -150,20 +178,27 @@ export class PowerupManager {
       }
 
       if (gameMode === 'level') {
-        const rand = Math.random();
-        if (rand < 0.50) {
-          // Spawn a beautiful horizontal row of 3 coins guiding the player through the center of the gap (Avg: 0.50 * 3 = 1.5 coins per pipe = 150 coins per 100 score!)
-          this.spawnItem('coin', width, height, targetX - 55, gapCenterY);
-          this.spawnItem('coin', width, height, targetX, gapCenterY);
-          this.spawnItem('coin', width, height, targetX + 55, gapCenterY);
-        } else if (rand < 0.62) {
-          // Spawn a gem in the center
-          this.spawnItem('gem', width, height, targetX, gapCenterY);
-        } else if (rand < 0.655) {
-          // Spawn a powerup in the center (reduced from 10% rate to 3.5% rate: 65% reduction)
-          const types: PowerupType[] = ['shield', 'slowmo', 'magnet', 'turbo', 'mini'];
-          const randomType = types[Math.floor(Math.random() * types.length)];
-          this.spawnItem(randomType, width, height, targetX, gapCenterY);
+        const obsIdx = unrewardedObstacle.obstacleIdx !== undefined ? unrewardedObstacle.obstacleIdx : 0;
+        const gameEngine = (window as any).gameEngine;
+        const targetScore = gameEngine?.activeLevelConfig?.targetScore || 150;
+        const plan = this.getLevelSpawnPlan(targetScore);
+        const planItem = plan.find(item => item.index === obsIdx);
+
+        if (planItem) {
+          // Spawn exactly in the center of the gap (targetX, gapCenterY)
+          this.spawnItem(planItem.type, width, height, targetX, gapCenterY);
+        } else {
+          // Probabilistic coin/gem spawning on other indices
+          const rand = Math.random();
+          if (rand < 0.50) {
+            // Spawn a beautiful horizontal row of 3 coins guiding the player through the center of the gap
+            this.spawnItem('coin', width, height, targetX - 55, gapCenterY);
+            this.spawnItem('coin', width, height, targetX, gapCenterY);
+            this.spawnItem('coin', width, height, targetX + 55, gapCenterY);
+          } else if (rand < 0.62) {
+            // Spawn a gem in the center
+            this.spawnItem('gem', width, height, targetX, gapCenterY);
+          }
         }
       }
     }
