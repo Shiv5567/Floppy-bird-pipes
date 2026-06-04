@@ -1223,6 +1223,25 @@ export class ObstacleManager {
             }
           }
 
+          // Centralized Dynamic Gameplay Safeguard for Levels 21-50
+          if (obs.levelNum !== undefined && obs.levelNum >= 21 && obs.levelNum <= 50) {
+            const minAllowedGap = obs.gapHeight !== undefined ? Math.max(105, obs.gapHeight) : 125;
+            let currentGap = height - obs.topHeight - obs.bottomHeight;
+            if (currentGap < minAllowedGap) {
+              const center = obs.topHeight + currentGap / 2;
+              obs.topHeight = center - minAllowedGap / 2;
+              obs.bottomHeight = height - center - minAllowedGap / 2;
+            }
+            const minHeight = 35;
+            if (obs.topHeight < minHeight) {
+              obs.topHeight = minHeight;
+              obs.bottomHeight = height - minHeight - minAllowedGap;
+            } else if (obs.bottomHeight < minHeight) {
+              obs.bottomHeight = minHeight;
+              obs.topHeight = height - minHeight - minAllowedGap;
+            }
+          }
+
           // Spawn active movement particle trails
           if (_particleEngine && Math.random() < 0.12) {
             const pxTop = obs.x + Math.random() * obs.width;
