@@ -252,6 +252,12 @@ export class LevelManager {
         this.levels[idxB].patterns = tempPatterns;
       }
     }
+
+    // Reduce Level 3 path gap by 20%
+    const lvl3 = this.levels.find(l => l.levelNum === 3);
+    if (lvl3) {
+      lvl3.gapHeight = Math.round(lvl3.gapHeight * 0.80);
+    }
   }
 
   public static getLevel(levelNum: number): LevelConfig | undefined {
