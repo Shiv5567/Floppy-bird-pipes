@@ -309,6 +309,16 @@ export class LevelManager {
     if (lvl18) {
       lvl18.gapHeight = Math.round(lvl18.gapHeight * 1.25);
     }
+    // Increase Level 19 path gap by 10%
+    const lvl19 = this.levels.find(l => l.levelNum === 19);
+    if (lvl19) {
+      lvl19.gapHeight = Math.round(lvl19.gapHeight * 1.10);
+    }
+    // Decrease Level 20 path gap by 18%
+    const lvl20 = this.levels.find(l => l.levelNum === 20);
+    if (lvl20) {
+      lvl20.gapHeight = Math.round(lvl20.gapHeight * 0.82);
+    }
   }
 
   public static getLevel(levelNum: number): LevelConfig | undefined {
