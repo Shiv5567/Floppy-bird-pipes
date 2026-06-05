@@ -286,6 +286,10 @@ export class LevelManager {
     if (lvl8) {
       lvl8.gapHeight = Math.round(lvl8.gapHeight * 1.45);
     }
+    const lvl9 = this.levels.find(l => l.levelNum === 9);
+    if (lvl9) {
+      lvl9.gapHeight = Math.round(lvl9.gapHeight * 1.25);
+    }
     const lvl10 = this.levels.find(l => l.levelNum === 10);
     if (lvl10) {
       lvl10.gapHeight = Math.round(lvl10.gapHeight * 1.45);

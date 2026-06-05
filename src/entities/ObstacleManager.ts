@@ -415,7 +415,7 @@ export class ObstacleManager {
             // LEVEL 9: "The Quantum Entangled Gates" (Anti-phase entangled mirror sliding where adjacent columns expand/contract in exact opposition - additional 30% speed reduction)
             const isEven = (actualIdx % 2 === 0);
             const entangleTime = this.waveTime * 1.57;
-            const slide = Math.sin(entangleTime + (actualIdx * 0.5)) * 25;
+            const slide = Math.sin(entangleTime + (actualIdx * 0.5)) * 25 * 0.35; // reduced 65%
             
             const dir = isEven ? 1 : -1;
             obs.targetTopHeight = obs.baseTopHeight! + (dir * slide);
@@ -1738,13 +1738,13 @@ export class ObstacleManager {
         animDuration = 0.36;
       } else if (patternType === 'level9_magnetic') {
         // LEVEL 9: "The Quantum Entangled Gates" (Interlaced high-low paired gates)
-        // Path shift amplitudes increased 25%: base 60→75px, sine wobble 30→37px (harder at extremes)
+        // Path shift amplitudes reduced 65%: base 75→26px, sine wobble 37→13px
         localGapHeight = gapHeight - 10;
         const isEven = (obstacleIdx % 2 === 0);
         if (isEven) {
-          targetCenterY = height / 2 - 75 + Math.sin(obstacleIdx * 0.4) * 37;
+          targetCenterY = height / 2 - Math.round(75 * 0.35) + Math.sin(obstacleIdx * 0.4) * Math.round(37 * 0.35);
         } else {
-          targetCenterY = height / 2 + 75 - Math.sin((obstacleIdx - 1) * 0.4) * 37;
+          targetCenterY = height / 2 + Math.round(75 * 0.35) - Math.sin((obstacleIdx - 1) * 0.4) * Math.round(37 * 0.35);
         }
         triggerDistance = 240;
         animDuration = 0.34;
