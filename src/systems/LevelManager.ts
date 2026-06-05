@@ -294,6 +294,10 @@ export class LevelManager {
     if (lvl10) {
       lvl10.gapHeight = Math.round(lvl10.gapHeight * 1.45);
     }
+    const lvl11 = this.levels.find(l => l.levelNum === 11);
+    if (lvl11) {
+      lvl11.gapHeight = Math.round(lvl11.gapHeight * 0.80);
+    }
   }
 
   public static getLevel(levelNum: number): LevelConfig | undefined {
