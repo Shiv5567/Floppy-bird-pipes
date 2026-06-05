@@ -395,10 +395,10 @@ export class ObstacleManager {
             obs.shakeX = Math.sin(phaseTop) * 26;
             obs.shakeX2 = Math.cos(phaseBottom) * 26;
             
-            const topBob = Math.cos(phaseTop) * 53; // Bobbing range (path interaction) increased by 40% again (from 38 to 53)
-            const botBob = Math.sin(phaseBottom) * 53; // Bobbing range (path interaction) increased by 40% again (from 38 to 53)
+            const topBob = Math.cos(phaseTop) * 53 * 0.40; // Bobbing range reduced by 60%
+            const botBob = Math.sin(phaseBottom) * 53 * 0.40; // Bobbing range reduced by 60%
             obs.targetTopHeight = obs.baseTopHeight! + topBob;
-            obs.targetBottomHeight = obs.baseBottomHeight! - Math.round(botBob * 0.60);
+            obs.targetBottomHeight = obs.baseBottomHeight! - botBob;
           } else if (obs.patternType === 'level7_dna') {
             // LEVEL 7: "The Magnetic Pull Chambers" (Proximity gap contraction/expansion attractor: proximity-based gap pulsing)
             const force = Math.sin(this.waveTime * 3.2 + actualIdx * 0.8) * 30;
@@ -1706,14 +1706,14 @@ export class ObstacleManager {
         localGapHeight = isShiftedBlock ? Math.round(baseGap * 0.75) : baseGap;
         
         const modIdx = obstacleIdx % 20;
-        // Triangle wave across 20 pillars: rises from -37 to +37 over first 10, falls back to -37 over next 10 (25% wider vertical path)
+        // Triangle wave across 20 pillars: rises from -37 to +37 over first 10, falls back to -37 over next 10 (reduced 60%)
         const halfCycle = 10;
         const normT = modIdx < halfCycle ? modIdx / (halfCycle - 1) : (19 - modIdx) / (halfCycle - 1);
-        const triangleOffset = Math.round(normT * 75 - 37); // Smooth -37px to +37px triangle wave (+25%)
+        const triangleOffset = Math.round((normT * 75 - 37) * 0.40); // 60% flatter (plane)
         
-        // Alternates path offset UP and DOWN by 24% of the gap height every 20 obstacles
+        // Alternates path offset UP and DOWN by 24% of the gap height every 20 obstacles (reduced 60%)
         const shiftSign = isShiftedBlock ? 1 : -1; // Alternating UP (-1) and DOWN (+1)
-        const pathShift = shiftSign * (baseGap * 0.24);
+        const pathShift = shiftSign * (baseGap * 0.24) * 0.40; // 60% flatter (plane)
         
         targetCenterY = height / 2 + triangleOffset + pathShift;
         triggerDistance = 280;
@@ -2478,10 +2478,6 @@ export class ObstacleManager {
 
         targetTopHeight = targetCenterY - localGapHeight / 2;
         targetBottomHeight = height - targetCenterY - localGapHeight / 2;
-      }
-
-      if (levelNum === 6) {
-        targetBottomHeight = Math.round(targetBottomHeight * 0.60);
       }
 
       // Enable special different-direction split opening animation specifically for all obstacles in Levels 1-20 (excluding Level 11, 2, 4, 5, 6, 7), special legacy levels, and the Chrono Warp Miniboss Group 1
