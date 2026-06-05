@@ -263,12 +263,12 @@ export class LevelManager {
     }
     const lvl3 = this.levels.find(l => l.levelNum === 3);
     if (lvl3) {
-      lvl3.gapHeight = Math.round(lvl3.gapHeight * 0.80);
+      lvl3.gapHeight = Math.round(lvl3.gapHeight * 0.90);
       lvl3.targetScore = 150;
     }
     const lvl4 = this.levels.find(l => l.levelNum === 4);
     if (lvl4) {
-      lvl4.gapHeight = Math.round(lvl4.gapHeight * 0.80);
+      lvl4.gapHeight = Math.round(lvl4.gapHeight * 0.70);
     }
     const lvl5 = this.levels.find(l => l.levelNum === 5);
     if (lvl5) {
