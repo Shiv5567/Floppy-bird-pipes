@@ -253,10 +253,14 @@ export class LevelManager {
       }
     }
 
-    // Reduce Level 3 path gap by 20%
+    // Reduce Level 3 and Level 4 path gap by 30%
     const lvl3 = this.levels.find(l => l.levelNum === 3);
     if (lvl3) {
-      lvl3.gapHeight = Math.round(lvl3.gapHeight * 0.80);
+      lvl3.gapHeight = Math.round(lvl3.gapHeight * 0.70);
+    }
+    const lvl4 = this.levels.find(l => l.levelNum === 4);
+    if (lvl4) {
+      lvl4.gapHeight = Math.round(lvl4.gapHeight * 0.70);
     }
   }
 

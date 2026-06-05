@@ -1206,7 +1206,8 @@ export class ObstacleManager {
 
           // Centralized Dynamic Gameplay Safeguard for Levels 1-10 and Level 13
           if (obs.levelNum !== undefined && ((obs.levelNum >= 1 && obs.levelNum <= 10) || obs.levelNum === 13)) {
-            const minAllowedGap = (obs.levelNum === 4 || obs.levelNum === 13) ? 107 : (obs.levelNum === 6 ? 93 : 125); // allow Level 6's 98px gap
+            const defaultMin = (obs.levelNum === 4 || obs.levelNum === 13) ? 107 : (obs.levelNum === 6 ? 93 : 125);
+            const minAllowedGap = obs.gapHeight !== undefined ? Math.min(obs.gapHeight, defaultMin) : defaultMin;
             let currentGap = height - obs.topHeight - obs.bottomHeight;
             if (currentGap < minAllowedGap) {
               const center = obs.topHeight + currentGap / 2;
