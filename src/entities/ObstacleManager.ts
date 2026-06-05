@@ -808,9 +808,9 @@ export class ObstacleManager {
               // Group 1: Exactly copy Level 3 (The Gravity Pitfalls) see-saw elevator shifts
               const activeScore = obs.spawnScore !== undefined ? obs.spawnScore : 0;
               const isExtreme = (obstacleIdx % 3 === 0 || obstacleIdx % 3 === 1);
-              let swayAmp = 28; // 20% reduction from 35
+              let swayAmp = 22; // Additional 20% reduction from 28 (28 * 0.8 = 22.4)
               if (activeScore >= 11 && activeScore <= 15 && isExtreme) {
-                swayAmp = Math.round(28 * 0.70); // 30% reduction in see-saw shift amplitude relative to Group 1 (from 28 to 20)
+                swayAmp = Math.round(22 * 0.70); // 30% reduction in see-saw shift amplitude relative to Group 1 (from 22 to 15)
               }
               const phase = this.waveTime * 1.95 + (obstacleIdx % 3) * (Math.PI * 2 / 3);
               const shift = Math.sin(phase) * swayAmp;
@@ -2141,12 +2141,12 @@ export class ObstacleManager {
         // LEVEL 39: Solar Flare
         if (actualPatternIdx < groupSize) {
           // Group 1: Copy Level 3 (The Gravity Pitfalls) layout (stairs dropping and rising)
-          let shiftVal = 64; // 20% reduction from 80
+          let shiftVal = 51; // Additional 20% reduction from 64 (64 * 0.8 = 51.2)
           const isExtreme = (obstacleIdx % 3 === 0 || obstacleIdx % 3 === 1);
           
           localGapHeight = Math.round(gapHeight * 0.80); // 20% reduction
           if (score >= 11 && score <= 15 && isExtreme) {
-            shiftVal = Math.round(64 * 0.70); // 30% reduction in shift displacement (from 64 to 45)
+            shiftVal = Math.round(51 * 0.70); // 30% reduction in shift displacement (from 51 to 36)
             localGapHeight = Math.round(gapHeight * 0.80 * 1.30); // 30% increase relative to Group 1's reduced gap (0.80 * 1.30 = 1.04)
           }
 
