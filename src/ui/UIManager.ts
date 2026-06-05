@@ -6,7 +6,7 @@ import { LevelManager } from '../systems/LevelManager.ts';
 export class UIManager {
   private engine: GameEngine;
   private container: HTMLElement;
-  private activeTab: 'main' | 'skins' | 'worlds' | 'bp' | 'achievements' | 'photo' | 'rewards' | 'settings' | 'levels' = 'main';
+  private activeTab: 'main' | 'skins' | 'worlds' | 'bp' | 'achievements' | 'photo' | 'rewards' | 'settings' | 'levels' | 'powerups' = 'main';
   private lastEngineState: GameState = 'MENU';
   private activeRewardsSubTab: 'daily' | 'trophies' | 'bp' = 'daily';
 
@@ -33,7 +33,7 @@ export class UIManager {
     this.render();
   }
 
-  public getActiveTab(): 'main' | 'skins' | 'worlds' | 'bp' | 'achievements' | 'photo' | 'rewards' | 'settings' | 'levels' {
+  public getActiveTab(): 'main' | 'skins' | 'worlds' | 'bp' | 'achievements' | 'photo' | 'rewards' | 'settings' | 'levels' | 'powerups' {
     return this.activeTab;
   }
 
@@ -543,10 +543,14 @@ export class UIManager {
 
           <!-- Right side panel -->
           <div class="side-panel-right">
-            <button class="side-btn" id="side-btn-rewards" style="width: 100%;">
+            <button class="side-btn" id="side-btn-rewards" style="width: 100%; margin-bottom: 8px;">
               <div class="side-btn-badge">!</div>
               <span class="side-btn-icon">🎁</span>
               <span class="side-btn-label">REWARDS</span>
+            </button>
+            <button class="side-btn" id="side-btn-powerups" style="width: 100%;">
+              <span class="side-btn-icon">🧪</span>
+              <span class="side-btn-label">UPGRADES</span>
             </button>
           </div>
         </div>
@@ -645,6 +649,7 @@ export class UIManager {
       rewards:      { icon: '🎁', title: 'REWARDS & PROGRESSION HUB', color: '#ffaa00', heroIcon: '🎁', heroSubtitle: 'Claim your daily logs, trophies, and battle pass!' },
       settings:     { icon: '⚙️', title: 'GAME CONFIGURATION',   color: '#00ff88', heroIcon: '⚙️', heroSubtitle: 'Configure your flight difficulty mode' },
       levels:       { icon: '🏆', title: 'LEVEL SELECT MODE',    color: '#7b2fff', heroIcon: '🏆', heroSubtitle: 'Complete all 50 transforming levels!' },
+      powerups:     { icon: '🧪', title: 'POWERUP UPGRADE LAB',   color: '#00f3ff', heroIcon: '🧪', heroSubtitle: 'Upgrade bubble durations & effectiveness' }
     };
     const meta = tabMeta[this.activeTab] || tabMeta['skins'];
 
@@ -913,54 +918,6 @@ export class UIManager {
             `;
           }).join('');
 
-          const upgrades = progress.powerupUpgrades || { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1 };
-          const powerupsInfo = [
-            { id: 'shield', name: 'Shield Deflector', icon: '🛡️', desc: 'Protects from 1 fatal collision.', base: 8.0 },
-            { id: 'slowmo', name: 'Temporal Slow-Mo', icon: '⏳', desc: 'Slows down moving obstacles.', base: 10.0 },
-            { id: 'magnet', name: 'Coin Magnet', icon: '🧲', desc: 'Attracts gold coins and gems.', base: 12.0 },
-            { id: 'turbo', name: 'Hyper Booster', icon: '🔥', desc: 'Invincible hyper flight speed.', base: 5.0 },
-            { id: 'mini', name: 'Quantum Mini-Bird', icon: '🔎', desc: 'Shrinks bird size for tight paths.', base: 10.0 }
-          ];
-
-          const upgradesHtml = powerupsInfo.map(p => {
-            const lvl = upgrades[p.id] || 1;
-            const isMax = lvl >= 5;
-            const cost = 1000 * Math.pow(2, lvl - 1);
-            const currentDur = (p.base * (1 + (lvl - 1) * 0.15)).toFixed(1);
-            const nextDur = (p.base * (1 + lvl * 0.15)).toFixed(1);
-            
-            let indicatorHtml = '';
-            for (let i = 1; i <= 5; i++) {
-              indicatorHtml += `<span class="lvl-dot ${i <= lvl ? 'filled' : ''}"></span>`;
-            }
-
-            return `
-              <div class="quest-card">
-                <div class="quest-details">
-                  <div class="quest-name-row">
-                    <span class="quest-name">${p.icon} ${p.name}</span>
-                  </div>
-                  <div class="quest-desc">${p.desc}</div>
-                  <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
-                    <div class="powerup-lvl-dots">${indicatorHtml}</div>
-                    <span class="quest-progress-text" style="color: #ffd700;">Lvl ${lvl}/5</span>
-                  </div>
-                  <div style="font-size: 9px; color: rgba(255,255,255,0.5); margin-top: 2px;">
-                    Duration: ${currentDur}s ${isMax ? '(Max)' : `➔ <span style="color:#00ffaa">${nextDur}s</span>`}
-                  </div>
-                </div>
-                <div style="display: flex; align-items: center; justify-content: flex-end;">
-                  ${isMax 
-                    ? `<button class="btn-quest-claim claimed" style="font-size:9px;" disabled>MAXED</button>`
-                    : `<button class="btn-powerup-upgrade btn-quest-claim" data-id="${p.id}" style="font-size:9px; background:linear-gradient(135deg, #00f3ff, #0088ff); box-shadow:0 4px 10px rgba(0, 136, 255, 0.3);">
-                         UPGRADE 🟡${cost.toLocaleString()}
-                       </button>`
-                  }
-                </div>
-              </div>
-            `;
-          }).join('');
-
           return `
             <div class="daily-rewards-container" style="padding-bottom: 20px;">
               <div class="hangar-section-title">📅 7-DAY LOGIN REWARDS</div>
@@ -969,13 +926,8 @@ export class UIManager {
               </div>
               
               <div class="hangar-section-title">⚔️ DAILY CHALLENGES</div>
-              <div class="quests-list" style="margin-bottom: 20px;">
-                ${questsHtml}
-              </div>
-
-              <div class="hangar-section-title">🧪 POWERUP BUBBLE UPGRADES</div>
               <div class="quests-list">
-                ${upgradesHtml}
+                ${questsHtml}
               </div>
             </div>
           `;
@@ -1077,6 +1029,65 @@ export class UIManager {
         `;
       }
 
+      case 'powerups': {
+        const upgrades = progress.powerupUpgrades || { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1 };
+        const powerupsInfo = [
+          { id: 'shield', name: 'Shield Deflector', icon: '🛡️', desc: 'Protects from 1 fatal collision.', base: 8.0 },
+          { id: 'slowmo', name: 'Temporal Slow-Mo', icon: '⏳', desc: 'Slows down moving obstacles.', base: 10.0 },
+          { id: 'magnet', name: 'Coin Magnet', icon: '🧲', desc: 'Attracts gold coins and gems.', base: 12.0 },
+          { id: 'turbo', name: 'Hyper Booster', icon: '🔥', desc: 'Invincible hyper flight speed.', base: 5.0 },
+          { id: 'mini', name: 'Quantum Mini-Bird', icon: '🔎', desc: 'Shrinks bird size for tight paths.', base: 10.0 }
+        ];
+
+        const upgradesHtml = powerupsInfo.map(p => {
+          const lvl = upgrades[p.id] || 1;
+          const isMax = lvl >= 5;
+          const cost = 1000 * Math.pow(2, lvl - 1);
+          const currentDur = (p.base * (1 + (lvl - 1) * 0.15)).toFixed(1);
+          const nextDur = (p.base * (1 + lvl * 0.15)).toFixed(1);
+          
+          let indicatorHtml = '';
+          for (let i = 1; i <= 5; i++) {
+            indicatorHtml += `<span class="lvl-dot ${i <= lvl ? 'filled' : ''}"></span>`;
+          }
+
+          return `
+            <div class="quest-card" style="margin-bottom: 10px;">
+              <div class="quest-details">
+                <div class="quest-name-row">
+                  <span class="quest-name">${p.icon} ${p.name}</span>
+                </div>
+                <div class="quest-desc">${p.desc}</div>
+                <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
+                  <div class="powerup-lvl-dots">${indicatorHtml}</div>
+                  <span class="quest-progress-text" style="color: #ffd700;">Lvl ${lvl}/5</span>
+                </div>
+                <div style="font-size: 9px; color: rgba(255,255,255,0.5); margin-top: 2px;">
+                  Duration: ${currentDur}s ${isMax ? '(Max)' : `➔ <span style="color:#00ffaa">${nextDur}s</span>`}
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; justify-content: flex-end;">
+                ${isMax 
+                  ? `<button class="btn-quest-claim claimed" style="font-size:9px;" disabled>MAXED</button>`
+                  : `<button class="btn-powerup-upgrade btn-quest-claim" data-id="${p.id}" style="font-size:9px; background:linear-gradient(135deg, #00f3ff, #0088ff); box-shadow:0 4px 10px rgba(0, 136, 255, 0.3);">
+                       UPGRADE 🟡${cost.toLocaleString()}
+                     </button>`
+                }
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        return `
+          <div class="daily-rewards-container" style="padding-bottom: 20px;">
+            <div class="hangar-section-title">🧪 POWERUP BUBBLE UPGRADES</div>
+            <div class="quests-list">
+              ${upgradesHtml}
+            </div>
+          </div>
+        `;
+      }
+
       case 'settings': {
         return `
           <div class="tab-sheet-title">⚙️ CONFIGURATION & SOUND SETTINGS</div>
@@ -1140,6 +1151,7 @@ export class UIManager {
 
     // Side panel quick-access buttons → open dedicated tab page
     bindClick('side-btn-rewards',      () => { this.activeTab = 'rewards';      this.render(); });
+    bindClick('side-btn-powerups',     () => { this.activeTab = 'powerups';     this.render(); });
     bindClick('side-btn-skins',        () => { this.activeTab = 'skins';        this.render(); });
     bindClick('side-btn-worlds',       () => { this.activeTab = 'worlds';       this.render(); });
     bindClick('btn-open-settings',     () => { this.activeTab = 'settings';     this.render(); });
