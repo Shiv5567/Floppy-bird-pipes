@@ -153,12 +153,12 @@ export class PowerupManager {
         const count = (g === numGroups - 1 && targetCoins % 3 !== 0) ? (targetCoins % 3) : 3;
         
         if (count === 3) {
-          this.coinDistances.push(groupCenter - 55);
+          this.coinDistances.push(groupCenter - 49.5);
           this.coinDistances.push(groupCenter);
-          this.coinDistances.push(groupCenter + 55);
+          this.coinDistances.push(groupCenter + 49.5);
         } else if (count === 2) {
-          this.coinDistances.push(groupCenter - 27.5);
-          this.coinDistances.push(groupCenter + 27.5);
+          this.coinDistances.push(groupCenter - 24.75);
+          this.coinDistances.push(groupCenter + 24.75);
         } else if (count === 1) {
           this.coinDistances.push(groupCenter);
         }
@@ -167,12 +167,12 @@ export class PowerupManager {
       const groupCenter = (startX + endX) / 2;
       const count = targetCoins;
       if (count === 3) {
-        this.coinDistances.push(groupCenter - 55);
+        this.coinDistances.push(groupCenter - 49.5);
         this.coinDistances.push(groupCenter);
-        this.coinDistances.push(groupCenter + 55);
+        this.coinDistances.push(groupCenter + 49.5);
       } else if (count === 2) {
-        this.coinDistances.push(groupCenter - 27.5);
-        this.coinDistances.push(groupCenter + 27.5);
+        this.coinDistances.push(groupCenter - 24.75);
+        this.coinDistances.push(groupCenter + 24.75);
       } else if (count === 1) {
         this.coinDistances.push(groupCenter);
       }
@@ -304,9 +304,9 @@ export class PowerupManager {
           this.spawnItem(planItem.type, width, height, targetX, gapCenterY);
         } else if (indexInBlock % 3 === 0) {
           // Spawn 3 coins group in the center at equal intervals (every 3rd obstacle, except on powerup indices)
-          this.spawnItem('coin', width, height, targetX - 55, gapCenterY);
+          this.spawnItem('coin', width, height, targetX - 49.5, gapCenterY);
           this.spawnItem('coin', width, height, targetX, gapCenterY);
-          this.spawnItem('coin', width, height, targetX + 55, gapCenterY);
+          this.spawnItem('coin', width, height, targetX + 49.5, gapCenterY);
         } else if (indexInBlock % 10 === 5) {
           // Spawn a gem at equal intervals (every 10th obstacle, except on powerup indices)
           this.spawnItem('gem', width, height, targetX, gapCenterY);
@@ -349,7 +349,7 @@ export class PowerupManager {
     customY?: number
   ) {
     let radius = 20; // enlarged from 14
-    if (type === 'coin') radius = 16; // enlarged from 10
+    if (type === 'coin') radius = 14.4; // reduced by 10% (from 16)
     else if (type === 'gem') radius = 14; // enlarged from 8
 
     const spawnX = customX !== undefined ? customX : (width + 50);
