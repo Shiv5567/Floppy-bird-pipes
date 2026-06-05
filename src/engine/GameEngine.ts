@@ -177,6 +177,9 @@ export class GameEngine {
       this.obstacleManager.setLevelMode(false, null);
     }
     this.powerupManager.clear();
+    if (this.gameMode === 'level' && this.activeLevelConfig) {
+      this.powerupManager.initLevelCollectibles(this.currentLevelNum, this.activeLevelConfig.targetScore);
+    }
     
     this.soundManager.stopMusic();
   }
@@ -596,6 +599,26 @@ export class GameEngine {
           // Boss defeated trigger
           this.coinsCollectedThisRun += 150;
           this.progressManager.addCoins(150);
+
+          // Award gems according to level bracket when boss/monster is defeated
+          if (this.gameMode === 'level') {
+            const levelNum = this.currentLevelNum;
+            let bossGems = 2;
+            if (levelNum >= 1 && levelNum <= 10) {
+              bossGems = 2;
+            } else if (levelNum >= 11 && levelNum <= 20) {
+              bossGems = 2;
+            } else if (levelNum >= 21 && levelNum <= 30) {
+              bossGems = 3;
+            } else if (levelNum >= 31 && levelNum <= 40) {
+              bossGems = 3;
+            } else if (levelNum >= 41 && levelNum <= 50) {
+              bossGems = 4;
+            }
+            this.gemsCollectedThisRun += bossGems;
+            this.progressManager.addGems(bossGems);
+          }
+
           this.progressManager.incrementAchievement('boss_slayer', 1);
           this.progressManager.updateQuestProgress('slayer', 1);
           this.soundManager.playLevelUp();

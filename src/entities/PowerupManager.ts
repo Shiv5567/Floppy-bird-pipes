@@ -17,6 +17,12 @@ export class PowerupManager {
   private list: PowerupItem[] = [];
   private endlessSpawnPlans: Record<number, { index: number, type: PowerupType }[]> = {};
   private levelSpawnPlan: { index: number, type: PowerupType }[] | null = null;
+  private cumulativeDistance = 0;
+  private coinDistances: number[] = [];
+  private nextCoinIndex = 0;
+  private gemDistances: number[] = [];
+  private nextGemIndex = 0;
+  private lastSpawnedObstacleCenterY = 300;
 
   constructor() {}
 
@@ -77,6 +83,88 @@ export class PowerupManager {
     this.list = [];
     this.endlessSpawnPlans = {};
     this.levelSpawnPlan = null;
+    this.cumulativeDistance = 0;
+    this.coinDistances = [];
+    this.nextCoinIndex = 0;
+    this.gemDistances = [];
+    this.nextGemIndex = 0;
+    this.lastSpawnedObstacleCenterY = 300;
+  }
+
+  public initLevelCollectibles(levelNum: number, targetScore: number) {
+    this.cumulativeDistance = 0;
+    this.nextCoinIndex = 0;
+    this.nextGemIndex = 0;
+    this.lastSpawnedObstacleCenterY = 300; // default height / 2
+
+    // Determine target coins based on level
+    let targetCoins = 100;
+    if (levelNum >= 1 && levelNum <= 10) {
+      targetCoins = 100;
+    } else if (levelNum >= 11 && levelNum <= 20) {
+      targetCoins = 130;
+    } else if (levelNum >= 21 && levelNum <= 30) {
+      targetCoins = 150;
+    } else if (levelNum >= 31 && levelNum <= 40) {
+      targetCoins = 180;
+    } else if (levelNum >= 41 && levelNum <= 50) {
+      targetCoins = 200;
+    }
+
+    // Determine target gap gems based on level
+    let targetGapGems = 3;
+    if (levelNum >= 1 && levelNum <= 10) {
+      targetGapGems = 3;
+    } else if (levelNum >= 11 && levelNum <= 20) {
+      targetGapGems = 4;
+    } else if (levelNum >= 21 && levelNum <= 30) {
+      targetGapGems = 4;
+    } else if (levelNum >= 31 && levelNum <= 40) {
+      targetGapGems = 5;
+    } else if (levelNum >= 41 && levelNum <= 50) {
+      targetGapGems = 6;
+    }
+
+    // Pre-calculate spawn distances for all targetScore obstacles
+    const obstacleWidth = 72;
+    const groupSize = Math.floor(targetScore / 3);
+    const isLevel6 = levelNum === 6;
+    const distances: number[] = [];
+    let x = 350; // initial spawn distance
+    for (let i = 0; i < targetScore; i++) {
+      distances.push(x);
+      if (i === groupSize - 1 || i === (groupSize * 2) - 1) {
+        x += obstacleWidth * 3.5;
+      } else {
+        x += isLevel6 ? obstacleWidth * 1.25 : obstacleWidth;
+      }
+    }
+
+    // Distribute targetCoins between startX and endX
+    const startX = 400;
+    const endX = distances[distances.length - 1] || 400;
+    this.coinDistances = [];
+    if (targetCoins > 1) {
+      const interval = (endX - startX) / (targetCoins - 1);
+      for (let k = 0; k < targetCoins; k++) {
+        this.coinDistances.push(startX + k * interval);
+      }
+    } else if (targetCoins === 1) {
+      this.coinDistances.push((startX + endX) / 2);
+    }
+
+    // Distribute targetGapGems between startXGems and endXGems (offset by 36px to prevent overlap)
+    const startXGems = startX + 36;
+    const endXGems = endX - 36;
+    this.gemDistances = [];
+    if (targetGapGems > 1) {
+      const interval = (endXGems - startXGems) / (targetGapGems - 1);
+      for (let k = 0; k < targetGapGems; k++) {
+        this.gemDistances.push(startXGems + k * interval);
+      }
+    } else if (targetGapGems === 1) {
+      this.gemDistances.push((startXGems + endXGems) / 2);
+    }
   }
 
   public update(
@@ -145,6 +233,29 @@ export class PowerupManager {
       }
     }
 
+    // Track scroll distance and spawn deterministic coins/gems in Level Mode
+    if (gameMode === 'level') {
+      this.cumulativeDistance += actualScrollSpeed;
+      
+      // Spawn coins
+      while (
+        this.nextCoinIndex < this.coinDistances.length &&
+        this.cumulativeDistance >= this.coinDistances[this.nextCoinIndex]
+      ) {
+        this.spawnItem('coin', width, height, width + 50, this.lastSpawnedObstacleCenterY);
+        this.nextCoinIndex++;
+      }
+
+      // Spawn gems
+      while (
+        this.nextGemIndex < this.gemDistances.length &&
+        this.cumulativeDistance >= this.gemDistances[this.nextGemIndex]
+      ) {
+        this.spawnItem('gem', width, height, width + 50, this.lastSpawnedObstacleCenterY);
+        this.nextGemIndex++;
+      }
+    }
+
     // 2. Guide-based Spawning: Centered inside upcoming obstacles gaps
     const unrewardedObstacle = obstacles.find(obs => !obs.hasSpawnedRewards && obs.x >= width - 150);
     if (unrewardedObstacle) {
@@ -178,6 +289,9 @@ export class PowerupManager {
       }
 
       if (gameMode === 'level') {
+        // Track the last spawned obstacle gap center Y
+        this.lastSpawnedObstacleCenterY = gapCenterY;
+
         const obsIdx = unrewardedObstacle.obstacleIdx !== undefined ? unrewardedObstacle.obstacleIdx : 0;
         const gameEngine = (window as any).gameEngine;
         const targetScore = gameEngine?.activeLevelConfig?.targetScore || 150;
@@ -187,18 +301,6 @@ export class PowerupManager {
         if (planItem) {
           // Spawn exactly in the center of the gap (targetX, gapCenterY)
           this.spawnItem(planItem.type, width, height, targetX, gapCenterY);
-        } else {
-          // Probabilistic coin/gem spawning on other indices
-          const rand = Math.random();
-          if (rand < 0.50) {
-            // Spawn a beautiful horizontal row of 3 coins guiding the player through the center of the gap
-            this.spawnItem('coin', width, height, targetX - 55, gapCenterY);
-            this.spawnItem('coin', width, height, targetX, gapCenterY);
-            this.spawnItem('coin', width, height, targetX + 55, gapCenterY);
-          } else if (rand < 0.62) {
-            // Spawn a gem in the center
-            this.spawnItem('gem', width, height, targetX, gapCenterY);
-          }
         }
       }
     }
