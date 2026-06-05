@@ -1061,7 +1061,7 @@ export class ObstacleManager {
             } else if (levelNum === 24) {
               subPattern = obstacleIdx < groupSize ? 'gravity_23' : (obstacleIdx < groupSize * 2 ? 'rotating_24' : 'waterfall_25');
             } else if (levelNum === 25) {
-              subPattern = obstacleIdx < groupSize ? 'elevator_26' : (obstacleIdx < groupSize * 2 ? 'magnetic_27' : 'pendulum_28');
+              subPattern = obstacleIdx < groupSize ? 'pendulum_28' : (obstacleIdx < groupSize * 2 ? 'magnetic_27' : 'elevator_26');
             } else if (levelNum === 26) {
               subPattern = obstacleIdx < groupSize ? 'sliding_29' : (obstacleIdx < groupSize * 2 ? 'wave_10' : 'breathing_12');
             } else if (levelNum === 27) {
@@ -1140,8 +1140,10 @@ export class ObstacleManager {
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else if (subPattern === 'magnetic_27') {
               const magnet = Math.sin(this.waveTime * 2.0) * 20;
-              obs.targetTopHeight = obs.spawnCenterY! - (obs.gapHeight! + magnet) / 2;
-              obs.targetBottomHeight = height - obs.spawnCenterY! - (obs.gapHeight! - magnet) / 2;
+              const verticalShift = levelNum === 25 ? Math.sin(this.waveTime * 1.8) * 30 : 0; // Vertical animation for Level 25 Group 2
+              const centerY = obs.spawnCenterY! + verticalShift;
+              obs.targetTopHeight = centerY - (obs.gapHeight! + magnet) / 2;
+              obs.targetBottomHeight = height - centerY - (obs.gapHeight! - magnet) / 2;
             } else if (subPattern === 'pendulum_28') {
               const angle = Math.sin(this.waveTime * 1.6 + obs.obstacleIdx! * 0.4) * 0.3;
               obs.shakeX = Math.sin(angle) * 25;
@@ -2428,7 +2430,9 @@ export class ObstacleManager {
           }
         }
 
-        if (isVertical) {
+        if (levelNum === 25 && subPattern === 'elevator_26') {
+          localGapHeight = Math.round(localGapHeight * 0.92); // 15% increase for Level 25 Group 3 (0.80 * 1.15 = 0.92)
+        } else if (isVertical) {
           localGapHeight = Math.round(localGapHeight * 0.80); // 20% reduce
         } else if (isHorizontal) {
           localGapHeight = Math.round(localGapHeight * 0.75); // 25% reduce
