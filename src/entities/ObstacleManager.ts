@@ -1133,14 +1133,14 @@ export class ObstacleManager {
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else if (subPattern === 'elevator_26') {
-              const elevatorScale = (levelNum === 25) ? 0.70 : 1.0;
-              const shift = Math.sin(this.waveTime * 1.8 + (obs.obstacleIdx! % 2) * Math.PI) * (40 * elevatorScale); // Reduced 30% for Level 25
+              const elevatorScale = (levelNum === 25) ? 0.56 : 1.0; // Reduced additional 20% for Level 25 (0.70 * 0.80 = 0.56)
+              const shift = Math.sin(this.waveTime * 1.8 + (obs.obstacleIdx! % 2) * Math.PI) * (40 * elevatorScale);
               const centerY = obs.spawnCenterY! + shift;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else if (subPattern === 'magnetic_27') {
               const magnet = Math.sin(this.waveTime * 2.0) * 20;
-              const verticalShift = levelNum === 25 ? Math.sin(this.waveTime * 1.8) * 30 : 0; // Vertical animation for Level 25 Group 2
+              const verticalShift = levelNum === 25 ? Math.sin(this.waveTime * 1.8) * 24 : 0; // Reduced 20% for Level 25 (30 * 0.80 = 24)
               const centerY = obs.spawnCenterY! + verticalShift;
               obs.targetTopHeight = centerY - (obs.gapHeight! + magnet) / 2;
               obs.targetBottomHeight = height - centerY - (obs.gapHeight! - magnet) / 2;
@@ -2372,7 +2372,7 @@ export class ObstacleManager {
           const offsets = [-80, -40, 0, 40, 80, 80, 40, 0, -40, -80];
           targetCenterY = height / 2 + offsets[actualPatternIdx % offsets.length];
         } else if (subPattern === 'elevator_26') {
-          const elevatorSpawnScale = (levelNum === 25) ? 0.70 : 1.0;
+          const elevatorSpawnScale = (levelNum === 25) ? 0.56 : 1.0; // Reduced additional 20% for Level 25 (0.70 * 0.80 = 0.56)
           targetCenterY = height / 2 + (actualPatternIdx % 2 === 0 ? -70 : 70) * elevatorSpawnScale;
         } else if (subPattern === 'magnetic_27') {
           targetCenterY = height / 2 + (actualPatternIdx % 4 === 0 ? -40 : 40);
