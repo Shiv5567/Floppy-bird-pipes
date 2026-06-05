@@ -2313,7 +2313,11 @@ export class ObstacleManager {
           }
         } else if (levelNum === 22) {
           subPattern = actualPatternIdx < groupSize ? 'rotating_17' : (actualPatternIdx < groupSize * 2 ? 'dynamic_w_18' : 'exp_shrink_19');
-          localGapHeight = Math.round(localGapHeight * 0.7475); // Increased gap by 15% (previously 0.65)
+          if (actualPatternIdx >= groupSize && actualPatternIdx < groupSize * 2) {
+            localGapHeight = Math.round(localGapHeight * 0.859625); // 15% increase (0.7475 * 1.15 = 0.859625)
+          } else {
+            localGapHeight = Math.round(localGapHeight * 0.7475); // Group 1 & 3 remain 0.7475
+          }
         } else if (levelNum === 23) {
           subPattern = actualPatternIdx < groupSize ? 'hybrid_20' : (actualPatternIdx < groupSize * 2 ? 'snake_21' : 'pulse_22');
           localGapHeight = Math.round(localGapHeight * 0.85); // 15% less gap area
