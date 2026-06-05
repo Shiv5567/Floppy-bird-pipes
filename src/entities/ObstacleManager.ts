@@ -558,10 +558,15 @@ export class ObstacleManager {
           } else if (obs.patternType === 'level30_hybridwave') {
             // Wave flow + breathing effect
             const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 10;
-            let waveShift = Math.sin(this.waveTime * 1.8 + obs.obstacleIdx! * 0.45) * 25;
-            if (obs.obstacleIdx! >= groupSize * 2) {
-              // Add vertical up/down motion to the static group
-              waveShift += Math.sin(this.waveTime * 2.4 + obs.obstacleIdx! * 0.5) * 20;
+            const idx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
+            let waveShift = 0;
+            if (idx < groupSize) {
+              waveShift = Math.sin(this.waveTime * 1.8 + idx * 0.45) * 25; // Group 1 original waveShift
+            } else if (idx < groupSize * 2) {
+              waveShift = Math.sin(this.waveTime * 1.8 + idx * 0.45) * 31.25; // Group 2: 25% increase (25 * 1.25 = 31.25)
+            } else {
+              // Group 3: 25% increase to both base waveShift (31.25) and extra up/down motion (20 * 1.25 = 25)
+              waveShift = Math.sin(this.waveTime * 1.8 + idx * 0.45) * 31.25 + Math.sin(this.waveTime * 2.4 + idx * 0.5) * 25;
             }
             const breathingGap = obs.gapHeight! + Math.sin(this.waveTime * 2.8) * 12;
             const centerY = obs.spawnCenterY! + waveShift;
@@ -2017,9 +2022,9 @@ export class ObstacleManager {
         if (actualPatternIdx < groupSize) {
           targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 3)) * 45;
         } else if (actualPatternIdx < groupSize * 2) {
-          targetCenterY = height / 2 + 45 - (obstacleIdx - 6) * 18;
+          targetCenterY = height / 2 + 56.25 - (obstacleIdx - 6) * 22.5;
         } else {
-          targetCenterY = height / 2 - 45;
+          targetCenterY = height / 2 - 56.25;
         }
         triggerDistance = 210;
         animDuration = 0.45;
