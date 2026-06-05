@@ -2306,7 +2306,11 @@ export class ObstacleManager {
         subPattern = 'wave_10';
         if (levelNum === 21) {
           subPattern = actualPatternIdx < groupSize ? 'wave_10' : (actualPatternIdx < groupSize * 2 ? 'breathing_12' : 'moving_stair_15');
-          localGapHeight = Math.round(localGapHeight * 0.805); // Increased gap by 15% (previously 0.70)
+          if (actualPatternIdx < groupSize || actualPatternIdx >= groupSize * 2) {
+            localGapHeight = Math.round(localGapHeight * 0.94185); // 17% increase (0.805 * 1.17 = 0.94185)
+          } else {
+            localGapHeight = Math.round(localGapHeight * 0.805); // Middle group remains 0.805
+          }
         } else if (levelNum === 22) {
           subPattern = actualPatternIdx < groupSize ? 'rotating_17' : (actualPatternIdx < groupSize * 2 ? 'dynamic_w_18' : 'exp_shrink_19');
           localGapHeight = Math.round(localGapHeight * 0.7475); // Increased gap by 15% (previously 0.65)
