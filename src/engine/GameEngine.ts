@@ -597,8 +597,6 @@ export class GameEngine {
 
         if (bossDefeated) {
           // Boss defeated trigger
-          this.coinsCollectedThisRun += 150;
-          this.progressManager.addCoins(150);
 
           // Award gems according to level bracket when boss/monster is defeated
           if (this.gameMode === 'level') {

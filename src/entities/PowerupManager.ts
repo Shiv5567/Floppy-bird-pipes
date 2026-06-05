@@ -140,17 +140,42 @@ export class PowerupManager {
       }
     }
 
-    // Distribute targetCoins between startX and endX
+    // Distribute targetCoins in groups of 3 between startX and endX
     const startX = 400;
     const endX = distances[distances.length - 1] || 400;
     this.coinDistances = [];
-    if (targetCoins > 1) {
-      const interval = (endX - startX) / (targetCoins - 1);
-      for (let k = 0; k < targetCoins; k++) {
-        this.coinDistances.push(startX + k * interval);
+    
+    const numGroups = Math.ceil(targetCoins / 3);
+    if (numGroups > 1) {
+      const interval = (endX - startX) / (numGroups - 1);
+      for (let g = 0; g < numGroups; g++) {
+        const groupCenter = startX + g * interval;
+        const count = (g === numGroups - 1 && targetCoins % 3 !== 0) ? (targetCoins % 3) : 3;
+        
+        if (count === 3) {
+          this.coinDistances.push(groupCenter - 55);
+          this.coinDistances.push(groupCenter);
+          this.coinDistances.push(groupCenter + 55);
+        } else if (count === 2) {
+          this.coinDistances.push(groupCenter - 27.5);
+          this.coinDistances.push(groupCenter + 27.5);
+        } else if (count === 1) {
+          this.coinDistances.push(groupCenter);
+        }
       }
-    } else if (targetCoins === 1) {
-      this.coinDistances.push((startX + endX) / 2);
+    } else if (numGroups === 1) {
+      const groupCenter = (startX + endX) / 2;
+      const count = targetCoins;
+      if (count === 3) {
+        this.coinDistances.push(groupCenter - 55);
+        this.coinDistances.push(groupCenter);
+        this.coinDistances.push(groupCenter + 55);
+      } else if (count === 2) {
+        this.coinDistances.push(groupCenter - 27.5);
+        this.coinDistances.push(groupCenter + 27.5);
+      } else if (count === 1) {
+        this.coinDistances.push(groupCenter);
+      }
     }
 
     // Distribute targetGapGems between startXGems and endXGems (offset by 36px to prevent overlap)
