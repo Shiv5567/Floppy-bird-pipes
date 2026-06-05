@@ -266,7 +266,7 @@ export class LevelManager {
     }
     const lvl4 = this.levels.find(l => l.levelNum === 4);
     if (lvl4) {
-      lvl4.gapHeight = Math.round(lvl4.gapHeight * 0.70);
+      lvl4.gapHeight = Math.round(lvl4.gapHeight * 0.90);
     }
   }
 

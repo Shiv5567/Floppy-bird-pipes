@@ -1680,8 +1680,8 @@ export class ObstacleManager {
         triggerDistance = 320;
         animDuration = 0.42;
       } else if (patternType === 'level5_hourglass') {
-        // LEVEL 5: Stair-step arrangement (5 pipes ascending, 5 pipes descending)
-        localGapHeight = Math.round(gapHeight * 0.8); // Challenging gap height decreased by 20% (133px instead of 166px)
+        // LEVEL 5: Stair-step arrangement (5 pipes ascending, 5 pipes descending) - Removed 20% gap reduction (now 100% of base gap)
+        localGapHeight = gapHeight;
         
         const cycleIdx = actualPatternIdx % 10;
         let stepOffset = 0;
