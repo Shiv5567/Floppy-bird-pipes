@@ -808,25 +808,25 @@ export class ObstacleManager {
               // Group 1: Exactly copy Level 3 (The Gravity Pitfalls) see-saw elevator shifts
               const activeScore = obs.spawnScore !== undefined ? obs.spawnScore : 0;
               const isExtreme = (obstacleIdx % 3 === 0 || obstacleIdx % 3 === 1);
-              let swayAmp = 35;
+              let swayAmp = 28; // 20% reduction from 35
               if (activeScore >= 11 && activeScore <= 15 && isExtreme) {
-                swayAmp = Math.round(35 * 0.70); // 30% reduction in see-saw shift amplitude (from 35 to 25)
+                swayAmp = Math.round(28 * 0.70); // 30% reduction in see-saw shift amplitude relative to Group 1 (from 28 to 20)
               }
               const phase = this.waveTime * 1.95 + (obstacleIdx % 3) * (Math.PI * 2 / 3);
               const shift = Math.sin(phase) * swayAmp;
               obs.targetTopHeight = obs.baseTopHeight! + shift;
               obs.targetBottomHeight = obs.baseBottomHeight! - shift;
             } else if (obstacleIdx < groupSize * 2) {
-              // Group 2: Escalating flame stairs with vertical motion (30% gap height up & down from spawn center)
+              // Group 2: Escalating flame stairs with vertical motion (24% gap height up & down from spawn center - reduced by 20% from 30%)
               const idx = obstacleIdx - groupSize;
-              const verticalShift = Math.sin(this.waveTime * 2.8 + idx * 0.5) * (obs.gapHeight! * 0.30);
+              const verticalShift = Math.sin(this.waveTime * 2.8 + idx * 0.5) * (obs.gapHeight! * 0.24);
               const centerY = obs.spawnCenterY! + verticalShift;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else {
               // Group 3: Random vertical solar eruptions (spikes)
               const idx = obstacleIdx - groupSize * 2;
-              const flare = Math.sin(this.waveTime * 3.6 + idx * 1.2) * 36;
+              const flare = Math.sin(this.waveTime * 3.6 + idx * 1.2) * 28.8; // 20% reduction from 36
               const centerY = obs.spawnCenterY! + flare;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
@@ -2141,12 +2141,12 @@ export class ObstacleManager {
         // LEVEL 39: Solar Flare
         if (actualPatternIdx < groupSize) {
           // Group 1: Copy Level 3 (The Gravity Pitfalls) layout (stairs dropping and rising)
-          let shiftVal = 80;
+          let shiftVal = 64; // 20% reduction from 80
           const isExtreme = (obstacleIdx % 3 === 0 || obstacleIdx % 3 === 1);
           
           localGapHeight = Math.round(gapHeight * 0.80); // 20% reduction
           if (score >= 11 && score <= 15 && isExtreme) {
-            shiftVal = Math.round(80 * 0.70); // 30% reduction in shift displacement (from 80 to 56)
+            shiftVal = Math.round(64 * 0.70); // 30% reduction in shift displacement (from 64 to 45)
             localGapHeight = Math.round(gapHeight * 0.80 * 1.30); // 30% increase relative to Group 1's reduced gap (0.80 * 1.30 = 1.04)
           }
 
@@ -2160,12 +2160,12 @@ export class ObstacleManager {
           triggerDistance = 350;
           animDuration = 0.40;
         } else if (actualPatternIdx < groupSize * 2) {
-          targetCenterY = height / 2 - 50 + (obstacleIdx - 6) * 20;
+          targetCenterY = height / 2 - 40 + (obstacleIdx - 6) * 16; // 20% reduction from -50 + ... * 20
           localGapHeight = Math.round(gapHeight * 0.80); // 20% reduce
           triggerDistance = 195;
           animDuration = 0.44;
         } else {
-          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -30 : 30);
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -24 : 24); // 20% reduction from +/-30
           localGapHeight = Math.round(gapHeight * 0.70); // 30% reduce
           triggerDistance = 195;
           animDuration = 0.44;
