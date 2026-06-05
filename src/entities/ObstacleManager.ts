@@ -1513,7 +1513,7 @@ export class ObstacleManager {
         : (startGap - (startGap - minGap) * progressRatio);
       
       // Apply endless progressive difficulty gap scaling (kept completely constant as requested)
-      let gapWithDifficulty = dynamicGap;
+      let gapWithDifficulty = this.activeLevelConfig ? this.activeLevelConfig.gapHeight : dynamicGap;
       
       this.spawnObstacle(worldId, width, height, gapWithDifficulty, zone, difficulty, progressRatio, score);
 
