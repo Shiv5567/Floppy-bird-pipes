@@ -2144,10 +2144,10 @@ export class ObstacleManager {
           let shiftVal = 51; // Additional 20% reduction from 64 (64 * 0.8 = 51.2)
           const isExtreme = (obstacleIdx % 3 === 0 || obstacleIdx % 3 === 1);
           
-          localGapHeight = Math.round(gapHeight * 0.80); // 20% reduction
+          localGapHeight = Math.round(gapHeight * 0.904); // 13% increase from 0.80 (0.80 * 1.13 = 0.904)
           if (score >= 11 && score <= 15 && isExtreme) {
             shiftVal = Math.round(51 * 0.70); // 30% reduction in shift displacement (from 51 to 36)
-            localGapHeight = Math.round(gapHeight * 0.80 * 1.30); // 30% increase relative to Group 1's reduced gap (0.80 * 1.30 = 1.04)
+            localGapHeight = Math.round(gapHeight * 0.904 * 1.30); // 30% increase relative to Group 1's gap (0.904 * 1.30 = 1.1752)
           }
 
           if (obstacleIdx % 3 === 0) {
