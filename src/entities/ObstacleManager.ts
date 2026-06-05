@@ -2325,6 +2325,8 @@ export class ObstacleManager {
           subPattern = actualPatternIdx < groupSize ? 'gravity_23' : (actualPatternIdx < groupSize * 2 ? 'rotating_24' : 'waterfall_25');
           if (actualPatternIdx < groupSize) {
             localGapHeight = Math.round(localGapHeight * 0.85); // 15% less gap area for starting group
+          } else {
+            localGapHeight = Math.round(localGapHeight * 0.82); // 18% reduction for second and last groups
           }
         } else if (levelNum === 25) {
           subPattern = actualPatternIdx < groupSize ? 'pendulum_28' : (actualPatternIdx < groupSize * 2 ? 'magnetic_27' : 'elevator_26'); // Swapped first and last group
