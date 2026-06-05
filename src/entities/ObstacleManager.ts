@@ -1840,46 +1840,46 @@ export class ObstacleManager {
         triggerDistance = 205;
         animDuration = 0.44;
       } else if (patternType === 'level14_crossflow') {
-        // LEVEL 14: "The Wormhole Vortex" — 3-group unique orbital/radial/gravity-flip pattern
+        // LEVEL 18 (swapped): "The Wormhole Vortex" — vertical shifts from midline reduced 40% (×0.60), triggerDistance increased for surface alignment
         // Group 1: Spiral Funnel — gap center orbits asymmetrically (cos top, -sin bottom)
         // Group 2: Shockwave Ring — center cols narrow, edge cols wide (radial dome cross-section)
-        // Group 3: Gravity Flip — gap alternates ceiling-hug ↔ floor-hug every 3 cols
+        // Group 3: Gravity Flip — gap alternates ceiling-hug ↔ floor-hug every 3 cols (blended 40% toward center)
         hasAsymmetricHeights = true;
         const p14idx = obstacleIdx % 18;
         if (p14idx <= 5) {
-          // Group 1: Spiral funnel — top and bottom walls orbit independently
+          // Group 1: Spiral funnel — orbitRadius ×0.60: 55→33
           const angle = (p14idx / 5) * Math.PI * 2; // full 360° spread
           localGapHeight = Math.max(168, gapHeight - 8);
-          const orbitRadius = 55;
-          // Top follows cosine, bottom follows negative sine — creates rotating asymmetry
+          const orbitRadius = 33; // was 55, reduced 40% toward midline
           const topOrbit = Math.cos(angle) * orbitRadius;
           const botOrbit = -Math.sin(angle) * orbitRadius;
           targetTopHeight = height / 2 - localGapHeight / 2 + topOrbit;
           targetBottomHeight = height / 2 - localGapHeight / 2 - botOrbit;
         } else if (p14idx <= 11) {
-          // Group 2: Shockwave ring — gap narrows at center, widens at edges like a radial dome
+          // Group 2: Shockwave ring — centerBias factor ×0.60: 40→24
           const rStep = p14idx - 6; // 0..5
           const distFromCenter = Math.abs(rStep - 2.5) / 2.5; // 0 at center, 1 at edge
           const shockGapAdd = distFromCenter * 45; // edges get wider gap
           localGapHeight = Math.max(165, gapHeight - 30 + shockGapAdd);
-          // Center is pushed toward ceiling, edges float to mid-screen
-          const centerBias = (1 - distFromCenter) * 40;
+          // Center bias reduced 40% toward midline
+          const centerBias = (1 - distFromCenter) * 24; // was 40
           targetTopHeight = height / 2 - localGapHeight / 2 - centerBias;
         } else {
-          // Group 3: Gravity flip — every 3 cols flips between ceiling-hug and floor-hug
+          // Group 3: Gravity flip — ceiling/floor positions blended 40% toward screen center
           const gStep = p14idx - 12; // 0..5
           localGapHeight = Math.max(168, gapHeight - 5);
           const flipGroup = Math.floor(gStep / 3); // 0 or 1
           const posWithinFlip = (gStep % 3) / 2; // 0..1
-          // Smooth cubic blend between ceiling position and floor position
           const t = posWithinFlip * posWithinFlip * (3 - 2 * posWithinFlip); // smoothstep
-          const topPos = height * 0.08;           // ceiling-hug top
-          const botPos = height - localGapHeight - height * 0.08; // floor-hug top
+          // Blend original positions 40% toward center (center = height/2 - localGapHeight/2)
+          const midPos = height / 2 - localGapHeight / 2;
+          const topPos = height * 0.08 + (midPos - height * 0.08) * 0.40; // ceiling pos → 40% toward mid
+          const botPos = (height - localGapHeight - height * 0.08) - ((height - localGapHeight - height * 0.08) - midPos) * 0.40; // floor pos → 40% toward mid
           const fromPos = (flipGroup === 0) ? topPos : botPos;
           const toPos   = (flipGroup === 0) ? botPos : topPos;
           targetTopHeight = fromPos + (toPos - fromPos) * t;
         }
-        triggerDistance = 240;
+        triggerDistance = 340; // increased from 240 for earlier pipe alignment with surface
         animDuration = 0.52;
       } else if (patternType === 'level15_elevatorstair') {
         // LEVEL 15: Diamond Chambers (Diamond-shaped corridors and pincer chambers)
