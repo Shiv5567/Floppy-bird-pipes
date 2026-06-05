@@ -2144,10 +2144,10 @@ export class ObstacleManager {
           let shiftVal = 80;
           const isExtreme = (obstacleIdx % 3 === 0 || obstacleIdx % 3 === 1);
           
-          localGapHeight = gapHeight;
+          localGapHeight = Math.round(gapHeight * 0.80); // 20% reduction
           if (score >= 11 && score <= 15 && isExtreme) {
             shiftVal = Math.round(80 * 0.70); // 30% reduction in shift displacement (from 80 to 56)
-            localGapHeight = Math.round(gapHeight * 1.30); // 30% reduction in pipe obstacle size (increases gap by 30%)
+            localGapHeight = Math.round(gapHeight * 0.80 * 1.30); // 30% increase relative to Group 1's reduced gap (0.80 * 1.30 = 1.04)
           }
 
           if (obstacleIdx % 3 === 0) {
