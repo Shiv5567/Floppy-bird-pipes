@@ -89,10 +89,10 @@ export class Bird {
     // Custom progressive score-based jump scaling:
     const jumpScale = this.getJumpScale(score);
     
-    // Check if playing in Level 4 of level mode
+    // Check if playing in Level 2 or Level 13 of level mode (which contains the Level 4 snake/laser layout)
     const engine = (window as any).gameEngine;
-    const isLevel4 = engine && engine.gameMode === 'level' && engine.currentLevelNum === 4;
-    const jumpReduction = isLevel4 ? 0.78 : 1.0;
+    const isLevel2 = engine && engine.gameMode === 'level' && (engine.currentLevelNum === 2 || engine.currentLevelNum === 13);
+    const jumpReduction = isLevel2 ? 0.78 : 1.0;
     
     const impulse = this.jumpLift * (1 + levelBonus) * jumpScale * jumpReduction;
     
@@ -113,10 +113,10 @@ export class Bird {
     // Synchronize physics gravity and max fall speed caps with 5% speed increase every 25 score
     const speedMultiplier = 1.0 + Math.floor(effectiveScore / 25.0) * 0.05;
     
-    // Check if playing in Level 4 of level mode
+    // Check if playing in Level 2 or Level 13 of level mode (which contains the Level 4 snake/laser layout)
     const engine = (window as any).gameEngine;
-    const isLevel4 = engine && engine.gameMode === 'level' && engine.currentLevelNum === 4;
-    const speedReduction = isLevel4 ? 0.75 : 1.0;
+    const isLevel2 = engine && engine.gameMode === 'level' && (engine.currentLevelNum === 2 || engine.currentLevelNum === 13);
+    const speedReduction = isLevel2 ? 0.75 : 1.0;
     
     const currentGravity = this.gravity * speedMultiplier * speedReduction;
     const currentMaxFallSpeed = this.maxFallSpeed * speedMultiplier * speedReduction;
@@ -125,7 +125,7 @@ export class Bird {
     const jumpScale = this.getJumpScale(effectiveScore);
     
     // Scale maximum rise speed dynamically to stay fully synchronized with jump impulse (unreduced for upward speed!)
-    const currentMaxRiseSpeed = this.maxRiseSpeed * jumpScale * (isLevel4 ? 0.78 : 1.0);
+    const currentMaxRiseSpeed = this.maxRiseSpeed * jumpScale * (isLevel2 ? 0.78 : 1.0);
     
     if (isPlaying) {
       // Apply gravity
