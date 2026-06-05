@@ -2487,7 +2487,7 @@ export class ObstacleManager {
 
       // Enable special different-direction split opening animation specifically for all obstacles in Levels 1-20 (excluding Level 11, 2, 4, 5, 6, 7, 8, 9, 10, 12), special legacy levels, and the Chrono Warp Miniboss Group 1
       const isSpecialSplit = 
-        (levelNum !== undefined && levelNum >= 1 && levelNum <= 20 && levelNum !== 11 && levelNum !== 2 && levelNum !== 4 && levelNum !== 5 && levelNum !== 6 && levelNum !== 7 && levelNum !== 8 && levelNum !== 9 && levelNum !== 10 && levelNum !== 12 && levelNum !== 13) ||
+        (levelNum !== undefined && levelNum >= 1 && levelNum <= 20 && levelNum !== 11 && levelNum !== 2 && levelNum !== 4 && levelNum !== 5 && levelNum !== 6 && levelNum !== 7 && levelNum !== 8 && levelNum !== 9 && levelNum !== 10 && levelNum !== 12 && levelNum !== 13 && levelNum !== 14) ||
         (patternType === 'level17_heartbeat' && groupIdx === 0) ||
         (patternType === 'level40_miniboss' && groupIdx === 0);
 
