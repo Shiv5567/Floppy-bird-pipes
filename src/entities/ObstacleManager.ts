@@ -371,7 +371,8 @@ export class ObstacleManager {
           } else if (obs.patternType === 'level3_arc') {
             // LEVEL 3: "The Gravity Pitfalls" (Anti-phase see-saw elevator shifts: adjacent columns slide vertically with sudden sharp velocity shifts)
             const phase = this.waveTime * 1.95 + (actualIdx % 3) * (Math.PI * 2 / 3);
-            const shift = Math.sin(phase) * 35;
+            const shiftAmt = obs.levelNum === 20 ? 28 : 35; // 20% reduction for Level 20 (35 * 0.8 = 28)
+            const shift = Math.sin(phase) * shiftAmt;
             obs.targetTopHeight = obs.baseTopHeight! + shift;
             obs.targetBottomHeight = obs.baseBottomHeight! - shift;
           } else if (obs.patternType === 'level4_snake') {
@@ -1656,10 +1657,11 @@ export class ObstacleManager {
         animDuration = 0.45;
       } else if (patternType === 'level3_arc') {
         // LEVEL 3: "The Gravity Pitfalls" (Giant stairs that drop and rise in extreme vertical leaps)
+        const shiftAmt = levelNum === 20 ? 64 : 80; // 20% reduction for Level 20 (80 * 0.8 = 64)
         if (obstacleIdx % 3 === 0) {
-          targetCenterY = height / 2 - 80;
+          targetCenterY = height / 2 - shiftAmt;
         } else if (obstacleIdx % 3 === 1) {
-          targetCenterY = height / 2 + 80;
+          targetCenterY = height / 2 + shiftAmt;
         } else {
           targetCenterY = height / 2;
         }
