@@ -254,10 +254,14 @@ export class LevelManager {
       }
     }
 
-    // Reduce Level 3 path gap by 25% and set total obstacles to 150; Reduce Level 4 path gap by 30%
+    // Reduce Level 2 and Level 3 path gap by 30%; set Level 3 total obstacles to 150; Reduce Level 4 path gap by 30%
+    const lvl2 = this.levels.find(l => l.levelNum === 2);
+    if (lvl2) {
+      lvl2.gapHeight = Math.round(lvl2.gapHeight * 0.70);
+    }
     const lvl3 = this.levels.find(l => l.levelNum === 3);
     if (lvl3) {
-      lvl3.gapHeight = Math.round(lvl3.gapHeight * 0.75);
+      lvl3.gapHeight = Math.round(lvl3.gapHeight * 0.70);
       lvl3.targetScore = 150;
     }
     const lvl4 = this.levels.find(l => l.levelNum === 4);
