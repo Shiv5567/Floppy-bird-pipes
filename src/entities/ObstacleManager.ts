@@ -484,26 +484,26 @@ export class ObstacleManager {
             obs.targetTopHeight = obs.baseTopHeight! + vWave + vShift;
             obs.targetBottomHeight = obs.baseBottomHeight! - vWave + vShift;
           } else if (obs.patternType === 'level14_crossflow') {
-            // Level 14: "The Wormhole Vortex" — independent per-group orbital motion
+            // Level 18 (swapped): "The Wormhole Vortex" — path gap shifting reduced 60% (×0.40)
             const p14group = Math.floor((actualIdx % 18) / 6); // 0=spiral, 1=shockwave, 2=gravity
             if (p14group === 0) {
-              // Group 1 (Spiral Funnel): continuous orbital spin — top and bottom rotate out of phase
+              // Group 1 (Spiral Funnel): orbital spin — amplitude ×0.40: 22→8.8, shakeX 16→6.4
               const spinTop = this.waveTime * 2.1 + actualIdx * 0.55;
               const spinBot = this.waveTime * 2.1 + actualIdx * 0.55 + Math.PI * 0.6; // out of phase
-              obs.targetTopHeight = obs.baseTopHeight! + Math.cos(spinTop) * 22;
-              obs.targetBottomHeight = obs.baseBottomHeight! + Math.sin(spinBot) * 22;
-              // Horizontal orbital shimmer
-              obs.shakeX = Math.sin(spinTop * 0.7) * 16;
-              obs.shakeX2 = -Math.sin(spinBot * 0.7) * 16;
+              obs.targetTopHeight = obs.baseTopHeight! + Math.cos(spinTop) * 8.8;
+              obs.targetBottomHeight = obs.baseBottomHeight! + Math.sin(spinBot) * 8.8;
+              // Horizontal orbital shimmer — amplitude ×0.40: 16→6.4
+              obs.shakeX = Math.sin(spinTop * 0.7) * 6.4;
+              obs.shakeX2 = -Math.sin(spinBot * 0.7) * 6.4;
             } else if (p14group === 1) {
-              // Group 2 (Shockwave Ring): radial pulse expanding outward from center
+              // Group 2 (Shockwave Ring): radial pulse — amplitude ×0.40: 18→7.2
               const distFromCenter = Math.abs((actualIdx % 6) - 2.5) / 2.5;
-              const pulse = Math.sin(this.waveTime * 2.8 - distFromCenter * 2.0) * 18;
+              const pulse = Math.sin(this.waveTime * 2.8 - distFromCenter * 2.0) * 7.2;
               obs.targetTopHeight = obs.baseTopHeight! - pulse * (1 - distFromCenter);
               obs.targetBottomHeight = obs.baseBottomHeight! + pulse * (1 - distFromCenter);
             } else {
-              // Group 3 (Gravity Flip): slow pendulum sway back and forth
-              const flipSway = Math.sin(this.waveTime * 1.4 + actualIdx * 0.8) * 25;
+              // Group 3 (Gravity Flip): pendulum sway — amplitude ×0.40: 25→10
+              const flipSway = Math.sin(this.waveTime * 1.4 + actualIdx * 0.8) * 10;
               obs.targetTopHeight = obs.baseTopHeight! + flipSway;
               obs.targetBottomHeight = obs.baseBottomHeight! - flipSway;
             }
