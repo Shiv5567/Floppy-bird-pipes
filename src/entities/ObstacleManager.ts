@@ -395,8 +395,8 @@ export class ObstacleManager {
             obs.shakeX = Math.sin(phaseTop) * 26;
             obs.shakeX2 = Math.cos(phaseBottom) * 26;
             
-            const topBob = Math.cos(phaseTop) * 53 * 0.40; // Bobbing range reduced by 60%
-            const botBob = Math.sin(phaseBottom) * 53 * 0.40; // Bobbing range reduced by 60%
+            const topBob = Math.cos(phaseTop) * 53 * 0.20; // Bobbing range reduced by 80%
+            const botBob = Math.sin(phaseBottom) * 53 * 0.20; // Bobbing range reduced by 80%
             obs.targetTopHeight = obs.baseTopHeight! + topBob;
             obs.targetBottomHeight = obs.baseBottomHeight! - botBob;
           } else if (obs.patternType === 'level7_dna') {
@@ -1706,14 +1706,14 @@ export class ObstacleManager {
         localGapHeight = isShiftedBlock ? Math.round(baseGap * 0.75) : baseGap;
         
         const modIdx = obstacleIdx % 20;
-        // Triangle wave across 20 pillars: rises from -37 to +37 over first 10, falls back to -37 over next 10 (reduced 60%)
+        // Triangle wave across 20 pillars: rises from -37 to +37 over first 10, falls back to -37 over next 10 (reduced 80%)
         const halfCycle = 10;
         const normT = modIdx < halfCycle ? modIdx / (halfCycle - 1) : (19 - modIdx) / (halfCycle - 1);
-        const triangleOffset = Math.round((normT * 75 - 37) * 0.40); // 60% flatter (plane)
+        const triangleOffset = Math.round((normT * 75 - 37) * 0.20); // 80% flatter (plane)
         
-        // Alternates path offset UP and DOWN by 24% of the gap height every 20 obstacles (reduced 60%)
+        // Alternates path offset UP and DOWN by 24% of the gap height every 20 obstacles (reduced 80%)
         const shiftSign = isShiftedBlock ? 1 : -1; // Alternating UP (-1) and DOWN (+1)
-        const pathShift = shiftSign * (baseGap * 0.24) * 0.40; // 60% flatter (plane)
+        const pathShift = shiftSign * (baseGap * 0.24) * 0.20; // 80% flatter (plane)
         
         targetCenterY = height / 2 + triangleOffset + pathShift;
         triggerDistance = 280;
