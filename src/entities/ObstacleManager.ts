@@ -398,7 +398,7 @@ export class ObstacleManager {
             const topBob = Math.cos(phaseTop) * 53; // Bobbing range (path interaction) increased by 40% again (from 38 to 53)
             const botBob = Math.sin(phaseBottom) * 53; // Bobbing range (path interaction) increased by 40% again (from 38 to 53)
             obs.targetTopHeight = obs.baseTopHeight! + topBob;
-            obs.targetBottomHeight = obs.baseBottomHeight! - botBob;
+            obs.targetBottomHeight = obs.baseBottomHeight! - Math.round(botBob * 0.60);
           } else if (obs.patternType === 'level7_dna') {
             // LEVEL 7: "The Magnetic Pull Chambers" (Proximity gap contraction/expansion attractor: proximity-based gap pulsing)
             const force = Math.sin(this.waveTime * 3.2 + actualIdx * 0.8) * 30;
@@ -2478,6 +2478,10 @@ export class ObstacleManager {
 
         targetTopHeight = targetCenterY - localGapHeight / 2;
         targetBottomHeight = height - targetCenterY - localGapHeight / 2;
+      }
+
+      if (levelNum === 6) {
+        targetBottomHeight = Math.round(targetBottomHeight * 0.60);
       }
 
       // Enable special different-direction split opening animation specifically for all obstacles in Levels 1-20 (excluding Level 11, 2, 4, 5, 6, 7), special legacy levels, and the Chrono Warp Miniboss Group 1
