@@ -476,10 +476,10 @@ export class ObstacleManager {
             obs.shakeX = Math.sin(helixPhase) * 22;
             obs.shakeX2 = Math.cos(helixPhase) * 22;
             
-            // Vertical helical wave (breathing)
-            const vWave = Math.sin(this.waveTime * 1.8 - actualIdx * 0.4) * 14;
-            // Vertical shifting frequency (moves the whole gap center up/down)
-            const vShift = Math.sin(this.waveTime * 2.0 + actualIdx * 0.5) * 20;
+            // Vertical helical wave (breathing) — amplitude +15%: 14 → 16.1
+            const vWave = Math.sin(this.waveTime * 1.8 - actualIdx * 0.4) * 16.1;
+            // Vertical shifting frequency (moves the whole gap center up/down) — amplitude +15%: 20 → 23
+            const vShift = Math.sin(this.waveTime * 2.0 + actualIdx * 0.5) * 23;
             
             obs.targetTopHeight = obs.baseTopHeight! + vWave + vShift;
             obs.targetBottomHeight = obs.baseBottomHeight! - vWave + vShift;
@@ -2487,7 +2487,7 @@ export class ObstacleManager {
 
       // Enable special different-direction split opening animation specifically for all obstacles in Levels 1-20 (excluding Level 11, 2, 4, 5, 6, 7, 8, 9, 10, 12), special legacy levels, and the Chrono Warp Miniboss Group 1
       const isSpecialSplit = 
-        (levelNum !== undefined && levelNum >= 1 && levelNum <= 20 && levelNum !== 11 && levelNum !== 2 && levelNum !== 4 && levelNum !== 5 && levelNum !== 6 && levelNum !== 7 && levelNum !== 8 && levelNum !== 9 && levelNum !== 10 && levelNum !== 12) ||
+        (levelNum !== undefined && levelNum >= 1 && levelNum <= 20 && levelNum !== 11 && levelNum !== 2 && levelNum !== 4 && levelNum !== 5 && levelNum !== 6 && levelNum !== 7 && levelNum !== 8 && levelNum !== 9 && levelNum !== 10 && levelNum !== 12 && levelNum !== 13) ||
         (patternType === 'level17_heartbeat' && groupIdx === 0) ||
         (patternType === 'level40_miniboss' && groupIdx === 0);
 
