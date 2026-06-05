@@ -471,13 +471,18 @@ export class ObstacleManager {
             obs.targetBottomHeight = obs.baseBottomHeight! - tidal - zigzag + pincerSqueeze;
           } else if (obs.patternType === 'level13_scurve') {
             // Level 13: Helix Spirals
-            // 3D Twist using horizontal orbital shake and vertical helical waves
+            // 3D Twist using horizontal orbital shake, vertical helical waves, and vertical shifting frequency
             const helixPhase = this.waveTime * 2.3 + actualIdx * 0.6;
             obs.shakeX = Math.sin(helixPhase) * 22;
             obs.shakeX2 = Math.cos(helixPhase) * 22;
+            
+            // Vertical helical wave (breathing)
             const vWave = Math.sin(this.waveTime * 1.8 - actualIdx * 0.4) * 14;
-            obs.targetTopHeight = obs.baseTopHeight! + vWave;
-            obs.targetBottomHeight = obs.baseBottomHeight! - vWave;
+            // Vertical shifting frequency (moves the whole gap center up/down)
+            const vShift = Math.sin(this.waveTime * 2.0 + actualIdx * 0.5) * 20;
+            
+            obs.targetTopHeight = obs.baseTopHeight! + vWave + vShift;
+            obs.targetBottomHeight = obs.baseBottomHeight! - vWave + vShift;
           } else if (obs.patternType === 'level14_crossflow') {
             // Level 14: "The Wormhole Vortex" — independent per-group orbital motion
             const p14group = Math.floor((actualIdx % 18) / 6); // 0=spiral, 1=shockwave, 2=gravity
