@@ -51,6 +51,7 @@ export interface PlayerProgressState {
   dailyQuests: { id: string; name: string; desc: string; target: number; current: number; rewardCoins: number; rewardGems: number; claimed: boolean }[];
   levelModeUnlockedLevel?: number;
   levelModeStars?: Record<number, number>;
+  powerupUpgrades?: Record<string, number>; // powerupType -> level (1-5)
 }
 
 export class ProgressManager {
@@ -532,7 +533,8 @@ export class ProgressManager {
           lastDailyClaimTime: loadedState.lastDailyClaimTime || 0,
           dailyQuests: loadedState.dailyQuests || this.initDefaultQuests(),
           levelModeUnlockedLevel: loadedState.levelModeUnlockedLevel || 1,
-          levelModeStars: loadedState.levelModeStars || {}
+          levelModeStars: loadedState.levelModeStars || {},
+          powerupUpgrades: loadedState.powerupUpgrades || { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1 }
         };
 
         // Sync skins unlocked state and levels
@@ -582,7 +584,8 @@ export class ProgressManager {
       lastDailyClaimTime: 0,
       dailyQuests: this.initDefaultQuests(),
       levelModeUnlockedLevel: 1,
-      levelModeStars: {}
+      levelModeStars: {},
+      powerupUpgrades: { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1 }
     };
     
     // Reset skins
@@ -671,6 +674,24 @@ export class ProgressManager {
       this.state.levelModeUnlockedLevel = levelNum + 1;
     }
     this.save();
+  }
+
+  public upgradePowerup(type: string): { success: boolean; msg: string } {
+    if (!this.state.powerupUpgrades) {
+      this.state.powerupUpgrades = { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1 };
+    }
+    const currentLevel = this.state.powerupUpgrades[type] || 1;
+    if (currentLevel >= 5) return { success: false, msg: 'Powerup is already at max level!' };
+
+    const cost = 1000 * Math.pow(2, currentLevel - 1); // 1000, 2000, 4000, 8000
+    if (this.state.coins >= cost) {
+      this.state.coins -= cost;
+      this.state.powerupUpgrades[type] = currentLevel + 1;
+      this.save();
+      return { success: true, msg: `${type.toUpperCase()} upgraded to Lvl ${currentLevel + 1}! Duration boosted.` };
+    } else {
+      return { success: false, msg: `Insufficient gold coins. Needs ${cost}🟡` };
+    }
   }
 
   public save() {

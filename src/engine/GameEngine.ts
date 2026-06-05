@@ -967,6 +967,13 @@ export class GameEngine {
       max = 10.0;
     }
 
+    // Apply powerup upgrades multiplier (boosts duration by 15% per upgrade level)
+    const upgrades = this.progressManager.getState().powerupUpgrades || {};
+    const lvl = upgrades[type] || 1;
+    const multiplier = 1 + (lvl - 1) * 0.15;
+    duration *= multiplier;
+    max *= multiplier;
+
     // Add or reset powerup timer
     this.activePowerupsList[type] = {
       type,

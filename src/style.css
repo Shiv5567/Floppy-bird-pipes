@@ -2952,3 +2952,25 @@ body.mobile-performance .glass-card {
   }
 }
 
+/* Powerup upgrade level indicators */
+.powerup-lvl-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.lvl-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: inline-block;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.lvl-dot.filled {
+  background: #00f3ff;
+  box-shadow: 0 0 6px rgba(0, 243, 255, 0.6);
+  border-color: transparent;
+}
+

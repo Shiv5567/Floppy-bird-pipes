@@ -913,16 +913,69 @@ export class UIManager {
             `;
           }).join('');
 
+          const upgrades = progress.powerupUpgrades || { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1 };
+          const powerupsInfo = [
+            { id: 'shield', name: 'Shield Deflector', icon: '🛡️', desc: 'Protects from 1 fatal collision.', base: 8.0 },
+            { id: 'slowmo', name: 'Temporal Slow-Mo', icon: '⏳', desc: 'Slows down moving obstacles.', base: 10.0 },
+            { id: 'magnet', name: 'Coin Magnet', icon: '🧲', desc: 'Attracts gold coins and gems.', base: 12.0 },
+            { id: 'turbo', name: 'Hyper Booster', icon: '🔥', desc: 'Invincible hyper flight speed.', base: 5.0 },
+            { id: 'mini', name: 'Quantum Mini-Bird', icon: '🔎', desc: 'Shrinks bird size for tight paths.', base: 10.0 }
+          ];
+
+          const upgradesHtml = powerupsInfo.map(p => {
+            const lvl = upgrades[p.id] || 1;
+            const isMax = lvl >= 5;
+            const cost = 1000 * Math.pow(2, lvl - 1);
+            const currentDur = (p.base * (1 + (lvl - 1) * 0.15)).toFixed(1);
+            const nextDur = (p.base * (1 + lvl * 0.15)).toFixed(1);
+            
+            let indicatorHtml = '';
+            for (let i = 1; i <= 5; i++) {
+              indicatorHtml += `<span class="lvl-dot ${i <= lvl ? 'filled' : ''}"></span>`;
+            }
+
+            return `
+              <div class="quest-card">
+                <div class="quest-details">
+                  <div class="quest-name-row">
+                    <span class="quest-name">${p.icon} ${p.name}</span>
+                  </div>
+                  <div class="quest-desc">${p.desc}</div>
+                  <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
+                    <div class="powerup-lvl-dots">${indicatorHtml}</div>
+                    <span class="quest-progress-text" style="color: #ffd700;">Lvl ${lvl}/5</span>
+                  </div>
+                  <div style="font-size: 9px; color: rgba(255,255,255,0.5); margin-top: 2px;">
+                    Duration: ${currentDur}s ${isMax ? '(Max)' : `➔ <span style="color:#00ffaa">${nextDur}s</span>`}
+                  </div>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: flex-end;">
+                  ${isMax 
+                    ? `<button class="btn-quest-claim claimed" style="font-size:9px;" disabled>MAXED</button>`
+                    : `<button class="btn-powerup-upgrade btn-quest-claim" data-id="${p.id}" style="font-size:9px; background:linear-gradient(135deg, #00f3ff, #0088ff); box-shadow:0 4px 10px rgba(0, 136, 255, 0.3);">
+                         UPGRADE 🟡${cost.toLocaleString()}
+                       </button>`
+                  }
+                </div>
+              </div>
+            `;
+          }).join('');
+
           return `
-            <div class="daily-rewards-container">
+            <div class="daily-rewards-container" style="padding-bottom: 20px;">
               <div class="hangar-section-title">📅 7-DAY LOGIN REWARDS</div>
               <div class="daily-calendar">
                 ${calendarHtml}
               </div>
               
               <div class="hangar-section-title">⚔️ DAILY CHALLENGES</div>
-              <div class="quests-list">
+              <div class="quests-list" style="margin-bottom: 20px;">
                 ${questsHtml}
+              </div>
+
+              <div class="hangar-section-title">🧪 POWERUP BUBBLE UPGRADES</div>
+              <div class="quests-list">
+                ${upgradesHtml}
               </div>
             </div>
           `;
@@ -1182,6 +1235,22 @@ export class UIManager {
           this.render();
         } else {
           this.showToastNotification('CLAIM FAILED', res.msg);
+        }
+      });
+    });
+
+    // Powerup upgrade buttons
+    const powerupUpgradeBtns = this.container.querySelectorAll('.btn-powerup-upgrade[data-id]');
+    powerupUpgradeBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = (btn as HTMLElement).getAttribute('data-id') || '';
+        const res = this.engine.progressManager.upgradePowerup(id);
+        if (res.success) {
+          this.showToastNotification('UPGRADE SUCCESSFUL 🧪', res.msg);
+          this.render();
+        } else {
+          this.showToastNotification('UPGRADE FAILED', res.msg);
         }
       });
     });
