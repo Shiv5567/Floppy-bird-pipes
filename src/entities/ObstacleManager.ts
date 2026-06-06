@@ -2052,7 +2052,7 @@ export class ObstacleManager {
           localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce
         } else {
           targetCenterY = height / 2 - 30 + (obstacleIdx - 12) * 15;
-          localGapHeight = Math.round(gapHeight * 0.80); // 20% reduce
+          localGapHeight = Math.round(gapHeight * 0.92); // 15% increase from 0.80 (0.80 * 1.15 = 0.92)
         }
         triggerDistance = 200;
         animDuration = 0.44;
