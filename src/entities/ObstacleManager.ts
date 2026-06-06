@@ -665,36 +665,32 @@ export class ObstacleManager {
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             }
           } else if (obs.patternType === 'level34_pendulum') {
-            // LEVEL 34: Pendulum Swings
-            // Character similarity: arc sweeps and circular swing motions
+            // LEVEL 34: Quantum Gravity Slipstreams (New Unique Redesign)
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
             const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
             
             if (obstacleIdx < groupSize) {
-              // Group 1 (Easy): Slow gentle pendulum swing
-              const swingAngle = Math.sin(this.waveTime * 1.5 + obstacleIdx * 0.4) * 0.22;
-              obs.shakeX = Math.sin(swingAngle) * 20;
-              obs.shakeX2 = obs.shakeX;
-              const swingDrop = (1 - Math.cos(swingAngle)) * 25;
-              const centerY = obs.spawnCenterY! + swingDrop;
-              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+              // Group 1: Breathing wave chamber tunnel
+              const breathingGap = obs.gapHeight! + Math.sin(this.waveTime * 2.2 - obstacleIdx * 0.5) * 20;
+              const centerY = obs.spawnCenterY!;
+              obs.targetTopHeight = centerY - breathingGap / 2;
+              obs.targetBottomHeight = height - centerY - breathingGap / 2;
             } else if (obstacleIdx < groupSize * 2) {
-              // Group 2 (Medium): Opposing double pendulum sweeps with faster rates
-              const swingAngle = Math.sin(this.waveTime * 2.2 + obstacleIdx * 0.45) * 0.35;
-              obs.shakeX = Math.sin(swingAngle) * 26;
-              obs.shakeX2 = -obs.shakeX;
-              const swingDrop = (1 - Math.cos(swingAngle)) * 35;
-              const centerY = obs.spawnCenterY! + swingDrop;
+              // Group 2: Opposing horizontal zips and vertical squeeze
+              const hShift = Math.sin(this.waveTime * 2.8 + obstacleIdx) * 35;
+              obs.shakeX = hShift;
+              obs.shakeX2 = -hShift;
+              const vSqueeze = Math.cos(this.waveTime * 2.5) * 25 * (obstacleIdx % 2 === 0 ? 1 : -1);
+              const centerY = obs.spawnCenterY! + vSqueeze;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else {
-              // Group 3 (Hard): High-speed rotating circular swing + vertical wave
-              const angle = this.waveTime * 3.2 + obstacleIdx * 0.6;
-              obs.shakeX = Math.sin(angle) * 32;
-              obs.shakeX2 = Math.cos(angle) * 32;
-              const wave = Math.sin(this.waveTime * 2.6 + obstacleIdx * 0.5) * 30;
-              const centerY = obs.spawnCenterY! + wave;
+              // Group 3: 3D orbital spin and vertical bobbing vortex
+              const angle = this.waveTime * 3.0 + obstacleIdx * 0.5;
+              obs.shakeX = Math.sin(angle) * 28;
+              obs.shakeX2 = Math.cos(angle) * 28;
+              const vBob = Math.cos(this.waveTime * 2.2 + obstacleIdx * 0.3) * 25;
+              const centerY = obs.spawnCenterY! + vBob;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             }
@@ -2090,19 +2086,23 @@ export class ObstacleManager {
         triggerDistance = 220;
         animDuration = 0.45;
       } else if (patternType === 'level34_pendulum') {
-        // LEVEL 34: Pendulum Swings
+        // LEVEL 34: Quantum Gravity Slipstreams (New Unique Redesign)
         if (actualPatternIdx < groupSize) {
-          targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 4.5)) * 30;
+          // Group 1: Gravitational Wave Chamber (Parabolic Valley)
+          const normIdx = (obstacleIdx % 6) / 5.0;
+          targetCenterY = height / 2 + 55 - Math.sin(normIdx * Math.PI) * 85;
           localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce
         } else if (actualPatternIdx < groupSize * 2) {
-          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -45 : 45);
+          // Group 2: Sliding Interlocking Keys (Alternating high/low blocks)
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -65 : 65);
           localGapHeight = Math.round(gapHeight * 0.76); // 24% reduce
         } else {
-          targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 3)) * 50 + (obstacleIdx % 2 === 0 ? -15 : 15);
+          // Group 3: Magnetic Helix Vortex (Circular helix path)
+          targetCenterY = height / 2 + Math.sin((obstacleIdx - 12) * 0.9) * 45;
           localGapHeight = Math.round(gapHeight * 0.66); // 34% reduce
         }
-        triggerDistance = 195;
-        animDuration = 0.42;
+        triggerDistance = 220;
+        animDuration = 0.40;
       } else if (patternType === 'level35_triplestair') {
         // LEVEL 35: Magma Elevator
         if (actualPatternIdx < groupSize) {
