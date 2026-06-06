@@ -655,11 +655,14 @@ export class ObstacleManager {
               obs.targetTopHeight = obs.baseTopHeight! + shift;
               obs.targetBottomHeight = obs.baseBottomHeight! - shift;
             } else {
-              // Group 3: Squeezing quantum pulse (rapid contractions)
-              const pulse = Math.pow(Math.sin(this.waveTime * 3.5), 4) * 32;
-              const breathingGap = obs.gapHeight! - pulse;
-              obs.targetTopHeight = obs.spawnCenterY! - breathingGap / 2;
-              obs.targetBottomHeight = height - obs.spawnCenterY! - breathingGap / 2;
+              // Group 3: New "Quantum Wave Vortex" dynamic animation
+              // Odd/even columns oscillate vertically in opposite directions, while the whole wave sweeps up/down
+              const idx = obstacleIdx - groupSize * 2;
+              const waveSweep = Math.sin(this.waveTime * 1.8 + idx * 0.4) * 30;
+              const antiPhase = Math.sin(this.waveTime * 3.0 + (obs.obstacleIdx! % 2) * Math.PI) * 25;
+              const centerY = obs.spawnCenterY! + waveSweep + antiPhase;
+              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             }
           } else if (obs.patternType === 'level34_pendulum') {
             // LEVEL 34: Pendulum Swings
@@ -2079,9 +2082,10 @@ export class ObstacleManager {
           targetCenterY = height / 2 + (obstacleIdx <= 8 ? -30 : 30);
           localGapHeight = Math.round(gapHeight * 0.80); // 20% reduce
         } else {
-          const wOffsets = [35, 10, -20, 10, 35, 10];
-          targetCenterY = height / 2 + wOffsets[(obstacleIdx - 12) % wOffsets.length];
-          localGapHeight = Math.round(gapHeight * 0.74); // 26% reduce (increased challenge by 20%)
+          // New Group 3: "Quantum Wave Vortex" layout - center Y follows a smooth wave and odd/even columns are offset vertically
+          const idx = obstacleIdx - 12;
+          targetCenterY = height / 2 + Math.sin(idx * 0.7) * 45 + (obstacleIdx % 2 === 0 ? -20 : 20);
+          localGapHeight = Math.round(gapHeight * 0.80); // 20% reduce
         }
         triggerDistance = 220;
         animDuration = 0.45;
