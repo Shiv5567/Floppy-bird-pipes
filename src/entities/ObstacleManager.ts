@@ -2121,13 +2121,13 @@ export class ObstacleManager {
         // LEVEL 36: Wormhole Vortex
         if (actualPatternIdx < groupSize) {
           targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 4.5)) * 40;
-          localGapHeight = Math.round(gapHeight * 0.65); // 35% reduce
+          localGapHeight = Math.round(gapHeight * 0.775); // increased to 145px (0.775 * 187 = 145)
         } else if (actualPatternIdx < groupSize * 2) {
           targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? 35 : -35);
-          localGapHeight = Math.round(gapHeight * 0.62); // 38% reduce
+          localGapHeight = Math.round(gapHeight * 0.725); // 17% increase (0.62 * 1.17 = 0.7254)
         } else {
           targetCenterY = height / 2 - 40 + (obstacleIdx - 12) * 15;
-          localGapHeight = Math.round(gapHeight * 0.58); // 42% reduce
+          localGapHeight = Math.round(gapHeight * 0.65); // 12% increase (0.58 * 1.12 = 0.6496)
         }
         triggerDistance = 210;
         animDuration = 0.44;
