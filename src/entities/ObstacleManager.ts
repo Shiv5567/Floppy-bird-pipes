@@ -676,19 +676,19 @@ export class ObstacleManager {
               obs.targetTopHeight = centerY - breathingGap / 2;
               obs.targetBottomHeight = height - centerY - breathingGap / 2;
             } else if (obstacleIdx < groupSize * 2) {
-              // Group 2: Opposing horizontal zips and vertical squeeze
-              const hShift = Math.sin(this.waveTime * 2.8 + obstacleIdx) * 35;
+              // Group 2: Opposing horizontal zips and vertical squeeze (reduced by 70%)
+              const hShift = Math.sin(this.waveTime * 2.8 + obstacleIdx) * 11;
               obs.shakeX = hShift;
               obs.shakeX2 = -hShift;
-              const vSqueeze = Math.cos(this.waveTime * 2.5) * 25 * (obstacleIdx % 2 === 0 ? 1 : -1);
+              const vSqueeze = Math.cos(this.waveTime * 2.5) * 8 * (obstacleIdx % 2 === 0 ? 1 : -1);
               const centerY = obs.spawnCenterY! + vSqueeze;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else {
-              // Group 3: 3D orbital spin and vertical bobbing vortex
+              // Group 3: 3D orbital spin and vertical bobbing vortex (shake formulas swapped)
               const angle = this.waveTime * 3.0 + obstacleIdx * 0.5;
-              obs.shakeX = Math.sin(angle) * 28;
-              obs.shakeX2 = Math.cos(angle) * 28;
+              obs.shakeX = Math.cos(angle) * 28;
+              obs.shakeX2 = Math.sin(angle) * 28;
               const vBob = Math.cos(this.waveTime * 2.2 + obstacleIdx * 0.3) * 25;
               const centerY = obs.spawnCenterY! + vBob;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
@@ -2094,7 +2094,7 @@ export class ObstacleManager {
           localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce
         } else if (actualPatternIdx < groupSize * 2) {
           // Group 2: Sliding Interlocking Keys (Alternating high/low blocks)
-          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -65 : 65);
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -20 : 20);
           localGapHeight = Math.round(gapHeight * 0.76); // 24% reduce
         } else {
           // Group 3: Magnetic Helix Vortex (Circular helix path)
