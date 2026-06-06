@@ -172,11 +172,18 @@ export class ObstacleManager {
   ) {
     this.currentScore = score;
     const dtCoeff = deltaTime * 60 * timeScale;
-    const isLevel21or22 = this.activeLevelConfig && (this.activeLevelConfig.levelNum === 21 || this.activeLevelConfig.levelNum === 22);
-    const isLevel31to40 = this.activeLevelConfig && (this.activeLevelConfig.levelNum >= 31 && this.activeLevelConfig.levelNum <= 40);
+    let activeEffectiveLevelNum = this.activeLevelConfig ? this.activeLevelConfig.levelNum : undefined;
+    if (this.activeLevelConfig && this.activeLevelConfig.patterns && this.activeLevelConfig.patterns[0]) {
+      const match = this.activeLevelConfig.patterns[0].match(/^level(\d+)/);
+      if (match) {
+        activeEffectiveLevelNum = parseInt(match[1], 10);
+      }
+    }
+    const isLevel21or22 = this.activeLevelConfig && (activeEffectiveLevelNum === 21 || activeEffectiveLevelNum === 22);
+    const isLevel31to40 = this.activeLevelConfig && (activeEffectiveLevelNum >= 31 && activeEffectiveLevelNum <= 40);
     let motionSpeedScale = isLevel31to40 ? 1.20 : (isLevel21or22 ? 0.90 : 1.0); // 20% increased difficulty/speed for Levels 31–40
 
-    if (this.activeLevelConfig && this.activeLevelConfig.levelNum >= 40 && this.activeLevelConfig.levelNum <= 50) {
+    if (this.activeLevelConfig && activeEffectiveLevelNum >= 40 && activeEffectiveLevelNum <= 50) {
       const groupSize = Math.floor(this.activeLevelConfig.targetScore / 3);
       const groupIdx = Math.min(2, Math.floor(score / groupSize));
       if (groupIdx === 1) {
@@ -1053,7 +1060,7 @@ export class ObstacleManager {
             // Retrieve dynamic subPattern for Levels 21-29
             const groupSize = Math.floor(this.activeLevelConfig.targetScore / 3);
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
-            const levelNum = this.activeLevelConfig.levelNum;
+            const levelNum = obs.levelNum !== undefined ? obs.levelNum : this.activeLevelConfig.levelNum;
             const animScale = (levelNum === 21 || levelNum === 22) ? 1.30 : 1.0;
             
             let subPattern = 'wave_10';
@@ -1219,7 +1226,7 @@ export class ObstacleManager {
 
           // Centralized Dynamic Gameplay Safeguard for Levels 1-10 and Level 13
           if (obs.levelNum !== undefined && ((obs.levelNum >= 1 && obs.levelNum <= 10) || obs.levelNum === 13)) {
-            const defaultMin = (obs.levelNum === 2 || obs.levelNum === 13) ? 107 : (obs.levelNum === 6 ? 93 : 125);
+            const defaultMin = (obs.levelNum === 4) ? 107 : (obs.levelNum === 6 ? 93 : 125);
             const minAllowedGap = obs.gapHeight !== undefined ? Math.min(obs.gapHeight, defaultMin) : defaultMin;
             let currentGap = height - obs.topHeight - obs.bottomHeight;
             if (currentGap < minAllowedGap) {
@@ -1534,7 +1541,7 @@ export class ObstacleManager {
       if (this.activeLevelConfig) {
         const groupSize = Math.floor(this.activeLevelConfig.targetScore / 3);
         const idx = this.currentPatternIdx - 1;
-        const isLevel6 = this.activeLevelConfig.levelNum === 6;
+        const isLevel6 = activeEffectiveLevelNum === 6;
         if (idx === groupSize - 1 || idx === (groupSize * 2) - 1) {
           this.nextSpawnDistance = this.obstacleWidth * 3.5; // Safe transition gap between obstacle groups
         } else {
@@ -1605,9 +1612,16 @@ export class ObstacleManager {
     score = 0
   ) {
     if (this.activeLevelConfig) {
-      const levelNum = this.activeLevelConfig.levelNum;
+      const levelNumPlayable = this.activeLevelConfig.levelNum;
       const patternsList = this.activeLevelConfig.patterns;
       const patternType = patternsList[this.currentPatternIdx % patternsList.length];
+      let levelNum = levelNumPlayable;
+      if (patternType) {
+        const match = patternType.match(/^level(\d+)/);
+        if (match) {
+          levelNum = parseInt(match[1], 10);
+        }
+      }
       const actualPatternIdx = this.currentPatternIdx;
       const groupSize = Math.floor(this.activeLevelConfig.targetScore / 3);
       const groupIdx = Math.min(2, Math.floor(actualPatternIdx / groupSize));

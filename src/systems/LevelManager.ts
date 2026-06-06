@@ -222,7 +222,7 @@ export class LevelManager {
       });
     }
 
-    // Swap Level Configurations (Option 2: 40-44 exchanged with 46-50, 45 in the middle; Level 3 and Level 50 exchanged; Level 2 and Level 4 exchanged; Level 4 and 16 swapped, Level 5 and 17 swapped; Level 14 and 18 switched; Level 18 and 20 switched)
+    // Swap Level Configurations (Option 2: 40-44 exchanged with 46-50, 45 in the middle; Level 3 and Level 50 exchanged; Level 2 and Level 4 exchanged; Level 4 and 16 swapped, Level 5 and 17 swapped; Level 14 and 18 switched; Level 18 and 20 switched; Levels 21-30 and 31-40 switched)
     const swapPairs = [
       [40, 46],
       [41, 47],
@@ -234,7 +234,17 @@ export class LevelManager {
       [4, 16],
       [5, 17],
       [14, 18],
-      [18, 20]
+      [18, 20],
+      [21, 31],
+      [22, 32],
+      [23, 33],
+      [24, 34],
+      [25, 35],
+      [26, 36],
+      [27, 37],
+      [28, 38],
+      [29, 39],
+      [30, 40]
     ];
     for (const [a, b] of swapPairs) {
       const idxA = this.levels.findIndex(l => l.levelNum === a);
