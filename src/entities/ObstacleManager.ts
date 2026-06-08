@@ -2287,7 +2287,7 @@ export class ObstacleManager {
           targetCenterY = height / 2;
         }
         triggerDistance = 175;
-        animDuration = 0.32;
+        animDuration = 0.38; // speed reduced 18% (duration increased from 0.32 to 0.38)
       } else if (patternType === 'level46_triplespiral') {
         // Single obstacles arrangement: all groups use the middle group's Snake Wave layout
         targetCenterY = height / 2 - Math.sin((obstacleIdx - 6) * 0.8) * 40;
@@ -2547,8 +2547,8 @@ export class ObstacleManager {
         localGapHeight = Math.round(localGapHeight * 1.25);
       }
 
-      // Apply Level 43 path gap adjustments (additional 10% increase)
-      if (levelNumPlayable === 43) {
+      // Apply Level 43 & 45 path gap adjustments (additional 10% increase)
+      if (levelNumPlayable === 43 || levelNumPlayable === 45) {
         localGapHeight = Math.round(localGapHeight * 1.10);
       }
 
