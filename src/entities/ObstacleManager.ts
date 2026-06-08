@@ -734,11 +734,11 @@ export class ObstacleManager {
               obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2;
             } else if (obstacleIdx < groupSize * 2) {
-              // Group 2: Double spiral vortex (top/bottom offset) (increased by 35%)
+              // Group 2: Double spiral vortex (top/bottom offset) (shifting reduced by 30%)
               const angle = this.waveTime * 3.37 + obstacleIdx * 0.5;
-              obs.shakeX = Math.sin(angle) * 32;
-              obs.shakeX2 = Math.cos(angle + Math.PI / 2) * 32;
-              const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 2.02) * 20;
+              obs.shakeX = Math.sin(angle) * 22.4; // reduced 30% from 32
+              obs.shakeX2 = Math.cos(angle + Math.PI / 2) * 22.4; // reduced 30% from 32
+              const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 2.02) * 14; // reduced 30% from 20
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else {
@@ -782,30 +782,26 @@ export class ObstacleManager {
             const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
             
             if (obstacleIdx < groupSize) {
-              // Group 1: Electromagnetic Compression (Pincer Jaw Pulse)
-              const compress = Math.sin(this.waveTime * 3.5) * 35;
+              // Group 1: Electromagnetic Compression (Pincer Jaw Pulse) (speed reduced 15% from 3.5 to 2.975)
+              const compress = Math.sin(this.waveTime * 2.975) * 35;
               const currentGap = obs.gapHeight! - compress;
               obs.targetTopHeight = obs.spawnCenterY! - currentGap / 2;
               obs.targetBottomHeight = height - obs.spawnCenterY! - currentGap / 2;
             } else if (obstacleIdx < groupSize * 2) {
-              // Group 2: Polar Vortex (Opposing Rotational Wave with Out-Of-Phase Vertical Shifting)
+              // Group 2: Polar Vortex (Opposing Rotational Wave with Out-Of-Phase Vertical Shifting) (speed reduced 15%: 3.6->3.06, 2.88->2.448)
               const idx = obstacleIdx - groupSize;
-              // Opposing horizontal movement (speed reduced by 10% from 4.0 to 3.6)
-              const hShift = Math.sin(this.waveTime * 3.6 + idx * 0.8) * 35;
+              const hShift = Math.sin(this.waveTime * 3.06 + idx * 0.8) * 35;
               obs.shakeX = hShift;
               obs.shakeX2 = -hShift;
-              // Out-of-phase vertical path movement (speed reduced by 10% from 3.2 to 2.88)
-              const vShift = Math.cos(this.waveTime * 2.88 + idx * 0.6) * 30;
+              const vShift = Math.cos(this.waveTime * 2.448 + idx * 0.6) * 30;
               obs.targetTopHeight = obs.baseTopHeight! + vShift;
               obs.targetBottomHeight = obs.baseBottomHeight! - vShift;
             } else {
-              // Group 3: Quantum Flux Storm (High-frequency Jitter + Synchronized Vertical Waves)
+              // Group 3: Quantum Flux Storm (High-frequency Jitter + Synchronized Vertical Waves) (speed reduced 15%: 6.8->5.78, 4.25->3.6125)
               const idx = obstacleIdx - groupSize * 2;
-              // Rapid horizontal jitter (speed reduced by 15% from 8.0 to 6.8)
-              obs.shakeX = Math.sin(this.waveTime * 6.8 + idx) * 15;
-              obs.shakeX2 = Math.cos(this.waveTime * 6.8 + idx) * 15;
-              // High frequency vertical synchronized waves (speed reduced by 15% from 5.0 to 4.25)
-              const vJitter = Math.sin(this.waveTime * 4.25 + idx * 1.2) * 35;
+              obs.shakeX = Math.sin(this.waveTime * 5.78 + idx) * 15;
+              obs.shakeX2 = Math.cos(this.waveTime * 5.78 + idx) * 15;
+              const vJitter = Math.sin(this.waveTime * 3.6125 + idx * 1.2) * 35;
               obs.targetTopHeight = obs.baseTopHeight! + vJitter;
               obs.targetBottomHeight = obs.baseBottomHeight! + vJitter;
             }
@@ -858,25 +854,29 @@ export class ObstacleManager {
               if (obstacleIdx < groupSize) {
                 // Group 1: Chrono helix (3D orbital)
                 const angle = this.waveTime * 2.4 + obstacleIdx * 0.5;
-                obs.shakeX = Math.sin(angle) * 22;
-                obs.shakeX2 = Math.cos(angle) * 22;
+                const shakeAmp = this.activeLevelConfig?.levelNum === 30 ? 14.3 : 22; // 35% reduction from 22
+                obs.shakeX = Math.sin(angle) * shakeAmp;
+                obs.shakeX2 = Math.cos(angle) * shakeAmp;
                 obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2;
                 obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2;
               } else if (obstacleIdx < groupSize * 2) {
                 // Group 2: Chrono pincer (vertical close-in)
                 const idx = obstacleIdx - groupSize;
-                const pincer = Math.sin(this.waveTime * 3.0 + idx * 0.4) * 28;
+                const pincerAmp = this.activeLevelConfig?.levelNum === 30 ? 18.2 : 28; // 35% reduction from 28
+                const pincer = Math.sin(this.waveTime * 3.0 + idx * 0.4) * pincerAmp;
                 obs.targetTopHeight = obs.baseTopHeight! + pincer;
                 obs.targetBottomHeight = obs.baseBottomHeight! + pincer;
               } else {
                 // Group 3: Chrono collapse (extreme rotate/shrink maze)
                 const idx = obstacleIdx - groupSize * 2;
                 const angle = this.waveTime * 3.8 + idx * 0.6;
-                obs.shakeX = Math.sin(angle) * 28;
-                obs.shakeX2 = Math.cos(angle) * 28;
+                const shakeAmp = this.activeLevelConfig?.levelNum === 30 ? 18.2 : 28; // 35% reduction from 28
+                obs.shakeX = Math.sin(angle) * shakeAmp;
+                obs.shakeX2 = Math.cos(angle) * shakeAmp;
                 const pulse = Math.pow(Math.sin(this.waveTime * 4.0), 2) * 24;
                 const breathingGap = obs.gapHeight! - pulse;
-                const waveShift = Math.sin(this.waveTime * 3.0 + idx * 0.4) * 20;
+                const shiftAmp = this.activeLevelConfig?.levelNum === 30 ? 13 : 20; // 35% reduction from 20
+                const waveShift = Math.sin(this.waveTime * 3.0 + idx * 0.4) * shiftAmp;
                 const centerY = obs.spawnCenterY! + waveShift;
                 obs.targetTopHeight = centerY - breathingGap / 2;
                 obs.targetBottomHeight = height - centerY - breathingGap / 2;
@@ -1074,7 +1074,7 @@ export class ObstacleManager {
             } else if (levelNum === 25) {
               subPattern = obstacleIdx < groupSize ? 'pendulum_28' : (obstacleIdx < groupSize * 2 ? 'magnetic_27' : 'elevator_26');
             } else if (levelNum === 26) {
-              subPattern = obstacleIdx < groupSize ? 'sliding_29' : (obstacleIdx < groupSize * 2 ? 'wave_10' : 'breathing_12');
+              subPattern = obstacleIdx < groupSize ? 'sliding_29' : (obstacleIdx < groupSize * 2 ? 'wave_10' : 'sliding_29');
             } else if (levelNum === 27) {
               subPattern = obstacleIdx < groupSize ? 'moving_stair_15' : (obstacleIdx < groupSize * 2 ? 'rotating_17' : 'dynamic_w_18');
             } else if (levelNum === 28) {
@@ -1151,7 +1151,7 @@ export class ObstacleManager {
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else if (subPattern === 'magnetic_27') {
               const magnet = Math.sin(this.waveTime * 2.0) * 20;
-              const verticalShift = levelNum === 25 ? Math.sin(this.waveTime * 1.8) * 24 : 0; // Reduced 20% for Level 25 (30 * 0.80 = 24)
+              const verticalShift = levelNum === 25 ? Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.5) * (obs.gapHeight! * 0.35) : 0;
               const centerY = obs.spawnCenterY! + verticalShift;
               obs.targetTopHeight = centerY - (obs.gapHeight! + magnet) / 2;
               obs.targetBottomHeight = height - centerY - (obs.gapHeight! - magnet) / 2;
@@ -1159,8 +1159,10 @@ export class ObstacleManager {
               const angle = Math.sin(this.waveTime * 1.6 + obs.obstacleIdx! * 0.4) * 0.3;
               obs.shakeX = Math.sin(angle) * 25;
               obs.shakeX2 = obs.shakeX;
-              obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2;
+              const verticalShift = levelNum === 25 ? Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.5) * (obs.gapHeight! * 0.35) : 0;
+              const centerY = obs.spawnCenterY! + verticalShift;
+              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else if (subPattern === 'sliding_29') {
               const shift = Math.sin(this.waveTime * 2.0 + (obs.obstacleIdx! % 2) * (Math.PI / 2)) * 30;
               const centerY = obs.spawnCenterY! + shift;
@@ -2121,13 +2123,13 @@ export class ObstacleManager {
         // LEVEL 36: Wormhole Vortex
         if (actualPatternIdx < groupSize) {
           targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 4.5)) * 40;
-          localGapHeight = Math.round(gapHeight * 0.775); // increased to 145px (0.775 * 187 = 145)
+          localGapHeight = Math.round(gapHeight * 0.775 * 0.93); // reduced by 7%
         } else if (actualPatternIdx < groupSize * 2) {
-          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? 35 : -35);
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? 24.5 : -24.5); // shifting/surface alignment offset reduced 30% from 35
           localGapHeight = Math.round(gapHeight * 0.725); // 17% increase (0.62 * 1.17 = 0.7254)
         } else {
           targetCenterY = height / 2 - 40 + (obstacleIdx - 12) * 15;
-          localGapHeight = Math.round(gapHeight * 0.65); // 12% increase (0.58 * 1.12 = 0.6496)
+          localGapHeight = Math.round(gapHeight * 0.65 * 1.12); // increased by 12%
         }
         triggerDistance = 210;
         animDuration = 0.44;
@@ -2135,43 +2137,43 @@ export class ObstacleManager {
         // LEVEL 37: Tectonic Cracks
         if (actualPatternIdx < groupSize) {
           targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -35 : 35);
-          localGapHeight = Math.round(gapHeight * 0.75); // 25% reduce
+          localGapHeight = Math.round(gapHeight * 0.8625); // increased 15% (from 0.75 to 0.8625)
         } else if (actualPatternIdx < groupSize * 2) {
           targetCenterY = height / 2 + Math.sin((obstacleIdx - 6) * 0.9) * 45;
-          localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce
+          localGapHeight = Math.round(gapHeight * 0.7225); // reduced 15% (from 0.85 to 0.7225)
         } else {
           targetCenterY = height / 2;
-          localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce
+          localGapHeight = Math.round(gapHeight * 0.7225); // reduced 15% (from 0.85 to 0.7225)
         }
         triggerDistance = 190;
         animDuration = 0.4;
       } else if (patternType === 'level38_scurve') {
         // LEVEL 38: Magnetic Tempest (Redesigned Storm Layout)
         if (actualPatternIdx < groupSize) {
-          // Group 1: Electromagnetic Compression (Jagged Alternating Layout)
-          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -50 : 50);
+          // Group 1: Electromagnetic Compression (Jagged Alternating Layout) (offset reduced 60% from 50 to 20)
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -20 : 20);
           localGapHeight = Math.round(gapHeight * 0.70); // 30% reduce
         } else if (actualPatternIdx < groupSize * 2) {
           // Group 2: Polar Vortex (Steep Cosine Wave Layout)
           targetCenterY = height / 2 + Math.cos(obstacleIdx * 1.1) * 60;
-          localGapHeight = Math.round(gapHeight * 0.75); // 25% reduce (10% increase from 35%)
+          localGapHeight = Math.round(gapHeight * 0.8625); // increased 15% (from 0.75 to 0.8625)
         } else {
           // Group 3: Quantum Flux Storm (Challenging Step/Staircase Layout)
           targetCenterY = height / 2 - 60 + (obstacleIdx % 6) * 24;
-          localGapHeight = Math.round(gapHeight * 0.70); // 30% reduce (10% increase from 40%)
+          localGapHeight = Math.round(gapHeight * 0.805); // increased 15% (from 0.70 to 0.805)
         }
         triggerDistance = 200;
-        animDuration = 0.42;
+        animDuration = 0.48; // speed reduced 15% (duration increased from 0.42 to 0.48)
       } else if (patternType === 'level39_orbit') {
         // LEVEL 39: Solar Flare
         if (actualPatternIdx < groupSize) {
-          // Group 1: Copy Level 3 (The Gravity Pitfalls) layout (stairs dropping and rising)
-          let shiftVal = 51; // Additional 20% reduction from 64 (64 * 0.8 = 51.2)
+          // Group 1: Copy Level 3 (The Gravity Pitfalls) layout (stairs dropping and rising) (offset reduced 60% from 51 to 20)
+          let shiftVal = 20; // Reduced 60% from 51
           const isExtreme = (obstacleIdx % 3 === 0 || obstacleIdx % 3 === 1);
           
           localGapHeight = Math.round(gapHeight * 0.904); // 13% increase from 0.80 (0.80 * 1.13 = 0.904)
           if (score >= 11 && score <= 15 && isExtreme) {
-            shiftVal = Math.round(51 * 0.70); // 30% reduction in shift displacement (from 51 to 36)
+            shiftVal = Math.round(20 * 0.70); // 30% reduction in shift displacement (from 20 to 14)
             localGapHeight = Math.round(gapHeight * 0.904 * 1.30); // 30% increase relative to Group 1's gap (0.904 * 1.30 = 1.1752)
           }
 
@@ -2191,7 +2193,7 @@ export class ObstacleManager {
           animDuration = 0.44;
         } else {
           targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -24 : 24); // 20% reduction from +/-30
-          localGapHeight = Math.round(gapHeight * 0.70); // 30% reduce
+          localGapHeight = Math.round(gapHeight * 0.84); // 20% increase (from 0.70 to 0.84)
           triggerDistance = 195;
           animDuration = 0.44;
         }
@@ -2205,18 +2207,26 @@ export class ObstacleManager {
           animDuration = 0.32;
         } else {
           if (actualPatternIdx < groupSize) {
-            // Ascending staircase layout: center rises by 20px per step
-            targetCenterY = height / 2 + 50 - obstacleIdx * 20;
+            // Ascending staircase layout: center rises by 20px per step (for playable Level 30, reduce by 35%: 50 -> 32.5, 20 -> 13)
+            const baseShift = levelNumPlayable === 30 ? 32.5 : 50;
+            const stepShift = levelNumPlayable === 30 ? 13 : 20;
+            targetCenterY = height / 2 + baseShift - obstacleIdx * stepShift;
             localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce
             triggerDistance = 210; // Extra reaction time for split motion
             animDuration = 0.40;   // Smooth split duration
           } else if (actualPatternIdx < groupSize * 2) {
-            targetCenterY = height / 2 + 50 - (obstacleIdx - 6) * 20 + Math.sin((obstacleIdx - 6) * 0.8) * 15;
-            localGapHeight = Math.round(gapHeight * 0.75); // 25% reduce
+            const baseShift = levelNumPlayable === 30 ? 32.5 : 50;
+            const stepShift = levelNumPlayable === 30 ? 13 : 20;
+            const sineAmp = levelNumPlayable === 30 ? 9.75 : 15;
+            targetCenterY = height / 2 + baseShift - (obstacleIdx - 6) * stepShift + Math.sin((obstacleIdx - 6) * 0.8) * sineAmp;
+            localGapHeight = Math.round(gapHeight * 0.615); // reduced 18% (from 0.75 to 0.615)
             triggerDistance = 175;
             animDuration = 0.32;
           } else {
-            targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -35 : 35) + Math.cos((obstacleIdx - 12) * 1.2) * 15;
+            // For playable Level 30, reduce offset (65 -> 42.25) and wobble (30 -> 19.5) by 35%
+            const offset = levelNumPlayable === 30 ? 42.25 : 65;
+            const wobble = levelNumPlayable === 30 ? 19.5 : 30;
+            targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -offset : offset) + Math.cos((obstacleIdx - 12) * 1.2) * wobble;
             localGapHeight = Math.round(gapHeight * 0.65); // 35% reduce
             triggerDistance = 175;
             animDuration = 0.32;
@@ -2331,17 +2341,21 @@ export class ObstacleManager {
         subPattern = 'wave_10';
         if (levelNum === 21) {
           subPattern = actualPatternIdx < groupSize ? 'wave_10' : (actualPatternIdx < groupSize * 2 ? 'breathing_12' : 'moving_stair_15');
-          if (actualPatternIdx < groupSize || actualPatternIdx >= groupSize * 2) {
-            localGapHeight = Math.round(localGapHeight * 0.94185); // 17% increase (0.805 * 1.17 = 0.94185)
+          if (actualPatternIdx < groupSize) {
+            localGapHeight = Math.round(localGapHeight * 0.94185 * 0.80); // reduced 20% (from 0.94185 to 0.75348)
+          } else if (actualPatternIdx < groupSize * 2) {
+            localGapHeight = Math.round(localGapHeight * 0.805 * 0.75); // reduced 25% (from 0.805 to 0.60375)
           } else {
-            localGapHeight = Math.round(localGapHeight * 0.805); // Middle group remains 0.805
+            localGapHeight = Math.round(localGapHeight * 0.94185); // Group 3 remains at original scale
           }
         } else if (levelNum === 22) {
           subPattern = actualPatternIdx < groupSize ? 'rotating_17' : (actualPatternIdx < groupSize * 2 ? 'dynamic_w_18' : 'exp_shrink_19');
-          if (actualPatternIdx >= groupSize && actualPatternIdx < groupSize * 2) {
-            localGapHeight = Math.round(localGapHeight * 0.859625); // 15% increase (0.7475 * 1.15 = 0.859625)
+          if (actualPatternIdx < groupSize) {
+            localGapHeight = Math.round(localGapHeight * 0.7475); // Group 1 remains 0.7475
+          } else if (actualPatternIdx < groupSize * 2) {
+            localGapHeight = Math.round(localGapHeight * 0.859625); // Group 2 remains 0.859625
           } else {
-            localGapHeight = Math.round(localGapHeight * 0.7475); // Group 1 & 3 remain 0.7475
+            localGapHeight = Math.round(localGapHeight * 0.7475 * 0.70); // Group 3 reduced 30% (from 0.7475 to 0.52325)
           }
         } else if (levelNum === 23) {
           subPattern = actualPatternIdx < groupSize ? 'hybrid_20' : (actualPatternIdx < groupSize * 2 ? 'snake_21' : 'pulse_22');
@@ -2356,7 +2370,7 @@ export class ObstacleManager {
         } else if (levelNum === 25) {
           subPattern = actualPatternIdx < groupSize ? 'pendulum_28' : (actualPatternIdx < groupSize * 2 ? 'magnetic_27' : 'elevator_26'); // Swapped first and last group
         } else if (levelNum === 26) {
-          subPattern = actualPatternIdx < groupSize ? 'sliding_29' : (actualPatternIdx < groupSize * 2 ? 'wave_10' : 'breathing_12');
+          subPattern = actualPatternIdx < groupSize ? 'sliding_29' : (actualPatternIdx < groupSize * 2 ? 'wave_10' : 'sliding_29'); // Group 1 restored to sliding_29, removing breathing_12
         } else if (levelNum === 27) {
           subPattern = actualPatternIdx < groupSize ? 'moving_stair_15' : (actualPatternIdx < groupSize * 2 ? 'rotating_17' : 'dynamic_w_18');
         } else if (levelNum === 28) {
@@ -2403,7 +2417,10 @@ export class ObstacleManager {
           targetCenterY = height / 2 + 20;
         } else if (subPattern === 'sliding_29') {
           const offsets = [-50, 0, 50, 0];
-          targetCenterY = height / 2 + offsets[actualPatternIdx % offsets.length];
+          const isLevel36Group3 = (levelNum === 26 && actualPatternIdx >= groupSize * 2);
+          // Wavy staircase offsets for Level 36 Group 3 to make it different and challenging
+          const level36Offset = Math.sin(actualPatternIdx * 1.15) * 65;
+          targetCenterY = height / 2 + (isLevel36Group3 ? level36Offset : offsets[actualPatternIdx % offsets.length]);
         }
         
         triggerDistance = 210;
@@ -2455,6 +2472,18 @@ export class ObstacleManager {
 
         if (levelNum === 25 && subPattern === 'elevator_26') {
           localGapHeight = Math.round(localGapHeight * 0.92); // 15% increase for Level 25 Group 3 (0.80 * 1.15 = 0.92)
+        } else if (levelNum === 25 && subPattern === 'pendulum_28') {
+          localGapHeight = Math.round(localGapHeight * 0.75 * 0.90); // Group 1 reduced 10% (net 0.675)
+        } else if (levelNum === 25 && subPattern === 'magnetic_27') {
+          localGapHeight = Math.round(localGapHeight * 0.80 * 0.90); // Group 2 reduced 10% (net 0.72)
+        } else if (levelNum === 26 && subPattern === 'sliding_29' && actualPatternIdx >= groupSize * 2) {
+          localGapHeight = Math.round(localGapHeight * 0.78 * 1.20); // Group 3 (last group) increased by 20% (net 0.936)
+        } else if (levelNum === 26 && subPattern === 'sliding_29' && actualPatternIdx < groupSize) {
+          localGapHeight = Math.round(localGapHeight * 1.15); // Group 1 increased by 15%
+        } else if (levelNum === 27 && actualPatternIdx < groupSize) {
+          localGapHeight = Math.round(localGapHeight * 0.80 * 1.15); // Level 38 Group 1 increased by 15%
+        } else if (levelNum === 27 && actualPatternIdx >= groupSize * 2) {
+          localGapHeight = Math.round(localGapHeight * 0.80 * 1.15); // Level 38 Group 3 increased by 15%
         } else if (isVertical) {
           localGapHeight = Math.round(localGapHeight * 0.80); // 20% reduce
         } else if (isHorizontal) {
@@ -2560,12 +2589,11 @@ export class ObstacleManager {
       let hasEnergyBall = false;
       let initEnergyBallY: number | undefined = undefined;
       let initEnergyBallSpeedY: number | undefined = undefined;
-
-      if (levelNum !== undefined && levelNum >= 40 && levelNum <= 50 && levelNum !== 3) {
-        if (levelNum === 50) {
+      if (levelNumPlayable !== undefined && levelNumPlayable >= 40 && levelNumPlayable <= 50 && levelNumPlayable !== 3) {
+        if (levelNumPlayable === 50) {
           // Level 50: 25% increase in energy ball frequency (~28.57% rate instead of ~23% rate)
           hasEnergyBall = (actualPatternIdx % 7 === 0 || actualPatternIdx % 7 === 3);
-        } else if (levelNum >= 45) {
+        } else if (levelNumPlayable >= 45) {
           // Reduced by an additional 40% (down from 30% rate to ~18% rate, using modulo 11)
           hasEnergyBall = (actualPatternIdx % 11 === 0 || actualPatternIdx % 11 === 5);
         } else {

@@ -848,6 +848,44 @@ export class GameEngine {
     return true;
   }
 
+  public attemptReviveFree(): void {
+    this.revivesUsedThisRun++;
+    this.hasRevivedThisRun = false; // Unlimited revives!
+    this.bird.isCrashing = false;
+    this.bird.isInvincible = true;
+    this.bird.vy = -4.5; // slight upwards jump impulse to resume
+    this.bird.hasShield = true;
+
+    // Add shield powerup
+    this.activePowerupsList['shield'] = {
+      type: 'shield',
+      durationLeft: 3.5,
+      maxDuration: 3.5
+    };
+
+    // Invincibility timeout for 3.5 seconds
+    setTimeout(() => {
+      if (this.state === 'PLAYING' || this.state === 'BOSS_FIGHT' || this.state === 'BOSS_WARNING') {
+        this.bird.isInvincible = false;
+      }
+    }, 3500);
+
+    // Sparkles and deflect sound effect
+    this.particleEngine.emitRing(this.bird.x, this.bird.y, '#ffd700', 30);
+    this.particleEngine.emitExplosion(this.bird.x, this.bird.y, '#00ffcc', 25);
+    this.soundManager.playShieldDeflect();
+
+    // Resume gameplay state
+    this.state = this.preReviveState;
+    this.soundManager.startMusic(this.progressManager.getState().activeWorld);
+
+    // Save progression
+    this.progressManager.save();
+
+    // Dispatch event
+    window.dispatchEvent(new CustomEvent('game_revived'));
+  }
+
   // private transitionToNextWorld() {
   //   const worlds = ['jungle', 'cyberpunk', 'ice', 'desert', 'volcano', 'space', 'underwater', 'heaven'];
   //   const currentIdx = worlds.indexOf(this.progressManager.getState().activeWorld);

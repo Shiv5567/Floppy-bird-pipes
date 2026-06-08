@@ -242,10 +242,13 @@ export class LevelManager {
       [25, 35],
       [26, 36],
       [27, 38],
-      [28, 39],
+      [28, 29],
       [29, 37],
+      [37, 39],
       [30, 40],
-      [25, 40]
+      [25, 40],
+      [30, 50],
+      [30, 46]
     ];
     for (const [a, b] of swapPairs) {
       const idxA = this.levels.findIndex(l => l.levelNum === a);

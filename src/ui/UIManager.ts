@@ -2,6 +2,7 @@ import { GameEngine } from '../engine/GameEngine.ts';
 import type { GameState } from '../engine/GameEngine.ts';
 import type { Skin, BattlePassTier, Achievement } from '../systems/ProgressManager.ts';
 import { LevelManager } from '../systems/LevelManager.ts';
+import { AdManager } from '../systems/AdManager.ts';
 
 export class UIManager {
   private engine: GameEngine;
@@ -51,6 +52,9 @@ export class UIManager {
         this.activeTab = 'main';
       }
       this.render();
+      
+      // Trigger interstitial ad when Game Over screen shows up
+      AdManager.triggerInterstitial();
     });
 
     window.addEventListener('level_complete_state', () => {
@@ -88,6 +92,13 @@ export class UIManager {
 
   public render() {
     const state = this.engine.state;
+
+    // Show banner ad in Menu and Game Over screens, hide elsewhere
+    if (state === 'MENU' || state === 'GAMEOVER') {
+      AdManager.showBanner();
+    } else {
+      AdManager.hideBanner();
+    }
     
     // In-place HUD updates to completely bypass innerHTML DOM thrashing when playing!
     if ((state === 'PLAYING' || state === 'BOSS_FIGHT' || state === 'BOSS_WARNING') && document.getElementById('hud-score')) {
@@ -127,6 +138,9 @@ export class UIManager {
     } else if (state as any === 'LEVEL_COMPLETE') {
       this.renderLevelComplete();
     }
+
+    // Sync ad button states dynamically
+    AdManager.updateAdButtonsDOM();
   }
 
   private updateHUDValues() {
@@ -494,11 +508,13 @@ export class UIManager {
             </div>
           </div>
           <div class="top-bar-currencies">
-            <div class="top-bar-coin">
+            <div class="top-bar-coin" style="position: relative;">
               <span class="top-bar-coin-icon">🪙</span>${progress.coins.toLocaleString()}
+              <button class="top-bar-add-btn" id="btn-plus-coins" title="Watch ad for +500 Coins">+</button>
             </div>
-            <div class="top-bar-gem">
+            <div class="top-bar-gem" style="position: relative;">
               <span class="top-bar-gem-icon">💎</span>${progress.gems.toLocaleString()}
+              <button class="top-bar-add-btn" id="btn-plus-gems" title="Watch ad for +10 Gems">+</button>
             </div>
             <button class="top-bar-settings-btn" id="btn-open-settings" style="background: none; border: none; font-size: 20px; cursor: pointer; color: white; margin-left: 8px; display: flex; align-items: center; justify-content: center;">⚙️</button>
           </div>
@@ -928,6 +944,21 @@ export class UIManager {
               <div class="hangar-section-title">⚔️ DAILY CHALLENGES</div>
               <div class="quests-list">
                 ${questsHtml}
+                
+                <!-- WATCH AD FOR EXTRA COINS & GEMS -->
+                <div class="quest-card" style="margin-top: 15px; background: rgba(255, 170, 0, 0.08); border: 1px solid rgba(255, 170, 0, 0.2);">
+                  <div class="quest-details">
+                    <div class="quest-name-row">
+                      <span class="quest-name">🎞️ FREE COINS & GEMS</span>
+                    </div>
+                    <div class="quest-desc">Watch an ad to get 500 Coins & 10 Gems instantly!</div>
+                  </div>
+                  <div style="display: flex; align-items: center; justify-content: flex-end;">
+                    <button class="btn-quest-claim" id="btn-extra-rewards" style="background: linear-gradient(135deg, #ffaa00, #ff7700); border: none; font-size: 10px; font-weight: 800; padding: 6px 12px; border-radius: 8px; cursor: pointer; color: white;">
+                      CLAIM 🎁
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           `;
@@ -1419,6 +1450,60 @@ export class UIManager {
         }
       });
     });
+
+    // Currency Plus Ad Buttons
+    const btnPlusCoins = document.getElementById('btn-plus-coins');
+    if (btnPlusCoins) {
+      btnPlusCoins.addEventListener('click', (e) => {
+        e.stopPropagation();
+        AdManager.showEconomyRewarded((success) => {
+          if (success) {
+            this.engine.progressManager.addCoins(500);
+            this.engine.progressManager.save();
+            this.render();
+            this.showToastNotification('COINS CLAIMED! 🪙', 'You received 500 Coins!');
+          } else {
+            this.showToastNotification('AD FAILED', 'Failed to play or watch ad.');
+          }
+        });
+      });
+    }
+
+    const btnPlusGems = document.getElementById('btn-plus-gems');
+    if (btnPlusGems) {
+      btnPlusGems.addEventListener('click', (e) => {
+        e.stopPropagation();
+        AdManager.showEconomyRewarded((success) => {
+          if (success) {
+            this.engine.progressManager.addGems(10);
+            this.engine.progressManager.save();
+            this.render();
+            this.showToastNotification('GEMS CLAIMED! 💎', 'You received 10 Gems!');
+          } else {
+            this.showToastNotification('AD FAILED', 'Failed to play or watch ad.');
+          }
+        });
+      });
+    }
+
+    // Extra Rewards Ad Button
+    const btnExtraRewards = document.getElementById('btn-extra-rewards');
+    if (btnExtraRewards) {
+      btnExtraRewards.addEventListener('click', (e) => {
+        e.stopPropagation();
+        AdManager.showEconomyRewarded((success) => {
+          if (success) {
+            this.engine.progressManager.addCoins(500);
+            this.engine.progressManager.addGems(10);
+            this.engine.progressManager.save();
+            this.render();
+            this.showToastNotification('REWARD CLAIMED! 🎁', 'You received 500 Coins & 10 Gems!');
+          } else {
+            this.showToastNotification('AD FAILED', 'Failed to play or watch ad.');
+          }
+        });
+      });
+    }
   }
 
   private renderHUD() {
@@ -1666,11 +1751,13 @@ export class UIManager {
     });
 
     document.getElementById('btn-restart-paused')?.addEventListener('click', () => {
+      AdManager.onTransitionPoint();
       this.engine.startGame();
       this.render();
     });
 
     document.getElementById('btn-quit')?.addEventListener('click', () => {
+      AdManager.onTransitionPoint();
       this.engine.state = 'MENU';
       this.engine.soundManager.stopMusic();
       if (this.engine.gameMode === 'level') {
@@ -1722,11 +1809,13 @@ export class UIManager {
     this.container.innerHTML = goHTML;
 
     document.getElementById('btn-retry')?.addEventListener('click', () => {
+      AdManager.onTransitionPoint();
       this.engine.startGame();
       this.render();
     });
 
     document.getElementById('btn-hangar')?.addEventListener('click', () => {
+      AdManager.onTransitionPoint();
       this.engine.state = 'MENU';
       if (this.engine.gameMode === 'level') {
         this.activeTab = 'levels';
@@ -1771,6 +1860,11 @@ export class UIManager {
               <span>REVIVE NOW</span>
               <strong class="gems-cost">💎 5</strong>
             </button>
+            
+            <button class="btn btn-secondary btn-revive-ad" id="btn-ad-revive" style="margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(180deg, #ffaa00 0%, #cc7700 100%); border: 2px solid #ffd700; width: 100%; box-shadow: 0 0 10px rgba(255,170,0,0.3); font-weight: bold; color: white;">
+              <span>🎞️ WATCH AD TO REVIVE</span>
+            </button>
+            
             <button class="btn-skip-revive" id="btn-skip-revive">NO THANKS (SKIP)</button>
           </div>
         </div>
@@ -1784,6 +1878,17 @@ export class UIManager {
         this.engine.attemptRevive();
         this.render();
       }
+    });
+
+    document.getElementById('btn-ad-revive')?.addEventListener('click', () => {
+      AdManager.showReviveRewarded((success) => {
+        if (success) {
+          this.engine.attemptReviveFree();
+          this.render();
+        } else {
+          alert("Ad failed to load or play. Please try again or use diamonds.");
+        }
+      });
     });
 
     document.getElementById('btn-skip-revive')?.addEventListener('click', () => {

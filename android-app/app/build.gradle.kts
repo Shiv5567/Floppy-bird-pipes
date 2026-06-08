@@ -14,6 +14,8 @@ android {
         versionName = "1.0"
     }
 
+    layout.buildDirectory.set(file("C:/Users/Admin/.gemini/antigravity-ide/scratch/build-app"))
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -41,6 +43,12 @@ dependencies {
   implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.activity.compose)
+
+  // Google AdMob Ads SDK
+  implementation("com.google.android.gms:play-services-ads:23.0.0")
+
+  // Unity Ads SDK
+  implementation("com.unity3d.ads:unity-ads:4.12.2")
 
   // Local tests
   testImplementation(libs.junit)

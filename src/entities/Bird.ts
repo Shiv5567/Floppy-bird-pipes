@@ -217,6 +217,16 @@ export class Bird {
         particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -1 - Math.random() * 1.5, (Math.random() - 0.5) * 1.5, '#00e676', 3 + Math.random() * 2, 0.9, 0.02, 'spark', true, 'rgba(27, 94, 32, 0.5)');
         break;
 
+      case 'angry_fire':
+        particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -1.5 - Math.random() * 2, (Math.random() - 0.5) * 1.8, 'rgba(255, 20, 0, 0.95)', 3.5 + Math.random() * 4, 1.0, 0.03, 'circle', true, 'rgba(255, 80, 0, 0.9)', -0.05);
+        particleEngine.spawn(offsetBackX, offsetBackY, -0.8 - Math.random() * 1.2, (Math.random() - 0.5) * 1.2, 'rgba(255, 160, 0, 0.9)', 2.5 + Math.random() * 3, 1.0, 0.04, 'circle', true, '#ff3300');
+        break;
+
+      case 'blizzard_crystal':
+        particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -0.6 - Math.random() * 1.2, (Math.random() - 0.5) * 1.5, 'rgba(140, 210, 255, 0.9)', 4 + Math.random() * 3, 0.95, 0.02, 'snowflake', true, 'rgba(80, 180, 255, 0.6)');
+        particleEngine.spawn(offsetBackX + rx * 0.5, offsetBackY + ry * 0.5, -0.4 - Math.random() * 0.8, (Math.random() - 0.5) * 1, 'rgba(220, 240, 255, 0.85)', 3 + Math.random() * 2, 0.9, 0.025, 'star', true, 'rgba(160, 220, 255, 0.5)');
+        break;
+
       default:
         particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -1 - Math.random() * 1, (Math.random() - 0.5) * 0.5, 'rgba(255, 255, 255, 0.4)', 2, 0.8, 0.03, 'circle');
     }
@@ -317,6 +327,12 @@ export class Bird {
       case 'legendary_eagle_king':
         this.drawLegendaryEagleKing(ctx);
         break;
+      case 'angry_red':
+        this.drawAngryBird(ctx);
+        break;
+      case 'articuno':
+        this.drawArticuno(ctx);
+        break;
       default:
         this.drawEagle(ctx); // Default Eagle
     }
@@ -390,6 +406,12 @@ export class Bird {
         break;
       case 'legendary_eagle_king':
         this.drawLegendaryEagleKing(ctx);
+        break;
+      case 'angry_red':
+        this.drawAngryBird(ctx);
+        break;
+      case 'articuno':
+        this.drawArticuno(ctx);
         break;
       default:
         this.drawEagle(ctx);
@@ -675,6 +697,79 @@ export class Bird {
           ctx.fill();
         }
 
+        ctx.restore();
+        break;
+      }
+      case 'angry_red': {
+        // Pulsating fiery rage aura with spinning fury embers
+        ctx.strokeStyle = '#ff1a00';
+        ctx.save();
+        ctx.rotate(this.auraAngle * 1.6);
+        
+        // Outer fury ring
+        ctx.lineWidth = 2.0;
+        ctx.setLineDash([6, 10]);
+        ctx.beginPath();
+        ctx.arc(0, 0, baseRadius * 1.3, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Inner rage pulse ring
+        ctx.strokeStyle = '#ff6600';
+        ctx.setLineDash([4, 8]);
+        ctx.beginPath();
+        ctx.arc(0, 0, baseRadius * 1.15, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Spinning fury embers (6 embers around the bird)
+        ctx.fillStyle = '#ff4400';
+        for (let i = 0; i < 6; i++) {
+          const angle = this.auraAngle * 2.0 + (i * Math.PI) / 3;
+          const dist = baseRadius * 1.22;
+          ctx.beginPath();
+          ctx.arc(Math.cos(angle) * dist, Math.sin(angle) * dist, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+        break;
+      }
+      case 'articuno': {
+        // Rotating glacial aurora aura with ice crystal orbits
+        ctx.strokeStyle = '#50b4ff';
+        ctx.save();
+        ctx.rotate(-this.auraAngle * 1.2);
+        
+        // Outer frost aurora ring
+        ctx.lineWidth = 1.8;
+        ctx.setLineDash([8, 10]);
+        ctx.beginPath();
+        ctx.arc(0, 0, baseRadius * 1.35, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Inner shimmering ice ring
+        ctx.strokeStyle = '#a0dcff';
+        ctx.setLineDash([3, 7]);
+        ctx.beginPath();
+        ctx.arc(0, 0, baseRadius * 1.12, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // 5 orbiting ice crystals
+        ctx.fillStyle = '#c8eaff';
+        for (let i = 0; i < 5; i++) {
+          const angle = this.auraAngle * 1.8 + (i * Math.PI * 2) / 5;
+          const dist = baseRadius * 1.28;
+          ctx.save();
+          ctx.translate(Math.cos(angle) * dist, Math.sin(angle) * dist);
+          ctx.rotate(angle * 2);
+          // Diamond shape crystal
+          ctx.beginPath();
+          ctx.moveTo(0, -3);
+          ctx.lineTo(2, 0);
+          ctx.lineTo(0, 3);
+          ctx.lineTo(-2, 0);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
         ctx.restore();
         break;
       }
@@ -3257,6 +3352,637 @@ export class Bird {
     ctx.bezierCurveTo(4, -18, -12, -12, -14, 2);
     ctx.bezierCurveTo(-8, 8, 2, 6, 12, -4);
     ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  // ===== FURIOUS RED (Angry Bird-style) =====
+  private drawAngryBird(ctx: CanvasRenderingContext2D) {
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 14;
+      ctx.shadowColor = 'rgba(255, 30, 0, 0.85)';
+    }
+
+    // 2.5D Face shift offset for dynamic parallax expression
+    const faceX = Math.cos(this.angle) * 1.8;
+    const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.18;
+
+    // --- 1. TAIL FEATHERS (drawn behind the body) ---
+    ctx.save();
+    ctx.translate(-14, -4);
+    const tailFlap = Math.sin(this.flapCycle * 0.8) * 0.15;
+    ctx.rotate(tailFlap);
+
+    // Two black tail feathers
+    ctx.fillStyle = '#1a1a1a';
+    ctx.strokeStyle = '#0d0d0d';
+    ctx.lineWidth = 0.8;
+
+    // Left tail feather
+    ctx.beginPath();
+    ctx.moveTo(0, -2);
+    ctx.quadraticCurveTo(-12, -8, -16, -5);
+    ctx.quadraticCurveTo(-10, -2, 0, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Right tail feather
+    ctx.beginPath();
+    ctx.moveTo(0, 2);
+    ctx.quadraticCurveTo(-12, 8, -16, 5);
+    ctx.quadraticCurveTo(-10, 2, 0, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore();
+
+    // --- 2. MAIN ROUND RED BODY ---
+    const bodyGrad = ctx.createRadialGradient(-2, -4, 3, 0, 0, 18);
+    bodyGrad.addColorStop(0, '#ff4444');   // Bright red highlight
+    bodyGrad.addColorStop(0.4, '#e81200'); // Classic Angry Bird red
+    bodyGrad.addColorStop(0.8, '#cc0000'); // Deeper red
+    bodyGrad.addColorStop(1, '#8b0000');   // Dark red edge
+
+    ctx.fillStyle = bodyGrad;
+    ctx.strokeStyle = '#660000';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(0, 0, 17, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // --- 3. BELLY PATCH (cream/beige underbelly) ---
+    const bellyGrad = ctx.createRadialGradient(2 + faceX * 0.3, 6 + faceY * 0.3, 1, 2, 6, 10);
+    bellyGrad.addColorStop(0, '#ffe8cc');  // Light cream center
+    bellyGrad.addColorStop(0.6, '#f5d0a9'); // Warm beige
+    bellyGrad.addColorStop(1, '#cc4400');   // Blends into red body
+
+    ctx.fillStyle = bellyGrad;
+    ctx.beginPath();
+    ctx.ellipse(2 + faceX * 0.3, 6 + faceY * 0.3, 9, 7, 0.1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // --- 4. HEAD FEATHER CREST (two red feathers on top) ---
+    ctx.save();
+    ctx.translate(faceX * 0.5, faceY * 0.5);
+
+    // Left crest feather
+    ctx.fillStyle = '#cc0000';
+    ctx.strokeStyle = '#880000';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(-3, -15);
+    ctx.quadraticCurveTo(-6, -24, -2, -22);
+    ctx.quadraticCurveTo(0, -20, -1, -15);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Right crest feather
+    ctx.beginPath();
+    ctx.moveTo(1, -15);
+    ctx.quadraticCurveTo(4, -25, 6, -21);
+    ctx.quadraticCurveTo(5, -18, 3, -15);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore();
+
+    // --- 5. ANGRY EYEBROWS (thick, dark, V-shaped) ---
+    ctx.save();
+    ctx.translate(faceX, faceY);
+
+    ctx.fillStyle = '#1a1a1a';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 0.6;
+
+    // Left eyebrow (angled down towards center = angry)
+    ctx.beginPath();
+    ctx.moveTo(-11, -9);
+    ctx.lineTo(-3, -6);
+    ctx.lineTo(-2, -8);
+    ctx.lineTo(-10, -12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Right eyebrow (angled down towards center = angry)
+    ctx.beginPath();
+    ctx.moveTo(13, -9);
+    ctx.lineTo(5, -6);
+    ctx.lineTo(4, -8);
+    ctx.lineTo(12, -12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // --- 6. EYES (large, white, with angry pupils) ---
+    // Left eye white
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#333333';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.ellipse(-5, -4, 5, 5.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Right eye white
+    ctx.beginPath();
+    ctx.ellipse(7, -4, 5, 5.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Left pupil (slightly looking forward-right)
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.arc(-3.5, -3.5, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Right pupil
+    ctx.beginPath();
+    ctx.arc(8.5, -3.5, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eye highlights (white glint)
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(-4.5, -5, 1.0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(7.5, -5, 1.0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // --- 7. BEAK (prominent, yellow-orange, pointing right) ---
+    const beakGrad = ctx.createLinearGradient(4, -2, 20, 2);
+    beakGrad.addColorStop(0, '#ffcc00'); // Bright yellow
+    beakGrad.addColorStop(0.5, '#ff9900'); // Orange
+    beakGrad.addColorStop(1, '#ff6600'); // Deep orange tip
+
+    ctx.fillStyle = beakGrad;
+    ctx.strokeStyle = '#cc5500';
+    ctx.lineWidth = 1.0;
+
+    // Upper beak
+    ctx.beginPath();
+    ctx.moveTo(6, -2);
+    ctx.quadraticCurveTo(18, -4, 22, 0);
+    ctx.lineTo(6, 1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Lower beak (slightly open for angry expression)
+    ctx.fillStyle = '#ff8800';
+    ctx.beginPath();
+    ctx.moveTo(6, 1);
+    ctx.quadraticCurveTo(16, 5, 20, 2);
+    ctx.lineTo(22, 0);
+    ctx.lineTo(6, 1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Beak mouth line
+    ctx.strokeStyle = '#993300';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(6, 0.5);
+    ctx.lineTo(21, 0.5);
+    ctx.stroke();
+
+    ctx.restore();
+
+    // --- 8. ANIMATED FLAPPING WINGS ---
+    ctx.save();
+    ctx.translate(-8, 2);
+
+    const baseFlapAngle = Math.sin(this.flapCycle) * 0.6;
+    ctx.rotate(baseFlapAngle);
+
+    // Inner wing
+    const innerWingGrad = ctx.createLinearGradient(5, -3, -28, 5);
+    innerWingGrad.addColorStop(0, '#e81200');
+    innerWingGrad.addColorStop(1, '#8b0000');
+    ctx.fillStyle = innerWingGrad;
+    ctx.strokeStyle = '#660000';
+    ctx.lineWidth = 1.0;
+
+    ctx.beginPath();
+    ctx.moveTo(5, -2);
+    ctx.bezierCurveTo(-4, -18, -22, -16, -28, 0);
+    ctx.bezierCurveTo(-22, 10, -8, 8, 5, -2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // 4 Primary feather tips with wave propagation
+    const featherReds = ['#cc0000', '#b30000', '#990000', '#800000'];
+    for (let j = 0; j < 4; j++) {
+      ctx.save();
+      ctx.translate(-20, -6);
+
+      const primaryAngle = Math.sin(this.flapCycle - j * 0.15) * 0.2;
+      ctx.rotate(primaryAngle);
+
+      const len = 28 + (3 - j) * 3;
+      const w = 5.5;
+
+      ctx.fillStyle = featherReds[j];
+      ctx.strokeStyle = '#4d0000';
+      ctx.lineWidth = 0.8;
+
+      ctx.beginPath();
+      ctx.moveTo(0, -w / 2);
+      ctx.quadraticCurveTo(-len * 0.4, -w * 1.3, -len, 0);
+      ctx.quadraticCurveTo(-len * 0.4, w * 1.3, 0, w / 2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    // Wing shoulder joint cover
+    const shoulderGrad = ctx.createRadialGradient(6, -2, 1, 6, -2, 8);
+    shoulderGrad.addColorStop(0, '#ff3300');
+    shoulderGrad.addColorStop(1, '#cc0000');
+    ctx.fillStyle = shoulderGrad;
+    ctx.strokeStyle = '#660000';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.arc(6, -2, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  // ===== ARTICUNO (Legendary Ice Bird) =====
+  private drawArticuno(ctx: CanvasRenderingContext2D) {
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 16;
+      ctx.shadowColor = 'rgba(100, 200, 255, 0.8)';
+    }
+
+    // 2.5D Face shift offset
+    const faceX = Math.cos(this.angle) * 1.8;
+    const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.18;
+
+    // --- 1. FLOWING INDIGO TAIL RIBBON (drawn behind body) ---
+    ctx.save();
+    ctx.translate(-14, 2);
+    const tailWave = Math.sin(this.flapCycle * 0.4) * 0.15;
+    ctx.rotate(tailWave);
+
+    const tailGrad = ctx.createLinearGradient(0, 0, -50, 15);
+    tailGrad.addColorStop(0, '#1a237e'); // Dark indigo base
+    tailGrad.addColorStop(0.5, '#0d47a1'); // Deep blue
+    tailGrad.addColorStop(1, '#051937'); // Darkest blue edge
+    ctx.fillStyle = tailGrad;
+    ctx.strokeStyle = '#051937';
+    ctx.lineWidth = 0.8;
+
+    ctx.beginPath();
+    ctx.moveTo(0, -2);
+    ctx.bezierCurveTo(-15, -6, -35, 12, -45, 16); // curve down-back
+    ctx.bezierCurveTo(-55, 18, -60, 5, -55, -5);  // loop up
+    ctx.bezierCurveTo(-45, -20, -75, -25, -95, -15); // stretch back
+    
+    // Split tail tips
+    ctx.lineTo(-100, -22); // upper tip
+    ctx.lineTo(-92, -13);
+    ctx.lineTo(-98, -5);  // lower tip
+    
+    ctx.bezierCurveTo(-75, -15, -48, -10, -50, 0);
+    ctx.bezierCurveTo(-52, 10, -45, 12, -38, 10);
+    ctx.bezierCurveTo(-28, 8, -12, -2, 0, 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // --- 2. MAIN ROUND BLUE BODY ---
+    const bodyGrad = ctx.createRadialGradient(-2, -3, 3, 0, 0, 17);
+    bodyGrad.addColorStop(0, '#80d8ff');   // Highlight sky blue
+    bodyGrad.addColorStop(0.4, '#29b6f6'); // Rich blue
+    bodyGrad.addColorStop(1, '#0288d1');    // Deep blue edge
+
+    ctx.fillStyle = bodyGrad;
+    ctx.strokeStyle = '#094275';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(0, 0, 17, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // --- 3. FLUFFY WHITE CHEST PLUMAGE ---
+    const chestGrad = ctx.createRadialGradient(2 + faceX * 0.4, 5 + faceY * 0.4, 2, 2 + faceX * 0.4, 5 + faceY * 0.4, 12);
+    chestGrad.addColorStop(0, '#ffffff');    // Pure white center
+    chestGrad.addColorStop(0.7, '#f0f8ff');  // Alice blue
+    chestGrad.addColorStop(1, '#bbdefb');    // Soft light blue edge
+
+    ctx.fillStyle = chestGrad;
+    ctx.beginPath();
+    ctx.arc(-4 + faceX * 0.4, 4 + faceY * 0.4, 7, 0, Math.PI * 2);
+    ctx.arc(6 + faceX * 0.4, 4 + faceY * 0.4, 7, 0, Math.PI * 2);
+    ctx.arc(1 + faceX * 0.4, 8 + faceY * 0.4, 8, 0, Math.PI * 2);
+    ctx.arc(1 + faceX * 0.4, 12 + faceY * 0.4, 5, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.fill();
+
+    // Feathered chest texture lines
+    ctx.strokeStyle = 'rgba(144, 202, 249, 0.4)';
+    ctx.lineWidth = 0.6;
+    for (let i = 0; i < 3; i++) {
+      const cy = 3 + i * 3.5 + faceY * 0.4;
+      ctx.beginPath();
+      ctx.moveTo(-5 + faceX * 0.4, cy);
+      ctx.quadraticCurveTo(1 + faceX * 0.4, cy + 1.5, 7 + faceX * 0.4, cy);
+      ctx.stroke();
+    }
+
+    // --- 4. THREE-POINTED DARK BLUE CREST ---
+    ctx.save();
+    ctx.translate(faceX * 0.5, faceY * 0.5);
+
+    const crestGrad = ctx.createLinearGradient(0, -15, 0, -32);
+    crestGrad.addColorStop(0, '#1565c0');
+    crestGrad.addColorStop(0.5, '#0d47a1');
+    crestGrad.addColorStop(1, '#1a237e');
+    ctx.fillStyle = crestGrad;
+    ctx.strokeStyle = '#051937';
+    ctx.lineWidth = 0.9;
+
+    // Center tall crest feather
+    ctx.beginPath();
+    ctx.moveTo(0, -15);
+    ctx.lineTo(-4, -23);
+    ctx.lineTo(0, -32);
+    ctx.lineTo(4, -23);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Left crest feather
+    ctx.beginPath();
+    ctx.moveTo(-4, -14);
+    ctx.lineTo(-9, -20);
+    ctx.lineTo(-7, -29);
+    ctx.lineTo(-2, -20);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Right crest feather
+    ctx.beginPath();
+    ctx.moveTo(4, -14);
+    ctx.lineTo(2, -20);
+    ctx.lineTo(7, -29);
+    ctx.lineTo(9, -20);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Glint highlights on crest tips
+    ctx.fillStyle = '#bbdefb';
+    ctx.beginPath();
+    ctx.arc(0, -30, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(-6.5, -27, 0.9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(6.5, -27, 0.9, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+
+    // --- 5. DETERMINED EYES ---
+    ctx.save();
+    ctx.translate(faceX, faceY);
+
+    // Eyebrow ridge
+    ctx.fillStyle = '#0f2c59';
+    ctx.strokeStyle = '#051937';
+    ctx.lineWidth = 0.6;
+
+    // Left eyebrow
+    ctx.beginPath();
+    ctx.moveTo(-10, -9);
+    ctx.lineTo(-3, -7);
+    ctx.lineTo(-3, -9.5);
+    ctx.lineTo(-9, -12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Right eyebrow
+    ctx.beginPath();
+    ctx.moveTo(12, -9);
+    ctx.lineTo(5, -7);
+    ctx.lineTo(5, -9.5);
+    ctx.lineTo(11, -12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Left eye
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#1a237e';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.ellipse(-5, -4.5, 4.2, 4.8, -0.05, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Right eye
+    ctx.beginPath();
+    ctx.ellipse(7, -4.5, 4.2, 4.8, 0.05, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Irises: Dark brown/reddish-brown
+    ctx.fillStyle = '#4e342e';
+    ctx.beginPath();
+    ctx.arc(-3.8, -4, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(8.2, -4, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Pupils
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.arc(-3.8, -4, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(8.2, -4, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eye highlights
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(-4.6, -5.2, 0.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(7.4, -5.2, 0.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // --- 6. BEAK (small, gray, pointed) ---
+    const beakGrad = ctx.createLinearGradient(4, -1, 18, 1);
+    beakGrad.addColorStop(0, '#b0bec5');
+    beakGrad.addColorStop(0.5, '#90a4ae');
+    beakGrad.addColorStop(1, '#78909c');
+
+    ctx.fillStyle = beakGrad;
+    ctx.strokeStyle = '#546e7a';
+    ctx.lineWidth = 0.8;
+
+    // Upper beak
+    ctx.beginPath();
+    ctx.moveTo(7, -2);
+    ctx.quadraticCurveTo(15, -3, 19, 0);
+    ctx.lineTo(7, 0.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Lower beak
+    ctx.fillStyle = '#78909c';
+    ctx.beginPath();
+    ctx.moveTo(7, 0.5);
+    ctx.quadraticCurveTo(13, 3, 17, 1);
+    ctx.lineTo(19, 0);
+    ctx.lineTo(7, 0.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore();
+
+    // --- 7. GRAY TALONS/FEET ---
+    ctx.save();
+    ctx.strokeStyle = '#78909c';
+    ctx.lineWidth = 2.0;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // Left leg
+    ctx.beginPath();
+    ctx.moveTo(-4, 15);
+    ctx.lineTo(-4, 21);
+    ctx.stroke();
+
+    // Left claws
+    ctx.lineWidth = 1.2;
+    ctx.fillStyle = '#cfd8dc';
+    ctx.beginPath();
+    ctx.moveTo(-4, 21);
+    ctx.lineTo(-7, 24);
+    ctx.moveTo(-4, 21);
+    ctx.lineTo(-3, 25);
+    ctx.moveTo(-4, 21);
+    ctx.lineTo(1, 23);
+    ctx.stroke();
+
+    // Right leg
+    ctx.strokeStyle = '#78909c';
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    ctx.moveTo(4, 15);
+    ctx.lineTo(4, 21);
+    ctx.stroke();
+
+    // Right claws
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(4, 21);
+    ctx.lineTo(1, 24);
+    ctx.moveTo(4, 21);
+    ctx.lineTo(5, 25);
+    ctx.moveTo(4, 21);
+    ctx.lineTo(9, 23);
+    ctx.stroke();
+
+    ctx.restore();
+
+    // --- 8. LARGE BLUE WINGS WITH INDIVIDUAL FEATHER TIPS ---
+    ctx.save();
+    ctx.translate(-6, 0);
+
+    const baseFlapAngle = Math.sin(this.flapCycle) * 0.65;
+    ctx.rotate(baseFlapAngle);
+
+    // Inner wing (coverts/secondaries)
+    const innerWingGrad = ctx.createLinearGradient(8, -4, -30, 8);
+    innerWingGrad.addColorStop(0, '#42a5f5');
+    innerWingGrad.addColorStop(1, '#1565c0');
+    ctx.fillStyle = innerWingGrad;
+    ctx.strokeStyle = '#0a3268';
+    ctx.lineWidth = 1.0;
+
+    ctx.beginPath();
+    ctx.moveTo(8, -3);
+    ctx.bezierCurveTo(-3, -22, -24, -18, -30, 2);
+    ctx.bezierCurveTo(-24, 12, -8, 10, 8, -3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // 7 individual primary feathers with wave propagation
+    const featherBlues = ['#64b5f6', '#42a5f5', '#2196f3', '#1e88e5', '#1976d2', '#1565c0', '#0d47a1'];
+    for (let j = 0; j < 7; j++) {
+      ctx.save();
+      ctx.translate(-22, -7);
+
+      const primaryAngle = Math.sin(this.flapCycle - j * 0.12) * 0.22;
+      ctx.rotate(primaryAngle);
+
+      const len = 32 + (6 - j) * 3.5;
+      const w = 5.5;
+
+      const fGrad = ctx.createLinearGradient(0, 0, -len, 5);
+      fGrad.addColorStop(0, featherBlues[j]);
+      fGrad.addColorStop(0.7, '#0d47a1');
+      fGrad.addColorStop(1, '#1a237e');
+      ctx.fillStyle = fGrad;
+      ctx.strokeStyle = '#0a2050';
+      ctx.lineWidth = 0.7;
+
+      ctx.beginPath();
+      ctx.moveTo(0, -w / 2);
+      ctx.quadraticCurveTo(-len * 0.4, -w * 1.4, -len, 0);
+      ctx.quadraticCurveTo(-len * 0.4, w * 1.4, 0, w / 2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Feather shaft
+      ctx.strokeStyle = '#bbdefb';
+      ctx.lineWidth = 0.6;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-len * 0.8, 0);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    // Wing shoulder cover
+    const shoulderGrad = ctx.createRadialGradient(8, -2, 1, 8, -2, 8);
+    shoulderGrad.addColorStop(0, '#90caf9');
+    shoulderGrad.addColorStop(0.5, '#42a5f5');
+    shoulderGrad.addColorStop(1, '#1565c0');
+    ctx.fillStyle = shoulderGrad;
+    ctx.strokeStyle = '#0a3268';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.ellipse(8, -2, 7, 5, -0.3, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 

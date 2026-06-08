@@ -214,6 +214,30 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5
+      },
+      {
+        id: 'angry_red',
+        name: 'Furious Red',
+        rarity: 'Legendary',
+        glowColor: 'rgba(255, 30, 0, 0.9)',
+        particleType: 'angry_fire',
+        costCoins: 7500,
+        costGems: 0,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5
+      },
+      {
+        id: 'articuno',
+        name: 'Articuno',
+        rarity: 'Legendary',
+        glowColor: 'rgba(100, 200, 255, 0.9)',
+        particleType: 'blizzard_crystal',
+        costCoins: 8000,
+        costGems: 0,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5
       }
     ];
   }

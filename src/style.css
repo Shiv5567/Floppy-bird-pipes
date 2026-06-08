@@ -2974,3 +2974,55 @@ body.mobile-performance .glass-card {
   border-color: transparent;
 }
 
+/* ====================================================
+   AD BUTTONS & COOLDOWN INDICATORS (Time Lap)
+   ==================================================== */
+.top-bar-add-btn {
+  background: linear-gradient(135deg, #ff9f1a, #ff6b00);
+  border: none;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-left: 6px;
+  box-shadow: 0 0 5px rgba(255, 107, 0, 0.4);
+  transition: all 0.2s ease;
+  pointer-events: auto;
+  line-height: 1;
+}
+
+.top-bar-add-btn:active {
+  transform: scale(0.85);
+}
+
+/* Disabled styling for buttons when on cooldown */
+.top-bar-add-btn.disabled-ad-btn {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.4) !important;
+  box-shadow: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  cursor: not-allowed !important;
+  font-size: 8px !important;
+  width: auto !important;
+  height: auto !important;
+  border-radius: 10px !important;
+  padding: 2px 6px !important;
+  pointer-events: none !important;
+}
+
+/* General disabled styling for claim / revive ad buttons */
+.btn-quest-claim.disabled-ad-btn, .btn-revive-ad.disabled-ad-btn {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: rgba(255, 255, 255, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+
