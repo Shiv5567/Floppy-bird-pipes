@@ -2500,24 +2500,27 @@ export class ObstacleManager {
         }
       }
 
-      // Gap height adjustments for Levels 41 to 50 to make them highly challenging (except Level 50 which has gap increases)
+      // Gap height adjustments for Levels 41 to 50
       if (levelNum !== undefined && levelNum >= 41 && levelNum <= 50) {
         if (levelNum === 50) {
-          // Level 50 path gap increases: 25% for Group 1, 35% for Group 2, 45% for Group 3, then increased by an additional 10% and decreased by 20%
+          // Level 50: Group 1 is the reference
+          const group1Gap = Math.round(gapHeight * 1.25 * 1.10 * 0.80);
           if (obstacleIdx <= 5) {
-            localGapHeight = Math.round(gapHeight * 1.25 * 1.10 * 0.80);
+            localGapHeight = group1Gap;
           } else if (obstacleIdx <= 11) {
-            localGapHeight = Math.round(gapHeight * 1.35 * 1.10 * 0.80);
+            localGapHeight = Math.round(group1Gap * 0.93); // Group 2: 7% decrease from Group 1
           } else {
-            localGapHeight = Math.round(gapHeight * 1.45 * 1.10 * 0.80);
+            localGapHeight = Math.round(group1Gap * 0.88); // Group 3: 12% decrease from Group 1
           }
         } else {
+          // Levels 41-49: Group 1 is the reference
+          const group1Gap = Math.round(gapHeight * 0.85); // 15% reduce for Group 1
           if (obstacleIdx <= 5) {
-            localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce for Group 1
+            localGapHeight = group1Gap;
           } else if (obstacleIdx <= 11) {
-            localGapHeight = Math.round(gapHeight * 0.75); // 25% reduce for Group 2
+            localGapHeight = Math.round(group1Gap * 0.93); // Group 2: 7% decrease from Group 1
           } else {
-            localGapHeight = Math.round(gapHeight * 0.65); // 35% reduce for Group 3
+            localGapHeight = Math.round(group1Gap * 0.88); // Group 3: 12% decrease from Group 1
           }
         }
       }
