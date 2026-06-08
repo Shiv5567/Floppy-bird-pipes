@@ -2552,6 +2552,11 @@ export class ObstacleManager {
         localGapHeight = Math.round(localGapHeight * 1.10);
       }
 
+      // Apply Level 48 path gap adjustments (15% increase)
+      if (levelNumPlayable === 48) {
+        localGapHeight = Math.round(localGapHeight * 1.15);
+      }
+
       // Safeguard boundaries and calculate target heights
       if (levelNum !== undefined && levelNum >= 11 && levelNum <= 20) {
         localGapHeight = Math.max(165, localGapHeight);
