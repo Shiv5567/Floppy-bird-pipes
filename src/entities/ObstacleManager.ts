@@ -2106,16 +2106,17 @@ export class ObstacleManager {
         triggerDistance = 220;
         animDuration = 0.40;
       } else if (patternType === 'level35_triplestair') {
-        // LEVEL 35: Magma Elevator
+        // LEVEL 35: Magma Elevator (Plays on Level 40 due to level swaps)
+        // Level 40 gap adjustment: increase path gap of all three groups by 15%
         if (actualPatternIdx < groupSize) {
           targetCenterY = height / 2 - 45 + (obstacleIdx % 3) * 30;
-          localGapHeight = Math.round(gapHeight * 0.80); // 20% reduce
+          localGapHeight = Math.round(gapHeight * 0.80 * 1.15); // 20% reduce, increased by 15% (net 0.92)
         } else if (actualPatternIdx < groupSize * 2) {
           targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -35 : 35);
-          localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce
+          localGapHeight = Math.round(gapHeight * 0.85 * 1.15); // 15% reduce, increased by 15% (net 0.9775)
         } else {
           targetCenterY = height / 2 + Math.sin((obstacleIdx - 12) * (Math.PI / 3)) * 40;
-          localGapHeight = Math.round(gapHeight * 0.75); // 25% reduce
+          localGapHeight = Math.round(gapHeight * 0.75 * 1.15); // 25% reduce, increased by 15% (net 0.8625)
         }
         triggerDistance = 205;
         animDuration = 0.42;
@@ -2418,7 +2419,7 @@ export class ObstacleManager {
         } else if (subPattern === 'sliding_29') {
           const offsets = [-50, 0, 50, 0];
           const isLevel36Group3 = (levelNum === 26 && actualPatternIdx >= groupSize * 2);
-          // Wavy staircase offsets for Level 36 Group 3 to make it different and challenging
+          // Wavy staircase offsets (plays on Level 39 now due to Level 36 <-> 39 swap)
           const level36Offset = Math.sin(actualPatternIdx * 1.15) * 65;
           targetCenterY = height / 2 + (isLevel36Group3 ? level36Offset : offsets[actualPatternIdx % offsets.length]);
         }
@@ -2484,6 +2485,12 @@ export class ObstacleManager {
           localGapHeight = Math.round(localGapHeight * 0.80 * 1.15); // Level 38 Group 1 increased by 15%
         } else if (levelNum === 27 && actualPatternIdx >= groupSize * 2) {
           localGapHeight = Math.round(localGapHeight * 0.80 * 1.15); // Level 38 Group 3 increased by 15%
+        } else if (levelNum === 28 && actualPatternIdx < groupSize) {
+          // Plays on Level 36 now due to Level 36 <-> 39 swap
+          localGapHeight = Math.round(localGapHeight * 0.70 * 0.80); // Group 1 reduced by 20% (net 0.56)
+        } else if (levelNum === 28 && actualPatternIdx >= groupSize && actualPatternIdx < groupSize * 2) {
+          // Plays on Level 36 now due to Level 36 <-> 39 swap
+          localGapHeight = Math.round(localGapHeight * 0.80 * 0.90); // Group 2 reduced by 10% (net 0.72)
         } else if (isVertical) {
           localGapHeight = Math.round(localGapHeight * 0.80); // 20% reduce
         } else if (isHorizontal) {
