@@ -376,10 +376,12 @@ export class ObstacleManager {
             obs.targetTopHeight = obs.baseTopHeight! + slam;
             obs.targetBottomHeight = obs.baseBottomHeight! - slam;
           } else if (obs.patternType === 'level3_arc') {
-            // LEVEL 3: "The Gravity Pitfalls" (Anti-phase see-saw elevator shifts: adjacent columns slide vertically with sudden sharp velocity shifts)
-            const phase = this.waveTime * 1.95 + (actualIdx % 3) * (Math.PI * 2 / 3);
-            const shiftAmt = obs.levelNum === 20 ? 28 : 35; // 20% reduction for Level 20 (35 * 0.8 = 28)
-            const shift = Math.sin(phase) * shiftAmt;
+            // Dimensional Distortion Warp Grid: Aggressive out-of-phase sliding see-saws with rapid shake joint offsets
+            const phase = this.waveTime * 3.5 + (actualIdx % 3) * (Math.PI * 2 / 3);
+            const shift = Math.sin(phase) * 50;
+            const shake = Math.cos(this.waveTime * 4.0 + actualIdx * 0.5) * 15;
+            obs.shakeX = shake;
+            obs.shakeX2 = -shake;
             obs.targetTopHeight = obs.baseTopHeight! + shift;
             obs.targetBottomHeight = obs.baseBottomHeight! - shift;
           } else if (obs.patternType === 'level4_snake') {
@@ -892,10 +894,10 @@ export class ObstacleManager {
             obs.targetTopHeight = centerY - obs.gapHeight! / 2;
             obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
           } else if (obs.patternType === 'level42_infinity') {
-            // Lemniscate of Bernoulli infinity (∞) figure-8 motion and breathing gaps
-            const angle = this.waveTime * 2.0 + obs.obstacleIdx! * 0.45;
-            const shiftY = Math.sin(angle) * Math.cos(angle) * 45;
-            const breathingGap = obs.gapHeight! + Math.sin(this.waveTime * 3.0) * 15;
+            // Cosmo-Quantum Gravity singularity: Dual-frequency Bernoulli figure-8 motion with high-speed out-of-phase breathing gaps
+            const angle = this.waveTime * 3.2 + obs.obstacleIdx! * 0.65;
+            const shiftY = Math.sin(angle) * Math.cos(angle) * 55;
+            const breathingGap = obs.gapHeight! + Math.sin(this.waveTime * 4.5 + obs.obstacleIdx! * 0.5) * 20;
             const centerY = obs.spawnCenterY! + shiftY;
             obs.targetTopHeight = centerY - breathingGap / 2;
             obs.targetBottomHeight = height - centerY - breathingGap / 2;
@@ -1682,31 +1684,18 @@ export class ObstacleManager {
         triggerDistance = 220;
         animDuration = 0.45;
       } else if (patternType === 'level3_arc') {
-        // LEVEL 3: "The Gravity Pitfalls" (Giant stairs that drop and rise in extreme vertical leaps)
-        const shiftAmt = levelNum === 20 ? 64 : 80; // 20% reduction for Level 20 (80 * 0.8 = 64)
-        if (obstacleIdx % 3 === 0) {
-          targetCenterY = height / 2 - shiftAmt;
-        } else if (obstacleIdx % 3 === 1) {
-          targetCenterY = height / 2 + shiftAmt;
+        // Playable Level 46: Dimensional Distortion Warp Grid
+        // Group 1: Warp Grid, Group 2: Seismic see-saw steps, Group 3: Void Singularity
+        if (obstacleIdx <= 5) {
+          targetCenterY = height / 2 + Math.sin(obstacleIdx * 1.1) * 50;
+        } else if (obstacleIdx <= 11) {
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -50 : 50) + Math.cos(obstacleIdx * 0.8) * 20;
         } else {
-          targetCenterY = height / 2;
+          targetCenterY = height / 2 + Math.sin(obstacleIdx * 1.6) * 40;
         }
-        
-        hasAsymmetricHeights = true;
-        const minCenterY = 75 + localGapHeight / 2;
-        const maxCenterY = height - 75 - localGapHeight / 2;
-        const clampedCenterY = Math.max(minCenterY, Math.min(maxCenterY, targetCenterY));
-        
-        targetTopHeight = clampedCenterY - localGapHeight / 2;
-        targetBottomHeight = height - clampedCenterY - localGapHeight / 2;
-        
-        // If the path gap is shifted up or down, reduce the first pipe (top pipe) size by 30%
-        if (obstacleIdx % 3 === 0 || obstacleIdx % 3 === 1) {
-          targetTopHeight = Math.round(targetTopHeight * 0.70);
-        }
-        
-        triggerDistance = 350;
-        animDuration = 0.40;
+        hasAsymmetricHeights = false;
+        triggerDistance = 180;
+        animDuration = 0.32;
       } else if (patternType === 'level4_snake') {
         // LEVEL 4: "The Laser Grid Gauntlet" (Electronic cyberpunk-themed columns with narrow gaps)
         targetCenterY = height / 2 + Math.sin(obstacleIdx) * 50;
@@ -2249,13 +2238,14 @@ export class ObstacleManager {
         triggerDistance = 180;
         animDuration = 0.35;
       } else if (patternType === 'level42_infinity') {
-        // Group 1: Infinity pattern, Group 2: Wave Stair hybrid, Group 3: Pulse Tunnel
+        // Playable Level 45: Cosmo-Quantum Gravity singularity
+        // Group 1: Singular Orbit, Group 2: Gravity Waves, Group 3: Quantum Singular Corridor
         if (obstacleIdx <= 5) {
-          targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 3)) * 40;
+          targetCenterY = height / 2 + Math.sin(obstacleIdx * 1.5) * 55;
         } else if (obstacleIdx <= 11) {
-          targetCenterY = height / 2 + 40 - (obstacleIdx - 6) * 15 + Math.sin((obstacleIdx - 6) * 0.5) * 15;
+          targetCenterY = height / 2 + Math.cos(obstacleIdx * 0.9) * 45 + (obstacleIdx % 2 === 0 ? -15 : 15);
         } else {
-          targetCenterY = height / 2;
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -30 : 30) * (1.1 + (obstacleIdx % 3) * 0.25);
         }
         triggerDistance = 180;
         animDuration = 0.35;
