@@ -883,9 +883,12 @@ export class ObstacleManager {
               }
             }
           } else if (obs.patternType === 'level41_doublew') {
-            // Alternating movement cycles: odd/even pillars shift in opposite directions
-            const shift = Math.sin(this.waveTime * 2.2 + (obs.obstacleIdx! % 2) * Math.PI) * 20;
-            const centerY = obs.spawnCenterY! + shift;
+            // Galactic Blackhole Horizon: Orbiting vortex shake and gravity-induced horizontal/vertical shifts
+            const angle = this.waveTime * 2.8 + obs.obstacleIdx! * 0.6;
+            obs.shakeX = Math.cos(angle) * 25;
+            obs.shakeX2 = Math.sin(angle) * 25;
+            const gravityShift = Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.4) * 30;
+            const centerY = obs.spawnCenterY! + gravityShift;
             obs.targetTopHeight = centerY - obs.gapHeight! / 2;
             obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
           } else if (obs.patternType === 'level42_infinity') {
@@ -914,12 +917,13 @@ export class ObstacleManager {
             obs.targetTopHeight = centerY - finalGap / 2;
             obs.targetBottomHeight = height - centerY - finalGap / 2;
           } else if (obs.patternType === 'level45_scurve') {
-            // Continuous S-curve snake flow and synchronized vertical elevators
-            const sflow = Math.sin((obs.x * 0.009) - this.waveTime * 3.5) * 40;
-            const sync = Math.sin(this.waveTime * 2.2) * 35;
-            const centerY = obs.spawnCenterY! + sflow + (obs.obstacleIdx! % 2 === 0 ? sync : -sync) * 0.5;
-            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            // Solar Flare Ignition Corridor: High-frequency coronal bobbing and breathing solar wind gap expansions
+            const solarWind = Math.sin(this.waveTime * 3.5 + obs.obstacleIdx! * 0.4) * 35;
+            const breath = Math.sin(this.waveTime * 4.0) * 18;
+            const finalGap = obs.gapHeight! + breath;
+            const centerY = obs.spawnCenterY! + solarWind;
+            obs.targetTopHeight = centerY - finalGap / 2;
+            obs.targetBottomHeight = height - centerY - finalGap / 2;
           } else if (obs.patternType === 'level46_triplespiral') {
             // Multi-layered 3D rotational illusion using orbiting horizontal and vertical shake joints
             const rotateAngle = this.waveTime * 2.0 + obs.obstacleIdx! * 0.6;
@@ -2234,13 +2238,13 @@ export class ObstacleManager {
           }
         }
       } else if (patternType === 'level41_doublew') {
-        // Group 1: Double W Tunnel, Group 2: Reverse Snake, Group 3: Dynamic Slope
+        // Group 1: Orbiting Helix, Group 2: Gravity Wells corridor, Group 3: Horizon Slanted Slip
         if (obstacleIdx <= 5) {
-          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? 30 : -30);
+          targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 3)) * 50;
         } else if (obstacleIdx <= 11) {
-          targetCenterY = height / 2 - Math.sin((obstacleIdx - 6) * 0.9) * 45;
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -45 : 45) * (1 - (obstacleIdx % 4) * 0.15);
         } else {
-          targetCenterY = height / 2 + 40 - (obstacleIdx - 12) * 14;
+          targetCenterY = height / 2 - 40 + (obstacleIdx - 12) * 16 + Math.sin(obstacleIdx * 1.5) * 15;
         }
         triggerDistance = 180;
         animDuration = 0.35;
@@ -2278,13 +2282,13 @@ export class ObstacleManager {
         triggerDistance = 190;
         animDuration = 0.36;
       } else if (patternType === 'level45_scurve') {
-        // Group 1: S-Curve, Group 2: Elevator synchronizations, Group 3: Pulse Maze
+        // Group 1: Solar Flares wave, Group 2: Coronal Step Loops, Group 3: Ignition Zone
         if (obstacleIdx <= 5) {
-          targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.8) * 45;
+          targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.95) * 55;
         } else if (obstacleIdx <= 11) {
-          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -40 : 40);
+          targetCenterY = height / 2 + (obstacleIdx % 3 - 1) * 35;
         } else {
-          targetCenterY = height / 2;
+          targetCenterY = height / 2 + Math.cos(obstacleIdx * 0.5) * 25;
         }
         triggerDistance = 175;
         animDuration = 0.38; // speed reduced 18% (duration increased from 0.32 to 0.38)
