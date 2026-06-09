@@ -193,6 +193,10 @@ export class ObstacleManager {
       }
     }
 
+    if (this.activeLevelConfig && this.activeLevelConfig.levelNum === 47) {
+      motionSpeedScale *= 0.82; // 18% reduce for Level 47
+    }
+
     this.waveTime += deltaTime * timeScale * motionSpeedScale;
     
     // Endless progressive difficulty scaling math based on user specifications
