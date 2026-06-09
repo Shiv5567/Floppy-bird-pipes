@@ -565,7 +565,7 @@ export class UIManager {
               <span class="side-btn-label">REWARDS</span>
             </button>
             <button class="side-btn" id="side-btn-powerups" style="width: 100%;">
-              <span class="side-btn-icon">🧪</span>
+              <img class="side-btn-icon" src="upgrade_icon.png" style="width: 42px; height: 42px; object-fit: contain; margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.6));">
               <span class="side-btn-label">UPGRADES</span>
             </button>
           </div>
@@ -665,7 +665,7 @@ export class UIManager {
       rewards:      { icon: '<img src="reward_box.png" style="width: 32px; height: 32px; object-fit: contain; vertical-align: middle; display: inline-block;">', title: 'REWARDS & PROGRESSION HUB', color: '#ffaa00', heroIcon: '<img src="reward_box.png" style="width: 72px; height: 72px; object-fit: contain; animation: floatBird 4s ease-in-out infinite;">', heroSubtitle: 'Claim your daily logs, trophies, and battle pass!' },
       settings:     { icon: '⚙️', title: 'GAME CONFIGURATION',   color: '#00ff88', heroIcon: '⚙️', heroSubtitle: 'Configure your flight difficulty mode' },
       levels:       { icon: '🏆', title: 'LEVEL SELECT MODE',    color: '#7b2fff', heroIcon: '🏆', heroSubtitle: 'Complete all 50 transforming levels!' },
-      powerups:     { icon: '🧪', title: 'POWERUP UPGRADE LAB',   color: '#00f3ff', heroIcon: '🧪', heroSubtitle: 'Upgrade bubble durations & effectiveness' }
+      powerups:     { icon: '<img src="upgrade_icon.png" style="width: 32px; height: 32px; object-fit: contain; vertical-align: middle; display: inline-block;">', title: 'POWERUP UPGRADE LAB',   color: '#00f3ff', heroIcon: '<img src="upgrade_icon.png" style="width: 72px; height: 72px; object-fit: contain; animation: floatBird 4s ease-in-out infinite;">', heroSubtitle: 'Upgrade bubble durations & effectiveness' }
     };
     const meta = tabMeta[this.activeTab] || tabMeta['skins'];
 
