@@ -537,11 +537,11 @@ export class UIManager {
           <!-- Left side panel -->
           <div class="side-panel-left">
             <button class="side-btn" id="side-btn-skins">
-              <img class="side-btn-icon" src="character_icon.png" style="width: 42px; height: 42px; object-fit: contain; margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.5));">
+              <img class="side-btn-icon" src="character_icon.png" style="width: 55px; height: 55px; object-fit: contain; margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.5));">
               <span class="side-btn-label">CHARACTERS</span>
             </button>
             <button class="side-btn" id="side-btn-worlds">
-              <img class="side-btn-icon" src="worlds_icon.png" style="width: 42px; height: 42px; object-fit: contain; margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(123, 47, 255, 0.5));">
+              <img class="side-btn-icon" src="worlds_icon.png" style="width: 55px; height: 55px; object-fit: contain; margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(123, 47, 255, 0.5));">
               <span class="side-btn-label">WORLDS</span>
             </button>
           </div>
@@ -561,11 +561,11 @@ export class UIManager {
           <div class="side-panel-right">
             <button class="side-btn" id="side-btn-rewards" style="width: 100%; margin-bottom: 8px;">
               <div class="side-btn-badge">!</div>
-              <img class="side-btn-icon" src="reward_box.png" style="width: 42px; height: 42px; object-fit: contain; margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(255, 170, 0, 0.5));">
+              <img class="side-btn-icon" src="reward_box.png" style="width: 55px; height: 55px; object-fit: contain; margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(255, 170, 0, 0.5));">
               <span class="side-btn-label">REWARDS</span>
             </button>
             <button class="side-btn" id="side-btn-powerups" style="width: 100%;">
-              <img class="side-btn-icon" src="upgrade_icon.png" style="width: 42px; height: 42px; object-fit: contain; margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.6));">
+              <img class="side-btn-icon" src="upgrade_icon.png" style="width: 55px; height: 55px; object-fit: contain; margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.6));">
               <span class="side-btn-label">UPGRADES</span>
             </button>
           </div>

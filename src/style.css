@@ -443,7 +443,7 @@ body, html {
 .side-panel-left, .side-panel-right {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 9px;
   flex-shrink: 0;
 }
 
@@ -453,9 +453,9 @@ body, html {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 68px;
-  height: 66px;
-  border-radius: 16px;
+  width: 88px;
+  height: 86px;
+  border-radius: 20px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 100%);
   border: 2px solid rgba(212, 175, 55, 0.25);
   backdrop-filter: blur(12px);
@@ -465,7 +465,7 @@ body, html {
     0 6px 16px rgba(0, 0, 0, 0.5), 
     inset 0 1.5px 0 rgba(255, 255, 255, 0.25),
     inset 0 -1.5px 0 rgba(0, 0, 0, 0.4);
-  gap: 4px;
+  gap: 5px;
   color: #fff;
   font-family: var(--font-family);
   -webkit-tap-highlight-color: transparent;
@@ -508,12 +508,12 @@ body, html {
 }
 
 .side-btn-icon {
-  font-size: 24px;
+  font-size: 31px;
   line-height: 1;
 }
 
 .side-btn-label {
-  font-size: 7.5px;
+  font-size: 9.5px;
   font-weight: 800;
   letter-spacing: 0.5px;
   color: rgba(255,255,255,0.75);
@@ -522,14 +522,14 @@ body, html {
 
 .side-btn-badge {
   position: absolute;
-  top: -5px;
-  right: -5px;
-  width: 16px;
-  height: 16px;
+  top: -6px;
+  right: -6px;
+  width: 21px;
+  height: 21px;
   border-radius: 50%;
   background: #ff3c2e;
   border: 2px solid rgba(5,3,18,1);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 800;
   display: flex;
   align-items: center;
