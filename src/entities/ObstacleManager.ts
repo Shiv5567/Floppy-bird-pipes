@@ -2507,27 +2507,23 @@ export class ObstacleManager {
       }
 
       // Gap height adjustments for Levels 41 to 50
-      if (levelNum !== undefined && levelNum >= 41 && levelNum <= 50) {
-        if (levelNum === 50) {
-          // Level 50: Group 1 is the reference
-          const group1Gap = Math.round(gapHeight * 1.20 * 1.10 * 0.80);
-          if (obstacleIdx <= 5) {
-            localGapHeight = group1Gap;
-          } else if (obstacleIdx <= 11) {
-            localGapHeight = Math.round(group1Gap * 0.93); // Group 2: 7% decrease from Group 1
-          } else {
-            localGapHeight = Math.round(group1Gap * 0.88); // Group 3: 12% decrease from Group 1
-          }
+      if (levelNumPlayable !== undefined && levelNumPlayable >= 41 && levelNumPlayable <= 50) {
+        let mult = 0.85;
+        if (levelNumPlayable === 50 || levelNumPlayable === 49) {
+          mult = 1.22;
+        } else if (levelNumPlayable === 45) {
+          mult = 1.25;
+        } else if (levelNumPlayable >= 41 && levelNumPlayable <= 44) {
+          mult = 1.17;
+        }
+
+        const group1Gap = Math.round(gapHeight * mult);
+        if (obstacleIdx <= 5) {
+          localGapHeight = group1Gap;
+        } else if (obstacleIdx <= 11) {
+          localGapHeight = Math.round(group1Gap * 0.93); // Group 2: 7% decrease from Group 1
         } else {
-          // Levels 41-49: Group 1 is the reference
-          const group1Gap = Math.round(gapHeight * 0.85); // 15% reduce for Group 1
-          if (obstacleIdx <= 5) {
-            localGapHeight = group1Gap;
-          } else if (obstacleIdx <= 11) {
-            localGapHeight = Math.round(group1Gap * 0.93); // Group 2: 7% decrease from Group 1
-          } else {
-            localGapHeight = Math.round(group1Gap * 0.88); // Group 3: 12% decrease from Group 1
-          }
+          localGapHeight = Math.round(group1Gap * 0.88); // Group 3: 12% decrease from Group 1
         }
       }
 
@@ -2548,15 +2544,7 @@ export class ObstacleManager {
         }
       }
 
-      // Apply Level 41-44 path gap adjustments (17% increase)
-      if (levelNumPlayable !== undefined && levelNumPlayable >= 41 && levelNumPlayable <= 44) {
-        localGapHeight = Math.round(localGapHeight * 1.17);
-      }
 
-      // Apply Level 45 path gap adjustments (25% increase)
-      if (levelNumPlayable === 45) {
-        localGapHeight = Math.round(localGapHeight * 1.25);
-      }
 
       // Apply Level 43 & 45 path gap adjustments (additional 10% increase)
       if (levelNumPlayable === 43 || levelNumPlayable === 45) {
