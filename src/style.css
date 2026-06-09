@@ -2762,6 +2762,12 @@ body.mobile-performance .glass-card {
   min-height: 0;
 }
 
+/* Enable horizontal panning touch controls on the level select tab */
+.level-select-grid-container,
+.level-select-grid-container * {
+  touch-action: pan-x pan-y !important;
+}
+
 .tab-content-area:has(.level-select-grid-container) {
   overflow: hidden !important;
   display: flex;
@@ -2781,6 +2787,24 @@ body.mobile-performance .glass-card {
   flex: 1;
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x mandatory;
+  justify-items: center;
+  align-items: center;
+}
+
+/* Responsive adjustment for landscape and short screens on mobile to prevent vertical clipping */
+@media (max-width: 767px) and (orientation: landscape), (max-width: 767px) and (max-height: 620px) {
+  .level-select-grid {
+    grid-template-rows: repeat(4, 1fr) !important;
+    grid-auto-columns: calc((100% - 4 * 10px) / 5) !important;
+    gap: 10px !important;
+  }
+}
+
+/* Hide spotlight on short screens or mobile landscape to free up vertical space for the grid */
+@media (max-height: 720px), (max-width: 767px) and (orientation: landscape) {
+  .tab-hero-spotlight {
+    display: none !important;
+  }
 }
 
 /* Custom scrollbar for horizontal level list */
@@ -2802,6 +2826,8 @@ body.mobile-performance .glass-card {
 .level-select-card {
   position: relative;
   aspect-ratio: 1 / 1;
+  max-width: 100%;
+  max-height: 100%;
   border-radius: 16px;
   display: flex;
   flex-direction: column;
