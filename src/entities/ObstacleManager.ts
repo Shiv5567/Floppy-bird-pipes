@@ -2510,7 +2510,7 @@ export class ObstacleManager {
       if (levelNum !== undefined && levelNum >= 41 && levelNum <= 50) {
         if (levelNum === 50) {
           // Level 50: Group 1 is the reference
-          const group1Gap = Math.round(gapHeight * 1.25 * 1.10 * 0.80);
+          const group1Gap = Math.round(gapHeight * 1.20 * 1.10 * 0.80);
           if (obstacleIdx <= 5) {
             localGapHeight = group1Gap;
           } else if (obstacleIdx <= 11) {
