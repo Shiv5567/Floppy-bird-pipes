@@ -2754,6 +2754,7 @@ body.mobile-performance .glass-card {
    LEVEL SELECT SCREEN & COMPLETE SYSTEM
    ==================================================== */
 .level-select-grid-container {
+  position: relative;
   flex: 1;
   overflow: hidden;
   padding: 10px 12px;
@@ -2766,6 +2767,51 @@ body.mobile-performance .glass-card {
 .level-select-grid-container,
 .level-select-grid-container * {
   touch-action: pan-x pan-y !important;
+}
+
+/* Horizontal navigation arrows for the level selector */
+.level-nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(10, 8, 20, 0.85);
+  border: 2px solid rgba(212, 175, 55, 0.3);
+  color: #ffd700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 15;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.level-nav-arrow.prev-arrow {
+  left: 6px;
+}
+
+.level-nav-arrow.next-arrow {
+  right: 6px;
+}
+
+@media (hover: hover) {
+  .level-nav-arrow:hover {
+    background: rgba(212, 175, 55, 0.15);
+    border-color: rgba(255, 215, 0, 0.75);
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.4), 0 4px 12px rgba(0,0,0,0.6);
+    transform: translateY(-50%) scale(1.08);
+  }
+}
+
+.level-nav-arrow:active {
+  transform: translateY(-50%) scale(0.9);
+  background: rgba(255, 215, 0, 0.25);
+  border-color: rgba(255, 215, 0, 0.9);
 }
 
 .tab-content-area:has(.level-select-grid-container) {
