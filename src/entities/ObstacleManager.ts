@@ -2548,9 +2548,9 @@ export class ObstacleManager {
         }
       }
 
-      // Apply Level 41-44 path gap adjustments (15% increase)
+      // Apply Level 41-44 path gap adjustments (17% increase)
       if (levelNumPlayable !== undefined && levelNumPlayable >= 41 && levelNumPlayable <= 44) {
-        localGapHeight = Math.round(localGapHeight * 1.15);
+        localGapHeight = Math.round(localGapHeight * 1.17);
       }
 
       // Apply Level 45 path gap adjustments (25% increase)
