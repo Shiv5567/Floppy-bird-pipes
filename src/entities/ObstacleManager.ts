@@ -2627,6 +2627,9 @@ export class ObstacleManager {
         } else if (levelNumPlayable >= 45) {
           // Reduced by an additional 40% (down from 30% rate to ~18% rate, using modulo 11)
           hasEnergyBall = (actualPatternIdx % 11 === 0 || actualPatternIdx % 11 === 5);
+        } else if (levelNumPlayable >= 41 && levelNumPlayable <= 44) {
+          // Reduced by 50% for Levels 41-44 (down from ~9% rate to ~4.5% rate, using modulo 22 matching 0 only)
+          hasEnergyBall = (actualPatternIdx % 22 === 0);
         } else {
           // Reduced by an additional 40% (down from 15% rate to ~9% rate, using modulo 22)
           hasEnergyBall = (actualPatternIdx % 22 === 0 || actualPatternIdx % 22 === 11);
