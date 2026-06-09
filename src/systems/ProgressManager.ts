@@ -640,7 +640,7 @@ export class ProgressManager {
       if (quest.current >= quest.target && oldProgress < quest.target) {
         // Quest completed notification
         window.dispatchEvent(new CustomEvent('achievement_unlocked', {
-          detail: { name: `QUEST COMPLETED: ${quest.name}`, desc: `Claim rewards in daily hangar menu!` }
+          detail: { name: `QUEST COMPLETED: ${quest.name}`, desc: `Claim rewards at home menu!` }
         }));
       }
       this.save();

@@ -216,6 +216,10 @@ function loop(time: number) {
   requestAnimationFrame(loop);
 }
 
-window.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', () => {
+    init();
+  });
+} else {
   init();
-});
+}

@@ -658,7 +658,7 @@ export class UIManager {
     const progress = this.engine.progressManager.getState();
 
     const tabMeta: Record<string, { icon: string; title: string; color: string; heroIcon: string; heroSubtitle: string }> = {
-      skins:        { icon: '🪶', title: 'BIRD HANGAR & CHARACTERS',  color: '#00f3ff', heroIcon: '🦅', heroSubtitle: 'Select your legendary aviator' },
+      skins:        { icon: '🪶', title: 'CHARACTERS',  color: '#00f3ff', heroIcon: '🦅', heroSubtitle: 'Select your legendary aviator' },
       worlds:       { icon: '🪐', title: 'SELECT BATTLEFIELD',   color: '#7b2fff', heroIcon: '🌍', heroSubtitle: 'Choose your flying world' },
       bp:           { icon: '🎫', title: 'SEASON 1 BATTLE PASS', color: '#ff007f', heroIcon: '⚔️', heroSubtitle: 'Unlock exclusive rewards' },
       achievements: { icon: '🏆', title: 'HALL OF TROPHIES',     color: '#ffd700', heroIcon: '🏅', heroSubtitle: 'Track your legendary feats' },
@@ -763,7 +763,7 @@ export class UIManager {
               </div>
               <div class="grid-card-name">${s.name}</div>
               <span class="tag tag-${s.rarity.toLowerCase()}" style="color:${rc};border-color:${rc}33">${s.rarity}</span>
-              ${isSelected ? `<div style="font-size:9px;color:#00ff88;font-weight:800;margin-top:4px">✓ EQUIPPED</div>` : ''}
+              ${isSelected ? `<div style="font-size:9px;color:#00ff88;font-weight:800;margin-top:4px">✓ SELECTED</div>` : ''}
               <div class="upgrade-row">
                 <span class="level-indicator">Lvl ${s.upgradeLevel}/5</span>
                 ${s.unlocked && s.upgradeLevel < s.maxUpgrade
@@ -773,8 +773,8 @@ export class UIManager {
               <div class="buy-row">
                 ${s.unlocked
                   ? (isSelected
-                      ? `<span class="equipped-tag">★ ACTIVE CHAR</span>`
-                      : `<button class="btn-equip-skin" data-id="${s.id}">➡ EQUIP</button>`)
+                      ? `<span class="equipped-tag">★ ACTIVE</span>`
+                      : `<button class="btn-equip-skin" data-id="${s.id}">➡ SELECT</button>`)
                   : `<button class="btn-buy-skin" data-id="${s.id}">${s.costCoins > 0 ? '🟡 ' + s.costCoins.toLocaleString() : '💎 ' + s.costGems.toLocaleString()}</button>`
                 }
               </div>
@@ -1020,7 +1020,7 @@ export class UIManager {
         const starsMap = progress.levelModeStars || {};
 
         const levelCards = allLevels.map(lvl => {
-          const isLocked = false; // All levels unlocked!
+          const isLocked = false;
           const starsCount = starsMap[lvl.levelNum] || 0;
           
           let starHtml = '';
@@ -1362,13 +1362,13 @@ export class UIManager {
 
         if (skin.unlocked) {
           this.engine.progressManager.selectSkin(skinId);
-          this.showToastNotification('SKIN EQUIPPED! ✨', `${skin.name} is now your active bird!`);
+          this.showToastNotification('BIRD SELECTED! ✨', `${skin.name} is now your active bird!`);
           setTimeout(() => { this.activeTab = 'main'; this.render(); }, 400);
         } else {
           // Attempt auto-buy when tapping a locked card
           const res = this.engine.progressManager.buySkin(skinId);
           if (res.success) {
-            this.showToastNotification('PURCHASE SUCCESSFUL 🎉', `${skin.name} unlocked and equipped!`);
+            this.showToastNotification('PURCHASE SUCCESSFUL 🎉', `${skin.name} unlocked and selected!`);
             this.engine.progressManager.selectSkin(skinId);
             setTimeout(() => { this.activeTab = 'main'; this.render(); }, 500);
           } else {
@@ -1399,7 +1399,7 @@ export class UIManager {
         const id = (btn as HTMLElement).getAttribute('data-id') || '';
         this.engine.progressManager.selectSkin(id);
         const skin = this.engine.progressManager.getSkins().find((s: Skin) => s.id === id);
-        this.showToastNotification('SKIN EQUIPPED! ✨', `${skin?.name || 'Skin'} is now your active bird!`);
+        this.showToastNotification('BIRD SELECTED! ✨', `${skin?.name || 'Skin'} is now your active bird!`);
         setTimeout(() => { this.activeTab = 'main'; this.render(); }, 550);
       });
     });
@@ -1504,6 +1504,7 @@ export class UIManager {
         });
       });
     }
+
   }
 
   private renderHUD() {
@@ -1731,13 +1732,13 @@ export class UIManager {
     const pauseHTML = `
       <div class="overlay-screen fade-in glass-modal">
         <div class="modal-card">
-          <h2 class="modal-title">CAMPAIGN PAUSED</h2>
+          <h2 class="modal-title">PAUSED</h2>
           <p class="modal-subtitle">Flight of Legends continues when you are ready.</p>
           
           <div class="vertical-actions">
-            <button class="btn btn-primary" id="btn-resume">RESUME FLIGHT</button>
-            <button class="btn btn-secondary" id="btn-restart-paused">RESTART FLIGHT</button>
-            <button class="btn btn-secondary" id="btn-quit">QUIT TO HANGAR</button>
+            <button class="btn btn-primary" id="btn-resume">RESUME</button>
+            <button class="btn btn-secondary" id="btn-restart-paused">RESTART</button>
+            <button class="btn btn-secondary" id="btn-quit">EXIT TO MENU</button>
           </div>
         </div>
       </div>
@@ -1775,7 +1776,7 @@ export class UIManager {
       <div class="overlay-screen fade-in glass-modal">
         <div class="modal-card gameover-card animate-slide-up">
           <div class="skull-badge">💥</div>
-          <h2 class="modal-title warning-text">MISSION OVER</h2>
+          <h2 class="modal-title warning-text">YOU CRASHED!</h2>
           <p class="modal-subtitle">You collided with an environmental hazard.</p>
 
           <div class="final-score-box glass-card">
@@ -1800,7 +1801,7 @@ export class UIManager {
 
           <div class="vertical-actions">
             <button class="btn btn-primary btn-glow-orange" id="btn-retry">FLY AGAIN</button>
-            <button class="btn btn-secondary" id="btn-hangar">RETURN TO HANGAR</button>
+            <button class="btn btn-secondary" id="btn-hangar">RETURN HOME</button>
           </div>
         </div>
       </div>

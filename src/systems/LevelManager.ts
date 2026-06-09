@@ -14,7 +14,7 @@ export class LevelManager {
   static {
     // Generate 50 unique levels
     const worlds = ['jungle', 'jungle_temple', 'ice', 'cyberpunk', 'volcano'];
-    const worldNames = ['Grass Hangar', 'Ancient Ruins', 'Glacial Ridge', 'Neon Sector', 'Magma Abyss'];
+    const worldNames = ['Green Meadow', 'Ancient Ruins', 'Glacial Ridge', 'Neon Sector', 'Magma Abyss'];
 
     // All available active moving/oscillating wave patterns
     const wavePatterns = [
