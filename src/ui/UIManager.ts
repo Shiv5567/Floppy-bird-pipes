@@ -541,7 +541,7 @@ export class UIManager {
               <span class="side-btn-label">CHARACTERS</span>
             </button>
             <button class="side-btn" id="side-btn-worlds">
-              <span class="side-btn-icon">🪐</span>
+              <img class="side-btn-icon" src="worlds_icon.png" style="width: 42px; height: 42px; object-fit: contain; margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(123, 47, 255, 0.5));">
               <span class="side-btn-label">WORLDS</span>
             </button>
           </div>
@@ -659,7 +659,7 @@ export class UIManager {
 
     const tabMeta: Record<string, { icon: string; title: string; color: string; heroIcon: string; heroSubtitle: string }> = {
       skins:        { icon: '<img src="character_icon.png" style="width: 32px; height: 32px; object-fit: contain; vertical-align: middle; display: inline-block;">', title: 'CHARACTERS',  color: '#00f3ff', heroIcon: '<img src="character_icon.png" style="width: 72px; height: 72px; object-fit: contain; animation: floatBird 4s ease-in-out infinite;">', heroSubtitle: 'Select your legendary aviator' },
-      worlds:       { icon: '🪐', title: 'SELECT BATTLEFIELD',   color: '#7b2fff', heroIcon: '🌍', heroSubtitle: 'Choose your flying world' },
+      worlds:       { icon: '<img src="worlds_icon.png" style="width: 32px; height: 32px; object-fit: contain; vertical-align: middle; display: inline-block;">', title: 'SELECT BATTLEFIELD',   color: '#7b2fff', heroIcon: '<img src="worlds_icon.png" style="width: 72px; height: 72px; object-fit: contain; animation: floatBird 4s ease-in-out infinite;">', heroSubtitle: 'Choose your flying world' },
       bp:           { icon: '🎫', title: 'SEASON 1 BATTLE PASS', color: '#ff007f', heroIcon: '⚔️', heroSubtitle: 'Unlock exclusive rewards' },
       achievements: { icon: '🏆', title: 'HALL OF TROPHIES',     color: '#ffd700', heroIcon: '🏅', heroSubtitle: 'Track your legendary feats' },
       rewards:      { icon: '<img src="reward_box.png" style="width: 32px; height: 32px; object-fit: contain; vertical-align: middle; display: inline-block;">', title: 'REWARDS & PROGRESSION HUB', color: '#ffaa00', heroIcon: '<img src="reward_box.png" style="width: 72px; height: 72px; object-fit: contain; animation: floatBird 4s ease-in-out infinite;">', heroSubtitle: 'Claim your daily logs, trophies, and battle pass!' },
