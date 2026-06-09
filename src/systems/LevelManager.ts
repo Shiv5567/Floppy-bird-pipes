@@ -349,6 +349,12 @@ export class LevelManager {
     if (lvl39) {
       lvl39.gapHeight = Math.round(lvl39.gapHeight * 1.20);
     }
+    
+    // Reduce Level 50 scroll speed by 20%
+    const lvl50 = this.levels.find(l => l.levelNum === 50);
+    if (lvl50) {
+      lvl50.scrollSpeed = lvl50.scrollSpeed * 0.80;
+    }
   }
 
   public static getLevel(levelNum: number): LevelConfig | undefined {
