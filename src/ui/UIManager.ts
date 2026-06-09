@@ -537,7 +537,7 @@ export class UIManager {
           <!-- Left side panel -->
           <div class="side-panel-left">
             <button class="side-btn" id="side-btn-skins">
-              <span class="side-btn-icon">🦅</span>
+              <img class="side-btn-icon" src="character_icon.png" style="width: 42px; height: 42px; object-fit: contain; margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.5));">
               <span class="side-btn-label">CHARACTERS</span>
             </button>
             <button class="side-btn" id="side-btn-worlds">
@@ -561,7 +561,7 @@ export class UIManager {
           <div class="side-panel-right">
             <button class="side-btn" id="side-btn-rewards" style="width: 100%; margin-bottom: 8px;">
               <div class="side-btn-badge">!</div>
-              <span class="side-btn-icon">🎁</span>
+              <img class="side-btn-icon" src="reward_box.png" style="width: 42px; height: 42px; object-fit: contain; margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(255, 170, 0, 0.5));">
               <span class="side-btn-label">REWARDS</span>
             </button>
             <button class="side-btn" id="side-btn-powerups" style="width: 100%;">
@@ -658,11 +658,11 @@ export class UIManager {
     const progress = this.engine.progressManager.getState();
 
     const tabMeta: Record<string, { icon: string; title: string; color: string; heroIcon: string; heroSubtitle: string }> = {
-      skins:        { icon: '🪶', title: 'CHARACTERS',  color: '#00f3ff', heroIcon: '🦅', heroSubtitle: 'Select your legendary aviator' },
+      skins:        { icon: '<img src="character_icon.png" style="width: 32px; height: 32px; object-fit: contain; vertical-align: middle; display: inline-block;">', title: 'CHARACTERS',  color: '#00f3ff', heroIcon: '<img src="character_icon.png" style="width: 72px; height: 72px; object-fit: contain; animation: floatBird 4s ease-in-out infinite;">', heroSubtitle: 'Select your legendary aviator' },
       worlds:       { icon: '🪐', title: 'SELECT BATTLEFIELD',   color: '#7b2fff', heroIcon: '🌍', heroSubtitle: 'Choose your flying world' },
       bp:           { icon: '🎫', title: 'SEASON 1 BATTLE PASS', color: '#ff007f', heroIcon: '⚔️', heroSubtitle: 'Unlock exclusive rewards' },
       achievements: { icon: '🏆', title: 'HALL OF TROPHIES',     color: '#ffd700', heroIcon: '🏅', heroSubtitle: 'Track your legendary feats' },
-      rewards:      { icon: '🎁', title: 'REWARDS & PROGRESSION HUB', color: '#ffaa00', heroIcon: '🎁', heroSubtitle: 'Claim your daily logs, trophies, and battle pass!' },
+      rewards:      { icon: '<img src="reward_box.png" style="width: 32px; height: 32px; object-fit: contain; vertical-align: middle; display: inline-block;">', title: 'REWARDS & PROGRESSION HUB', color: '#ffaa00', heroIcon: '<img src="reward_box.png" style="width: 72px; height: 72px; object-fit: contain; animation: floatBird 4s ease-in-out infinite;">', heroSubtitle: 'Claim your daily logs, trophies, and battle pass!' },
       settings:     { icon: '⚙️', title: 'GAME CONFIGURATION',   color: '#00ff88', heroIcon: '⚙️', heroSubtitle: 'Configure your flight difficulty mode' },
       levels:       { icon: '🏆', title: 'LEVEL SELECT MODE',    color: '#7b2fff', heroIcon: '🏆', heroSubtitle: 'Complete all 50 transforming levels!' },
       powerups:     { icon: '🧪', title: 'POWERUP UPGRADE LAB',   color: '#00f3ff', heroIcon: '🧪', heroSubtitle: 'Upgrade bubble durations & effectiveness' }
@@ -883,7 +883,7 @@ export class UIManager {
             calendarHtml += `
               <div class="${classes}" data-day="${d}">
                 <span class="day-label">Day ${d}</span>
-                <span class="day-icon">${d === 7 ? '🎁' : '📅'}</span>
+                <span class="day-icon">${d === 7 ? '<img src="reward_box.png" style="width: 38px; height: 38px; object-fit: contain; vertical-align: middle;">' : '📅'}</span>
                 <span class="day-reward-value">${rewardText}</span>
               </div>
             `;
