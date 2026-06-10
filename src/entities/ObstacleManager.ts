@@ -1418,7 +1418,7 @@ export class ObstacleManager {
             motionAmpMult = 0.45;  // 55% less amplitude
           } else if (gameMode === 'flock') {
             motionSpeedMult = 0.7;
-            motionAmpMult = 1.60;  // 60% increase in vertical path shifting/sways (was 0.7)
+            motionAmpMult = 2.24;  // 60% baseline increase + 40% additional increase = 2.24 (was 1.60)
           } else if (gameMode === 'formation') {
             motionSpeedMult = 0.7;
             motionAmpMult = 0.7;
@@ -2759,7 +2759,7 @@ export class ObstacleManager {
     }
 
     if (gameMode === 'flock') {
-      endlessShiftScale *= 1.60; // 60% increase in vertical path gap shifting
+      endlessShiftScale *= 2.24; // 60% baseline increase + 40% additional increase = 2.24 (was 1.60)
     }
 
     let targetCenterY = height / 2 + nextPattern.centerYOffset * endlessShiftScale;
