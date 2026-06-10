@@ -416,6 +416,7 @@ export class PowerupManager {
     let radius = 20; // enlarged from 14
     if (type === 'coin') radius = 14.4; // reduced by 10% (from 16)
     else if (type === 'gem') radius = 14; // enlarged from 8
+    else if (type === 'rescue') radius = 30; // 50% size increase (from 20)
 
     const spawnX = customX !== undefined ? customX : (width + 50);
     let spawnY = customY;
@@ -548,8 +549,8 @@ export class PowerupManager {
         const t = performance.now() * 0.001;
         const flapAngle = Math.sin(t * 7) * 0.5;
 
-        // Scale cage 1.45x so it matches the collision size nicely
-        const scale = 1.45;
+        // Scale cage 2.175x (50% increase from 1.45x) so it matches the collision size nicely
+        const scale = 2.175;
         ctx.scale(scale, scale);
 
         // Cage outer frame (Classic iron/steel grey)
