@@ -27,8 +27,8 @@ export class BossManager {
   private bossX = 800;
   private bossY = 250;
   private targetBossY = 250;
-  private health = 100;
-  private maxHealth = 100;
+  private health = 25;
+  private maxHealth = 25;
   private state: 'entering' | 'fighting' | 'charging' | 'defeated' = 'entering';
   private timer = 0;
   
@@ -74,7 +74,7 @@ export class BossManager {
     this.bossX = width + 150;
     this.bossY = height / 3;
     this.targetBossY = height / 2;
-    this.health = 100 + (worldId === 'volcano' ? 50 : 0); // Lava Dragon is tougher
+    this.health = 25 + (worldId === 'volcano' ? 13 : 0); // Lava Dragon is tougher (38 HP)
     this.maxHealth = this.health;
     this.state = 'entering';
     this.timer = 0;
