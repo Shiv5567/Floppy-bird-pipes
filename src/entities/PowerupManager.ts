@@ -1,7 +1,7 @@
 import { ParticleEngine } from '../engine/ParticleEngine.ts';
 import type { Obstacle } from './ObstacleManager.ts';
 
-export type PowerupType = 'shield' | 'slowmo' | 'magnet' | 'double' | 'revive' | 'turbo' | 'ghost' | 'mini' | 'booster';
+export type PowerupType = 'shield' | 'slowmo' | 'magnet' | 'double' | 'revive' | 'turbo' | 'ghost' | 'mini' | 'booster' | 'rescue' | 'merge';
 
 export interface PowerupItem {
   x: number;
@@ -36,6 +36,10 @@ export class PowerupManager {
       const indices = [25, 50, 75];
 
       const pool: PowerupType[] = ['shield', 'slowmo', 'magnet', 'turbo', 'mini'];
+      const gameEngine = (window as any).gameEngine;
+      if (gameEngine && gameEngine.gameMode === 'rescue') {
+        pool.push('rescue', 'merge');
+      }
       const chosenTypes: PowerupType[] = [];
       while (chosenTypes.length < 3) {
         const type = pool[Math.floor(Math.random() * pool.length)];
@@ -202,7 +206,7 @@ export class PowerupManager {
     height: number,
     timeScale: number,
     obstacles: Obstacle[],
-    gameMode: 'endless' | 'level' = 'endless',
+    gameMode: 'endless' | 'level' | 'flock' | 'rescue' | 'formation' = 'endless',
     particleEngine?: ParticleEngine
   ) {
     const dtCoeff = deltaTime * 60 * timeScale;
@@ -425,6 +429,8 @@ export class PowerupManager {
       case 'mini': return '#00ff7f';
       case 'revive': return '#ffa07a';
       case 'booster': return '#ffd700';
+      case 'rescue': return '#ffaa00';
+      case 'merge': return '#ff007f';
       default: return '#ffffff';
     }
   }
@@ -715,6 +721,46 @@ export class PowerupManager {
       ctx.beginPath();
       ctx.arc(-1.0, -1.0, 1.0, 0, Math.PI * 2);
       ctx.fill();
+    } else if (item.type === 'rescue') {
+      // Draw a wooden/golden cage containing a small bird
+      ctx.strokeStyle = '#ffaa00';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.arc(0, -1, 7, 0, Math.PI, true);
+      ctx.lineTo(-7, 6);
+      ctx.lineTo(7, 6);
+      ctx.closePath();
+      ctx.stroke();
+
+      // Vertical bars of the cage
+      ctx.beginPath();
+      ctx.moveTo(-3, 0);
+      ctx.lineTo(-3, 6);
+      ctx.moveTo(0, -8);
+      ctx.lineTo(0, 6);
+      ctx.moveTo(3, 0);
+      ctx.lineTo(3, 6);
+      ctx.stroke();
+
+      // Small bird shape inside the cage
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(0, 1, 3.2, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (item.type === 'merge') {
+      // Draw double helix/merging rings
+      ctx.fillStyle = '#ff007f';
+      ctx.beginPath();
+      ctx.arc(-3, 0, 4, 0, Math.PI * 2);
+      ctx.arc(3, 0, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(-3, 0);
+      ctx.lineTo(3, 0);
+      ctx.stroke();
     } else {
       // Fallback text drawing for any other unregistered powerups
       ctx.fillStyle = '#ffffff';

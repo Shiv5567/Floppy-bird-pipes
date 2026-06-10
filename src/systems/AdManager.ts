@@ -320,7 +320,7 @@ export class AdManager {
         reviveBtn.classList.remove('disabled-ad-btn');
         reviveBtn.style.opacity = '1';
         reviveBtn.style.cursor = 'pointer';
-        reviveBtn.innerHTML = `<span>🎞️ WATCH AD TO REVIVE</span>`;
+        reviveBtn.innerHTML = `<span>🎬 WATCH AD</span>`;
       }
     }
   }

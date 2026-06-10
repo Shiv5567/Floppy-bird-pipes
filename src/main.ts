@@ -182,7 +182,14 @@ function loop(time: number) {
   gameEngine.obstacleManager.render(ctx, height);
   gameEngine.powerupManager.render(ctx);
   gameEngine.bossManager.render(ctx, gameEngine.bird.isCrashing);
-  gameEngine.bird.render(ctx);
+  if ((gameEngine.gameMode === 'flock' || gameEngine.gameMode === 'rescue' || gameEngine.gameMode === 'formation') && gameEngine.flock && gameEngine.flock.length > 0) {
+    const len = gameEngine.flock.length;
+    for (let i = len - 1; i >= 0; i--) {
+      gameEngine.flock[i].render(ctx);
+    }
+  } else {
+    gameEngine.bird.render(ctx);
+  }
   gameEngine.particleEngine.render(ctx);
   gameEngine.renderer.endCamera();
 

@@ -1424,6 +1424,7 @@ body, html {
 }
 
 .hud-top {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1475,14 +1476,19 @@ body, html {
 
 .hud-bottom {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: flex-end;
 }
 
 .powerup-timers-holder {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 8px;
+  align-items: center;
+  justify-content: center;
 }
 
 .hud-powerup-badge {
@@ -1512,7 +1518,7 @@ body, html {
 .run-stats {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 6px;
 }
 
@@ -3180,4 +3186,49 @@ body.mobile-performance .glass-card {
   cursor: not-allowed !important;
   pointer-events: none !important;
 }
+
+/* Revive Heartbeat Pulsing Red Glow */
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(255, 60, 46, 0.3), inset 0 0 8px rgba(255, 60, 46, 0.15);
+    border-color: rgba(255, 60, 46, 0.4);
+  }
+  14% {
+    transform: scale(1.02);
+    box-shadow: 0 0 20px rgba(255, 60, 46, 0.7), inset 0 0 15px rgba(255, 60, 46, 0.4);
+    border-color: rgba(255, 60, 46, 0.9);
+  }
+  28% {
+    transform: scale(1);
+    box-shadow: 0 0 12px rgba(255, 60, 46, 0.4), inset 0 0 10px rgba(255, 60, 46, 0.25);
+    border-color: rgba(255, 60, 46, 0.55);
+  }
+  42% {
+    transform: scale(1.02);
+    box-shadow: 0 0 20px rgba(255, 60, 46, 0.7), inset 0 0 15px rgba(255, 60, 46, 0.4);
+    border-color: rgba(255, 60, 46, 0.9);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(255, 60, 46, 0.3), inset 0 0 8px rgba(255, 60, 46, 0.15);
+    border-color: rgba(255, 60, 46, 0.4);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(255, 60, 46, 0.3), inset 0 0 8px rgba(255, 60, 46, 0.15);
+    border-color: rgba(255, 60, 46, 0.4);
+  }
+}
+
+.revive-heartbeat-box {
+  background: rgba(0, 0, 0, 0.25);
+  border: 2px solid rgba(255, 60, 46, 0.4);
+  border-radius: 16px;
+  padding: 20px 16px 16px;
+  margin-bottom: 24px;
+  animation: heartbeat 1.3s infinite ease-in-out;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
 

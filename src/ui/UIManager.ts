@@ -13,6 +13,7 @@ export class UIManager {
 
   // Cached HUD DOM element references
   private scoreEl: HTMLElement | null = null;
+  private bestScoreEl: HTMLElement | null = null;
   private btnUltimate: HTMLElement | null = null;
   private ultIcon: HTMLElement | null = null;
   private ultFill: HTMLElement | null = null;
@@ -137,6 +138,8 @@ export class UIManager {
       this.renderReviveScreen();
     } else if (state as any === 'LEVEL_COMPLETE') {
       this.renderLevelComplete();
+    } else if (state === 'DEMO_COMPLETE') {
+      this.renderDemoComplete();
     }
 
     // Sync ad button states dynamically
@@ -144,10 +147,23 @@ export class UIManager {
   }
 
   private updateHUDValues() {
-    // 1. Score (using cached reference if available, otherwise query and cache it)
+    // 1. Score / Obstacles (using cached reference if available, otherwise query and cache it)
     if (!this.scoreEl) this.scoreEl = document.getElementById('hud-score');
     if (this.scoreEl) {
-      this.scoreEl.innerText = this.engine.score.toString();
+      if (this.engine.gameMode === 'level' && this.engine.activeLevelConfig) {
+        this.scoreEl.innerText = `${this.engine.score} / ${this.engine.activeLevelConfig.targetScore}`;
+      } else {
+        this.scoreEl.innerText = this.engine.score.toString();
+      }
+    }
+
+    // 1.5 Best Score (only in endless mode)
+    if (this.engine.gameMode !== 'level') {
+      if (!this.bestScoreEl) this.bestScoreEl = document.getElementById('hud-best-score');
+      if (this.bestScoreEl) {
+        const best = Math.max(this.engine.progressManager.getState().highscore, this.engine.score);
+        this.bestScoreEl.innerText = `BEST: ${best}`;
+      }
     }
 
     // 2. Ultimate Bar
@@ -213,6 +229,10 @@ export class UIManager {
     }
     if (this.runStatsGems) {
       this.runStatsGems.innerText = `💎 ${this.engine.gemsCollectedThisRun}`;
+    }
+    const flockInd = this.container.querySelector('.flock-indicator') as HTMLElement;
+    if (flockInd) {
+      flockInd.innerText = `🪽 SQUAD: ${this.engine.flock.length} / 5`;
     }
 
     // 4. Powerup timers holder (In-place updates without DOM reconstruction!)
@@ -323,7 +343,7 @@ export class UIManager {
     }
 
     // 7. Booster Static Cooldown Button In-place updates in Endless Mode
-    if (this.engine.gameMode === 'endless') {
+    if (this.engine.gameMode !== 'level') {
       const boosterBtn = document.getElementById('btn-hud-booster');
       if (boosterBtn) {
         const bTimer = this.engine.boosterSpawnTimer;
@@ -462,10 +482,6 @@ export class UIManager {
 
 
 
-    // Level progress
-    const levelXpNeeded = progress.level * 1000;
-    const levelPct = Math.min(100, Math.round((progress.xp / levelXpNeeded) * 100));
-
     // Ambient particles
     const particleColors = ['rgba(100,180,255,0.5)', 'rgba(200,100,255,0.4)', 'rgba(255,200,50,0.4)', 'rgba(0,255,180,0.3)'];
     let particlesHtml = '';
@@ -503,8 +519,6 @@ export class UIManager {
             <canvas class="top-bar-avatar-canvas" width="40" height="40" style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #1a4fd6, #6c14e0); border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 0 10px rgba(108, 20, 224, 0.5);"></canvas>
             <div>
               <div class="top-bar-name">LEGENDARY AVIATOR</div>
-              <div class="top-bar-level">Level ${progress.level}</div>
-              <div class="top-bar-level-bar"><div class="top-bar-level-fill" style="width:${levelPct}%"></div></div>
             </div>
           </div>
           <div class="top-bar-currencies">
@@ -1010,7 +1024,7 @@ export class UIManager {
             <div class="bp-progress-bar-container glass-card">
               <div class="bp-level-indicator">Tier ${progress.battlePassTier}</div>
               <div class="bp-bar-outer"><div class="bp-bar-inner" style="width:${(progress.battlePassXp / activeTier.xpRequired) * 100}%"></div></div>
-              <div class="bp-xp-text">${progress.battlePassXp} / ${activeTier.xpRequired} XP</div>
+              <div class="bp-xp-text">${progress.battlePassXp} / ${activeTier.xpRequired} PTS</div>
             </div>
             <div class="vertical-scroll bp-scroll">${bpItems}</div>
           `;
@@ -1045,7 +1059,6 @@ export class UIManager {
                   <div class="level-num-label">${lvl.levelNum}</div>
                   <div class="level-emoji-label">${emoji}</div>
                   <div class="level-select-stars">${starHtml}</div>
-                  <div class="level-target-label">Target: ${lvl.targetScore}</div>
                 `
               }
             </div>
@@ -1317,10 +1330,7 @@ export class UIManager {
 
     // Game start & spectator
     bindClick('btn-start-game', () => {
-      this.engine.gameMode = 'endless';
-      this.engine.isSpectatorMode = false;
-      this.engine.startGame();
-      this.render();
+      this.showEndlessModeSelection();
     });
     bindClick('btn-open-levels', () => {
       this.activeTab = 'levels';
@@ -1546,6 +1556,7 @@ export class UIManager {
 
   private renderHUD() {
     const pList = this.engine.getActivePowerups();
+    const highscore = this.engine.progressManager.getState().highscore;
     
     // Convert powerups to floating badge list
     const powerupBadges = pList.map(p => {
@@ -1642,16 +1653,49 @@ export class UIManager {
       `;
     }
 
+    let formationBtnHTML = '';
+    if (this.engine.gameMode === 'formation') {
+      const activeForm = this.engine.currentFormation;
+      const formIcon = activeForm === 'v_shape' ? '🪽' : activeForm === 'line' ? '➡️' : '⬇️';
+      formationBtnHTML = `
+        <div class="hud-circle-btn glass-card ult-ready-pulse" 
+             style="pointer-events: auto; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 62px; height: 62px; border-radius: 50%; border: 2px solid #ffaa00; background: rgba(255, 170, 0, 0.12); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: all 0.3s ease; box-shadow: 0 0 15px rgba(255, 170, 0, 0.4); position: relative; margin-bottom: 6px; -webkit-tap-highlight-color: transparent;" 
+             id="btn-hud-formation" 
+             title="Tap to Cycle Flight Formation!">
+          <div style="position: absolute; inset: 2px; border-radius: 50%; background: rgba(255, 170, 0, 0.15); pointer-events: none;"></div>
+          <span style="font-size: 26px; z-index: 2; transition: transform 0.2s ease; margin: 0; line-height: 1; text-shadow: 0 0 8px #ffaa00;">${formIcon}</span>
+        </div>
+      `;
+    }
+
     const hudHTML = `
       <div class="hud fade-in">
         ${boosterOverlayHTML}
         <div class="hud-top">
-          <div class="score-container">
-            <span class="hud-label">SCORE</span>
-            <span class="hud-val pop-scale" id="hud-score">${this.engine.score}</span>
+          <!-- Coins & Gems (Left side) -->
+          <div class="run-stats" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; font-weight: 800; font-size: 13px; pointer-events: auto;">
+            <span class="stat-badge" style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); width: fit-content; margin-bottom: 0;">🟡 ${this.engine.coinsCollectedThisRun}</span>
+            <span class="stat-badge" style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); width: fit-content; margin-bottom: 0;">💎 ${this.engine.gemsCollectedThisRun}</span>
+            ${(this.engine.gameMode === 'flock' || this.engine.gameMode === 'rescue' || this.engine.gameMode === 'formation') ? `
+              <span class="stat-badge flock-indicator" style="background: rgba(0,243,255,0.15); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(0,243,255,0.3); width: fit-content; margin-bottom: 0; color: #00f3ff; text-shadow: 0 0 5px #00f3ff;">🪽 SQUAD: ${this.engine.flock.length} / 5</span>
+            ` : ''}
+            ${this.engine.isSpectatorMode ? '<span class="spectator-indicator" style="font-size: 8px; background: rgba(0,255,180,0.15); border: 1px solid rgba(0,255,180,0.3); padding: 2px 6px; border-radius: 6px; color: #00ffb4; font-weight: 800; width: fit-content; margin-top: 2px;">🤖 AUTO-PILOT</span>' : ''}
           </div>
 
-          <div class="hud-actions">
+          <!-- Powerup Timers (Middle section) -->
+          <div class="powerup-timers-holder">
+            ${powerupBadges}
+          </div>
+
+          <!-- Actions: Score & Pause (Right side) -->
+          <div class="hud-actions" style="display: flex; align-items: center; gap: 8px; pointer-events: auto;">
+            <div class="score-container" style="${this.engine.gameMode === 'level' ? 'display: none;' : ''}">
+              <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2;">
+                <span class="hud-label">SCORE</span>
+                <span class="hud-val pop-scale" id="hud-score">${this.engine.score}</span>
+                <span id="hud-best-score" style="font-size: 10px; color: #ffd700; font-weight: 800; margin-top: 2px; letter-spacing: 0.5px; opacity: 0.85;">BEST: ${Math.max(highscore, this.engine.score)}</span>
+              </div>
+            </div>
             <button class="hud-circle-btn" id="btn-hud-pause">⏸️</button>
           </div>
         </div>
@@ -1661,12 +1705,9 @@ export class UIManager {
         <div class="hud-middle" id="hud-alert-container"></div>
 
         <div class="hud-bottom">
-          <div class="powerup-timers-holder">
-            ${powerupBadges}
-          </div>
-
           <div style="display: flex; flex-direction: row; align-items: center; gap: 12px; pointer-events: auto;">
             ${boosterBtnHTML}
+            ${formationBtnHTML}
 
             <!-- Ultimate Special Ability Transparent Circular Button (Shifted from Double-Tap) -->
             <div class="hud-ult-circle-btn glass-card ${ultReady ? 'ult-ready-pulse' : ''} ${ultActive ? 'ult-active-glow' : ''}" 
@@ -1683,12 +1724,6 @@ export class UIManager {
               <span class="ult-icon" style="font-size: 24px; z-index: 2; transition: transform 0.2s ease; margin: 0; line-height: 1;">${ultActive ? '⚡' : ultReady ? '🔥' : '✨'}</span>
             </div>
           </div>
-
-          <div class="run-stats">
-            <span class="stat-badge">🟡 ${this.engine.coinsCollectedThisRun}</span>
-            <span class="stat-badge">💎 ${this.engine.gemsCollectedThisRun}</span>
-            ${this.engine.isSpectatorMode ? '<span class="spectator-indicator">🤖 AUTO-PILOT</span>' : ''}
-          </div>
         </div>
       </div>
     `;
@@ -1697,6 +1732,7 @@ export class UIManager {
 
     // Cache DOM references for zero-thrashing fast active gameplay updates
     this.scoreEl = document.getElementById('hud-score');
+    this.bestScoreEl = document.getElementById('hud-best-score');
     this.btnUltimate = document.getElementById('btn-hud-ultimate');
     if (this.btnUltimate) {
       this.ultIcon = this.btnUltimate.querySelector('.ult-icon');
@@ -1758,6 +1794,15 @@ export class UIManager {
       boosterBtn.addEventListener('touchstart', triggerBooster);
     }
 
+    const formBtn = document.getElementById('btn-hud-formation');
+    if (formBtn) {
+      formBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.engine.cycleFormation();
+        this.render();
+      });
+    }
+
     const pBtn = document.getElementById('btn-hud-pause');
     if (pBtn) pBtn.addEventListener('click', () => {
       this.engine.togglePause();
@@ -1813,8 +1858,8 @@ export class UIManager {
       <div class="overlay-screen fade-in glass-modal">
         <div class="modal-card gameover-card animate-slide-up">
           <div class="skull-badge">💥</div>
-          <h2 class="modal-title warning-text">YOU CRASHED!</h2>
-          <p class="modal-subtitle">You collided with an environmental hazard.</p>
+          <h2 class="modal-title warning-text">CRASHED!</h2>
+
 
           <div class="final-score-box glass-card">
             <div class="score-label">${isNewHigh ? '🏆 NEW HIGH SCORE! 🏆' : 'FINAL SCORE'}</div>
@@ -1829,10 +1874,6 @@ export class UIManager {
             <div class="reward-row">
               <span>Gems Collected</span>
               <strong>+${this.engine.gemsCollectedThisRun} 💎</strong>
-            </div>
-            <div class="reward-row">
-              <span>XP Reward Gained</span>
-              <strong>+${Math.floor(this.engine.score * 50)} XP</strong>
             </div>
           </div>
 
@@ -1869,41 +1910,66 @@ export class UIManager {
     const canAfford = gems >= price;
 
     const reviveHTML = `
-      <div class="overlay-screen fade-in glass-modal">
-        <div class="modal-card revive-card animate-slide-up">
-          <div class="revive-heart">💖</div>
-          <h2 class="modal-title font-glow-green">CONTINUE?</h2>
-          <p class="modal-subtitle">Resume your flight instantly from this location!</p>
+      <div class="overlay-screen fade-in" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center;">
+        <div style="background: rgba(20, 20, 30, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 40px 32px; text-align: center; width: 95%; max-width: 911px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); animation: slideUp 0.3s ease-out; position: relative;">
+          
+          <button id="btn-home-revive" style="position: absolute; left: 20px; top: 20px; font-size: 24px; color: #fff; font-weight: 800; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; cursor: pointer; line-height: 1; display: flex; align-items: center; justify-content: center; width: 46px; height: 46px; transition: background 0.2s;" title="Return Home">↩</button>
+          
+          <div style="font-size: 32px; margin-bottom: 10px;">💥</div>
+          <h2 style="font-size: 36px; font-weight: 900; color: #ff3c2e; letter-spacing: 2px; margin-bottom: 24px; text-shadow: 0 0 10px rgba(255,60,46,0.5);">CRASHED!</h2>
 
-          <div style="font-size:11px; color:#ffd700; font-weight:800; letter-spacing:1.5px; margin-top:-5px; margin-bottom:15px; text-transform:uppercase; text-shadow:0 0 8px rgba(255,215,0,0.4);">
-            REVIVES USED: ${this.engine.revivesUsedThisRun} (UNLIMITED)
+          ${this.engine.gameMode !== 'level' ? `
+          <div style="background: rgba(0,0,0,0.3); border-radius: 16px; padding: 16px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05);">
+            <div style="font-size: 12px; font-weight: 800; color: #ffd700; letter-spacing: 1.5px; text-transform: uppercase;">SCORE</div>
+            <div style="font-size: 48px; font-weight: 900; color: #fff; text-shadow: 0 4px 10px rgba(0,0,0,0.5);">${this.engine.score}</div>
+            <div style="font-size: 14px; font-weight: 800; color: #ffd700; margin-top: 6px; letter-spacing: 1px;">BEST: ${Math.max(progress.highscore, this.engine.score)}</div>
+          </div>
+          ` : ''}
+
+          <div style="display: flex; flex-direction: column; gap: 8px; text-align: left; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 16px; margin-bottom: 24px; font-size: 14px; font-weight: 600; color: #ddd;">
+            <div style="display: flex; justify-content: space-between;">
+              <span>Coins Collected</span>
+              <strong style="color: #fff;">+${this.engine.coinsCollectedThisRun} 🟡</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span>Gems Collected</span>
+              <strong style="color: #fff;">+${this.engine.gemsCollectedThisRun} 💎</strong>
+            </div>
           </div>
 
-          <!-- Circular digital countdown -->
-          <div class="countdown-container">
-            <svg class="countdown-svg" viewBox="0 0 100 100">
-              <circle class="countdown-bg-circle" cx="50" cy="50" r="45"></circle>
-              <circle id="countdown-fill-circle" class="countdown-fill-circle" cx="50" cy="50" r="45" style="stroke-dasharray: 282.74; stroke-dashoffset: 0;"></circle>
-            </svg>
-            <div id="countdown-text" class="countdown-text">5.0</div>
-          </div>
 
-          <div class="revive-gems-status glass-card">
-            <span class="gems-label">DIAMOND BANK:</span>
-            <span class="gems-count">${gems} / ${price} 💎</span>
-          </div>
 
-          <div class="vertical-actions">
-            <button class="btn btn-primary btn-revive-action ${canAfford ? 'btn-glow-green' : 'btn-disabled'}" id="btn-confirm-revive" ${canAfford ? '' : 'disabled'}>
-              <span>REVIVE NOW</span>
-              <strong class="gems-cost">💎 5</strong>
-            </button>
+          ${this.engine.revivesUsedThisRun < 3 ? `
+          <div class="revive-heartbeat-box">
             
-            <button class="btn btn-secondary btn-revive-ad" id="btn-ad-revive" style="margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(180deg, #ffaa00 0%, #cc7700 100%); border: 2px solid #ffd700; width: 100%; box-shadow: 0 0 10px rgba(255,170,0,0.3); font-weight: bold; color: white;">
-              <span>🎞️ WATCH AD TO REVIVE</span>
-            </button>
-            
-            <button class="btn-skip-revive" id="btn-skip-revive">NO THANKS (SKIP)</button>
+            <div style="position: relative; text-align: center; margin-bottom: 20px;">
+              <div style="font-size: 20px; color: #00e676; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0, 230, 118, 0.6);">
+                REVIVE
+              </div>
+              <div style="position: absolute; right: 0; top: 50%; transform: translateY(-50%); font-size: 14px; color: #fff; font-weight: 800; letter-spacing: 1.5px; background: rgba(0,0,0,0.4); padding: 4px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                ${3 - this.engine.revivesUsedThisRun} / 3
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: center;">
+              <button id="btn-confirm-revive" style="flex: 1; padding: 16px; border-radius: 50px; background: #2a2a35; border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); opacity: ${canAfford ? '1' : '0.5'};" ${canAfford ? '' : 'disabled'}>
+                <span style="font-size: 20px; filter: drop-shadow(0 0 5px rgba(0,243,255,0.8));">💎</span>
+                <span style="font-size: 20px; font-weight: 800; color: #fff;">5</span>
+              </button>
+              
+              <button id="btn-ad-revive" style="flex: 1; padding: 16px; border-radius: 50px; background: linear-gradient(135deg, #ff6b00, #ffaa00); border: none; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; box-shadow: 0 0 20px rgba(255, 107, 0, 0.4), 0 4px 10px rgba(0,0,0,0.3);">
+                <span style="font-size: 18px; font-weight: 900; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">🎬 WATCH AD</span>
+              </button>
+            </div>
+          </div>
+          ` : `
+          <div style="background: rgba(255,0,0,0.15); border: 1px solid rgba(255,0,0,0.3); border-radius: 16px; padding: 16px; margin-bottom: 24px;">
+            <div style="font-size: 14px; color: #ff5252; font-weight: 800; letter-spacing: 1px; text-shadow: 0 0 8px rgba(255,82,82,0.5);">MAXIMUM REVIVES REACHED</div>
+          </div>
+          `}
+          
+          <div style="display: flex; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 8px; padding-top: 16px; gap: 12px;">
+            <button id="btn-skip-revive" style="flex: 1; background: rgba(255,255,255,0.1); border: none; border-radius: 12px; color: #fff; font-size: 18px; font-weight: 700; cursor: pointer; padding: 16px; transition: background 0.2s;">TRY AGAIN</button>
           </div>
         </div>
       </div>
@@ -1930,32 +1996,21 @@ export class UIManager {
     });
 
     document.getElementById('btn-skip-revive')?.addEventListener('click', () => {
-      this.engine.confirmGameOver();
+      this.engine.confirmGameOver(); // Save progress
+      AdManager.onTransitionPoint();
+      this.engine.startGame(); // Immediate restart
       this.render();
     });
 
-    // Start micro countdown animation frame loop
-    const textEl = document.getElementById('countdown-text');
-    const circleEl = document.getElementById('countdown-fill-circle');
-
-    const updateCountdownUI = () => {
-      if (this.engine.state !== 'REVIVE_CHOICE') return;
-
-      const countdown = Math.max(0, this.engine.reviveCountdown);
-      if (textEl) {
-        textEl.innerText = countdown.toFixed(1);
+    document.getElementById('btn-home-revive')?.addEventListener('click', () => {
+      this.engine.confirmGameOver(); // Save progress
+      AdManager.onTransitionPoint();
+      this.engine.state = 'MENU';
+      if (this.engine.gameMode === 'level') {
+        this.activeTab = 'levels';
       }
-
-      if (circleEl) {
-        const circumference = 282.74; // 2 * Math.PI * 45
-        const offset = circumference - (countdown / 5.0) * circumference;
-        circleEl.style.strokeDashoffset = offset.toString();
-      }
-
-      requestAnimationFrame(updateCountdownUI);
-    };
-
-    requestAnimationFrame(updateCountdownUI);
+      this.render();
+    });
   }
 
   private renderLevelComplete() {
@@ -1981,10 +2036,6 @@ export class UIManager {
           </div>
 
           <div class="rewards-summary" style="margin-top: 15px; width: 100%; display: flex; flex-direction: column; gap: 8px;">
-            <div class="reward-row" style="display: flex; justify-content: space-between; padding: 6px 12px; background: rgba(255,255,255,0.03); border-radius: 8px;">
-              <span>Score Reached</span>
-              <strong style="color: #ffd700;">${this.engine.score} / ${levelConfig?.targetScore} 🎯</strong>
-            </div>
             <div class="reward-row" style="display: flex; justify-content: space-between; padding: 6px 12px; background: rgba(255,255,255,0.03); border-radius: 8px;">
               <span>Gold Collected</span>
               <strong>+${this.engine.coinsCollectedThisRun} 🟡</strong>
@@ -2174,6 +2225,164 @@ export class UIManager {
         toast.remove();
       }, 400);
     }, 3200);
+  }
+
+  private renderDemoComplete() {
+    this.container.innerHTML = `
+      <div class="overlay-screen fade-in glass-modal" style="background: rgba(10, 5, 20, 0.88);">
+        <div class="modal-card" style="border: 2px solid #ffd700; box-shadow: 0 0 25px rgba(255, 215, 0, 0.45); animation: floatBird 4s ease-in-out infinite;">
+          <div style="font-size: 55px; margin-bottom: 12px; filter: drop-shadow(0 0 10px #ffd700);">🏆</div>
+          <h2 class="modal-title" style="color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.6); font-family: 'Outfit', sans-serif; font-size: 26px; font-weight: 900;">DEMO COMPLETED!</h2>
+          <p class="modal-subtitle" style="color: #ffffff; font-size: 14px; margin-bottom: 20px;">Congratulations! You successfully reached score <b>500</b> in Endless Flock Mode!</p>
+          
+          <div class="glass-card" style="padding: 12px; margin-bottom: 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <div style="font-size: 12px; color: #00f3ff; font-weight: 800; margin-bottom: 6px; letter-spacing: 0.5px;">DEMO CONCEPT PREVIEW SUMMARY</div>
+            <div style="font-size: 11px; color: #e2e8f0; text-align: left; line-height: 1.5; display: flex; flex-direction: column; gap: 4px;">
+              <span>🔹 <b>Flock Survival:</b> Fly with multiple birds. Hitting pipes only kills individual birds.</span>
+              <span>🔹 <b>Rescue Cages:</b> Rescuing cages adds wild birds to your flock.</span>
+              <span>🔹 <b>Flock Formation:</b> Follower birds fly in V-shape and trailing line.</span>
+              <span>🔹 <b>Flock Merge:</b> Evolve your squad to trigger Hyper Boost!</span>
+            </div>
+          </div>
+          
+          <div class="vertical-actions">
+            <button class="btn btn-primary" id="btn-continue-demo" style="background: linear-gradient(180deg, #ffd700, #ff8800); text-shadow: 0 1px 2px rgba(0,0,0,0.4); font-weight: 900;">CONTINUE FLYING</button>
+            <button class="btn btn-secondary" id="btn-quit-demo">EXIT TO MENU</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const btnContinue = document.getElementById('btn-continue-demo');
+    if (btnContinue) {
+      btnContinue.addEventListener('click', () => {
+        this.engine.state = 'PLAYING';
+        for (const b of this.engine.flock) {
+          b.isInvincible = true;
+        }
+        setTimeout(() => {
+          for (const b of this.engine.flock) {
+            b.isInvincible = false;
+          }
+        }, 2000);
+        
+        this.engine.soundManager.startMusic(this.engine.progressManager.getState().activeWorld);
+        this.render();
+      });
+    }
+
+    const btnQuit = document.getElementById('btn-quit-demo');
+    if (btnQuit) {
+      btnQuit.addEventListener('click', () => {
+        this.engine.confirmGameOver();
+        this.activeTab = 'main';
+        this.render();
+      });
+    }
+  }
+
+  private showEndlessModeSelection() {
+    this.container.innerHTML = `
+      <div class="overlay-screen fade-in glass-modal" style="background: rgba(10, 5, 20, 0.88); display: flex; align-items: center; justify-content: center;">
+        <div class="modal-card animate-slide-up" style="max-width: 440px; padding: 25px 20px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6); position: relative;">
+          <!-- Close button in corner -->
+          <button id="btn-close-mode-selector" style="position: absolute; right: 15px; top: 15px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50%; color: white; width: 32px; height: 32px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">×</button>
+          
+          <h2 class="modal-title" style="color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 900; margin-bottom: 5px;">SELECT GAME MODE</h2>
+          <p class="modal-subtitle" style="color: rgba(255, 255, 255, 0.6); font-size: 11px; margin-bottom: 20px;">Choose your endless adventure</p>
+          
+          <div style="display: flex; flex-direction: column; gap: 12px; text-align: left; width: 100%;">
+            <!-- Option 1: Classic -->
+            <div class="glass-card" style="padding: 12px 14px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; display: flex; align-items: center; gap: 12px;">
+              <div style="font-size: 32px; filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5)); flex-shrink: 0; width: 45px; text-align: center;">🐦</div>
+              <div style="flex: 1;">
+                <div style="font-size: 13.5px; font-weight: 800; color: #ffd700; display: flex; align-items: center; gap: 6px;">
+                  CLASSIC ENDLESS
+                </div>
+                <div style="font-size: 10px; color: rgba(255, 255, 255, 0.7); margin-top: 3px; line-height: 1.4;">
+                  Original single bird gameplay. Pure skill, classic physics, and infinite highscore chase.
+                </div>
+              </div>
+              <button id="btn-select-classic" class="btn" style="width: auto; padding: 8px 14px; font-size: 11px; font-weight: 800; background: linear-gradient(180deg, #ffd700 0%, #ffaa00 100%); color: #3d2c00; border-radius: 10px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(255, 215, 0, 0.25);">FLY</button>
+            </div>
+
+            <!-- Option 2: Squad Survival -->
+            <div class="glass-card" style="padding: 12px 14px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; display: flex; align-items: center; gap: 12px;">
+              <div style="font-size: 32px; filter: drop-shadow(0 0 8px rgba(0, 243, 255, 0.5)); flex-shrink: 0; width: 45px; text-align: center;">🪽</div>
+              <div style="flex: 1;">
+                <div style="font-size: 13.5px; font-weight: 800; color: #00f3ff; display: flex; align-items: center; gap: 6px;">
+                  SQUAD SURVIVAL
+                </div>
+                <div style="font-size: 10px; color: rgba(255, 255, 255, 0.7); margin-top: 3px; line-height: 1.4;">
+                  Fly with a flock! A new bird joins your squad every 10 to 20 points. Survives if at least one bird is alive. (Demo cap: 500)
+                </div>
+              </div>
+              <button id="btn-select-flock" class="btn" style="width: auto; padding: 8px 14px; font-size: 11px; font-weight: 800; background: linear-gradient(180deg, #00f3ff 0%, #0088ff 100%); color: #002233; border-radius: 10px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0, 243, 255, 0.25);">FLY</button>
+            </div>
+
+            <!-- Option 3: Cage Rescue -->
+            <div class="glass-card" style="padding: 12px 14px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; display: flex; align-items: center; gap: 12px;">
+              <div style="font-size: 32px; filter: drop-shadow(0 0 8px rgba(255, 0, 127, 0.5)); flex-shrink: 0; width: 45px; text-align: center;">🕸️</div>
+              <div style="flex: 1;">
+                <div style="font-size: 13.5px; font-weight: 800; color: #ff007f; display: flex; align-items: center; gap: 6px;">
+                  CAGE RESCUE
+                </div>
+                <div style="font-size: 10px; color: rgba(255, 255, 255, 0.7); margin-top: 3px; line-height: 1.4;">
+                  Rescue captive birds from cages! Collect Merge Orbs to combine your squad and trigger Hyper Boosts. (Demo cap: 500)
+                </div>
+              </div>
+              <button id="btn-select-rescue" class="btn" style="width: auto; padding: 8px 14px; font-size: 11px; font-weight: 800; background: linear-gradient(180deg, #ff007f 0%, #7b2fff 100%); color: #ffffff; border-radius: 10px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(255, 0, 127, 0.25);">FLY</button>
+            </div>
+
+            <!-- Option 4: Formation Flight -->
+            <div class="glass-card" style="padding: 12px 14px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; display: flex; align-items: center; gap: 12px;">
+              <div style="font-size: 32px; filter: drop-shadow(0 0 8px rgba(255, 170, 0, 0.5)); flex-shrink: 0; width: 45px; text-align: center;">🔄</div>
+              <div style="flex: 1;">
+                <div style="font-size: 13.5px; font-weight: 800; color: #ffaa00; display: flex; align-items: center; gap: 6px;">
+                  FORMATION FLIGHT
+                </div>
+                <div style="font-size: 10px; color: rgba(255, 255, 255, 0.7); margin-top: 3px; line-height: 1.4;">
+                  Switch formations on the fly! Cycle V-Shape, Single File, and Column to pass tight hazards. (Demo cap: 500)
+                </div>
+              </div>
+              <button id="btn-select-formation" class="btn" style="width: auto; padding: 8px 14px; font-size: 11px; font-weight: 800; background: linear-gradient(180deg, #ffaa00 0%, #ff5500 100%); color: #ffffff; border-radius: 10px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(255, 170, 0, 0.25);">FLY</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('btn-close-mode-selector')?.addEventListener('click', () => {
+      this.renderMenu();
+    });
+
+    document.getElementById('btn-select-classic')?.addEventListener('click', () => {
+      this.engine.gameMode = 'endless';
+      this.engine.isSpectatorMode = false;
+      this.engine.startGame();
+      this.render();
+    });
+
+    document.getElementById('btn-select-flock')?.addEventListener('click', () => {
+      this.engine.gameMode = 'flock';
+      this.engine.isSpectatorMode = false;
+      this.engine.startGame();
+      this.render();
+    });
+
+    document.getElementById('btn-select-rescue')?.addEventListener('click', () => {
+      this.engine.gameMode = 'rescue';
+      this.engine.isSpectatorMode = false;
+      this.engine.startGame();
+      this.render();
+    });
+
+    document.getElementById('btn-select-formation')?.addEventListener('click', () => {
+      this.engine.gameMode = 'formation';
+      this.engine.isSpectatorMode = false;
+      this.engine.startGame();
+      this.render();
+    });
   }
 
   private getPowerupColor(type: string): string {

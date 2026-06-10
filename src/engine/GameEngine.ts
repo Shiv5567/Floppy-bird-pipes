@@ -9,7 +9,7 @@ import { BossManager } from '../entities/BossManager.ts';
 import { LevelManager } from '../systems/LevelManager.ts';
 import type { LevelConfig } from '../systems/LevelManager.ts';
 
-export type GameState = 'PRELOADING' | 'MENU' | 'PLAYING' | 'PAUSED' | 'BOSS_WARNING' | 'BOSS_FIGHT' | 'GAMEOVER' | 'PHOTO_MODE' | 'REVIVE_CHOICE';
+export type GameState = 'PRELOADING' | 'MENU' | 'PLAYING' | 'PAUSED' | 'BOSS_WARNING' | 'BOSS_FIGHT' | 'GAMEOVER' | 'PHOTO_MODE' | 'REVIVE_CHOICE' | 'DEMO_COMPLETE';
 
 export interface ActivePowerup {
   type: string;
@@ -25,7 +25,8 @@ export class GameEngine {
   private preReviveState: GameState = 'PLAYING';
   
   // Level Mode systems
-  public gameMode: 'endless' | 'level' = 'endless';
+  public gameMode: 'endless' | 'level' | 'flock' | 'rescue' | 'formation' = 'endless';
+  public currentFormation: 'v_shape' | 'line' | 'column' = 'v_shape';
   public currentLevelNum = 1;
   public activeLevelConfig: LevelConfig | null = null;
   public shieldBrokenThisRun = false;
@@ -43,6 +44,8 @@ export class GameEngine {
 
   // Entities
   public bird: Bird;
+  public flock: Bird[] = [];
+  private scoreThreshold = 100;
   public obstacleManager: ObstacleManager;
   public powerupManager: PowerupManager;
   public bossManager: BossManager;
@@ -170,6 +173,17 @@ export class GameEngine {
     this.bird.setSkin(currentSkin);
     this.bird.setDifficulty(this.progressManager.getState().selectedDifficulty);
 
+    if (this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') {
+      const width = this.renderer.canvas.width / this.renderer.dpr;
+      this.bird.x = width > 0 ? width / 2 : 240;
+      this.flock = [this.bird];
+      this.scoreThreshold = Math.floor(Math.random() * 11) + 10;
+      this.currentFormation = 'v_shape';
+    } else {
+      this.bird.x = 120;
+      this.flock = [];
+    }
+
     this.obstacleManager.clear();
     if (this.gameMode === 'level' && this.activeLevelConfig) {
       this.obstacleManager.setLevelMode(true, this.activeLevelConfig);
@@ -234,10 +248,11 @@ export class GameEngine {
     }
 
     if (this.state === 'REVIVE_CHOICE') {
-      this.reviveCountdown -= dt;
-      if (this.reviveCountdown <= 0) {
-        this.confirmGameOver();
-      }
+      this.renderer.update(dt, 0, this.bird.y, 1.0, this.state);
+      return;
+    }
+
+    if (this.state === 'DEMO_COMPLETE') {
       this.renderer.update(dt, 0, this.bird.y, 1.0, this.state);
       return;
     }
@@ -257,6 +272,85 @@ export class GameEngine {
       const activeTimeScale = this.timeScale;
 
       this.bird.update(dt, this.particleEngine, true, activeTimeScale, this.score);
+
+      // Flocking score-based additions in Squad Survival, Cage Rescue, and Formation Modes
+      if ((this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') && this.score >= this.scoreThreshold && this.flock.length < 5) {
+        const skins = this.progressManager.getSkins().filter(s => s.unlocked);
+        const skin = skins[Math.floor(Math.random() * skins.length)] || this.bird.getSkin();
+        const newBird = new Bird(skin);
+        newBird.x = this.bird.x - 100; // spawn slightly behind
+        newBird.y = this.bird.y;
+        this.flock.push(newBird);
+        this.scoreThreshold += Math.floor(Math.random() * 11) + 10;
+        
+        // Visual spawn particles
+        this.particleEngine.emitRing(newBird.x, newBird.y, skin.glowColor || '#00f3ff', 15);
+        this.soundManager.playLevelUp();
+        window.dispatchEvent(new CustomEvent('hud_alert', {
+          detail: { text: 'FLOCK EXPANDED! 🪽', sub: 'A new bird joined your squad!' }
+        }));
+      }
+
+      // Update follower birds positions and logic in flocking modes
+      if (this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') {
+        if (this.flock.length > 0) {
+          this.bird = this.flock[0];
+        }
+        
+        let offsets = [
+          { dx: 0, dy: 0 },         // Leader
+          { dx: -55, dy: -40 },     // Bird 1 (upper-back)
+          { dx: -55, dy: 40 },      // Bird 2 (lower-back)
+          { dx: -110, dy: -80 },    // Bird 3 (far upper-back)
+          { dx: -110, dy: 80 }      // Bird 4 (far lower-back)
+        ];
+
+        if (this.gameMode === 'formation') {
+          if (this.currentFormation === 'line') {
+            offsets = [
+              { dx: 0, dy: 0 },
+              { dx: -55, dy: 0 },
+              { dx: -110, dy: 0 },
+              { dx: -165, dy: 0 },
+              { dx: -220, dy: 0 }
+            ];
+          } else if (this.currentFormation === 'column') {
+            offsets = [
+              { dx: 0, dy: 0 },
+              { dx: -25, dy: -45 },
+              { dx: -25, dy: 45 },
+              { dx: -50, dy: -90 },
+              { dx: -50, dy: 90 }
+            ];
+          }
+        }
+        
+        const flockLen = this.flock.length;
+        const dtCoeff = dt * 60 * activeTimeScale;
+        for (let i = 1; i < flockLen; i++) {
+          const follower = this.flock[i];
+          const offset = offsets[i] || { dx: -55 * i, dy: (i % 2 === 0 ? 40 : -40) * Math.ceil(i / 2) };
+          
+          const targetX = this.bird.x + offset.dx;
+          const targetY = this.bird.y + offset.dy;
+          
+          // Smooth follow
+          const followSpeed = 0.12 * dtCoeff;
+          follower.x += (targetX - follower.x) * followSpeed;
+          follower.y += (targetY - follower.y) * followSpeed;
+          
+          follower.vy = this.bird.vy;
+          follower.angle = this.bird.angle;
+          
+          follower.update(dt, this.particleEngine, true, activeTimeScale, this.score);
+          
+          // Sync size/powerup visual states
+          follower.isInvincible = this.bird.isInvincible;
+          follower.isGhost = this.bird.isGhost;
+          follower.hasShield = this.bird.hasShield;
+          follower.sizeMultiplier = this.bird.sizeMultiplier;
+        }
+      }
       
       // Booster automatic vertical centering cruised flight
       if (this.boosterActive) {
@@ -298,13 +392,26 @@ export class GameEngine {
       
       // Keep bird within screen boundaries for all playing states (including powerups)
       if (this.state !== 'PLAYING' || this.bird.isInvincible || this.bird.isGhost) {
-        if (this.bird.y - this.bird.radius < 5) {
-          this.bird.y = 5 + this.bird.radius;
-          if (this.bird.vy < 0) this.bird.vy = 0;
-        }
-        if (this.bird.y + this.bird.radius > height - 35) {
-          this.bird.y = height - 35 - this.bird.radius;
-          if (this.bird.vy > 0) this.bird.vy = 0;
+        if (this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') {
+          for (const b of this.flock) {
+            if (b.y - b.radius < 5) {
+              b.y = 5 + b.radius;
+              if (b.vy < 0) b.vy = 0;
+            }
+            if (b.y + b.radius > height - 35) {
+              b.y = height - 35 - b.radius;
+              if (b.vy > 0) b.vy = 0;
+            }
+          }
+        } else {
+          if (this.bird.y - this.bird.radius < 5) {
+            this.bird.y = 5 + this.bird.radius;
+            if (this.bird.vy < 0) this.bird.vy = 0;
+          }
+          if (this.bird.y + this.bird.radius > height - 35) {
+            this.bird.y = height - 35 - this.bird.radius;
+            if (this.bird.vy > 0) this.bird.vy = 0;
+          }
         }
       }
       
@@ -544,33 +651,93 @@ export class GameEngine {
         }
 
         // Evaluate standard collisions & enforce boundaries
-        if (!this.bird.isInvincible && !this.bird.isGhost && !this.boosterActive && !this.boosterDeactivating) {
-          const collidedObs = this.obstacleManager.enforceBoundariesAndCheckCollisions(
-            this.bird,
-            height,
-            selectedDifficulty
-          );
+        if (this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') {
+          for (let i = this.flock.length - 1; i >= 0; i--) {
+            const b = this.flock[i];
+            if (!b.isInvincible && !b.isGhost && !this.boosterActive && !this.boosterDeactivating) {
+              const collidedObs = this.obstacleManager.enforceBoundariesAndCheckCollisions(
+                b,
+                height,
+                selectedDifficulty
+              );
+              
+              if (collidedObs) {
+                // Collided. Check Shield safety
+                if (b.hasShield) {
+                  b.hasShield = false;
+                  this.shieldBrokenThisRun = true;
+                  delete this.activePowerupsList['shield'];
+                  
+                  // Temporary invincibility safety delay for the whole flock
+                  for (const fb of this.flock) {
+                    fb.isInvincible = true;
+                    fb.hasShield = false;
+                  }
+                  
+                  this.particleEngine.emitRing(b.x, b.y, '#00f3ff', 24);
+                  this.soundManager.playShieldDeflect();
+                  this.renderer.triggerScreenShake(20, 0.4);
+                  
+                  setTimeout(() => {
+                    for (const fb of this.flock) {
+                      fb.isInvincible = false;
+                    }
+                  }, 1500);
+                } else {
+                  // Eliminate this specific bird
+                  this.particleEngine.emitExplosion(b.x, b.y, b.getSkin().glowColor, 20);
+                  this.soundManager.playExplosion();
+                  this.renderer.triggerScreenShake(12, 0.25);
+                  
+                  this.flock.splice(i, 1);
+                  
+                  // If leader bird died, promote next one in line
+                  if (i === 0 && this.flock.length > 0) {
+                    this.bird = this.flock[0];
+                    this.bird.isInvincible = true;
+                    setTimeout(() => {
+                      this.bird.isInvincible = false;
+                    }, 1500);
+                  }
+                  
+                  // If all birds are dead, trigger crash/game over
+                  if (this.flock.length === 0) {
+                    this.handleCrash();
+                  }
+                  break;
+                }
+              }
+            }
+          }
+        } else {
+          if (!this.bird.isInvincible && !this.bird.isGhost && !this.boosterActive && !this.boosterDeactivating) {
+            const collidedObs = this.obstacleManager.enforceBoundariesAndCheckCollisions(
+              this.bird,
+              height,
+              selectedDifficulty
+            );
 
-          if (collidedObs) {
-            // Collided. Check Shield safety
-            if (this.bird.hasShield) {
-              this.bird.hasShield = false;
-              this.shieldBrokenThisRun = true;
-              delete this.activePowerupsList['shield'];
-              this.bird.isInvincible = true;
-              
-              // Explode shield wave
-              this.particleEngine.emitRing(this.bird.x, this.bird.y, '#00f3ff', 24);
-              this.soundManager.playShieldDeflect();
-              this.renderer.triggerScreenShake(20, 0.4);
-              
-              // Temporary invincibility safety delay
-              setTimeout(() => {
-                this.bird.isInvincible = false;
-              }, 1500);
-            } else {
-              // Crash
-              this.handleCrash();
+            if (collidedObs) {
+              // Collided. Check Shield safety
+              if (this.bird.hasShield) {
+                this.bird.hasShield = false;
+                this.shieldBrokenThisRun = true;
+                delete this.activePowerupsList['shield'];
+                this.bird.isInvincible = true;
+                
+                // Explode shield wave
+                this.particleEngine.emitRing(this.bird.x, this.bird.y, '#00f3ff', 24);
+                this.soundManager.playShieldDeflect();
+                this.renderer.triggerScreenShake(20, 0.4);
+                
+                // Temporary invincibility safety delay
+                setTimeout(() => {
+                  this.bird.isInvincible = false;
+                }, 1500);
+              } else {
+                // Crash
+                this.handleCrash();
+              }
             }
           }
         }
@@ -675,16 +842,34 @@ export class GameEngine {
       }
 
       // Check items pickup
-      const collectedType = this.powerupManager.checkItemCollisions(
-        this.bird.x,
-        this.bird.y,
-        this.bird.radius,
-        this.particleEngine,
-        this.soundManager
-      );
-
-      if (collectedType) {
-        this.activatePowerup(collectedType);
+      if (this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') {
+        const flockLen = this.flock.length;
+        for (let idx = 0; idx < flockLen; idx++) {
+          const b = this.flock[idx];
+          if (!b) continue;
+          const collectedType = this.powerupManager.checkItemCollisions(
+            b.x,
+            b.y,
+            b.radius,
+            this.particleEngine,
+            this.soundManager
+          );
+          if (collectedType) {
+            this.activatePowerup(collectedType);
+            break; // only process one item per frame/collision event
+          }
+        }
+      } else {
+        const collectedType = this.powerupManager.checkItemCollisions(
+          this.bird.x,
+          this.bird.y,
+          this.bird.radius,
+          this.particleEngine,
+          this.soundManager
+        );
+        if (collectedType) {
+          this.activatePowerup(collectedType);
+        }
       }
 
     } else if (this.state === 'GAMEOVER') {
@@ -806,6 +991,7 @@ export class GameEngine {
   }
 
   public attemptRevive(): boolean {
+    if (this.revivesUsedThisRun >= 3) return false;
     const progress = this.progressManager.getState();
     if (progress.gems < 5) return false;
 
@@ -849,8 +1035,9 @@ export class GameEngine {
   }
 
   public attemptReviveFree(): void {
+    if (this.revivesUsedThisRun >= 3) return;
     this.revivesUsedThisRun++;
-    this.hasRevivedThisRun = false; // Unlimited revives!
+    this.hasRevivedThisRun = false;
     this.bird.isCrashing = false;
     this.bird.isInvincible = true;
     this.bird.vy = -4.5; // slight upwards jump impulse to resume
@@ -918,6 +1105,18 @@ export class GameEngine {
     // Spawn point sparkles
     this.particleEngine.emitCoinSparkle(this.bird.x + 30, this.bird.y, '#00ffcc');
 
+    // Flocking demo completion at score 500
+    if ((this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') && this.score >= 500 && this.state !== 'DEMO_COMPLETE') {
+      this.state = 'DEMO_COMPLETE';
+      this.soundManager.stopMusic();
+      this.soundManager.playLevelUp();
+      this.renderer.triggerScreenShake(30, 0.6);
+      
+      const width = this.renderer.canvas.width / this.renderer.dpr;
+      const height = this.renderer.canvas.height / this.renderer.dpr;
+      this.particleEngine.emitExplosion(width / 2, height / 2, '#ffd700', 50);
+      this.particleEngine.emitExplosion(width / 2, height / 2, '#00f3ff', 50);
+    }
   }
 
   private triggerBossWarning() {
@@ -933,6 +1132,53 @@ export class GameEngine {
   public activatePowerup(type: string) {
     let duration = 8.0; // Seconds base
     let max = 8.0;
+
+    if (type === 'rescue') {
+      if (this.gameMode === 'rescue') {
+        if (this.flock.length < 5) {
+          const skins = this.progressManager.getSkins().filter(s => s.unlocked);
+          const skin = skins[Math.floor(Math.random() * skins.length)] || this.bird.getSkin();
+          const newBird = new Bird(skin);
+          newBird.x = this.bird.x - 100;
+          newBird.y = this.bird.y;
+          this.flock.push(newBird);
+          this.particleEngine.emitRing(newBird.x, newBird.y, skin.glowColor || '#ffaa00', 15);
+          window.dispatchEvent(new CustomEvent('hud_alert', {
+            detail: { text: 'RESCUED! 🪽', sub: 'A wild bird was rescued and joined your flock!' }
+          }));
+        } else {
+          this.coinsCollectedThisRun += 150;
+          this.progressManager.addCoins(150);
+          window.dispatchEvent(new CustomEvent('hud_alert', {
+            detail: { text: 'FLOCK FULL!', sub: '+150 Coins awarded instead!' }
+          }));
+        }
+      }
+      return;
+    }
+
+    if (type === 'merge') {
+      if (this.gameMode === 'rescue') {
+        if (this.flock.length > 1) {
+          for (let i = 1; i < this.flock.length; i++) {
+            const b = this.flock[i];
+            this.particleEngine.emitRing(b.x, b.y, b.getSkin().glowColor || '#ff007f', 20);
+          }
+          this.flock = [this.flock[0]];
+          this.bird = this.flock[0];
+          
+          this.activatePowerup('shield');
+          this.activatePowerup('booster');
+          
+          window.dispatchEvent(new CustomEvent('hud_alert', {
+            detail: { text: 'FLOCK MERGE! 🌌', sub: 'Birds merged to trigger Hyper Boost + Shield!' }
+          }));
+        } else {
+          this.activatePowerup('rescue');
+        }
+      }
+      return;
+    }
 
     if (type === 'booster') {
       this.boosterActive = true;
@@ -1175,6 +1421,29 @@ export class GameEngine {
 
   public getActivePowerups(): ActivePowerup[] {
     return Object.values(this.activePowerupsList);
+  }
+
+  public cycleFormation() {
+    if (this.gameMode !== 'formation') return;
+
+    if (this.currentFormation === 'v_shape') {
+      this.currentFormation = 'line';
+      window.dispatchEvent(new CustomEvent('hud_alert', {
+        detail: { text: 'SINGLE FILE LINE ➡️', sub: 'Follower birds lined up horizontally!' }
+      }));
+    } else if (this.currentFormation === 'line') {
+      this.currentFormation = 'column';
+      window.dispatchEvent(new CustomEvent('hud_alert', {
+        detail: { text: 'VERTICAL COLUMN ⬇️', sub: 'Follower birds stacked vertically!' }
+      }));
+    } else {
+      this.currentFormation = 'v_shape';
+      window.dispatchEvent(new CustomEvent('hud_alert', {
+        detail: { text: 'V-SHAPE FLIGHT 🪽', sub: 'Follower birds in standard V-shape!' }
+      }));
+    }
+
+    this.soundManager.playGem();
   }
 
   public enterPhotoMode() {
