@@ -544,42 +544,77 @@ export class PowerupManager {
       } else if (item.type === 'booster') {
         this.drawLightningBolt(ctx, item);
       } else if (item.type === 'rescue') {
-        // ── CAGE: Extra large, animated, obvious visual ──
+        // Render a classic iron/steel cage directly without any glows, bubbles, or halos
         const t = performance.now() * 0.001;
-        const pulseSin = Math.sin(t * 3.5);
+        const flapAngle = Math.sin(t * 7) * 0.5;
 
-        // Orange pulsing outer halo
-        if (!(window as any).gameDisableShadows) {
-          ctx.shadowBlur = 18 + pulseSin * 10;
-          ctx.shadowColor = '#ffaa00';
-        } else {
-          // Software glow ring
-          ctx.globalAlpha = 0.25 + pulseSin * 0.1;
-          ctx.fillStyle = '#ffaa00';
-          ctx.beginPath();
-          ctx.arc(0, 0, item.radius * 1.7, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.globalAlpha = 1.0;
-        }
+        // Scale cage 1.45x so it matches the collision size nicely
+        const scale = 1.45;
+        ctx.scale(scale, scale);
 
-        // Scale cage 1.4x so it is clearly distinguishable
-        const cageScale = 1.4;
-        ctx.scale(cageScale, cageScale);
-        this.drawPowerupBox(ctx, item);
+        // Cage outer frame (Classic iron/steel grey)
+        ctx.strokeStyle = '#95a5a6'; // Classic iron grey
+        ctx.lineWidth = 1.6;
+        ctx.lineCap = 'round';
 
-        ctx.restore();
-        ctx.save();
-        ctx.translate(Math.round(item.x), Math.round(item.y));
+        // Top dome arc
+        ctx.beginPath();
+        ctx.arc(0, -1, 7, 0, Math.PI, true);
+        // Bottom bar
+        ctx.lineTo(-7, 6);
+        ctx.moveTo(-7, 6);
+        ctx.lineTo(7, 6);
+        ctx.moveTo(7, 6);
+        ctx.lineTo(7, -1);
+        ctx.stroke();
 
-        // Floating "RESCUE!" label above the cage
-        const labelY = -item.radius * 1.4 - 8 + Math.sin(t * 2) * 3;
-        ctx.font = 'bold 9px Outfit, Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'bottom';
-        ctx.globalAlpha = 0.85 + pulseSin * 0.15;
+        // Vertical bars
+        ctx.beginPath();
+        ctx.moveTo(-3.5, -6.5); ctx.lineTo(-3.5, 6);
+        ctx.moveTo(0,   -8);    ctx.lineTo(0,    6);
+        ctx.moveTo(3.5, -6.5);  ctx.lineTo(3.5,  6);
+        ctx.stroke();
+
+        // Hinge at top
+        ctx.fillStyle = '#7f8c8d'; // Darker steel grey
+        ctx.beginPath();
+        ctx.arc(0, -8.5, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Flapping bird body inside cage
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.ellipse(0, 1.5, 2.5, 1.8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Left wing (flapping)
+        ctx.strokeStyle = '#aaccff';
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.moveTo(-2.5, 1.5);
+        ctx.quadraticCurveTo(-5, 1.5 + Math.sin(flapAngle) * 3, -3.5, 1.5 + Math.sin(flapAngle) * 5);
+        ctx.stroke();
+
+        // Right wing (flapping)
+        ctx.beginPath();
+        ctx.moveTo(2.5, 1.5);
+        ctx.quadraticCurveTo(5, 1.5 - Math.sin(flapAngle) * 3, 3.5, 1.5 - Math.sin(flapAngle) * 5);
+        ctx.stroke();
+
+        // Bird beak
         ctx.fillStyle = '#ffaa00';
-        ctx.fillText('RESCUE!', 0, labelY);
-        ctx.globalAlpha = 1.0;
+        ctx.beginPath();
+        ctx.moveTo(-2.5, 0.8);
+        ctx.lineTo(-4.5, 1.5);
+        ctx.lineTo(-2.5, 2.2);
+        ctx.closePath();
+        ctx.fill();
+
+        // Bird eye
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(-0.8, 0.8, 0.7, 0, Math.PI * 2);
+        ctx.fill();
       } else {
         this.drawPowerupBox(ctx, item);
       }
@@ -851,74 +886,6 @@ export class PowerupManager {
       ctx.fillStyle = '#000000';
       ctx.beginPath();
       ctx.arc(-1.0, -1.0, 1.0, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (item.type === 'rescue') {
-      // Animated cage with flapping bird inside
-      const t = performance.now() * 0.001;
-      const flapAngle = Math.sin(t * 7) * 0.5; // Bird wings flap
-
-      // Cage outer frame
-      ctx.strokeStyle = '#ffaa00';
-      ctx.lineWidth = 1.8;
-      ctx.lineCap = 'round';
-
-      // Top dome arc
-      ctx.beginPath();
-      ctx.arc(0, -1, 7, 0, Math.PI, true);
-      // Bottom bar
-      ctx.lineTo(-7, 6);
-      ctx.moveTo(-7, 6);
-      ctx.lineTo(7, 6);
-      ctx.moveTo(7, 6);
-      ctx.lineTo(7, -1);
-      ctx.stroke();
-
-      // Vertical bars
-      ctx.beginPath();
-      ctx.moveTo(-3.5, -6.5); ctx.lineTo(-3.5, 6);
-      ctx.moveTo(0,   -8);    ctx.lineTo(0,    6);
-      ctx.moveTo(3.5, -6.5);  ctx.lineTo(3.5,  6);
-      ctx.stroke();
-
-      // Hinge at top
-      ctx.fillStyle = '#ffd700';
-      ctx.beginPath();
-      ctx.arc(0, -8.5, 2, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Flapping bird body inside cage
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.ellipse(0, 1.5, 2.5, 1.8, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Left wing (flapping)
-      ctx.strokeStyle = '#aaccff';
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      ctx.moveTo(-2.5, 1.5);
-      ctx.quadraticCurveTo(-5, 1.5 + Math.sin(flapAngle) * 3, -3.5, 1.5 + Math.sin(flapAngle) * 5);
-      ctx.stroke();
-
-      // Right wing (flapping, opposite phase)
-      ctx.beginPath();
-      ctx.moveTo(2.5, 1.5);
-      ctx.quadraticCurveTo(5, 1.5 - Math.sin(flapAngle) * 3, 3.5, 1.5 - Math.sin(flapAngle) * 5);
-      ctx.stroke();
-
-      // Bird beak
-      ctx.fillStyle = '#ffaa00';
-      ctx.beginPath();
-      ctx.moveTo(-2.5, 0.8);
-      ctx.lineTo(-4.5, 1.5);
-      ctx.lineTo(-2.5, 2.2);
-      ctx.closePath();
-      ctx.fill();
-
-      // Bird eye
-      ctx.fillStyle = '#000000';
-      ctx.beginPath();
-      ctx.arc(-0.8, 0.8, 0.7, 0, Math.PI * 2);
       ctx.fill();
     } else if (item.type === 'merge') {
       // Draw double helix/merging rings
