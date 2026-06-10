@@ -62,6 +62,9 @@ export class GameEngine {
 
   // Auto-Hyper Boost: fires every 6 birds joined across all flock modes
   public birdsJoinedThisRun: number = 0;
+  public nextBossScore = 50;
+  public playerBossHP = 0;
+  public maxPlayerBossHP = 0;
   public obstacleManager: ObstacleManager;
   public powerupManager: PowerupManager;
   public bossManager: BossManager;
@@ -198,6 +201,9 @@ export class GameEngine {
     this.activeSkillUnlocked = null;
     this.activeSkillCooldown = 0;
     this.activeSkillMaxCooldown = 0;
+    this.nextBossScore = 50;
+    this.playerBossHP = 0;
+    this.maxPlayerBossHP = 0;
 
     if (this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') {
       const width = this.renderer.canvas.width / this.renderer.dpr;
@@ -288,6 +294,20 @@ export class GameEngine {
     const width = this.renderer.canvas.width / this.renderer.dpr;
     const height = this.renderer.canvas.height / this.renderer.dpr;
 
+    // Smoothly adjust bird's horizontal position depending on game state and mode
+    let targetX = 120;
+    if (this.state === 'BOSS_WARNING' || this.state === 'BOSS_FIGHT') {
+      targetX = 180;
+    } else {
+      if (this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') {
+        targetX = width > 0 ? width / 2 : 240;
+      } else {
+        targetX = 120;
+      }
+    }
+    const lerpSpeed = 0.05 * (dt * 60);
+    this.bird.x += (targetX - this.bird.x) * lerpSpeed;
+
 
     // Update active powerups durations
     this.updatePowerupTimers(dt);
@@ -329,75 +349,7 @@ export class GameEngine {
       }
 
       // Update follower birds positions and logic in flocking modes
-      if (this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') {
-        if (this.flock.length > 0) {
-          this.bird = this.flock[0];
-        }
-        
-        let offsets = [
-          { dx: 0, dy: 0 },         // Leader
-          { dx: -55, dy: -40 },     // Bird 1 (upper-back)
-          { dx: -55, dy: 40 },      // Bird 2 (lower-back)
-          { dx: -110, dy: -80 },    // Bird 3 (far upper-back)
-          { dx: -110, dy: 80 }      // Bird 4 (far lower-back)
-        ];
-
-        if (this.gameMode === 'formation') {
-          if (this.currentFormation === 'line') {
-            offsets = [
-              { dx: 0, dy: 0 },
-              { dx: -55, dy: 0 },
-              { dx: -110, dy: 0 },
-              { dx: -165, dy: 0 },
-              { dx: -220, dy: 0 }
-            ];
-          } else if (this.currentFormation === 'column') {
-            offsets = [
-              { dx: 0, dy: 0 },
-              { dx: -25, dy: -45 },
-              { dx: -25, dy: 45 },
-              { dx: -50, dy: -90 },
-              { dx: -50, dy: 90 }
-            ];
-          }
-        }
-        
-        const flockLen = this.flock.length;
-        const dtCoeff = dt * 60 * activeTimeScale;
-        for (let i = 1; i < flockLen; i++) {
-          const follower = this.flock[i];
-          
-          let offset;
-          if (this.gameMode === 'rescue' || this.gameMode === 'flock') {
-            const groupIdx = Math.floor((i - 1) / 4);
-            const subIdx = (i - 1) % 4;
-            const dx = -55 * (Math.floor(subIdx / 2) + 1) - 35 * groupIdx;
-            const dy = (subIdx % 2 === 0 ? -40 : 40) * (Math.floor(subIdx / 2) + 1) + (groupIdx * (i % 2 === 0 ? -12 : 12));
-            offset = { dx, dy };
-          } else {
-            offset = offsets[i] || { dx: -55 * i, dy: (i % 2 === 0 ? 40 : -40) * Math.ceil(i / 2) };
-          }
-          
-          const targetX = this.bird.x + offset.dx;
-          const targetY = this.bird.y + offset.dy;
-          
-          // Smooth follow
-          const followSpeed = 0.12 * dtCoeff;
-          follower.x += (targetX - follower.x) * followSpeed;
-          follower.y += (targetY - follower.y) * followSpeed;
-          
-          follower.vy = this.bird.vy;
-          follower.angle = this.bird.angle;
-          
-          follower.update(dt, this.particleEngine, true, activeTimeScale, this.score);
-          
-          // Sync size/powerup visual states
-          follower.isInvincible = this.bird.isInvincible;
-          follower.isGhost = this.bird.isGhost;
-          follower.hasShield = this.bird.hasShield;
-          follower.sizeMultiplier = this.bird.sizeMultiplier;
-        }
-      }
+      this.updateFlockFollowers(dt, activeTimeScale);
       
       // Booster automatic vertical centering cruised flight
       if (this.boosterActive) {
@@ -435,6 +387,25 @@ export class GameEngine {
       } else {
         // Regenerate energy organically by 2% per second
         this.ultimateEnergy = Math.min(100, this.ultimateEnergy + 2 * dt);
+      }
+
+      // Spawn glowing pink stardust trail from the merged bird in Squad Survival
+      if (this.gameMode === 'flock' && this.playerBossHP > 0) {
+        if (Math.random() < 0.25 * dt * 60) {
+          this.particleEngine.spawn(
+            this.bird.x - this.bird.radius,
+            this.bird.y + (Math.random() - 0.5) * 16,
+            -this.scrollSpeed * 0.3 - Math.random() * 1.5,
+            (Math.random() - 0.5) * 2,
+            '#ff007f',
+            3.0 + Math.random() * 3.0,
+            0.8,
+            0.03,
+            'spark',
+            true,
+            '#ff007f'
+          );
+        }
       }
       
       // Keep bird within screen boundaries for all playing states (including powerups)
@@ -795,6 +766,11 @@ export class GameEngine {
             this.triggerBossWarning();
           }
         }
+
+        // Trigger Boss Warning in Squad Survival (Flock) mode every 50 obstacles (score gap)
+        if (this.gameMode === 'flock' && this.score >= this.nextBossScore) {
+          this.triggerBossWarning();
+        }
       } else if (this.state === 'BOSS_FIGHT') {
         // Boss battle phase
         const bossDefeated = this.bossManager.update(
@@ -865,24 +841,105 @@ export class GameEngine {
           } else {
             this.state = 'PLAYING';
             this.incrementScore(10); // Massive points
+            if (this.gameMode === 'flock') {
+              this.nextBossScore = this.score + 50;
+            }
           }
         }
 
-        // Check boss or bullet hitting bird
-        if (!this.bird.isInvincible) {
-          const bossHit = this.bossManager.checkCollisions(this.bird.x, this.bird.y, this.bird.radius);
-          if (bossHit) {
-            if (this.bird.hasShield) {
-              this.bird.hasShield = false;
-              this.shieldBrokenThisRun = true;
-              delete this.activePowerupsList['shield'];
-              this.bird.isInvincible = true;
-              this.particleEngine.emitRing(this.bird.x, this.bird.y, '#00f3ff', 20);
-              this.soundManager.playShieldDeflect();
-              this.renderer.triggerScreenShake(15, 0.3);
-              setTimeout(() => { this.bird.isInvincible = false; }, 1500);
-            } else {
-              this.handleCrash();
+        // Check boss or bullet hitting bird / flock
+        if (this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') {
+          if (this.gameMode === 'flock' && this.playerBossHP > 0) {
+            // Merged boss HP is active
+            if (!this.bird.isInvincible) {
+              const bossHit = this.bossManager.checkCollisions(this.bird.x, this.bird.y, this.bird.radius);
+              if (bossHit) {
+                this.playerBossHP--;
+                
+                this.bird.isInvincible = true;
+                this.particleEngine.emitRing(this.bird.x, this.bird.y, '#ff007f', 24);
+                this.soundManager.playShieldDeflect();
+                this.renderer.triggerScreenShake(20, 0.4);
+                
+                setTimeout(() => {
+                  this.bird.isInvincible = false;
+                }, 1500);
+
+                if (this.playerBossHP <= 0) {
+                  this.handleCrash();
+                }
+              }
+            }
+          } else {
+            // Standard bird-by-bird flock elimination
+            for (let i = this.flock.length - 1; i >= 0; i--) {
+              const b = this.flock[i];
+              if (!b.isInvincible) {
+                const bossHit = this.bossManager.checkCollisions(b.x, b.y, b.radius);
+                if (bossHit) {
+                  if (b.hasShield) {
+                    b.hasShield = false;
+                    this.shieldBrokenThisRun = true;
+                    delete this.activePowerupsList['shield'];
+                    
+                    // Temporary invincibility safety delay for the whole flock
+                    for (const fb of this.flock) {
+                      fb.isInvincible = true;
+                      fb.hasShield = false;
+                    }
+                    
+                    this.particleEngine.emitRing(b.x, b.y, '#00f3ff', 24);
+                    this.soundManager.playShieldDeflect();
+                    this.renderer.triggerScreenShake(20, 0.4);
+                    
+                    setTimeout(() => {
+                      for (const fb of this.flock) {
+                        fb.isInvincible = false;
+                      }
+                    }, 1500);
+                  } else {
+                    // Eliminate this specific bird
+                    this.particleEngine.emitExplosion(b.x, b.y, b.getSkin().glowColor, 20);
+                    this.soundManager.playExplosion();
+                    this.renderer.triggerScreenShake(12, 0.25);
+                    
+                    this.flock.splice(i, 1);
+                    
+                    // If leader bird died, promote next one in line
+                    if (i === 0 && this.flock.length > 0) {
+                      this.bird = this.flock[0];
+                      this.bird.isInvincible = true;
+                      setTimeout(() => {
+                        this.bird.isInvincible = false;
+                      }, 1500);
+                    }
+                    
+                    // If all birds are dead, trigger crash/game over
+                    if (this.flock.length === 0) {
+                      this.handleCrash();
+                    }
+                    break;
+                  }
+                }
+              }
+            }
+          }
+        } else {
+          if (!this.bird.isInvincible) {
+            const bossHit = this.bossManager.checkCollisions(this.bird.x, this.bird.y, this.bird.radius);
+            if (bossHit) {
+              if (this.bird.hasShield) {
+                this.bird.hasShield = false;
+                this.shieldBrokenThisRun = true;
+                delete this.activePowerupsList['shield'];
+                this.bird.isInvincible = true;
+                this.particleEngine.emitRing(this.bird.x, this.bird.y, '#00f3ff', 20);
+                this.soundManager.playShieldDeflect();
+                this.renderer.triggerScreenShake(15, 0.3);
+                setTimeout(() => { this.bird.isInvincible = false; }, 1500);
+              } else {
+                this.handleCrash();
+              }
             }
           }
         }
@@ -933,6 +990,9 @@ export class GameEngine {
       // Cinematic Boss warning sequence
       this.bossWarningTimer += dt;
       this.bird.update(dt, this.particleEngine, true, 1.0, this.score);
+      
+      // Keep follower birds updated during boss warning cinematic so they do not freeze
+      this.updateFlockFollowers(dt, 1.0);
       
       // Keep bird within screen boundaries during boss warning
       if (this.bird.y - this.bird.radius < 5) {
@@ -1644,6 +1704,116 @@ export class GameEngine {
 
       this.rescueMilestoneNext += 5;
     }
+  }
+
+  private updateFlockFollowers(dt: number, activeTimeScale: number) {
+    if (this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') {
+      if (this.flock.length > 0) {
+        this.bird = this.flock[0];
+      }
+      
+      let offsets = [
+        { dx: 0, dy: 0 },         // Leader
+        { dx: -55, dy: -40 },     // Bird 1 (upper-back)
+        { dx: -55, dy: 40 },      // Bird 2 (lower-back)
+        { dx: -110, dy: -80 },    // Bird 3 (far upper-back)
+        { dx: -110, dy: 80 }      // Bird 4 (far lower-back)
+      ];
+
+      if (this.gameMode === 'formation') {
+        if (this.currentFormation === 'line') {
+          offsets = [
+            { dx: 0, dy: 0 },
+            { dx: -55, dy: 0 },
+            { dx: -110, dy: 0 },
+            { dx: -165, dy: 0 },
+            { dx: -220, dy: 0 }
+          ];
+        } else if (this.currentFormation === 'column') {
+          offsets = [
+            { dx: 0, dy: 0 },
+            { dx: -25, dy: -45 },
+            { dx: -25, dy: 45 },
+            { dx: -50, dy: -90 },
+            { dx: -50, dy: 90 }
+          ];
+        }
+      }
+      
+      const flockLen = this.flock.length;
+      const dtCoeff = dt * 60 * activeTimeScale;
+      for (let i = 1; i < flockLen; i++) {
+        const follower = this.flock[i];
+        
+        let offset;
+        if (this.gameMode === 'rescue' || this.gameMode === 'flock') {
+          const groupIdx = Math.floor((i - 1) / 4);
+          const subIdx = (i - 1) % 4;
+          const dx = -55 * (Math.floor(subIdx / 2) + 1) - 35 * groupIdx;
+          const dy = (subIdx % 2 === 0 ? -40 : 40) * (Math.floor(subIdx / 2) + 1) + (groupIdx * (i % 2 === 0 ? -12 : 12));
+          offset = { dx, dy };
+        } else {
+          offset = offsets[i] || { dx: -55 * i, dy: (i % 2 === 0 ? 40 : -40) * Math.ceil(i / 2) };
+        }
+        
+        const targetX = this.bird.x + offset.dx;
+        const targetY = this.bird.y + offset.dy;
+        
+        // Smooth follow
+        const followSpeed = 0.12 * dtCoeff;
+        follower.x += (targetX - follower.x) * followSpeed;
+        follower.y += (targetY - follower.y) * followSpeed;
+        
+        follower.vy = this.bird.vy;
+        follower.angle = this.bird.angle;
+        
+        follower.update(dt, this.particleEngine, true, activeTimeScale, this.score);
+        
+        // Sync size/powerup visual states
+        follower.isInvincible = this.bird.isInvincible;
+        follower.isGhost = this.bird.isGhost;
+        follower.hasShield = this.bird.hasShield;
+        follower.sizeMultiplier = this.bird.sizeMultiplier;
+      }
+    }
+  }
+
+  public triggerSurvivalMerge() {
+    if (this.gameMode !== 'flock') return;
+    const mergeCount = this.flock.length;
+    if (mergeCount < 2) return;
+
+    // Add HP based on squad size
+    this.playerBossHP += mergeCount;
+    this.maxPlayerBossHP = this.playerBossHP;
+
+    const width  = this.renderer.canvas.width  / this.renderer.dpr;
+    const height = this.renderer.canvas.height / this.renderer.dpr;
+
+    // Premium full-screen effects and chime
+    for (let i = 1; i < this.flock.length; i++) {
+      const b = this.flock[i];
+      this.particleEngine.emitExplosion(b.x, b.y, b.getSkin().glowColor || '#ffaa00', 25);
+    }
+    this.particleEngine.emitRing(this.bird.x, this.bird.y, '#ffffff', 40);
+    this.particleEngine.emitExplosion(width / 2, height / 2, '#ff007f', 60);
+    this.renderer.triggerScreenShake(30, 0.6);
+    this.soundManager.playLevelUp();
+
+    // Collapse flock to only the leader bird
+    this.flock = [this.flock[0]];
+    this.bird = this.flock[0];
+
+    // Increase main bird size by 5% per merged bird
+    this.bird.sizeMultiplier += mergeCount * 0.05;
+
+    // Show floating hud alert
+    window.dispatchEvent(new CustomEvent('hud_alert', {
+      detail: {
+        text: `💖 SQUAD MERGED!`,
+        sub: `Gained +${mergeCount} HP for the upcoming Boss Fight!`
+      }
+    }));
   }
 }
 

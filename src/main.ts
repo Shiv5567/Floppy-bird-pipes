@@ -222,6 +222,40 @@ function loop(time: number) {
       ctx.fillText(`T${tier}`, Math.round(leader.x), Math.round(leader.y - baseRadius * 1.8));
       ctx.restore();
     }
+
+    // Squad Survival Aura: glowing ring and fill around leader bird when merged Boss HP is active
+    if (gameEngine.gameMode === 'flock' && gameEngine.playerBossHP > 0) {
+      const leader = gameEngine.flock[0];
+      const hp = gameEngine.playerBossHP;
+      const auraColor = '#ff007f'; // Beautiful glowing pink/crimson
+      const baseRadius = leader.radius * leader.sizeMultiplier;
+      const pulseScale = 1 + 0.10 * Math.sin(performance.now() * 0.007);
+      const auraRadius = baseRadius * (1.3 + hp * 0.05) * pulseScale;
+
+      ctx.save();
+      ctx.globalAlpha = 0.3 + 0.12 * Math.sin(performance.now() * 0.007);
+      ctx.strokeStyle = auraColor;
+      ctx.lineWidth = 2.0 + hp * 0.4;
+      ctx.beginPath();
+      ctx.arc(Math.round(leader.x), Math.round(leader.y), auraRadius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.globalAlpha = 0.06 + 0.02 * Math.sin(performance.now() * 0.007);
+      ctx.fillStyle = auraColor;
+      ctx.beginPath();
+      ctx.arc(Math.round(leader.x), Math.round(leader.y), auraRadius * 0.9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      ctx.save();
+      ctx.globalAlpha = 0.85;
+      ctx.font = 'bold 9px Outfit, Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillStyle = auraColor;
+      ctx.fillText(`HP: ${hp}`, Math.round(leader.x), Math.round(leader.y - baseRadius * 1.6));
+      ctx.restore();
+    }
   } else {
 
     gameEngine.bird.render(ctx);

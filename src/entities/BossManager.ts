@@ -102,8 +102,8 @@ export class BossManager {
     // 1. Manage state machine
     if (this.state === 'entering') {
       // Float from offscreen
-      this.bossX += (width - 150 - this.bossX) * 0.04 * dtCoeff;
-      if (Math.abs(this.bossX - (width - 150)) < 10) {
+      this.bossX += (width - 120 - this.bossX) * 0.04 * dtCoeff;
+      if (Math.abs(this.bossX - (width - 120)) < 10) {
         this.state = 'fighting';
         this.timer = 0;
       }

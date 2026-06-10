@@ -28,6 +28,7 @@ export class UIManager {
   private rescueEvolveFill: HTMLElement | null = null;
   private lastEvolvedTier: number = -1;
   private lastSquadCategory: number = 0;
+  private playerHPContainer: HTMLElement | null = null;
 
   constructor(containerId: string, engine: GameEngine) {
     this.engine = engine;
@@ -415,6 +416,29 @@ export class UIManager {
       this.renderHUD();
     }
 
+    // 5.5 Player HP Hearts (In-place updates)
+    const showHP = (isBossFight || state === 'BOSS_WARNING') && this.engine.gameMode === 'flock' && this.engine.playerBossHP > 0;
+    if (showHP) {
+      if (!this.playerHPContainer) {
+        this.playerHPContainer = this.container.querySelector('.player-hud-hp-container');
+      }
+      if (this.playerHPContainer) {
+        const heartsSpan = this.playerHPContainer.querySelector('.player-hud-hp-hearts') as HTMLElement;
+        if (heartsSpan) {
+          const hp = this.engine.playerBossHP;
+          const hearts = '❤️'.repeat(hp);
+          if (heartsSpan.innerText !== hearts) {
+            heartsSpan.innerText = hearts;
+          }
+        }
+      } else {
+        this.renderHUD();
+      }
+    } else if (this.playerHPContainer) {
+      this.playerHPContainer = null;
+      this.renderHUD();
+    }
+
     // 6. Booster System HUD Overlay In-place updates
     const isBoosterActive = this.engine.boosterActive;
     const hasBoosterOverlay = !!document.querySelector('.hud-booster-overlay');
@@ -478,6 +502,23 @@ export class UIManager {
           const circumference = 157;
           const offset = circumference - (bPercent / 100) * circumference;
           progressFill.style.strokeDashoffset = `${offset}`;
+        }
+      }
+    }
+
+    // 8. Flock Merge Button updates in Squad Survival mode
+    if (this.engine.gameMode === 'flock') {
+      const flockMergeBtn = document.getElementById('btn-hud-flock-merge');
+      if (flockMergeBtn) {
+        const flockLen = this.engine.flock.length;
+        const visible = flockLen >= 2;
+        flockMergeBtn.style.display = visible ? 'flex' : 'none';
+        
+        if (visible) {
+          const label = flockMergeBtn.querySelector('.flock-merge-label') as HTMLElement;
+          if (label) {
+            label.innerText = `MERGE (+${flockLen})`;
+          }
         }
       }
     }
@@ -1919,10 +1960,69 @@ export class UIManager {
       `;
     }
 
+    // ── Squad Survival Mode flock merge button ─────────────────────────────
+    let flockMergeBtnHTML = '';
+    if (this.engine.gameMode === 'flock') {
+      const flockLen = this.engine.flock.length;
+      const visible = flockLen >= 2;
+      flockMergeBtnHTML = `
+        <div class="hud-circle-btn glass-card ult-ready-pulse" 
+             style="pointer-events: auto; cursor: pointer; display: ${visible ? 'flex' : 'none'}; flex-direction: column; align-items: center; justify-content: center; width: 68px; height: 68px; border-radius: 50%; border: 2.5px solid #ff007f; background: rgba(255, 0, 127, 0.1); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 0 18px rgba(255, 0, 127, 0.5); position: relative; margin-bottom: 6px; -webkit-tap-highlight-color: transparent; gap: 1px;" 
+             id="btn-hud-flock-merge" 
+             title="Merge Squad for Boss HP!">
+          <div style="position: absolute; inset: 2px; border-radius: 50%; background: rgba(255, 0, 127, 0.15); pointer-events: none;"></div>
+          
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ff007f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="z-index: 2; filter: drop-shadow(0 0 4px #ff007f); margin-bottom: 2px;">
+            <circle cx="12" cy="12" r="9" stroke-opacity="0.25" stroke-width="1.5"></circle>
+            <path d="M12 3v5M12 21v-5M3 12h5M21 12h-5" stroke-linecap="round"></path>
+            <circle cx="12" cy="12" r="3.5" fill="#ff007f" fill-opacity="0.3"></circle>
+            <circle cx="12" cy="12" r="1.5" fill="#ffffff"></circle>
+          </svg>
+
+          <span class="flock-merge-label" style="font-size: 7px; font-weight: 900; color: #ff007f; z-index: 2; text-shadow: 0 0 6px #ff007f; letter-spacing: 0.2px; text-align: center;">MERGE (+${flockLen})</span>
+        </div>
+      `;
+    }
+
+    // ── Squad Survival Mode Boss HP indicator ──────────────────────────────
+    let playerHPBarHTML = '';
+    const isBossWarning = state === 'BOSS_WARNING';
+    if ((isBossFight || isBossWarning) && this.engine.gameMode === 'flock' && this.engine.playerBossHP > 0) {
+      const hp = this.engine.playerBossHP;
+      const hearts = '❤️'.repeat(hp);
+      playerHPBarHTML = `
+        <div class="player-hud-hp-container fade-in" style="
+          position: absolute;
+          top: 130px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(0, 0, 0, 0.65);
+          border: 2px solid #ff007f;
+          border-radius: 20px;
+          padding: 6px 18px;
+          font-size: 15px;
+          font-weight: 900;
+          color: #fff;
+          text-shadow: 0 0 8px #ff007f;
+          box-shadow: 0 0 15px rgba(255, 0, 127, 0.45);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          pointer-events: none;
+          z-index: 100;
+          letter-spacing: 0.5px;
+        ">
+          <span style="font-size: 11px; color: #ff007f;">SQUAD HP:</span>
+          <span class="player-hud-hp-hearts" style="letter-spacing: 2px;">${hearts}</span>
+        </div>
+      `;
+    }
+
     const hudHTML = `
       <div class="hud fade-in">
         ${boosterOverlayHTML}
         ${rescueEvolutionHTML}
+        ${playerHPBarHTML}
         <div class="hud-top">
           <!-- Coins & Gems (Left side) -->
           <div class="run-stats" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; font-weight: 800; font-size: 13px; pointer-events: auto;">
@@ -1962,6 +2062,7 @@ export class UIManager {
             ${formationBtnHTML}
             ${evolveBtnHTML}
             ${activeSkillBtnHTML}
+            ${flockMergeBtnHTML}
 
             <!-- Ultimate Special Ability Transparent Circular Button (Shifted from Double-Tap) -->
             <div class="hud-ult-circle-btn glass-card ${ultReady ? 'ult-ready-pulse' : ''} ${ultActive ? 'ult-active-glow' : ''}" 
@@ -2073,6 +2174,21 @@ export class UIManager {
       };
       mergeBtn.addEventListener('pointerdown', triggerMerge);
       mergeBtn.addEventListener('touchstart', triggerMerge);
+    }
+
+    // Bind Merge button for Squad Survival mode
+    const flockMergeBtn = document.getElementById('btn-hud-flock-merge');
+    if (flockMergeBtn) {
+      const triggerFlockMerge = (e: Event) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (this.engine.flock.length >= 2) {
+          this.engine.triggerSurvivalMerge();
+          this.render();
+        }
+      };
+      flockMergeBtn.addEventListener('pointerdown', triggerFlockMerge);
+      flockMergeBtn.addEventListener('touchstart', triggerFlockMerge);
     }
 
     // Bind ACTIVE SKILL button
