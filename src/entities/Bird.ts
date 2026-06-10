@@ -10,10 +10,10 @@ export class Bird {
   public angle = 0;
   
   // Physics parameters (Reduced jump height and balanced gravity for maximum precision and precise control)
-  private gravity = 0.30;      // Reduced by 25% (was 0.40)
-  private jumpLift = -4.8;     // Reduced by 25% (was -6.4)
-  private maxFallSpeed = 8.25; // Reduced by 25% (was 11.0)
-  private maxRiseSpeed = -6.375; // Reduced by 25% (was -8.5)
+  private gravity = 0.36;      // Reduced by 10% from original (was 0.30 after 25% reduction, now increased by 20%)
+  private jumpLift = -5.76;    // Reduced by 10% from original (was -4.8 after 25% reduction, now increased by 20%)
+  private maxFallSpeed = 9.9;  // Reduced by 10% from original (was 8.25 after 25% reduction, now increased by 20%)
+  private maxRiseSpeed = -7.65; // Reduced by 10% from original (was -6.375 after 25% reduction, now increased by 20%)
   
   // Animation variables
   private flapCycle = 0;
@@ -41,10 +41,10 @@ export class Bird {
 
   public setDifficulty(difficulty: 'easy' | 'medium' | 'hard') {
     void difficulty; // Enforce constant medium physics for balanced predictability
-    this.gravity = 0.30;       // Reduced by 25% (was 0.40)
-    this.jumpLift = -4.8;      // Reduced by 25% (was -6.4)
-    this.maxFallSpeed = 8.25;  // Reduced by 25% (was 11.0)
-    this.maxRiseSpeed = -6.375; // Reduced by 25% (was -8.5)
+    this.gravity = 0.36;       // Reduced by 10% from original (was 0.30 after 25% reduction, now increased by 20%)
+    this.jumpLift = -5.76;     // Reduced by 10% from original (was -4.8 after 25% reduction, now increased by 20%)
+    this.maxFallSpeed = 9.9;   // Reduced by 10% from original (was 8.25 after 25% reduction, now increased by 20%)
+    this.maxRiseSpeed = -7.65; // Reduced by 10% from original (was -6.375 after 25% reduction, now increased by 20%)
   }
 
   public setSkin(skin: Skin) {
