@@ -426,7 +426,9 @@ export class UIManager {
         const heartsSpan = this.playerHPContainer.querySelector('.player-hud-hp-hearts') as HTMLElement;
         if (heartsSpan) {
           const hp = this.engine.playerBossHP;
-          const hearts = '❤️'.repeat(hp);
+          const maxHp = this.engine.maxPlayerBossHP || hp;
+          const lostHp = Math.max(0, maxHp - hp);
+          const hearts = '❤️'.repeat(hp) + '💔'.repeat(lostHp);
           if (heartsSpan.innerText !== hearts) {
             heartsSpan.innerText = hearts;
           }
@@ -1989,7 +1991,9 @@ export class UIManager {
     const isBossWarning = state === 'BOSS_WARNING';
     if ((isBossFight || isBossWarning) && this.engine.gameMode === 'flock' && this.engine.playerBossHP > 0) {
       const hp = this.engine.playerBossHP;
-      const hearts = '❤️'.repeat(hp);
+      const maxHp = this.engine.maxPlayerBossHP || hp;
+      const lostHp = Math.max(0, maxHp - hp);
+      const hearts = '❤️'.repeat(hp) + '💔'.repeat(lostHp);
       playerHPBarHTML = `
         <div class="player-hud-hp-container fade-in" style="
           position: absolute;

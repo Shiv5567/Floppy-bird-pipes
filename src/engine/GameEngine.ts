@@ -255,6 +255,13 @@ export class GameEngine {
     // Apply delta-time cap to avoid giant skips when tabbing away and use exact raw delta time
     const dt = Math.min(0.1, deltaTime);
 
+    // Sync bird size multiplier dynamically if squad survival boss HP is active (3% size change per HP)
+    if (this.gameMode === 'flock' && this.playerBossHP > 0) {
+      if (!this.activePowerupsList['mini']) {
+        this.bird.sizeMultiplier = 1.0 + this.playerBossHP * 0.03;
+      }
+    }
+
 
     // 1. Update visual engines
     this.particleEngine.update(dt);
@@ -863,7 +870,7 @@ export class GameEngine {
                 
                 setTimeout(() => {
                   this.bird.isInvincible = false;
-                }, 1500);
+                }, 300);
 
                 if (this.playerBossHP <= 0) {
                   this.handleCrash();
@@ -1813,8 +1820,8 @@ export class GameEngine {
     this.bird = this.flock[0];
     this.bird.vy = 0; // Reset vertical velocity to stabilize position on merge
 
-    // Increase main bird size by 5% per merged bird
-    this.bird.sizeMultiplier += mergeCount * 0.05;
+    // Increase main bird size by 3% per merged bird
+    this.bird.sizeMultiplier = 1.0 + this.playerBossHP * 0.03;
 
     // Show floating hud alert
     window.dispatchEvent(new CustomEvent('hud_alert', {
