@@ -234,7 +234,11 @@ export class ObstacleManager {
       startGap = 345;
       minGap = 345;
       distMultiplier = 1.45; // Generous horizontal spacing for the flock
-    } else if (gameMode === 'flock' || gameMode === 'formation') {
+    } else if (gameMode === 'flock') {
+      startGap = 320;
+      minGap = 320;
+      distMultiplier = 2.25; // Spacing increased by 80% (1.25 * 1.8 = 2.25)
+    } else if (gameMode === 'formation') {
       startGap = 320;
       minGap = 320;
       distMultiplier = 1.25; // Slightly wider spacing for other multi-bird modes
@@ -1594,6 +1598,9 @@ export class ObstacleManager {
         const speedFactor = scrollSpeed / 4.2;
         // Scale by endless difficulty scaling factor & speed factor!
         let dist = baseDist * this.currentEndlessDistScale * (1.0 - pct) * speedFactor;
+        if (gameMode === 'flock') {
+          dist *= 1.80; // Horizontally increase gap by 80%
+        }
 
         // Dynamic Spacing Balance: Increase horizontal distance by 50% if the next pipe has a maximum vertical alignment difference
         if (this.list.length > 0) {
@@ -1607,6 +1614,9 @@ export class ObstacleManager {
               endlessShiftScale = 1.25;
             } else if (score >= 300) {
               endlessShiftScale = 1.30;
+            }
+            if (gameMode === 'flock') {
+              endlessShiftScale *= 1.60; // 60% increase in vertical path gap shifting
             }
             const nextCenterY = height / 2 + nextPat.centerYOffset * endlessShiftScale;
             const diffY = Math.abs((justSpawned.spawnCenterY ?? (height / 2)) - nextCenterY);
@@ -2738,6 +2748,10 @@ export class ObstacleManager {
     } else if (score >= 300) {
       endlessShiftScale = 1.30;
       isMoving = !!nextPattern.isMoving;
+    }
+
+    if (gameMode === 'flock') {
+      endlessShiftScale *= 1.60; // 60% increase in vertical path gap shifting
     }
 
     let targetCenterY = height / 2 + nextPattern.centerYOffset * endlessShiftScale;
