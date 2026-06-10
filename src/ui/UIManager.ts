@@ -24,6 +24,9 @@ export class UIManager {
   private bossContainer: HTMLElement | null = null;
   private bossHealthVal: HTMLElement | null = null;
   private bossHealthFill: HTMLElement | null = null;
+  // Rescue Evolution HUD cache
+  private rescueEvolveFill: HTMLElement | null = null;
+  private lastEvolvedTier: number = -1;
 
   constructor(containerId: string, engine: GameEngine) {
     this.engine = engine;
@@ -73,6 +76,14 @@ export class UIManager {
     window.addEventListener('bird_grazed', (e: any) => {
       // 1. Show floating graze text
       this.showFloatingGrazeText(e.detail.x, e.detail.y);
+    });
+
+    // Listen for evolution events to trigger full HUD re-render (tier badge changes)
+    window.addEventListener('bird_evolved', () => {
+      this.lastEvolvedTier = -1; // Force full re-render
+      this.rescueEvolveFill = null;
+      // Full HUD re-render so tier badge and EVOLVE button update immediately
+      this.renderHUD();
     });
   }
 
@@ -230,9 +241,35 @@ export class UIManager {
     if (this.runStatsGems) {
       this.runStatsGems.innerText = `💎 ${this.engine.gemsCollectedThisRun}`;
     }
-    const flockInd = this.container.querySelector('.flock-indicator') as HTMLElement;
-    if (flockInd) {
-      flockInd.innerText = `🪽 SQUAD: ${this.engine.flock.length} / 5`;
+    // Rescue mode: fast-update evolution bar and squad indicator
+    if (this.engine.gameMode === 'rescue') {
+      const flockInd = this.container.querySelector('.flock-indicator') as HTMLElement;
+      if (flockInd) {
+        flockInd.innerText = `🪽 SQUAD: ${this.engine.flock.length}`;
+      }
+
+      // Fast-update rescue milestone progress bar
+      if (!this.rescueEvolveFill) {
+        this.rescueEvolveFill = this.container.querySelector('.rescue-evolve-fill') as HTMLElement;
+      }
+      if (this.rescueEvolveFill) {
+        const rescued = this.engine.rescuedBirdsTotal;
+        const next = this.engine.nextRescueMilestone;
+        const pct = Math.min(100, (rescued / next) * 100);
+        this.rescueEvolveFill.style.width = `${pct}%`;
+      }
+
+      // Evolved tier badge: only full-render when tier changes
+      const currentTier = this.engine.evolvedBirdTier;
+      if (currentTier !== this.lastEvolvedTier) {
+        this.lastEvolvedTier = currentTier;
+        this.renderHUD(); // Full re-render on tier change
+      }
+    } else {
+      const flockInd = this.container.querySelector('.flock-indicator') as HTMLElement;
+      if (flockInd) {
+        flockInd.innerText = `🪽 SQUAD: ${this.engine.flock.length}`;
+      }
     }
 
     // 4. Powerup timers holder (In-place updates without DOM reconstruction!)
@@ -1632,6 +1669,7 @@ export class UIManager {
 
     let boosterBtnHTML = '';
     if (this.engine.gameMode === 'endless') {
+      // Classic endless: manual tap-to-activate booster button
       const bTimer = this.engine.boosterSpawnTimer;
       const bReady = bTimer <= 0;
       const bPercent = Math.min(100, Math.floor((1 - bTimer / 5.0) * 100));
@@ -1651,12 +1689,33 @@ export class UIManager {
           <span style="font-size: 26px; z-index: 2; transition: transform 0.2s ease; margin: 0; line-height: 1; text-shadow: ${bReady ? '0 0 8px #ffd700' : 'none'};">${bReady ? '⚡' : '⏳'}</span>
         </div>
       `;
+    } else if (this.engine.gameMode === 'flock' || this.engine.gameMode === 'rescue' || this.engine.gameMode === 'formation') {
+      // Flock modes: show auto-boost progress — fires every 6 birds joined
+      const joined = this.engine.birdsJoinedThisRun;
+      const progressIn6 = joined % 6;                           // 0..5
+      const pct = Math.round((progressIn6 / 6) * 100);
+      const isActive = this.engine.boosterActive;
+
+      boosterBtnHTML = `
+        <div class="glass-card ${isActive ? 'ult-ready-pulse' : ''}"
+             style="pointer-events: none; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 62px; height: 62px; border-radius: 50%; border: 2px solid ${isActive ? '#ffd700' : 'rgba(255,215,0,0.35)'}; background: ${isActive ? 'rgba(255,215,0,0.15)' : 'rgba(0,0,0,0.25)'}; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: ${isActive ? '0 0 18px rgba(255,215,0,0.5)' : 'none'}; position: relative; margin-bottom: 6px; gap: 0;">
+          <svg width="58" height="58" viewBox="0 0 58 58" style="position: absolute; transform: rotate(-90deg); pointer-events: none;">
+            <circle cx="29" cy="29" r="25" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="3"></circle>
+            <circle cx="29" cy="29" r="25" fill="none" stroke="#ffd700" stroke-width="4"
+                    stroke-dasharray="157" stroke-dashoffset="${157 - (157 * pct) / 100}"
+                    stroke-linecap="round" style="transition: stroke-dashoffset 0.3s ease-out;"></circle>
+          </svg>
+          <span style="font-size: ${isActive ? '22' : '18'}px; z-index: 2; line-height: 1; text-shadow: ${isActive ? '0 0 8px #ffd700' : 'none'};">${isActive ? '⚡' : '🔋'}</span>
+          <span style="font-size: 8px; font-weight: 900; color: #ffd700; z-index: 2; letter-spacing: 0.2px;">${isActive ? 'BOOST!' : `${progressIn6}/6`}</span>
+        </div>
+      `;
     }
+
 
     let formationBtnHTML = '';
     if (this.engine.gameMode === 'formation') {
       const activeForm = this.engine.currentFormation;
-      const formIcon = activeForm === 'v_shape' ? '🪽' : activeForm === 'line' ? '➡️' : '⬇️';
+      const formIcon = activeForm === 'v_shape' ? '🪹' : activeForm === 'line' ? '➡️' : '⬇️';
       formationBtnHTML = `
         <div class="hud-circle-btn glass-card ult-ready-pulse" 
              style="pointer-events: auto; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 62px; height: 62px; border-radius: 50%; border: 2px solid #ffaa00; background: rgba(255, 170, 0, 0.12); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: all 0.3s ease; box-shadow: 0 0 15px rgba(255, 170, 0, 0.4); position: relative; margin-bottom: 6px; -webkit-tap-highlight-color: transparent;" 
@@ -1668,16 +1727,99 @@ export class UIManager {
       `;
     }
 
+    // ── Rescue Mode Evolution Panel ──────────────────────────────────────────
+    let rescueEvolutionHTML = '';
+    if (this.engine.gameMode === 'rescue') {
+      const tier = this.engine.evolvedBirdTier;
+      const rescued = this.engine.rescuedBirdsTotal;
+
+      // Dynamic next milestone target
+      const milestoneTarget = rescued < 5 ? 5 : rescued < 10 ? 10 : rescued < 15 ? 15 : rescued < 20 ? 20 : 25;
+      const milestonePct = Math.min(100, (rescued / milestoneTarget) * 100);
+
+      const TIER_NAMES = ['—', 'Swift Eagle', 'Magnet Phoenix', 'Storm Titan', 'Celestial Sovereign'];
+      const TIER_COLORS = ['#aaa', '#00f3ff', '#ff007f', '#ffd700', '#a855f7'];
+      const tierName  = tier > 0 ? TIER_NAMES[tier]  : null;
+      const tierColor = tier > 0 ? TIER_COLORS[tier] : '#aaa';
+
+      rescueEvolutionHTML = `
+        <div class="rescue-evolution-panel" style="
+          position: absolute;
+          top: 58px;
+          left: 50%;
+          transform: translateX(-50%);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+          pointer-events: none;
+          z-index: 50;
+          min-width: 200px;
+        ">
+
+          ${ tier > 0 ? `
+          <!-- Evolved Tier Badge -->
+          <div style="
+            background: linear-gradient(135deg, ${tierColor}22, ${tierColor}44);
+            border: 1.5px solid ${tierColor};
+            border-radius: 20px;
+            padding: 3px 14px;
+            font-size: 11px;
+            font-weight: 900;
+            color: ${tierColor};
+            text-shadow: 0 0 8px ${tierColor};
+            box-shadow: 0 0 12px ${tierColor}44;
+            letter-spacing: 0.5px;
+            animation: hudPulse 1.5s ease-in-out infinite;
+          ">⚡ TIER ${tier}: ${tierName?.toUpperCase()}</div>
+          ` : '' }
+
+          <!-- Rescue Milestone Bar -->
+          <div style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.45); border: 1px solid rgba(255,170,0,0.3); border-radius: 10px; padding: 4px 10px;">
+            <span style="font-size: 13px;">🕊️</span>
+            <div style="width: 100px; height: 5px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+              <div class="rescue-evolve-fill" style="height: 100%; width: ${milestonePct}%; background: linear-gradient(90deg, #ffaa00, #ff007f); transition: width 0.3s ease; border-radius: 3px;"></div>
+            </div>
+            <span style="font-size: 9px; color: #ffaa00; font-weight: 800;">${rescued}/${milestoneTarget}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // ── Rescue Mode EVOLVE button (bottom-left HUD) ────────────────────────
+    let evolveBtnHTML = '';
+    if (this.engine.gameMode === 'rescue') {
+      const tier = this.engine.evolvedBirdTier;
+      const canEvolve = this.engine.flock.length >= 2;
+      const TIER_COLORS = ['#aaa', '#00f3ff', '#ff007f', '#ffd700', '#a855f7'];
+      const nextTier = Math.min(4, tier + this.engine.flock.length - 1);
+      const evolveColor = TIER_COLORS[Math.min(4, nextTier)] || '#ffaa00';
+
+      if (canEvolve && tier < 4) {
+        evolveBtnHTML = `
+          <div class="hud-circle-btn glass-card ult-ready-pulse" 
+               style="pointer-events: auto; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 66px; height: 66px; border-radius: 50%; border: 2px solid ${evolveColor}; background: ${evolveColor}1a; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 0 18px ${evolveColor}66; position: relative; margin-bottom: 6px; -webkit-tap-highlight-color: transparent; gap: 1px;" 
+               id="btn-hud-merge" 
+               title="Tap to Evolve your Flock!">
+            <div style="position: absolute; inset: 2px; border-radius: 50%; background: ${evolveColor}22; pointer-events: none;"></div>
+            <span style="font-size: 22px; z-index: 2; line-height: 1;">🔀</span>
+            <span style="font-size: 8px; font-weight: 900; color: ${evolveColor}; z-index: 2; text-shadow: 0 0 6px ${evolveColor}; letter-spacing: 0.3px;">EVOLVE</span>
+          </div>
+        `;
+      }
+    }
+
     const hudHTML = `
       <div class="hud fade-in">
         ${boosterOverlayHTML}
+        ${rescueEvolutionHTML}
         <div class="hud-top">
           <!-- Coins & Gems (Left side) -->
           <div class="run-stats" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; font-weight: 800; font-size: 13px; pointer-events: auto;">
             <span class="stat-badge" style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); width: fit-content; margin-bottom: 0;">🟡 ${this.engine.coinsCollectedThisRun}</span>
             <span class="stat-badge" style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); width: fit-content; margin-bottom: 0;">💎 ${this.engine.gemsCollectedThisRun}</span>
             ${(this.engine.gameMode === 'flock' || this.engine.gameMode === 'rescue' || this.engine.gameMode === 'formation') ? `
-              <span class="stat-badge flock-indicator" style="background: rgba(0,243,255,0.15); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(0,243,255,0.3); width: fit-content; margin-bottom: 0; color: #00f3ff; text-shadow: 0 0 5px #00f3ff;">🪽 SQUAD: ${this.engine.flock.length} / 5</span>
+              <span class="stat-badge flock-indicator" style="background: rgba(0,243,255,0.15); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(0,243,255,0.3); width: fit-content; margin-bottom: 0; color: #00f3ff; text-shadow: 0 0 5px #00f3ff;">🪽 SQUAD: ${this.engine.flock.length}</span>
             ` : ''}
             ${this.engine.isSpectatorMode ? '<span class="spectator-indicator" style="font-size: 8px; background: rgba(0,255,180,0.15); border: 1px solid rgba(0,255,180,0.3); padding: 2px 6px; border-radius: 6px; color: #00ffb4; font-weight: 800; width: fit-content; margin-top: 2px;">🤖 AUTO-PILOT</span>' : ''}
           </div>
@@ -1708,6 +1850,7 @@ export class UIManager {
           <div style="display: flex; flex-direction: row; align-items: center; gap: 12px; pointer-events: auto;">
             ${boosterBtnHTML}
             ${formationBtnHTML}
+            ${evolveBtnHTML}
 
             <!-- Ultimate Special Ability Transparent Circular Button (Shifted from Double-Tap) -->
             <div class="hud-ult-circle-btn glass-card ${ultReady ? 'ult-ready-pulse' : ''} ${ultActive ? 'ult-active-glow' : ''}" 
@@ -1767,6 +1910,10 @@ export class UIManager {
       this.bossHealthFill = null;
     }
 
+    // Cache evolution fill reference
+    this.rescueEvolveFill = this.container.querySelector('.rescue-evolve-fill') as HTMLElement;
+    this.lastEvolvedTier = this.engine.evolvedBirdTier;
+
     // Bind triggers
     const ultBtn = document.getElementById('btn-hud-ultimate');
     if (ultBtn) ultBtn.addEventListener('click', (e) => {
@@ -1801,6 +1948,21 @@ export class UIManager {
         this.engine.cycleFormation();
         this.render();
       });
+    }
+
+    // Bind EVOLVE button for Cage Rescue mode
+    const mergeBtn = document.getElementById('btn-hud-merge');
+    if (mergeBtn) {
+      const triggerMerge = (e: Event) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (this.engine.flock.length >= 2 && this.engine.evolvedBirdTier < 4) {
+          this.engine.triggerFlockMerge();
+          // renderHUD is called via bird_evolved event listener
+        }
+      };
+      mergeBtn.addEventListener('pointerdown', triggerMerge);
+      mergeBtn.addEventListener('touchstart', triggerMerge);
     }
 
     const pBtn = document.getElementById('btn-hud-pause');
@@ -2320,15 +2482,16 @@ export class UIManager {
               <button id="btn-select-flock" class="btn" style="width: auto; padding: 8px 14px; font-size: 11px; font-weight: 800; background: linear-gradient(180deg, #00f3ff 0%, #0088ff 100%); color: #002233; border-radius: 10px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0, 243, 255, 0.25);">FLY</button>
             </div>
 
-            <!-- Option 3: Cage Rescue -->
+            <!-- Option 3: Cage Rescue / Flock Evolution -->
             <div class="glass-card" style="padding: 12px 14px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; display: flex; align-items: center; gap: 12px;">
-              <div style="font-size: 32px; filter: drop-shadow(0 0 8px rgba(255, 0, 127, 0.5)); flex-shrink: 0; width: 45px; text-align: center;">🕸️</div>
+              <div style="font-size: 32px; filter: drop-shadow(0 0 8px rgba(255, 0, 127, 0.5)); flex-shrink: 0; width: 45px; text-align: center;">🕊️</div>
               <div style="flex: 1;">
                 <div style="font-size: 13.5px; font-weight: 800; color: #ff007f; display: flex; align-items: center; gap: 6px;">
-                  CAGE RESCUE
+                  FLOCK EVOLUTION
+                  <span style="font-size: 8px; background: linear-gradient(135deg, #ff007f, #a855f7); padding: 2px 6px; border-radius: 6px; color: #fff; font-weight: 900;">RPG</span>
                 </div>
                 <div style="font-size: 10px; color: rgba(255, 255, 255, 0.7); margin-top: 3px; line-height: 1.4;">
-                  Rescue captive birds from cages! Collect Merge Orbs to combine your squad and trigger Hyper Boosts. (Demo cap: 500)
+                  Rescue caged birds to grow your flock. Tap <b>EVOLVE</b> to merge them into a powerful evolved bird! 4 tiers: Swift Eagle → Magnet Phoenix → Storm Titan → Celestial Sovereign.
                 </div>
               </div>
               <button id="btn-select-rescue" class="btn" style="width: auto; padding: 8px 14px; font-size: 11px; font-weight: 800; background: linear-gradient(180deg, #ff007f 0%, #7b2fff 100%); color: #ffffff; border-radius: 10px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(255, 0, 127, 0.25);">FLY</button>

@@ -46,6 +46,17 @@ export class GameEngine {
   public bird: Bird;
   public flock: Bird[] = [];
   private scoreThreshold = 100;
+
+  // Flock Evolution (Rescue Mode)
+  public evolvedBirdTier: number = 0;        // 0=none, 1–4=evolution level
+  public rescuedBirdsTotal: number = 0;      // total cages rescued this run
+  public mergeReadyCount: number = 0;        // birds in flock available to merge
+  private rescueMilestoneNext: number = 5;   // next milestone checkpoint
+  // expose read-only for UIManager
+  public get nextRescueMilestone(): number { return this.rescueMilestoneNext; }
+
+  // Auto-Hyper Boost: fires every 6 birds joined across all flock modes
+  public birdsJoinedThisRun: number = 0;
   public obstacleManager: ObstacleManager;
   public powerupManager: PowerupManager;
   public bossManager: BossManager;
@@ -173,6 +184,13 @@ export class GameEngine {
     this.bird.setSkin(currentSkin);
     this.bird.setDifficulty(this.progressManager.getState().selectedDifficulty);
 
+    // Reset evolution state
+    this.evolvedBirdTier = 0;
+    this.rescuedBirdsTotal = 0;
+    this.mergeReadyCount = 0;
+    this.rescueMilestoneNext = 5;
+    this.birdsJoinedThisRun = 0;
+
     if (this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') {
       const width = this.renderer.canvas.width / this.renderer.dpr;
       this.bird.x = width > 0 ? width / 2 : 240;
@@ -273,8 +291,10 @@ export class GameEngine {
 
       this.bird.update(dt, this.particleEngine, true, activeTimeScale, this.score);
 
-      // Flocking score-based additions in Squad Survival, Cage Rescue, and Formation Modes
-      if ((this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') && this.score >= this.scoreThreshold && this.flock.length < 5) {
+      // Flocking score-based additions:
+      // - Squad Survival (flock) and Formation modes: auto-add via score threshold
+      // - Rescue mode: birds ONLY come from cage rescues, NOT score thresholds
+      if ((this.gameMode === 'flock' || this.gameMode === 'formation') && this.score >= this.scoreThreshold) {
         const skins = this.progressManager.getSkins().filter(s => s.unlocked);
         const skin = skins[Math.floor(Math.random() * skins.length)] || this.bird.getSkin();
         const newBird = new Bird(skin);
@@ -289,6 +309,10 @@ export class GameEngine {
         window.dispatchEvent(new CustomEvent('hud_alert', {
           detail: { text: 'FLOCK EXPANDED! 🪽', sub: 'A new bird joined your squad!' }
         }));
+
+        // Every 6th bird joined across the run → auto-trigger Hyper Boost
+        this.birdsJoinedThisRun++;
+        this.checkAutoBoost();
       }
 
       // Update follower birds positions and logic in flocking modes
@@ -329,7 +353,17 @@ export class GameEngine {
         const dtCoeff = dt * 60 * activeTimeScale;
         for (let i = 1; i < flockLen; i++) {
           const follower = this.flock[i];
-          const offset = offsets[i] || { dx: -55 * i, dy: (i % 2 === 0 ? 40 : -40) * Math.ceil(i / 2) };
+          
+          let offset;
+          if (this.gameMode === 'rescue' || this.gameMode === 'flock') {
+            const groupIdx = Math.floor((i - 1) / 4);
+            const subIdx = (i - 1) % 4;
+            const dx = -55 * (Math.floor(subIdx / 2) + 1) - 35 * groupIdx;
+            const dy = (subIdx % 2 === 0 ? -40 : 40) * (Math.floor(subIdx / 2) + 1) + (groupIdx * (i % 2 === 0 ? -12 : 12));
+            offset = { dx, dy };
+          } else {
+            offset = offsets[i] || { dx: -55 * i, dy: (i % 2 === 0 ? 40 : -40) * Math.ceil(i / 2) };
+          }
           
           const targetX = this.bird.x + offset.dx;
           const targetY = this.bird.y + offset.dy;
@@ -565,7 +599,7 @@ export class GameEngine {
         }
 
         // Standard scrolling hazards
-        this.obstacleManager.update(dt, this.scrollSpeed, this.score, this.progressManager.getState().activeWorld, width, height, activeTimeScale, selectedZone, selectedDifficulty, this.bird.x);
+        this.obstacleManager.update(dt, this.scrollSpeed, this.score, this.progressManager.getState().activeWorld, width, height, activeTimeScale, selectedZone, selectedDifficulty, this.bird.x, undefined, this.gameMode);
         this.powerupManager.update(dt, this.scrollSpeed, this.bird.x, this.bird.y, !!this.activePowerupsList['magnet'], width, height, activeTimeScale, this.obstacleManager.getList(), this.gameMode);
 
         // Check near-miss grazes
@@ -1135,48 +1169,46 @@ export class GameEngine {
 
     if (type === 'rescue') {
       if (this.gameMode === 'rescue') {
-        if (this.flock.length < 5) {
-          const skins = this.progressManager.getSkins().filter(s => s.unlocked);
-          const skin = skins[Math.floor(Math.random() * skins.length)] || this.bird.getSkin();
-          const newBird = new Bird(skin);
-          newBird.x = this.bird.x - 100;
-          newBird.y = this.bird.y;
-          this.flock.push(newBird);
-          this.particleEngine.emitRing(newBird.x, newBird.y, skin.glowColor || '#ffaa00', 15);
+        const skins = this.progressManager.getSkins().filter(s => s.unlocked);
+        const skin = skins[Math.floor(Math.random() * skins.length)] || this.bird.getSkin();
+        const newBird = new Bird(skin);
+        newBird.x = this.bird.x - 100;
+        newBird.y = this.bird.y;
+        this.flock.push(newBird);
+        this.particleEngine.emitRing(newBird.x, newBird.y, skin.glowColor || '#ffaa00', 15);
+        this.soundManager.playLevelUp();
+        
+        // Track total rescued count and check milestones
+        this.rescuedBirdsTotal++;
+        this.birdsJoinedThisRun++;
+        this.mergeReadyCount = this.flock.length;
+        this.checkRescueMilestone();
+        this.checkAutoBoost();
+
+        const flockSize = this.flock.length;
+        if (this.evolvedBirdTier === 0) {
+          const canEvolve = flockSize >= 2;
           window.dispatchEvent(new CustomEvent('hud_alert', {
-            detail: { text: 'RESCUED! 🪽', sub: 'A wild bird was rescued and joined your flock!' }
+            detail: {
+              text: `RESCUED! 🕊️ (Squad Size: ${flockSize})`,
+              sub: canEvolve ? 'Tap EVOLVE to fuse your flock into a powerful bird!' : 'Keep rescuing more birds to evolve!'
+            }
           }));
         } else {
-          this.coinsCollectedThisRun += 150;
-          this.progressManager.addCoins(150);
           window.dispatchEvent(new CustomEvent('hud_alert', {
-            detail: { text: 'FLOCK FULL!', sub: '+150 Coins awarded instead!' }
+            detail: { 
+              text: `RESCUED AGAIN! 🕊️ (Squad Size: ${flockSize})`, 
+              sub: `Growing your squad for next evolution!` 
+            }
           }));
         }
       }
       return;
     }
 
+    // 'merge' type is no longer used as a path pickup —
+    // Hyper Boost now auto-fires when 6 birds have joined.
     if (type === 'merge') {
-      if (this.gameMode === 'rescue') {
-        if (this.flock.length > 1) {
-          for (let i = 1; i < this.flock.length; i++) {
-            const b = this.flock[i];
-            this.particleEngine.emitRing(b.x, b.y, b.getSkin().glowColor || '#ff007f', 20);
-          }
-          this.flock = [this.flock[0]];
-          this.bird = this.flock[0];
-          
-          this.activatePowerup('shield');
-          this.activatePowerup('booster');
-          
-          window.dispatchEvent(new CustomEvent('hud_alert', {
-            detail: { text: 'FLOCK MERGE! 🌌', sub: 'Birds merged to trigger Hyper Boost + Shield!' }
-          }));
-        } else {
-          this.activatePowerup('rescue');
-        }
-      }
       return;
     }
 
@@ -1455,4 +1487,142 @@ export class GameEngine {
     }
     return null;
   }
+
+  // ── FLOCK EVOLUTION SYSTEM ───────────────────────────────────────────────────
+
+  /**
+   * Merge the current flock into a single Evolved Bird.
+   * Called when the player taps the EVOLVE HUD button.
+   * Tier is determined by how many birds are in the flock at the time of merge.
+   */
+  public triggerFlockMerge() {
+    if (this.gameMode !== 'rescue') return;
+    if (this.flock.length < 2) return;
+
+    const mergeCount = this.flock.length;
+    // Determine evolution tier: 2→1, 3→2, 4→3, 5→4
+    const tier = Math.min(4, mergeCount - 1);
+    const previousTier = this.evolvedBirdTier;
+    const newTier = previousTier + tier; // accumulate tiers across multiple merges
+
+    const width  = this.renderer.canvas.width  / this.renderer.dpr;
+    const height = this.renderer.canvas.height / this.renderer.dpr;
+
+    // Full-screen flash: emit a massive explosion ring for each bird that merges
+    for (let i = 1; i < this.flock.length; i++) {
+      const b = this.flock[i];
+      this.particleEngine.emitExplosion(b.x, b.y, b.getSkin().glowColor || '#ffaa00', 25);
+    }
+    this.particleEngine.emitRing(this.bird.x, this.bird.y, '#ffffff', 40);
+    this.particleEngine.emitExplosion(width / 2, height / 2, '#ffd700', 60);
+    this.renderer.triggerScreenShake(30, 0.6);
+    this.soundManager.playLevelUp();
+
+    // Collapse flock to only the leader bird
+    this.flock = [this.flock[0]];
+    this.bird = this.flock[0];
+
+    // Set size boost based on tier
+    const sizeBoosts = [1.0, 1.2, 1.35, 1.55, 1.8];
+    this.bird.sizeMultiplier = sizeBoosts[Math.min(4, newTier)];
+
+    // Apply tier ability
+    const TIER_INFO: {name: string; color: string; abilityText: string}[] = [
+      { name: '', color: '#fff', abilityText: '' },
+      { name: 'SWIFT EAGLE',         color: '#00f3ff', abilityText: '+10% Bonus Score per Obstacle!' },
+      { name: 'MAGNET PHOENIX',      color: '#ff007f', abilityText: 'Permanent Coin Magnet Active!' },
+      { name: 'STORM TITAN',         color: '#ffd700', abilityText: 'Shield + 2× Coin Value Active!' },
+      { name: 'CELESTIAL SOVEREIGN', color: '#a855f7', abilityText: '8-Second Invincibility + Score Burst!' },
+    ];
+    const clampedTier = Math.min(4, newTier);
+    const info = TIER_INFO[clampedTier];
+
+    this.evolvedBirdTier = clampedTier;
+    this.mergeReadyCount = this.flock.length;
+
+    // Apply passive abilities
+    if (clampedTier >= 2) {
+      // Tier 2+: Permanent magnet
+      this.activePowerupsList['magnet'] = {
+        type: 'magnet',
+        durationLeft: 9999,
+        maxDuration: 9999
+      };
+    }
+    if (clampedTier >= 3) {
+      // Tier 3+: Shield + 2x coins
+      this.bird.hasShield = true;
+      this.scoreMultiplier = 2;
+    }
+    if (clampedTier >= 4) {
+      // Tier 4: 8s invincibility + massive score burst
+      this.bird.isInvincible = true;
+      this.incrementScore(50);
+      setTimeout(() => {
+        this.bird.isInvincible = false;
+      }, 8000);
+    }
+
+    // HUD alert
+    window.dispatchEvent(new CustomEvent('hud_alert', {
+      detail: {
+        text: `⚡ EVOLVED: ${info.name} (Tier ${clampedTier})`,
+        sub: info.abilityText
+      }
+    }));
+
+    // Dispatch evolution event for rendering aura color
+    window.dispatchEvent(new CustomEvent('bird_evolved', {
+      detail: { tier: clampedTier, color: info.color }
+    }));
+  }
+
+  /**
+   * Auto-fire Hyper Boost every 6 birds joined (flock / rescue / formation modes).
+   * Called after any bird joins the flock.
+   */
+  private checkAutoBoost() {
+    if (this.birdsJoinedThisRun > 0 && this.birdsJoinedThisRun % 6 === 0) {
+      if (!this.boosterActive && !this.boosterDeactivating) {
+        this.activatePowerup('booster');
+        // Reset HUD charge timer so the button doesn't also immediately fire
+        this.boosterSpawnTimer = 5.0;
+        // Extra visual fireworks for the milestone
+        const width  = this.renderer.canvas.width  / this.renderer.dpr;
+        const height = this.renderer.canvas.height / this.renderer.dpr;
+        this.particleEngine.emitExplosion(width / 2, height / 2, '#ffd700', 40);
+        this.particleEngine.emitExplosion(width / 2, height / 2, '#00f3ff', 30);
+        window.dispatchEvent(new CustomEvent('hud_alert', {
+          detail: {
+            text: '⚡ HYPER BOOST UNLOCKED! ⚡',
+            sub: `${this.birdsJoinedThisRun} birds rescued — Invincible speed burst!`
+          }
+        }));
+      }
+    }
+  }
+
+  /**
+   * Check if the rescue milestone has been reached and award gems.
+   */
+  private checkRescueMilestone() {
+    if (this.rescuedBirdsTotal >= this.rescueMilestoneNext) {
+      const gemsAwarded = this.rescueMilestoneNext >= 15 ? 3 : this.rescueMilestoneNext >= 10 ? 2 : 1;
+      this.gemsCollectedThisRun += gemsAwarded;
+      this.progressManager.addGems(gemsAwarded);
+      this.progressManager.save();
+
+      this.particleEngine.emitRing(this.bird.x, this.bird.y, '#00ffcc', 20);
+
+      window.dispatchEvent(new CustomEvent('hud_alert', {
+        detail: {
+          text: `🏅 RESCUE MILESTONE! ${this.rescuedBirdsTotal} Birds Saved`,
+          sub: `+${gemsAwarded} 💎 Gems Awarded!`
+        }
+      }));
+
+      this.rescueMilestoneNext += 5;
+    }
+  }
 }
+

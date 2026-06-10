@@ -168,7 +168,8 @@ export class ObstacleManager {
     zone: 'classic' | 'wave' = 'classic',
     difficulty: 'easy' | 'medium' | 'hard' = 'medium',
     _birdX?: number,
-    _particleEngine?: any
+    _particleEngine?: any,
+    gameMode: 'endless' | 'level' | 'flock' | 'rescue' | 'formation' = 'endless'
   ) {
     this.currentScore = score;
     const dtCoeff = deltaTime * 60 * timeScale;
@@ -230,7 +231,15 @@ export class ObstacleManager {
     let minGap = 255;
     let distMultiplier = 1.0;
 
-    if (difficulty === 'easy') {
+    if (gameMode === 'rescue') {
+      startGap = 345;
+      minGap = 345;
+      distMultiplier = 1.45; // Generous horizontal spacing for the flock
+    } else if (gameMode === 'flock' || gameMode === 'formation') {
+      startGap = 320;
+      minGap = 320;
+      distMultiplier = 1.25; // Slightly wider spacing for other multi-bird modes
+    } else if (difficulty === 'easy') {
       startGap = 255;
       minGap = 255;
       distMultiplier = 1.3;
@@ -1396,32 +1405,43 @@ export class ObstacleManager {
           // Use the score at spawn time to keep transitions completely smooth and stutter-free!
           const activeScore = obs.spawnScore !== undefined ? obs.spawnScore : score;
 
+          // Slower/less extreme movement for flock/rescue modes to accommodate larger squad height spreads
+          let motionSpeedMult = 1.0;
+          let motionAmpMult = 1.0;
+          if (gameMode === 'rescue') {
+            motionSpeedMult = 0.4; // 60% slower
+            motionAmpMult = 0.45;  // 55% less amplitude
+          } else if (gameMode === 'flock' || gameMode === 'formation') {
+            motionSpeedMult = 0.7;
+            motionAmpMult = 0.7;
+          }
+
           if (activeScore >= 100 && activeScore < 200) {
             // 10% difficulty: shift centerY up and down by 25px
             const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
             if (motionStyle === 0) {
-              verticalShift = Math.sin(this.waveTime * 1.5 + (obs.obstacleIdx || 0) * 0.5) * 25;
+              verticalShift = Math.sin(this.waveTime * 1.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 25 * motionAmpMult;
             } else {
               const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-              verticalShift = Math.sin(this.waveTime * 1.2) * 20 * elevatorDir;
+              verticalShift = Math.sin(this.waveTime * 1.2 * motionSpeedMult) * 20 * elevatorDir * motionAmpMult;
             }
           } else if (activeScore >= 200 && activeScore < 300) {
             // 10% + 15% = 25% difficulty: shift centerY up and down by 50px
             const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
             if (motionStyle === 0) {
-              verticalShift = Math.sin(this.waveTime * 2.2 + (obs.obstacleIdx || 0) * 0.5) * 50;
+              verticalShift = Math.sin(this.waveTime * 2.2 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 50 * motionAmpMult;
             } else {
               const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-              verticalShift = Math.sin(this.waveTime * 1.8) * 39.6 * elevatorDir; // Reduced by 12% (from 45)
+              verticalShift = Math.sin(this.waveTime * 1.8 * motionSpeedMult) * 39.6 * elevatorDir * motionAmpMult; // Reduced by 12% (from 45)
             }
           } else if (activeScore >= 300 && activeScore < 500) {
             // Score 300-500: full high difficulty sways up to 60px
             const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
             if (motionStyle === 0) {
-              verticalShift = Math.sin(this.waveTime * 2.5 + (obs.obstacleIdx || 0) * 0.5) * 60;
+              verticalShift = Math.sin(this.waveTime * 2.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 60 * motionAmpMult;
             } else {
               const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-              verticalShift = Math.sin(this.waveTime * 2.0) * 48.4 * elevatorDir; // Reduced by 12% (from 55)
+              verticalShift = Math.sin(this.waveTime * 2.0 * motionSpeedMult) * 48.4 * elevatorDir * motionAmpMult; // Reduced by 12% (from 55)
             }
           } else if (activeScore >= 500) {
             // Apply the same vertical motion or animation as score 200 to 300 but progressively increased so it can be felt!
@@ -1429,8 +1449,8 @@ export class ObstacleManager {
             if (intervals < 0) intervals = 0;
             
             // Progressive difficulty: increase amplitude (starting at 1.3x) and frequency (starting at 1.25x)
-            const amplitudeMultiplier = Math.min(1.8, 1.3 + intervals * 0.10);
-            const frequencyMultiplier = Math.min(1.5, 1.25 + intervals * 0.05);
+            const amplitudeMultiplier = Math.min(1.8, 1.3 + intervals * 0.10) * motionAmpMult;
+            const frequencyMultiplier = Math.min(1.5, 1.25 + intervals * 0.05) * motionSpeedMult;
 
             const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
             if (motionStyle === 0) {
@@ -1554,7 +1574,7 @@ export class ObstacleManager {
       // Apply endless progressive difficulty gap scaling (kept completely constant as requested)
       let gapWithDifficulty = this.activeLevelConfig ? this.activeLevelConfig.gapHeight : dynamicGap;
       
-      this.spawnObstacle(worldId, width, height, gapWithDifficulty, zone, difficulty, progressRatio, score);
+      this.spawnObstacle(worldId, width, height, gapWithDifficulty, zone, difficulty, progressRatio, score, gameMode);
 
       // Determine next spawn distance: Connected cavern spacing segments (0 distance horizontally) for all Levels in Level Mode
       if (this.activeLevelConfig) {
@@ -1628,7 +1648,8 @@ export class ObstacleManager {
     _zone: 'classic' | 'vertical' | 'wave' = 'classic',
     difficulty: 'easy' | 'medium' | 'hard' = 'medium',
     _progressRatio = 0,
-    score = 0
+    score = 0,
+    gameMode: 'endless' | 'level' | 'flock' | 'rescue' | 'formation' = 'endless'
   ) {
     if (this.activeLevelConfig) {
       const levelNumPlayable = this.activeLevelConfig.levelNum;
@@ -2701,7 +2722,7 @@ export class ObstacleManager {
 
     // Populate the endless pattern queue if it's empty
     if (this.endlessPatternQueue.length === 0) {
-      this.generateEndlessPattern();
+      this.generateEndlessPattern(gameMode);
     }
     const nextPattern = this.endlessPatternQueue.shift()!;
 
@@ -2792,7 +2813,7 @@ export class ObstacleManager {
     }));
   }
 
-  private generateEndlessPattern() {
+  private generateEndlessPattern(gameMode: 'endless' | 'level' | 'flock' | 'rescue' | 'formation' = 'endless') {
     interface EndlessPatternDef {
       name: string;
       offsets: number[];
@@ -2803,171 +2824,250 @@ export class ObstacleManager {
       forceMoving?: boolean;
     }
 
-    const patterns: EndlessPatternDef[] = [
-      // 16 Spatial Hazard Formations
-      {
-        name: 'Staircase',
-        offsets: [60, 40, 20, 0, -20, -40, -60],
-        distScales: [0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55],
-        gapScales: [1.0, 0.95, 0.9, 0.9, 0.9, 0.95, 1.05],
-        isMovings: [false, false, true, false, true, false, false]
-      },
-      {
-        name: 'Zigzag',
-        offsets: [70, -70, 70, -70, 70, -70],
-        distScales: [0.75, 1.25, 0.75, 1.25, 0.75, 1.25],
-        gapScales: [1.15, 1.1, 1.15, 1.1, 1.15, 1.2],
-        isMovings: [false, true, false, true, false, false]
-      },
-      {
-        name: 'Wave',
-        offsets: [0, 40, 70, 40, 0, -40, -70, -40],
-        distScales: [0.85, 0.85, 0.85, 0.85, 0.85, 0.85, 0.85, 0.85],
-        gapScales: [1.2, 0.95, 0.85, 0.95, 1.2, 0.95, 0.85, 1.1]
-      },
-      {
-        name: 'Tunnel',
-        offsets: [0, 0, 0, 0, 0, 0],
-        distScales: [0.9, 0.8, 0.8, 0.8, 0.9, 1.0],
-        gapScales: [1.25, 1.0, 0.82, 0.82, 1.0, 1.25]
-      },
-      {
-        name: 'Spiral Curve',
-        offsets: [-60, -30, 0, 30, 60, 30, -30],
-        distScales: [0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8],
-        gapScales: [1.1, 0.95, 0.8, 0.9, 1.1, 1.0, 1.15]
-      },
-      {
-        name: 'Diamond',
-        offsets: [0, 45, 75, 45, 0, -45, 0],
-        distScales: [0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9],
-        gapScales: [1.3, 1.0, 0.8, 1.0, 1.3, 1.0, 1.2]
-      },
-      {
-        name: 'Snake Path',
-        offsets: [-50, 50, -30, 30, -50, 50, 0],
-        distScales: [0.85, 0.85, 0.85, 0.85, 0.85, 0.85, 1.0],
-        gapScales: [1.0, 1.1, 1.0, 1.1, 1.0, 1.1, 1.2]
-      },
-      {
-        name: 'Arch Bridge',
-        offsets: [-80, -50, -20, 10, -20, -50, -80],
-        distScales: [1.0, 0.8, 0.7, 0.7, 0.8, 1.0, 1.1],
-        gapScales: [1.15, 0.9, 0.85, 0.9, 1.15, 1.1, 1.2]
-      },
-      {
-        name: 'Vertical Shift',
-        offsets: [-95, 95, -95, 95],
-        distScales: [1.4, 1.4, 1.4, 1.4],
-        gapScales: [1.25, 1.25, 1.25, 1.25]
-      },
-      {
-        name: 'Cross Flow',
-        offsets: [40, -40, 40, -40, 40],
-        distScales: [1.0, 1.0, 1.0, 1.0, 1.0],
-        isMovings: [true, true, true, true, true],
-        forceMoving: true
-      },
-      {
-        name: 'Laser Gauntlet',
-        offsets: [0, -40, 40, -40, 0],
-        distScales: [1.3, 1.3, 1.3, 1.3, 1.3],
-        gapScales: [1.1, 1.1, 1.1, 1.1, 1.1],
-        isLasers: [true, false, true, false, true]
-      },
-      {
-        name: 'Pincer Attack',
-        offsets: [0, 20, 0, -20, 0],
-        distScales: [0.6, 0.6, 0.6, 0.6, 0.6],
-        gapScales: [1.3, 0.78, 1.3, 0.78, 1.3]
-      },
-      {
-        name: 'Heartbeat Pulse',
-        offsets: [0, 25, -85, 85, 0, 0],
-        distScales: [0.9, 0.8, 0.7, 0.8, 1.0, 1.0],
-        gapScales: [1.0, 0.9, 0.75, 0.8, 1.15, 1.0]
-      },
-      {
-        name: 'Double Peak',
-        offsets: [-70, 70, 0, -70, 70],
-        distScales: [0.85, 0.85, 1.1, 0.85, 0.85],
-        gapScales: [1.1, 1.1, 1.25, 1.1, 1.1]
-      },
-      {
-        name: 'Castle Battlement',
-        offsets: [-60, 60, -60, 60, -60, 60],
-        distScales: [0.8, 0.8, 0.8, 0.8, 0.8, 0.8],
-        gapScales: [1.15, 1.15, 1.15, 1.15, 1.15, 1.15]
-      },
-      {
-        name: 'The Viper',
-        offsets: [-45, 45, -45, 45, -45, 45],
-        distScales: [0.58, 0.58, 0.58, 0.58, 0.58, 0.58],
-        gapScales: [1.2, 1.2, 1.2, 1.2, 1.2, 1.2]
-      },
+    let patterns: EndlessPatternDef[];
 
-      // 10 Stylized Letter Path Shapes (safe gap traces)
-      {
-        name: 'Letter S',
-        offsets: [-60, -30, 15, 60, 30, -15, -45, -60],
-        distScales: [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7],
-        gapScales: [1.15, 1.0, 0.9, 0.9, 1.0, 1.15, 1.15, 1.2]
-      },
-      {
-        name: 'Letter W',
-        offsets: [-75, 45, -15, 45, -75],
-        distScales: [0.85, 0.85, 0.85, 0.85, 0.85],
-        gapScales: [1.05, 1.15, 1.05, 1.15, 1.05]
-      },
-      {
-        name: 'Letter C',
-        offsets: [0, -65, -65, 0, 65, 65, 0],
-        distScales: [0.62, 0.62, 0.62, 0.62, 0.62, 0.62, 0.62],
-        gapScales: [1.1, 0.95, 0.9, 1.1, 0.9, 0.95, 1.15]
-      },
-      {
-        name: 'Letter M',
-        offsets: [65, -45, 15, -45, 65],
-        distScales: [0.72, 0.72, 0.72, 0.72, 0.72],
-        gapScales: [1.05, 1.15, 1.05, 1.15, 1.05]
-      },
-      {
-        name: 'Letter Z',
-        offsets: [-65, -65, 0, 65, 65],
-        distScales: [0.88, 0.58, 0.58, 0.88, 0.88],
-        gapScales: [1.1, 1.0, 1.0, 1.1, 1.1]
-      },
-      {
-        name: 'Letter U',
-        offsets: [-65, 45, 45, -65],
-        distScales: [1.05, 0.58, 1.05, 1.05],
-        gapScales: [1.1, 1.15, 1.15, 1.1]
-      },
-      {
-        name: 'Letter V',
-        offsets: [-75, 65, -75],
-        distScales: [0.78, 0.78, 0.78],
-        gapScales: [1.0, 1.25, 1.0]
-      },
-      {
-        name: 'Letter X',
-        offsets: [-65, 65, 0, -65, 65],
-        distScales: [0.68, 0.68, 0.68, 0.68, 0.68],
-        gapScales: [1.1, 1.1, 1.2, 1.1, 1.1]
-      },
-      {
-        name: 'Letter O',
-        offsets: [0, -65, 65, 0],
-        distScales: [0.62, 0.62, 0.62, 0.62],
-        gapScales: [1.1, 1.0, 1.0, 1.1]
-      },
-      {
-        name: 'Letter N',
-        offsets: [65, -65, 65, -65],
-        distScales: [0.92, 0.52, 0.92, 0.92],
-        gapScales: [1.1, 1.0, 1.1, 1.1]
-      }
-    ];
+    if (gameMode === 'rescue') {
+      // Smooth, flowing patterns with gentle vertical sways and extra wide clearances, perfect for a growing flock
+      patterns = [
+        {
+          name: 'Flock Tunnel',
+          offsets: [0, 0, 0, 0, 0, 0],
+          distScales: [1.1, 1.0, 1.0, 1.0, 1.1, 1.2],
+          gapScales: [1.2, 1.1, 1.0, 1.0, 1.1, 1.2]
+        },
+        {
+          name: 'Flock Wave',
+          offsets: [0, 25, 45, 25, 0, -25, -45, -25],
+          distScales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+          gapScales: [1.1, 1.0, 0.95, 1.0, 1.1, 1.0, 0.95, 1.0]
+        },
+        {
+          name: 'Flock Staircase',
+          offsets: [40, 20, 0, -20, -40, -20, 0, 20],
+          distScales: [0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9],
+          gapScales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+        },
+        {
+          name: 'Flock Arch',
+          offsets: [-50, -30, -10, 10, -10, -30, -50],
+          distScales: [1.1, 1.0, 0.9, 0.9, 1.0, 1.1, 1.2],
+          gapScales: [1.1, 1.0, 1.0, 1.0, 1.0, 1.1, 1.2]
+        },
+        {
+          name: 'Rescue Valley',
+          offsets: [0, 30, 50, 30, 0],
+          distScales: [1.0, 1.0, 1.0, 1.0, 1.0],
+          gapScales: [1.2, 1.1, 1.0, 1.1, 1.2]
+        },
+        {
+          name: 'Flock Diamond',
+          offsets: [0, 30, 50, 30, 0, -30, 0],
+          distScales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+          gapScales: [1.2, 1.1, 1.0, 1.1, 1.2, 1.1, 1.2]
+        }
+      ];
+    } else if (gameMode === 'flock' || gameMode === 'formation') {
+      // Slightly more dynamic but still flock-friendly patterns
+      patterns = [
+        {
+          name: 'Flock Tunnel',
+          offsets: [0, 0, 0, 0, 0, 0],
+          distScales: [1.0, 0.9, 0.9, 0.9, 1.0, 1.1],
+          gapScales: [1.2, 1.0, 0.95, 0.95, 1.0, 1.2]
+        },
+        {
+          name: 'Flock Wave',
+          offsets: [0, 30, 55, 30, 0, -30, -55, -30],
+          distScales: [0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95],
+          gapScales: [1.15, 1.0, 0.9, 1.0, 1.15, 1.0, 0.9, 1.0]
+        },
+        {
+          name: 'Flock Staircase',
+          offsets: [50, 25, 0, -25, -50, -25, 0, 25],
+          distScales: [0.85, 0.85, 0.85, 0.85, 0.85, 0.85, 0.85, 0.85],
+          gapScales: [1.05, 1.0, 0.95, 1.0, 1.05, 1.0, 0.95, 1.0]
+        },
+        {
+          name: 'Flock Arch',
+          offsets: [-60, -40, -15, 10, -15, -40, -60],
+          distScales: [1.0, 0.9, 0.85, 0.85, 0.9, 1.0, 1.1],
+          gapScales: [1.1, 1.0, 0.95, 0.95, 1.0, 1.1, 1.15]
+        },
+        {
+          name: 'Flock Diamond',
+          offsets: [0, 35, 60, 35, 0, -35, 0],
+          distScales: [0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95],
+          gapScales: [1.2, 1.05, 0.9, 1.05, 1.2, 1.05, 1.15]
+        }
+      ];
+    } else {
+      // Classic endless mode patterns (exactly unchanged)
+      patterns = [
+        // 16 Spatial Hazard Formations
+        {
+          name: 'Staircase',
+          offsets: [60, 40, 20, 0, -20, -40, -60],
+          distScales: [0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55],
+          gapScales: [1.0, 0.95, 0.9, 0.9, 0.9, 0.95, 1.05],
+          isMovings: [false, false, true, false, true, false, false]
+        },
+        {
+          name: 'Zigzag',
+          offsets: [70, -70, 70, -70, 70, -70],
+          distScales: [0.75, 1.25, 0.75, 1.25, 0.75, 1.25],
+          gapScales: [1.15, 1.1, 1.15, 1.1, 1.15, 1.2],
+          isMovings: [false, true, false, true, false, false]
+        },
+        {
+          name: 'Wave',
+          offsets: [0, 40, 70, 40, 0, -40, -70, -40],
+          distScales: [0.85, 0.85, 0.85, 0.85, 0.85, 0.85, 0.85, 0.85],
+          gapScales: [1.2, 0.95, 0.85, 0.95, 1.2, 0.95, 0.85, 1.1]
+        },
+        {
+          name: 'Tunnel',
+          offsets: [0, 0, 0, 0, 0, 0],
+          distScales: [0.9, 0.8, 0.8, 0.8, 0.9, 1.0],
+          gapScales: [1.25, 1.0, 0.82, 0.82, 1.0, 1.25]
+        },
+        {
+          name: 'Spiral Curve',
+          offsets: [-60, -30, 0, 30, 60, 30, -30],
+          distScales: [0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8],
+          gapScales: [1.1, 0.95, 0.8, 0.9, 1.1, 1.0, 1.15]
+        },
+        {
+          name: 'Diamond',
+          offsets: [0, 45, 75, 45, 0, -45, 0],
+          distScales: [0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9],
+          gapScales: [1.3, 1.0, 0.8, 1.0, 1.3, 1.0, 1.2]
+        },
+        {
+          name: 'Snake Path',
+          offsets: [-50, 50, -30, 30, -50, 50, 0],
+          distScales: [0.85, 0.85, 0.85, 0.85, 0.85, 0.85, 1.0],
+          gapScales: [1.0, 1.1, 1.0, 1.1, 1.0, 1.1, 1.2]
+        },
+        {
+          name: 'Arch Bridge',
+          offsets: [-80, -50, -20, 10, -20, -50, -80],
+          distScales: [1.0, 0.8, 0.7, 0.7, 0.8, 1.0, 1.1],
+          gapScales: [1.15, 0.9, 0.85, 0.9, 1.15, 1.1, 1.2]
+        },
+        {
+          name: 'Vertical Shift',
+          offsets: [-95, 95, -95, 95],
+          distScales: [1.4, 1.4, 1.4, 1.4],
+          gapScales: [1.25, 1.25, 1.25, 1.25]
+        },
+        {
+          name: 'Cross Flow',
+          offsets: [40, -40, 40, -40, 40],
+          distScales: [1.0, 1.0, 1.0, 1.0, 1.0],
+          isMovings: [true, true, true, true, true],
+          forceMoving: true
+        },
+        {
+          name: 'Laser Gauntlet',
+          offsets: [0, -40, 40, -40, 0],
+          distScales: [1.3, 1.3, 1.3, 1.3, 1.3],
+          gapScales: [1.1, 1.1, 1.1, 1.1, 1.1],
+          isLasers: [true, false, true, false, true]
+        },
+        {
+          name: 'Pincer Attack',
+          offsets: [0, 20, 0, -20, 0],
+          distScales: [0.6, 0.6, 0.6, 0.6, 0.6],
+          gapScales: [1.3, 0.78, 1.3, 0.78, 1.3]
+        },
+        {
+          name: 'Heartbeat Pulse',
+          offsets: [0, 25, -85, 85, 0, 0],
+          distScales: [0.9, 0.8, 0.7, 0.8, 1.0, 1.0],
+          gapScales: [1.0, 0.9, 0.75, 0.8, 1.15, 1.0]
+        },
+        {
+          name: 'Double Peak',
+          offsets: [-70, 70, 0, -70, 70],
+          distScales: [0.85, 0.85, 1.1, 0.85, 0.85],
+          gapScales: [1.1, 1.1, 1.25, 1.1, 1.1]
+        },
+        {
+          name: 'Castle Battlement',
+          offsets: [-60, 60, -60, 60, -60, 60],
+          distScales: [0.8, 0.8, 0.8, 0.8, 0.8, 0.8],
+          gapScales: [1.15, 1.15, 1.15, 1.15, 1.15, 1.15]
+        },
+        {
+          name: 'The Viper',
+          offsets: [-45, 45, -45, 45, -45, 45],
+          distScales: [0.58, 0.58, 0.58, 0.58, 0.58, 0.58],
+          gapScales: [1.2, 1.2, 1.2, 1.2, 1.2, 1.2]
+        },
+
+        // 10 Stylized Letter Path Shapes (safe gap traces)
+        {
+          name: 'Letter S',
+          offsets: [-60, -30, 15, 60, 30, -15, -45, -60],
+          distScales: [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7],
+          gapScales: [1.15, 1.0, 0.9, 0.9, 1.0, 1.15, 1.15, 1.2]
+        },
+        {
+          name: 'Letter W',
+          offsets: [-75, 45, -15, 45, -75],
+          distScales: [0.85, 0.85, 0.85, 0.85, 0.85],
+          gapScales: [1.05, 1.15, 1.05, 1.15, 1.05]
+        },
+        {
+          name: 'Letter C',
+          offsets: [0, -65, -65, 0, 65, 65, 0],
+          distScales: [0.62, 0.62, 0.62, 0.62, 0.62, 0.62, 0.62],
+          gapScales: [1.1, 0.95, 0.9, 1.1, 0.9, 0.95, 1.15]
+        },
+        {
+          name: 'Letter M',
+          offsets: [65, -45, 15, -45, 65],
+          distScales: [0.72, 0.72, 0.72, 0.72, 0.72],
+          gapScales: [1.05, 1.15, 1.05, 1.15, 1.05]
+        },
+        {
+          name: 'Letter Z',
+          offsets: [-65, -65, 0, 65, 65],
+          distScales: [0.88, 0.58, 0.58, 0.88, 0.88],
+          gapScales: [1.1, 1.0, 1.0, 1.1, 1.1]
+        },
+        {
+          name: 'Letter U',
+          offsets: [-65, 45, 45, -65],
+          distScales: [1.05, 0.58, 1.05, 1.05],
+          gapScales: [1.1, 1.15, 1.15, 1.1]
+        },
+        {
+          name: 'Letter V',
+          offsets: [-75, 65, -75],
+          distScales: [0.78, 0.78, 0.78],
+          gapScales: [1.0, 1.25, 1.0]
+        },
+        {
+          name: 'Letter X',
+          offsets: [-65, 65, 0, -65, 65],
+          distScales: [0.68, 0.68, 0.68, 0.68, 0.68],
+          gapScales: [1.1, 1.1, 1.2, 1.1, 1.1]
+        },
+        {
+          name: 'Letter O',
+          offsets: [0, -65, 65, 0],
+          distScales: [0.62, 0.62, 0.62, 0.62],
+          gapScales: [1.1, 1.0, 1.0, 1.1]
+        },
+        {
+          name: 'Letter N',
+          offsets: [65, -65, 65, -65],
+          distScales: [0.92, 0.52, 0.92, 0.92],
+          gapScales: [1.1, 1.0, 1.1, 1.1]
+        }
+      ];
+    }
 
     // Pick a random pattern
     const randPattern = patterns[Math.floor(Math.random() * patterns.length)];

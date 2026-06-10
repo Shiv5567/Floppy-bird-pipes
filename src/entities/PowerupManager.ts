@@ -23,6 +23,7 @@ export class PowerupManager {
   private gemDistances: number[] = [];
   private nextGemIndex = 0;
   private lastSpawnedObstacleCenterY = 300;
+  private nextRescueSpawnTarget = 15 + Math.floor(Math.random() * 11); // random between 15 and 25
 
   constructor() {}
 
@@ -35,11 +36,17 @@ export class PowerupManager {
       // Spawn at equal intervals (25, 50, 75) in the 100-obstacle block
       const indices = [25, 50, 75];
 
-      const pool: PowerupType[] = ['shield', 'slowmo', 'magnet', 'turbo', 'mini'];
       const gameEngine = (window as any).gameEngine;
-      if (gameEngine && gameEngine.gameMode === 'rescue') {
-        pool.push('rescue', 'merge');
+      const isRescueMode = gameEngine && gameEngine.gameMode === 'rescue';
+
+      let pool: PowerupType[];
+      if (isRescueMode) {
+        // In rescue mode: only cage rescues and standard powerups in path — NO merge orb
+        pool = ['rescue', 'rescue', 'rescue', 'shield', 'magnet'];
+      } else {
+        pool = ['shield', 'slowmo', 'magnet', 'turbo', 'mini'];
       }
+
       const chosenTypes: PowerupType[] = [];
       while (chosenTypes.length < 3) {
         const type = pool[Math.floor(Math.random() * pool.length)];
@@ -93,6 +100,7 @@ export class PowerupManager {
     this.gemDistances = [];
     this.nextGemIndex = 0;
     this.lastSpawnedObstacleCenterY = 300;
+    this.nextRescueSpawnTarget = 15 + Math.floor(Math.random() * 11);
   }
 
   public initLevelCollectibles(levelNum: number, targetScore: number) {
@@ -317,6 +325,30 @@ export class PowerupManager {
         }
       }
 
+      // ── Rescue Mode: Spawn cages every 15 to 25 obstacles, coins/gems/powerups elsewhere ──────────────
+      if (gameMode === 'rescue') {
+        const obsIdx = unrewardedObstacle.obstacleIdx !== undefined ? unrewardedObstacle.obstacleIdx : 0;
+
+        if (obsIdx === this.nextRescueSpawnTarget) {
+          // Spawn a cage in the gap center
+          this.spawnItem('rescue', width, height, targetX, gapCenterY);
+          this.nextRescueSpawnTarget = obsIdx + 15 + Math.floor(Math.random() * 11); // Set next spawn between 15 and 25 obstacles
+        } else if (obsIdx % 3 === 0) {
+          // Spawn 3 coins group
+          this.spawnItem('coin', width, height, targetX - 45, gapCenterY);
+          this.spawnItem('coin', width, height, targetX, gapCenterY);
+          this.spawnItem('coin', width, height, targetX + 45, gapCenterY);
+        } else if (obsIdx % 7 === 4) {
+          // Spare slots: gems
+          this.spawnItem('gem', width, height, targetX, gapCenterY);
+        } else if (obsIdx % 12 === 8) {
+          // Rare random powerups to keep the run interesting
+          const pool: PowerupType[] = ['shield', 'slowmo', 'magnet', 'turbo', 'mini'];
+          const randomType = pool[Math.floor(Math.random() * pool.length)];
+          this.spawnItem(randomType, width, height, targetX, gapCenterY);
+        }
+      }
+
       if (gameMode === 'level') {
         // Track the last spawned obstacle gap center Y
         this.lastSpawnedObstacleCenterY = gapCenterY;
@@ -406,6 +438,39 @@ export class PowerupManager {
         } else if (item.type === 'gem') {
           particleEngine.emitCoinSparkle(item.x, item.y, '#00ffcc');
           soundManager.playGem();
+        } else if (item.type === 'rescue') {
+          // CAGE BREAK: Bird escapes! Dramatic multi-burst effect
+          particleEngine.emitRing(item.x, item.y, '#ffaa00', 18);
+          // Golden cage-bar shatter sparks flying outward
+          for (let k = 0; k < 12; k++) {
+            const angle = (k / 12) * Math.PI * 2;
+            particleEngine.spawn(
+              item.x + Math.cos(angle) * 8,
+              item.y + Math.sin(angle) * 8,
+              Math.cos(angle) * (1.5 + Math.random() * 2.5),
+              Math.sin(angle) * (1.5 + Math.random() * 2.5),
+              k % 2 === 0 ? '#ffaa00' : '#ffffff',
+              3 + Math.random() * 3,
+              1.0,
+              0.03,
+              'star'
+            );
+          }
+          // Freed bird upward trail
+          for (let k = 0; k < 8; k++) {
+            particleEngine.spawn(
+              item.x + (Math.random() - 0.5) * 12,
+              item.y - k * 4,
+              (Math.random() - 0.5) * 1.5,
+              -1 - Math.random() * 2,
+              '#00f3ff',
+              2 + Math.random() * 2,
+              0.9,
+              0.04,
+              'star'
+            );
+          }
+          soundManager.playLevelUp();
         } else {
           particleEngine.emitRing(item.x, item.y, this.getPowerupGlowColor(item.type));
           soundManager.playShieldDeflect();
@@ -449,6 +514,43 @@ export class PowerupManager {
         this.drawGem(ctx, item);
       } else if (item.type === 'booster') {
         this.drawLightningBolt(ctx, item);
+      } else if (item.type === 'rescue') {
+        // ── CAGE: Extra large, animated, obvious visual ──
+        const t = performance.now() * 0.001;
+        const pulseSin = Math.sin(t * 3.5);
+
+        // Orange pulsing outer halo
+        if (!(window as any).gameDisableShadows) {
+          ctx.shadowBlur = 18 + pulseSin * 10;
+          ctx.shadowColor = '#ffaa00';
+        } else {
+          // Software glow ring
+          ctx.globalAlpha = 0.25 + pulseSin * 0.1;
+          ctx.fillStyle = '#ffaa00';
+          ctx.beginPath();
+          ctx.arc(0, 0, item.radius * 1.7, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1.0;
+        }
+
+        // Scale cage 1.4x so it is clearly distinguishable
+        const cageScale = 1.4;
+        ctx.scale(cageScale, cageScale);
+        this.drawPowerupBox(ctx, item);
+
+        ctx.restore();
+        ctx.save();
+        ctx.translate(Math.round(item.x), Math.round(item.y));
+
+        // Floating "RESCUE!" label above the cage
+        const labelY = -item.radius * 1.4 - 8 + Math.sin(t * 2) * 3;
+        ctx.font = 'bold 9px Outfit, Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.globalAlpha = 0.85 + pulseSin * 0.15;
+        ctx.fillStyle = '#ffaa00';
+        ctx.fillText('RESCUE!', 0, labelY);
+        ctx.globalAlpha = 1.0;
       } else {
         this.drawPowerupBox(ctx, item);
       }
@@ -722,30 +824,72 @@ export class PowerupManager {
       ctx.arc(-1.0, -1.0, 1.0, 0, Math.PI * 2);
       ctx.fill();
     } else if (item.type === 'rescue') {
-      // Draw a wooden/golden cage containing a small bird
+      // Animated cage with flapping bird inside
+      const t = performance.now() * 0.001;
+      const flapAngle = Math.sin(t * 7) * 0.5; // Bird wings flap
+
+      // Cage outer frame
       ctx.strokeStyle = '#ffaa00';
-      ctx.lineWidth = 1.6;
+      ctx.lineWidth = 1.8;
+      ctx.lineCap = 'round';
+
+      // Top dome arc
       ctx.beginPath();
       ctx.arc(0, -1, 7, 0, Math.PI, true);
+      // Bottom bar
       ctx.lineTo(-7, 6);
+      ctx.moveTo(-7, 6);
       ctx.lineTo(7, 6);
-      ctx.closePath();
+      ctx.moveTo(7, 6);
+      ctx.lineTo(7, -1);
       ctx.stroke();
 
-      // Vertical bars of the cage
+      // Vertical bars
       ctx.beginPath();
-      ctx.moveTo(-3, 0);
-      ctx.lineTo(-3, 6);
-      ctx.moveTo(0, -8);
-      ctx.lineTo(0, 6);
-      ctx.moveTo(3, 0);
-      ctx.lineTo(3, 6);
+      ctx.moveTo(-3.5, -6.5); ctx.lineTo(-3.5, 6);
+      ctx.moveTo(0,   -8);    ctx.lineTo(0,    6);
+      ctx.moveTo(3.5, -6.5);  ctx.lineTo(3.5,  6);
       ctx.stroke();
 
-      // Small bird shape inside the cage
+      // Hinge at top
+      ctx.fillStyle = '#ffd700';
+      ctx.beginPath();
+      ctx.arc(0, -8.5, 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Flapping bird body inside cage
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
-      ctx.arc(0, 1, 3.2, 0, Math.PI * 2);
+      ctx.ellipse(0, 1.5, 2.5, 1.8, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Left wing (flapping)
+      ctx.strokeStyle = '#aaccff';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(-2.5, 1.5);
+      ctx.quadraticCurveTo(-5, 1.5 + Math.sin(flapAngle) * 3, -3.5, 1.5 + Math.sin(flapAngle) * 5);
+      ctx.stroke();
+
+      // Right wing (flapping, opposite phase)
+      ctx.beginPath();
+      ctx.moveTo(2.5, 1.5);
+      ctx.quadraticCurveTo(5, 1.5 - Math.sin(flapAngle) * 3, 3.5, 1.5 - Math.sin(flapAngle) * 5);
+      ctx.stroke();
+
+      // Bird beak
+      ctx.fillStyle = '#ffaa00';
+      ctx.beginPath();
+      ctx.moveTo(-2.5, 0.8);
+      ctx.lineTo(-4.5, 1.5);
+      ctx.lineTo(-2.5, 2.2);
+      ctx.closePath();
+      ctx.fill();
+
+      // Bird eye
+      ctx.fillStyle = '#000000';
+      ctx.beginPath();
+      ctx.arc(-0.8, 0.8, 0.7, 0, Math.PI * 2);
       ctx.fill();
     } else if (item.type === 'merge') {
       // Draw double helix/merging rings

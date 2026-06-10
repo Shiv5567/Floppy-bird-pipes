@@ -187,7 +187,43 @@ function loop(time: number) {
     for (let i = len - 1; i >= 0; i--) {
       gameEngine.flock[i].render(ctx);
     }
+
+    // Evolution aura: glowing ring around leader bird in Rescue mode when evolved
+    if (gameEngine.gameMode === 'rescue' && gameEngine.evolvedBirdTier > 0) {
+      const leader = gameEngine.flock[0];
+      const tier = gameEngine.evolvedBirdTier;
+      const TIER_COLORS = ['#fff', '#00f3ff', '#ff007f', '#ffd700', '#a855f7'];
+      const auraColor = TIER_COLORS[Math.min(4, tier)];
+      const baseRadius = leader.radius * leader.sizeMultiplier;
+      const pulseScale = 1 + 0.12 * Math.sin(performance.now() * 0.006);
+      const auraRadius = baseRadius * (1.5 + tier * 0.2) * pulseScale;
+
+      ctx.save();
+      ctx.globalAlpha = 0.35 + 0.12 * Math.sin(performance.now() * 0.006);
+      ctx.strokeStyle = auraColor;
+      ctx.lineWidth = 2.5 + tier * 0.5;
+      ctx.beginPath();
+      ctx.arc(Math.round(leader.x), Math.round(leader.y), auraRadius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.globalAlpha = 0.08 + 0.04 * Math.sin(performance.now() * 0.006);
+      ctx.fillStyle = auraColor;
+      ctx.beginPath();
+      ctx.arc(Math.round(leader.x), Math.round(leader.y), auraRadius * 0.85, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      ctx.save();
+      ctx.globalAlpha = 0.9;
+      ctx.font = `bold ${9 + tier}px Outfit, Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillStyle = auraColor;
+      ctx.fillText(`T${tier}`, Math.round(leader.x), Math.round(leader.y - baseRadius * 1.8));
+      ctx.restore();
+    }
   } else {
+
     gameEngine.bird.render(ctx);
   }
   gameEngine.particleEngine.render(ctx);
