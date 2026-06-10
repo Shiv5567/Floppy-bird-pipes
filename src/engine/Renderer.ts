@@ -202,6 +202,9 @@ export class Renderer {
     const isPerformanceMode = (window as any).gameDisableShadows;
     if (isPerformanceMode) {
       targetZoom = 1.0; // Enforce native pixel grid on low-graphics/mobile
+      if (gameState === 'BOSS_FIGHT') {
+        targetZoom = 0.77;
+      }
     } else {
       targetZoom = 0.90;
       if (gameState === 'BOSS_FIGHT') {
@@ -213,8 +216,14 @@ export class Renderer {
       }
     }
 
-    // Hard-lock zoom to 1.0 in performance mode, otherwise smoothly interpolate
-    if (isPerformanceMode) {
+    const gameEngine = (window as any).gameEngine;
+    const isFlockMode = gameEngine && (gameEngine.gameMode === 'flock');
+    if (isFlockMode) {
+      targetZoom *= 0.80; // Zoom out by 20% in squad mode!
+    }
+
+    // Hard-lock zoom to 1.0 in performance mode, otherwise smoothly interpolate (allow zoom in flock mode and boss fight)
+    if (isPerformanceMode && !isFlockMode && gameState !== 'BOSS_FIGHT') {
       this.zoomFactor = 1.0;
     } else {
       this.zoomFactor += (targetZoom - this.zoomFactor) * 0.08 * (deltaTime * 60);
