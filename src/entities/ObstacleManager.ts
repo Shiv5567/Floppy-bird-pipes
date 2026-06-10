@@ -2891,10 +2891,16 @@ export class ObstacleManager {
       // Slightly more dynamic but still flock-friendly patterns
       patterns = [
         {
-          name: 'Flock Tunnel',
-          offsets: [0, 0, 0, 0, 0, 0],
-          distScales: [1.0, 0.9, 0.9, 0.9, 1.0, 1.1],
-          gapScales: [1.2, 1.0, 0.95, 0.95, 1.0, 1.2]
+          name: 'Flock W-Shape',
+          offsets: [-75, 45, -15, 45, -75],
+          distScales: [0.9, 0.9, 0.9, 0.9, 0.9],
+          gapScales: [1.1, 1.0, 0.95, 1.0, 1.1]
+        },
+        {
+          name: 'Flock M-Shape',
+          offsets: [75, -45, 15, -45, 75],
+          distScales: [0.9, 0.9, 0.9, 0.9, 0.9],
+          gapScales: [1.1, 1.0, 0.95, 1.0, 1.1]
         },
         {
           name: 'Flock Wave',
@@ -2919,6 +2925,12 @@ export class ObstacleManager {
           offsets: [0, 35, 60, 35, 0, -35, 0],
           distScales: [0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95],
           gapScales: [1.2, 1.05, 0.9, 1.05, 1.2, 1.05, 1.15]
+        },
+        {
+          name: 'Flock Zigzag',
+          offsets: [65, -65, 65, -65, 65, -65],
+          distScales: [0.95, 1.0, 0.95, 1.0, 0.95, 1.0],
+          gapScales: [1.15, 1.1, 1.15, 1.1, 1.15, 1.2]
         }
       ];
     } else {
