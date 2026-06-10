@@ -1424,48 +1424,50 @@ export class ObstacleManager {
             motionAmpMult = 0.7;
           }
 
-          if (effectiveScore >= 100 && effectiveScore < 200) {
-            // 10% difficulty: shift centerY up and down by 25px
-            const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
-            if (motionStyle === 0) {
-              verticalShift = Math.sin(this.waveTime * 1.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 25 * motionAmpMult;
-            } else {
-              const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-              verticalShift = Math.sin(this.waveTime * 1.2 * motionSpeedMult) * 20 * elevatorDir * motionAmpMult;
-            }
-          } else if (effectiveScore >= 200 && effectiveScore < 300) {
-            // 10% + 15% = 25% difficulty: shift centerY up and down by 50px
-            const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
-            if (motionStyle === 0) {
-              verticalShift = Math.sin(this.waveTime * 2.2 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 50 * motionAmpMult;
-            } else {
-              const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-              verticalShift = Math.sin(this.waveTime * 1.8 * motionSpeedMult) * 39.6 * elevatorDir * motionAmpMult; // Reduced by 12% (from 45)
-            }
-          } else if (effectiveScore >= 300 && effectiveScore < 500) {
-            // Score 300-500: full high difficulty sways up to 60px
-            const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
-            if (motionStyle === 0) {
-              verticalShift = Math.sin(this.waveTime * 2.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 60 * motionAmpMult;
-            } else {
-              const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-              verticalShift = Math.sin(this.waveTime * 2.0 * motionSpeedMult) * 48.4 * elevatorDir * motionAmpMult; // Reduced by 12% (from 55)
-            }
-          } else if (effectiveScore >= 500) {
-            // Apply the same vertical motion or animation as score 200 to 300 but progressively increased so it can be felt!
-            let intervals = Math.floor((effectiveScore - 500) / 100);
-            if (intervals < 0) intervals = 0;
+          if (gameMode !== 'flock') {
+            if (effectiveScore >= 100 && effectiveScore < 200) {
+              // 10% difficulty: shift centerY up and down by 25px
+              const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
+              if (motionStyle === 0) {
+                verticalShift = Math.sin(this.waveTime * 1.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 25 * motionAmpMult;
+              } else {
+                const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
+                verticalShift = Math.sin(this.waveTime * 1.2 * motionSpeedMult) * 20 * elevatorDir * motionAmpMult;
+              }
+            } else if (effectiveScore >= 200 && effectiveScore < 300) {
+              // 10% + 15% = 25% difficulty: shift centerY up and down by 50px
+              const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
+              if (motionStyle === 0) {
+                verticalShift = Math.sin(this.waveTime * 2.2 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 50 * motionAmpMult;
+              } else {
+                const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
+                verticalShift = Math.sin(this.waveTime * 1.8 * motionSpeedMult) * 39.6 * elevatorDir * motionAmpMult; // Reduced by 12% (from 45)
+              }
+            } else if (effectiveScore >= 300 && effectiveScore < 500) {
+              // Score 300-500: full high difficulty sways up to 60px
+              const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
+              if (motionStyle === 0) {
+                verticalShift = Math.sin(this.waveTime * 2.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 60 * motionAmpMult;
+              } else {
+                const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
+                verticalShift = Math.sin(this.waveTime * 2.0 * motionSpeedMult) * 48.4 * elevatorDir * motionAmpMult; // Reduced by 12% (from 55)
+              }
+            } else if (effectiveScore >= 500) {
+              // Apply the same vertical motion or animation as score 200 to 300 but progressively increased so it can be felt!
+              let intervals = Math.floor((effectiveScore - 500) / 100);
+              if (intervals < 0) intervals = 0;
 
-            // Progressive difficulty: increase amplitude (starting at 1.3x) and frequency (starting at 1.25x)
-            const amplitudeMultiplier = Math.min(1.8, 1.3 + intervals * 0.10) * motionAmpMult;
-            const frequencyMultiplier = Math.min(1.5, 1.25 + intervals * 0.05) * motionSpeedMult;
+              // Progressive difficulty: increase amplitude (starting at 1.3x) and frequency (starting at 1.25x)
+              const amplitudeMultiplier = Math.min(1.8, 1.3 + intervals * 0.10) * motionAmpMult;
+              const frequencyMultiplier = Math.min(1.5, 1.25 + intervals * 0.05) * motionSpeedMult;
 
-            const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
-            if (motionStyle === 0) {
-              verticalShift = Math.sin(this.waveTime * 2.2 * frequencyMultiplier + (obs.obstacleIdx || 0) * 0.5) * 50 * amplitudeMultiplier;
-            } else {
-              const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-              verticalShift = Math.sin(this.waveTime * 1.8 * frequencyMultiplier) * 39.6 * amplitudeMultiplier * elevatorDir; // Reduced by 12% (from 45)
+              const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
+              if (motionStyle === 0) {
+                verticalShift = Math.sin(this.waveTime * 2.2 * frequencyMultiplier + (obs.obstacleIdx || 0) * 0.5) * 50 * amplitudeMultiplier;
+              } else {
+                const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
+                verticalShift = Math.sin(this.waveTime * 1.8 * frequencyMultiplier) * 39.6 * amplitudeMultiplier * elevatorDir; // Reduced by 12% (from 45)
+              }
             }
           }
 
