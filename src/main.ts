@@ -91,7 +91,15 @@ function init() {
 function setupInputs() {
   const onActionInput = (e: Event) => {
     const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('input') || target.closest('a') || target.closest('.hud-ultimate-container') || target.closest('.hud-ult-circle-btn') || target.closest('#btn-hud-booster')) {
+    if (target.closest('button') || 
+        target.closest('input') || 
+        target.closest('a') || 
+        target.closest('.hud-ultimate-container') || 
+        target.closest('.hud-ult-circle-btn') || 
+        target.closest('#btn-hud-booster') ||
+        target.closest('#btn-hud-flock-merge') ||
+        target.closest('#btn-hud-active-skill') ||
+        target.closest('.hud-circle-btn')) {
       return;
     }
 

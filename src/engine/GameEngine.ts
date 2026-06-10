@@ -1811,6 +1811,7 @@ export class GameEngine {
     // Collapse flock to only the leader bird
     this.flock = [this.flock[0]];
     this.bird = this.flock[0];
+    this.bird.vy = 0; // Reset vertical velocity to stabilize position on merge
 
     // Increase main bird size by 5% per merged bird
     this.bird.sizeMultiplier += mergeCount * 0.05;
