@@ -1773,7 +1773,15 @@ export class GameEngine {
         follower.isInvincible = this.bird.isInvincible;
         follower.isGhost = this.bird.isGhost;
         follower.hasShield = this.bird.hasShield;
-        follower.sizeMultiplier = this.bird.sizeMultiplier;
+        if (this.gameMode === 'flock') {
+          if (this.bird.sizeMultiplier < 0.7) {
+            follower.sizeMultiplier = this.bird.sizeMultiplier * 0.75;
+          } else {
+            follower.sizeMultiplier = 0.75;
+          }
+        } else {
+          follower.sizeMultiplier = this.bird.sizeMultiplier;
+        }
       }
     }
   }

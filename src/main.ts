@@ -228,9 +228,9 @@ function loop(time: number) {
       const leader = gameEngine.flock[0];
       const hp = gameEngine.playerBossHP;
       const auraColor = '#ff007f'; // Beautiful glowing pink/crimson
-      const baseRadius = leader.radius * leader.sizeMultiplier;
+      const baseRadius = leader.radius;
       const pulseScale = 1 + 0.10 * Math.sin(performance.now() * 0.007);
-      const auraRadius = baseRadius * (1.3 + hp * 0.05) * pulseScale;
+      const auraRadius = baseRadius * (1.1 + hp * 0.02) * pulseScale;
 
       ctx.save();
       ctx.globalAlpha = 0.3 + 0.12 * Math.sin(performance.now() * 0.007);
@@ -245,15 +245,6 @@ function loop(time: number) {
       ctx.beginPath();
       ctx.arc(Math.round(leader.x), Math.round(leader.y), auraRadius * 0.9, 0, Math.PI * 2);
       ctx.fill();
-      ctx.restore();
-
-      ctx.save();
-      ctx.globalAlpha = 0.85;
-      ctx.font = 'bold 9px Outfit, Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'bottom';
-      ctx.fillStyle = auraColor;
-      ctx.fillText(`HP: ${hp}`, Math.round(leader.x), Math.round(leader.y - baseRadius * 1.6));
       ctx.restore();
     }
   } else {
