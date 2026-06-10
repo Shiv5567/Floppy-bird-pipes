@@ -27,6 +27,7 @@ export class UIManager {
   // Rescue Evolution HUD cache
   private rescueEvolveFill: HTMLElement | null = null;
   private lastEvolvedTier: number = -1;
+  private lastSquadCategory: number = 0;
 
   constructor(containerId: string, engine: GameEngine) {
     this.engine = engine;
@@ -241,7 +242,7 @@ export class UIManager {
     if (this.runStatsGems) {
       this.runStatsGems.innerText = `💎 ${this.engine.gemsCollectedThisRun}`;
     }
-    // Rescue mode: fast-update evolution bar and squad indicator
+    // Rescue mode: fast-update evolution bar, squad indicator, evolve button, and active skill button
     if (this.engine.gameMode === 'rescue') {
       const flockInd = this.container.querySelector('.flock-indicator') as HTMLElement;
       if (flockInd) {
@@ -264,6 +265,64 @@ export class UIManager {
       if (currentTier !== this.lastEvolvedTier) {
         this.lastEvolvedTier = currentTier;
         this.renderHUD(); // Full re-render on tier change
+        return;
+      }
+
+      // Check if squad size category changed, which requires full HUD re-render for Evolve button visibility/text
+      const currentFlockLen = this.engine.flock.length;
+      let squadCategory = 0; // 0: <4, 1: 4-6, 2: 7-8, 3: 9+
+      if (currentFlockLen >= 4 && currentFlockLen <= 6) squadCategory = 1;
+      else if (currentFlockLen >= 7 && currentFlockLen <= 8) squadCategory = 2;
+      else if (currentFlockLen >= 9) squadCategory = 3;
+
+      if (squadCategory !== this.lastSquadCategory) {
+        this.lastSquadCategory = squadCategory;
+        this.renderHUD();
+        return;
+      }
+
+      // Fast-update Active Skill Button Cooldown overlay and text in-place
+      const activeSkillBtn = document.getElementById('btn-hud-active-skill');
+      if (activeSkillBtn && this.engine.activeSkillUnlocked) {
+        const cooldown = this.engine.activeSkillCooldown;
+        const maxCooldown = this.engine.activeSkillMaxCooldown;
+        const isReady = cooldown <= 0;
+
+        const skill = this.engine.activeSkillUnlocked;
+        let skillColor = '#00f3ff';
+        if (skill === 'slowmo') {
+          skillColor = '#ff007f';
+        } else if (skill === 'booster') {
+          skillColor = '#ffd700';
+        }
+
+        // Update classes and styles
+        if (isReady) {
+          if (!activeSkillBtn.classList.contains('ult-ready-pulse')) {
+            activeSkillBtn.classList.add('ult-ready-pulse');
+          }
+          activeSkillBtn.style.boxShadow = `0 0 18px ${skillColor}66`;
+          activeSkillBtn.style.background = `${skillColor}1a`;
+        } else {
+          activeSkillBtn.classList.remove('ult-ready-pulse');
+          activeSkillBtn.style.boxShadow = 'none';
+          activeSkillBtn.style.background = 'rgba(0,0,0,0.4)';
+        }
+
+        // Circular Progress Mask
+        const fill = activeSkillBtn.querySelector('.active-skill-progress-fill') as SVGPathElement | null;
+        if (fill) {
+          const pct = maxCooldown > 0 ? (cooldown / maxCooldown) * 100 : 0;
+          const circumference = 176;
+          const offset = circumference - (circumference * (100 - pct)) / 100;
+          fill.style.strokeDashoffset = `${offset}`;
+        }
+
+        // Label/Timer Text
+        const label = activeSkillBtn.querySelector('.active-skill-label') as HTMLElement | null;
+        if (label) {
+          label.innerText = isReady ? 'USE SKILL' : `${cooldown.toFixed(1)}s`;
+        }
       }
     } else {
       const flockInd = this.container.querySelector('.flock-indicator') as HTMLElement;
@@ -1789,24 +1848,75 @@ export class UIManager {
     // ── Rescue Mode EVOLVE button (bottom-left HUD) ────────────────────────
     let evolveBtnHTML = '';
     if (this.engine.gameMode === 'rescue') {
-      const tier = this.engine.evolvedBirdTier;
-      const canEvolve = this.engine.flock.length >= 2;
-      const TIER_COLORS = ['#aaa', '#00f3ff', '#ff007f', '#ffd700', '#a855f7'];
-      const nextTier = Math.min(4, tier + this.engine.flock.length - 1);
-      const evolveColor = TIER_COLORS[Math.min(4, nextTier)] || '#ffaa00';
+      const flockLen = this.engine.flock.length;
+      const canEvolve = flockLen >= 4;
 
-      if (canEvolve && tier < 4) {
+      if (canEvolve) {
+        let evolveColor = '#00f3ff';
+        let evolveLabel = 'EVOLVE T1';
+        if (flockLen >= 4 && flockLen <= 6) {
+          evolveColor = '#00f3ff';
+          evolveLabel = 'EVOLVE T1';
+        } else if (flockLen >= 7 && flockLen <= 8) {
+          evolveColor = '#ff007f';
+          evolveLabel = 'EVOLVE T2';
+        } else if (flockLen >= 9) {
+          evolveColor = '#ffd700';
+          evolveLabel = 'EVOLVE T3';
+        }
+
         evolveBtnHTML = `
           <div class="hud-circle-btn glass-card ult-ready-pulse" 
-               style="pointer-events: auto; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 66px; height: 66px; border-radius: 50%; border: 2px solid ${evolveColor}; background: ${evolveColor}1a; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 0 18px ${evolveColor}66; position: relative; margin-bottom: 6px; -webkit-tap-highlight-color: transparent; gap: 1px;" 
+               style="pointer-events: auto; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 68px; height: 68px; border-radius: 50%; border: 2.5px solid ${evolveColor}; background: ${evolveColor}1a; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 0 18px ${evolveColor}66; position: relative; margin-bottom: 6px; -webkit-tap-highlight-color: transparent; gap: 1px;" 
                id="btn-hud-merge" 
                title="Tap to Evolve your Flock!">
             <div style="position: absolute; inset: 2px; border-radius: 50%; background: ${evolveColor}22; pointer-events: none;"></div>
-            <span style="font-size: 22px; z-index: 2; line-height: 1;">🔀</span>
-            <span style="font-size: 8px; font-weight: 900; color: ${evolveColor}; z-index: 2; text-shadow: 0 0 6px ${evolveColor}; letter-spacing: 0.3px;">EVOLVE</span>
+            <span style="font-size: 20px; z-index: 2; line-height: 1;">🔀</span>
+            <span style="font-size: 7px; font-weight: 900; color: ${evolveColor}; z-index: 2; text-shadow: 0 0 6px ${evolveColor}; letter-spacing: 0.2px; text-align: center;">${evolveLabel}</span>
           </div>
         `;
       }
+    }
+
+    // ── Rescue Mode Active Skill button ────────────────────────────────────
+    let activeSkillBtnHTML = '';
+    if (this.engine.gameMode === 'rescue' && this.engine.activeSkillUnlocked) {
+      const skill = this.engine.activeSkillUnlocked;
+      const cooldown = this.engine.activeSkillCooldown;
+      const maxCooldown = this.engine.activeSkillMaxCooldown;
+      const isReady = cooldown <= 0;
+
+      let skillIcon = '🛡️';
+      let skillColor = '#00f3ff';
+      if (skill === 'slowmo') {
+        skillIcon = '⏳';
+        skillColor = '#ff007f';
+      } else if (skill === 'booster') {
+        skillIcon = '⚡';
+        skillColor = '#ffd700';
+      }
+
+      const pct = maxCooldown > 0 ? (cooldown / maxCooldown) * 100 : 0;
+
+      activeSkillBtnHTML = `
+        <div class="hud-circle-btn glass-card ${isReady ? 'ult-ready-pulse' : ''}" 
+             style="pointer-events: auto; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 68px; height: 68px; border-radius: 50%; border: 2.5px solid ${skillColor}; background: ${isReady ? skillColor + '1a' : 'rgba(0,0,0,0.4)'}; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: ${isReady ? '0 0 18px ' + skillColor + '66' : 'none'}; position: relative; margin-bottom: 6px; -webkit-tap-highlight-color: transparent; gap: 1px;" 
+             id="btn-hud-active-skill" 
+             title="Tap to Trigger Active Skill!">
+          
+          <svg class="active-skill-ring" width="64" height="64" viewBox="0 0 64 64" style="position: absolute; transform: rotate(-90deg); pointer-events: none; left: 0; top: 0;">
+            <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2"></circle>
+            <circle cx="32" cy="32" r="28" fill="none" stroke="${skillColor}" stroke-width="3"
+                    stroke-dasharray="176" stroke-dashoffset="${176 - (176 * (100 - pct)) / 100}"
+                    stroke-linecap="round" class="active-skill-progress-fill" style="transition: stroke-dashoffset 0.1s linear;"></circle>
+          </svg>
+
+          <span class="active-skill-icon" style="font-size: 20px; z-index: 2; line-height: 1; text-shadow: ${isReady ? '0 0 8px ' + skillColor : 'none'};">${skillIcon}</span>
+          <span class="active-skill-label" style="font-size: 7px; font-weight: 900; color: ${skillColor}; z-index: 2; text-shadow: 0 0 6px ${skillColor}; letter-spacing: 0.2px;">
+            ${isReady ? 'USE SKILL' : `${cooldown.toFixed(1)}s`}
+          </span>
+        </div>
+      `;
     }
 
     const hudHTML = `
@@ -1851,6 +1961,7 @@ export class UIManager {
             ${boosterBtnHTML}
             ${formationBtnHTML}
             ${evolveBtnHTML}
+            ${activeSkillBtnHTML}
 
             <!-- Ultimate Special Ability Transparent Circular Button (Shifted from Double-Tap) -->
             <div class="hud-ult-circle-btn glass-card ${ultReady ? 'ult-ready-pulse' : ''} ${ultActive ? 'ult-active-glow' : ''}" 
@@ -1956,13 +2067,26 @@ export class UIManager {
       const triggerMerge = (e: Event) => {
         e.stopPropagation();
         e.preventDefault();
-        if (this.engine.flock.length >= 2 && this.engine.evolvedBirdTier < 4) {
+        if (this.engine.flock.length >= 4) {
           this.engine.triggerFlockMerge();
-          // renderHUD is called via bird_evolved event listener
         }
       };
       mergeBtn.addEventListener('pointerdown', triggerMerge);
       mergeBtn.addEventListener('touchstart', triggerMerge);
+    }
+
+    // Bind ACTIVE SKILL button
+    const activeSkillBtn = document.getElementById('btn-hud-active-skill');
+    if (activeSkillBtn) {
+      const triggerActiveSkill = (e: Event) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (this.engine.activeSkillCooldown <= 0) {
+          this.engine.triggerActiveSkill();
+        }
+      };
+      activeSkillBtn.addEventListener('pointerdown', triggerActiveSkill);
+      activeSkillBtn.addEventListener('touchstart', triggerActiveSkill);
     }
 
     const pBtn = document.getElementById('btn-hud-pause');

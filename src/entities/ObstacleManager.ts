@@ -1,4 +1,3 @@
-
 import { Bird } from './Bird.ts';
 
 export interface Obstacle {
@@ -11,7 +10,7 @@ export interface Obstacle {
   isCavern?: boolean;
   isMutated?: boolean;
   isStructured?: boolean;
-  
+
   // Custom modifiers per theme
   worldId: string;
   isMoving: boolean;
@@ -20,7 +19,7 @@ export interface Obstacle {
   rangeY: number;
   initialTopHeight: number;
   initialBottomHeight: number;
-  
+
   // Cyberpunk lasers specific properties
   isLaser: boolean;
   laserActive: boolean;
@@ -77,7 +76,7 @@ export class ObstacleManager {
   private currentEndlessDistScale = 1.0;
   private endlessObstacleCount = 0;
 
-  constructor() {}
+  constructor() { }
 
   private acquireObstacle(props: Partial<Obstacle>): Obstacle {
     let obs = this.freePool.pop();
@@ -207,7 +206,7 @@ export class ObstacleManager {
     }
 
     this.waveTime += deltaTime * timeScale * motionSpeedScale;
-    
+
     // Endless progressive difficulty scaling math based on user specifications
     let pct = 0.0;
     if (score > 200 && score <= 300) {
@@ -225,7 +224,7 @@ export class ObstacleManager {
 
     // Smooth, step-by-step progressive difficulty scaling ratio over 60 points
     const progressRatio = Math.min(1.0, score / 60.0);
-    
+
     // Dynamic difficulty limits (enforce the constant vertical gap of 255 - representing a 30% increase from 196)
     let startGap = 255;
     let minGap = 255;
@@ -255,7 +254,7 @@ export class ObstacleManager {
     // Smooth horizontal distance spawning scaling
     const baseDistance = (width / 1.35) * distMultiplier;
     const minDistance = width / 2.0;
-    
+
     // Scale horizontal distance according to bird horizontal scrollSpeed to maintain playable reaction times
     const speedFactor = scrollSpeed / 4.2;
     let targetDistance;
@@ -263,7 +262,7 @@ export class ObstacleManager {
       // Classic Mode standard spacing: Default (Medium/Hard) classic gap uses 0.80 multiplier
       const baseDistanceClassic = (width / 1.35) * 0.80;
       const defaultDistance = baseDistanceClassic * 1.15;
-      
+
       if (difficulty === 'easy') {
         targetDistance = defaultDistance * 1.20 * speedFactor;
       } else {
@@ -389,11 +388,11 @@ export class ObstacleManager {
             // LEVEL 2: "The Wave Gauntlet" (Ceiling and floor surfaces wave in parallel harmony with slow overall sway + sequential parallel ripple, horizontal opposite shift remains active)
             obs.shakeX = Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 20;
             obs.shakeX2 = -Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 20;
-            
+
             const overallSway = Math.sin(this.waveTime * 1.3) * 24;
             const ripple = Math.sin(this.waveTime * 2.4 + actualIdx * 0.16) * 12;
             const slam = overallSway + ripple;
-            
+
             obs.targetTopHeight = obs.baseTopHeight! + slam;
             obs.targetBottomHeight = obs.baseBottomHeight! - slam;
           } else if (obs.patternType === 'level3_arc') {
@@ -422,10 +421,10 @@ export class ObstacleManager {
             // LEVEL 6: "The Folding Accordion Gates" (Quadrature phase-shifted horizontal/vertical twisting accordion motion - 30% speed reduction)
             const phaseTop = this.waveTime * 1.96 + actualIdx * 0.5;
             const phaseBottom = phaseTop + Math.PI / 2; // 90 degrees out of phase!
-            
+
             obs.shakeX = Math.sin(phaseTop) * 26;
             obs.shakeX2 = Math.cos(phaseBottom) * 26;
-            
+
             const topBob = Math.cos(phaseTop) * 53 * 0.20; // Bobbing range reduced by 80%
             const botBob = Math.sin(phaseBottom) * 53 * 0.20; // Bobbing range reduced by 80%
             obs.targetTopHeight = obs.baseTopHeight! + topBob;
@@ -447,11 +446,11 @@ export class ObstacleManager {
             const isEven = (actualIdx % 2 === 0);
             const entangleTime = this.waveTime * 1.57;
             const slide = Math.sin(entangleTime + (actualIdx * 0.5)) * 25 * 0.35; // reduced 65%
-            
+
             const dir = isEven ? 1 : -1;
             obs.targetTopHeight = obs.baseTopHeight! + (dir * slide);
             obs.targetBottomHeight = obs.baseBottomHeight! - (dir * slide);
-            
+
             obs.shakeX = isEven ? Math.cos(entangleTime) * 20 : -Math.cos(entangleTime) * 20;
             obs.shakeX2 = isEven ? -Math.cos(entangleTime) * 20 : Math.cos(entangleTime) * 20;
           } else if (obs.patternType === 'level10_miniboss') {
@@ -459,10 +458,10 @@ export class ObstacleManager {
             const timeDilation = 1.0 + Math.sin(this.waveTime * 0.84) * 0.4;
             const warpTime = this.waveTime * 1.96 * timeDilation;
             const ripplePhase = warpTime - actualIdx * 0.45;
-            
+
             obs.shakeX = Math.sin(ripplePhase) * 26;
             obs.shakeX2 = Math.cos(ripplePhase) * 26;
-            
+
             const compression = Math.sin(ripplePhase + Math.PI / 4) * 22;
             obs.targetTopHeight = obs.baseTopHeight! + compression;
             obs.targetBottomHeight = obs.baseBottomHeight! - compression;
@@ -506,12 +505,12 @@ export class ObstacleManager {
             const helixPhase = this.waveTime * 2.3 + actualIdx * 0.6;
             obs.shakeX = Math.sin(helixPhase) * 22;
             obs.shakeX2 = Math.cos(helixPhase) * 22;
-            
+
             // Vertical helical wave (breathing) — amplitude +15%: 14 → 16.1
             const vWave = Math.sin(this.waveTime * 1.8 - actualIdx * 0.4) * 16.1;
             // Vertical shifting frequency (moves the whole gap center up/down) — amplitude +15%: 20 → 23
             const vShift = Math.sin(this.waveTime * 2.0 + actualIdx * 0.5) * 23;
-            
+
             obs.targetTopHeight = obs.baseTopHeight! + vWave + vShift;
             obs.targetBottomHeight = obs.baseBottomHeight! - vWave + vShift;
           } else if (obs.patternType === 'level14_crossflow') {
@@ -609,7 +608,7 @@ export class ObstacleManager {
             const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
             const glitchTime = Math.floor(this.waveTime * 12);
             const glitchShake = Math.sin(glitchTime * 1.5) * 8;
-            
+
             if (obstacleIdx < groupSize) {
               // Group 1: Gentle horizontal glitch vibration
               obs.shakeX = glitchShake;
@@ -638,7 +637,7 @@ export class ObstacleManager {
             // Character similarity: delayed cascading vertical geysers
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
             const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
-            
+
             if (obstacleIdx < groupSize) {
               // Group 1: Slower cascading waterfall
               const delay = (obstacleIdx * 0.5 - this.waveTime * 1.6) % 2.0;
@@ -666,7 +665,7 @@ export class ObstacleManager {
             // Character similarity: mirrored/symmetric breathing gap pulses
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
             const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
-            
+
             if (obstacleIdx < groupSize) {
               // Group 1: Slower symmetric breathing gap
               const breathingGap = obs.gapHeight! + Math.sin(this.waveTime * 2.2) * 15;
@@ -691,7 +690,7 @@ export class ObstacleManager {
             // LEVEL 34: Quantum Gravity Slipstreams (New Unique Redesign)
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
             const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
-            
+
             if (obstacleIdx < groupSize) {
               // Group 1: Breathing wave chamber tunnel
               const breathingGap = obs.gapHeight! + Math.sin(this.waveTime * 2.2 - obstacleIdx * 0.5) * 20;
@@ -722,7 +721,7 @@ export class ObstacleManager {
             // Character similarity: vertical elevator rises and steps
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
             const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
-            
+
             if (obstacleIdx < groupSize) {
               // Group 1: Alternating even/odd elevators
               const shift = Math.sin(this.waveTime * 2.0 + (obstacleIdx % 2) * Math.PI) * 28;
@@ -748,7 +747,7 @@ export class ObstacleManager {
             // Character similarity: swirling, rotating paths with optical offsets
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
             const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
-            
+
             if (obstacleIdx < groupSize) {
               // Group 1: Single vortex rotation (increased by 35%)
               const angle = this.waveTime * 2.43 + obstacleIdx * 0.4;
@@ -779,7 +778,7 @@ export class ObstacleManager {
             // Character similarity: asymmetrical slants, jagged blocks, tilting centers
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
             const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
-            
+
             if (obstacleIdx < groupSize) {
               // Group 1: Gentle tilting slanted path
               const tilt = Math.sin(this.waveTime * 1.6 + obstacleIdx * 0.3) * 24;
@@ -803,7 +802,7 @@ export class ObstacleManager {
             // LEVEL 38: Magnetic Tempest (Redesigned Storm Animations)
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
             const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
-            
+
             if (obstacleIdx < groupSize) {
               // Group 1: Electromagnetic Compression (Pincer Jaw Pulse) (speed reduced 15% from 3.5 to 2.975)
               const compress = Math.sin(this.waveTime * 2.975) * 35;
@@ -833,7 +832,7 @@ export class ObstacleManager {
             // Character similarity: pulsating heat waves & firestorms
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
             const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
-            
+
             if (obstacleIdx < groupSize) {
               // Group 1: Exactly copy Level 3 (The Gravity Pitfalls) see-saw elevator shifts
               const activeScore = obs.spawnScore !== undefined ? obs.spawnScore : 0;
@@ -866,7 +865,7 @@ export class ObstacleManager {
             // Character similarity: dilated warp tunnels, helix + collapses
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
             const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
-            
+
             if (obs.levelNum === 46) {
               // Single obstacles arrangement: always use Group 2 Chrono pincer layout and behavior
               const idx = obstacleIdx - groupSize;
@@ -985,10 +984,10 @@ export class ObstacleManager {
             const pulse = Math.sin(this.waveTime * 3.0) * 15;
             const swing = Math.sin(this.waveTime * 1.5 + obs.obstacleIdx! * 0.5) * 0.3;
             const orbit = this.waveTime * 2.5 + obs.obstacleIdx! * 0.4;
-            
+
             obs.shakeX = Math.sin(orbit) * 24 + Math.sin(swing) * 15;
             obs.shakeX2 = Math.cos(orbit) * 24 + Math.sin(swing) * 15;
-            
+
             const finalGap = obs.gapHeight! + pulse;
             const centerY = obs.spawnCenterY! + wave + Math.sin(this.waveTime * 2.0) * 15;
             obs.targetTopHeight = centerY - finalGap / 2;
@@ -1088,7 +1087,7 @@ export class ObstacleManager {
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
             const levelNum = obs.levelNum !== undefined ? obs.levelNum : this.activeLevelConfig.levelNum;
             const animScale = (levelNum === 21 || levelNum === 22) ? 1.30 : 1.0;
-            
+
             let subPattern = 'wave_10';
             if (levelNum === 21) {
               subPattern = obstacleIdx < groupSize ? 'wave_10' : (obstacleIdx < groupSize * 2 ? 'breathing_12' : 'moving_stair_15');
@@ -1109,7 +1108,7 @@ export class ObstacleManager {
             } else if (levelNum === 29) {
               subPattern = obstacleIdx < groupSize ? 'pulse_22' : (obstacleIdx < groupSize * 2 ? 'gravity_23' : 'rotating_24');
             }
-            
+
             if (subPattern === 'wave_10') {
               const centerY = height / 2 + Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.5) * (55 * animScale);
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
@@ -1202,10 +1201,10 @@ export class ObstacleManager {
           if (obs.isSpecialSplit && progress < 1) {
             const levelNum = obs.levelNum || 1;
             const splitStyle = Math.floor((levelNum - 1) / 5) % 5;
-            
+
             // The split slide magnitude decays as it fully opens
             const decay = 1 - progress;
-            
+
             if (splitStyle === 0) {
               // Style 0 (Levels 1-5, 26-30...): Diagonal Split (Top left, Bottom right)
               obs.shakeX += -50 * decay;
@@ -1401,7 +1400,7 @@ export class ObstacleManager {
 
           // Pipe gaps are kept completely constant and unchanged as requested, only shifting centerY up and down!
           let verticalShift = 0;
-          
+
           // Use the score at spawn time to keep transitions completely smooth and stutter-free!
           const activeScore = obs.spawnScore !== undefined ? obs.spawnScore : score;
 
@@ -1447,7 +1446,7 @@ export class ObstacleManager {
             // Apply the same vertical motion or animation as score 200 to 300 but progressively increased so it can be felt!
             let intervals = Math.floor((activeScore - 500) / 100);
             if (intervals < 0) intervals = 0;
-            
+
             // Progressive difficulty: increase amplitude (starting at 1.3x) and frequency (starting at 1.25x)
             const amplitudeMultiplier = Math.min(1.8, 1.3 + intervals * 0.10) * motionAmpMult;
             const frequencyMultiplier = Math.min(1.5, 1.25 + intervals * 0.05) * motionSpeedMult;
@@ -1495,11 +1494,11 @@ export class ObstacleManager {
             if (nearestOther && minDistance < 450) {
               const otherGap = height - nearestOther.bottomHeight - nearestOther.topHeight;
               const otherCenterY = nearestOther.topHeight + otherGap / 2;
-              
+
               // Ensure at least 30% overlap (intersection) of the gap height
               const overlapPercentage = 0.30;
               const maxCenterDiff = currentGap * (1.0 - overlapPercentage);
-              
+
               const diffY = centerY - otherCenterY;
               if (Math.abs(diffY) > maxCenterDiff) {
                 if (diffY > 0) {
@@ -1521,22 +1520,22 @@ export class ObstacleManager {
           obs.bottomHeight = height - centerY - currentGap / 2;
         }
 
-          // 4. Visual effects - spawn dynamic movement particles
-          if (_particleEngine && Math.random() < 0.08) {
-            const pxTop = obs.x + Math.random() * obs.width;
-            const pyTop = obs.topHeight;
-            let pColor = obs.worldId === 'cyberpunk' ? '#ff007f' : '#39ff14';
-            _particleEngine.spawn(
-              pxTop, pyTop,
-              -scrollSpeed * 0.4 + (Math.random() - 0.5) * 1.0,
-              (Math.random() - 0.5) * 1.5,
-              pColor,
-              2.0 + Math.random() * 2.0,
-              0.8,
-              0.03,
-              'spark'
-            );
-          }
+        // 4. Visual effects - spawn dynamic movement particles
+        if (_particleEngine && Math.random() < 0.08) {
+          const pxTop = obs.x + Math.random() * obs.width;
+          const pyTop = obs.topHeight;
+          let pColor = obs.worldId === 'cyberpunk' ? '#ff007f' : '#39ff14';
+          _particleEngine.spawn(
+            pxTop, pyTop,
+            -scrollSpeed * 0.4 + (Math.random() - 0.5) * 1.0,
+            (Math.random() - 0.5) * 1.5,
+            pColor,
+            2.0 + Math.random() * 2.0,
+            0.8,
+            0.03,
+            'spark'
+          );
+        }
       }
 
       // Handle Cyberpunk pulsing lasers
@@ -1565,15 +1564,15 @@ export class ObstacleManager {
     this.spawnTimer += actualScrollSpeed;
     if (this.spawnTimer >= this.nextSpawnDistance) {
       this.spawnTimer = 0;
-      
+
       // Smooth step-by-step gap height scaling (Classic Mode has a completely constant, generous gap)
-      const dynamicGap = zone === 'classic' 
-        ? startGap 
+      const dynamicGap = zone === 'classic'
+        ? startGap
         : (startGap - (startGap - minGap) * progressRatio);
-      
+
       // Apply endless progressive difficulty gap scaling (kept completely constant as requested)
       let gapWithDifficulty = this.activeLevelConfig ? this.activeLevelConfig.gapHeight : dynamicGap;
-      
+
       this.spawnObstacle(worldId, width, height, gapWithDifficulty, zone, difficulty, progressRatio, score, gameMode);
 
       // Determine next spawn distance: Connected cavern spacing segments (0 distance horizontally) for all Levels in Level Mode
@@ -1688,16 +1687,16 @@ export class ObstacleManager {
       } else if (patternType === 'level2_diamond') {
         // LEVEL 2: "The Wave Gauntlet" (Smooth continuous wave pattern aligned side-by-side)
         localGapHeight = gapHeight - 5;
-        
+
         // Base center wave Y
         const baseCenterY = height / 2 + Math.sin(obstacleIdx * 0.28) * 65;
-        
+
         // Alternating 30% gap shift every 10 obstacles with a smooth transition over 3 obstacles
         const period = 20;
         const rampWidth = 3;
         const amplitude = localGapHeight * 0.30;
         const t = actualPatternIdx % period;
-        
+
         let verticalShift = 0;
         if (t < rampWidth) {
           // Smooth ramp from -amplitude to +amplitude
@@ -1712,7 +1711,7 @@ export class ObstacleManager {
         } else {
           verticalShift = -amplitude;
         }
-        
+
         targetCenterY = baseCenterY + verticalShift;
         triggerDistance = 220;
         animDuration = 0.45;
@@ -1737,7 +1736,7 @@ export class ObstacleManager {
       } else if (patternType === 'level5_hourglass') {
         // LEVEL 5: Stair-step arrangement (5 pipes ascending, 5 pipes descending) - Removed 20% gap reduction (now 100% of base gap)
         localGapHeight = gapHeight;
-        
+
         const cycleIdx = actualPatternIdx % 10;
         let stepOffset = 0;
         if (cycleIdx < 5) {
@@ -1747,7 +1746,7 @@ export class ObstacleManager {
           // Descend: Y increases, going down in space
           stepOffset = -90 + (cycleIdx - 5) * 45; // -90, -45, 0, 45, 90
         }
-        
+
         targetCenterY = height / 2 + stepOffset;
         triggerDistance = 300;
         animDuration = 0.45;
@@ -1756,20 +1755,20 @@ export class ObstacleManager {
         const baseGap = Math.round((gapHeight - 5) * 0.7 * 1.5); // Base gap increased 25% vertically (approx 163px)
         const blockIdx = Math.floor(actualPatternIdx / 20); // Block of 20 pillars
         const isShiftedBlock = (blockIdx % 2 === 1); // After 20 obstacles (obstacles 20-39, 60-79, etc.)
-        
+
         // Gap is 25% less only for the shifted-down block after 20 obstacles, otherwise 163px
         localGapHeight = isShiftedBlock ? Math.round(baseGap * 0.75) : baseGap;
-        
+
         const modIdx = obstacleIdx % 20;
         // Triangle wave across 20 pillars: rises from -37 to +37 over first 10, falls back to -37 over next 10 (reduced 80%)
         const halfCycle = 10;
         const normT = modIdx < halfCycle ? modIdx / (halfCycle - 1) : (19 - modIdx) / (halfCycle - 1);
         const triangleOffset = Math.round((normT * 75 - 37) * 0.20); // 80% flatter (plane)
-        
+
         // Alternates path offset UP and DOWN by 24% of the gap height every 20 obstacles (reduced 80%)
         const shiftSign = isShiftedBlock ? 1 : -1; // Alternating UP (-1) and DOWN (+1)
         const pathShift = shiftSign * (baseGap * 0.24) * 0.20; // 80% flatter (plane)
-        
+
         targetCenterY = height / 2 + triangleOffset + pathShift;
         triggerDistance = 280;
         animDuration = 0.38;
@@ -1926,7 +1925,7 @@ export class ObstacleManager {
           const topPos = height * 0.08 + (midPos - height * 0.08) * 0.40; // ceiling pos → 40% toward mid
           const botPos = (height - localGapHeight - height * 0.08) - ((height - localGapHeight - height * 0.08) - midPos) * 0.40; // floor pos → 40% toward mid
           const fromPos = (flipGroup === 0) ? topPos : botPos;
-          const toPos   = (flipGroup === 0) ? botPos : topPos;
+          const toPos = (flipGroup === 0) ? botPos : topPos;
           targetTopHeight = fromPos + (toPos - fromPos) * t;
         }
         triggerDistance = 340; // increased from 240 for earlier pipe alignment with surface
@@ -2197,7 +2196,7 @@ export class ObstacleManager {
           // Group 1: Copy Level 3 (The Gravity Pitfalls) layout (stairs dropping and rising) (offset reduced 60% from 51 to 20)
           let shiftVal = 20; // Reduced 60% from 51
           const isExtreme = (obstacleIdx % 3 === 0 || obstacleIdx % 3 === 1);
-          
+
           localGapHeight = Math.round(gapHeight * 0.904); // 13% increase from 0.80 (0.80 * 1.13 = 0.904)
           if (score >= 11 && score <= 15 && isExtreme) {
             shiftVal = Math.round(20 * 0.70); // 30% reduction in shift displacement (from 20 to 14)
@@ -2406,7 +2405,7 @@ export class ObstacleManager {
         } else if (levelNum === 29) {
           subPattern = actualPatternIdx < groupSize ? 'pulse_22' : (actualPatternIdx < groupSize * 2 ? 'gravity_23' : 'rotating_24');
         }
-        
+
         const spawnAnimScale = (levelNum === 21 || levelNum === 22) ? 1.30 : 1.0;
 
         // Retrieve values for standard wave subPattern
@@ -2450,7 +2449,7 @@ export class ObstacleManager {
           const level36Offset = Math.sin(actualPatternIdx * 1.15) * 65;
           targetCenterY = height / 2 + (isLevel36Group3 ? level36Offset : offsets[actualPatternIdx % offsets.length]);
         }
-        
+
         triggerDistance = 210;
         animDuration = 0.45;
       } else if (patternType === 'wave_10') {
@@ -2550,12 +2549,12 @@ export class ObstacleManager {
 
       // Apply Level 40-45 path gap adjustments (5% increase for middle group, 10% increase for last/3rd group)
       const isLevel40To45 = (levelNum !== undefined && levelNum >= 40 && levelNum <= 45) ||
-        (patternType === 'level40_miniboss' || 
-         patternType === 'level41_doublew' || 
-         patternType === 'level42_infinity' || 
-         patternType === 'level43_dnahelix' || 
-         patternType === 'level44_pendulum' || 
-         patternType === 'level45_scurve');
+        (patternType === 'level40_miniboss' ||
+          patternType === 'level41_doublew' ||
+          patternType === 'level42_infinity' ||
+          patternType === 'level43_dnahelix' ||
+          patternType === 'level44_pendulum' ||
+          patternType === 'level45_scurve');
 
       if (isLevel40To45) {
         if (groupIdx === 1) {
@@ -2599,7 +2598,7 @@ export class ObstacleManager {
       }
 
       // Enable special different-direction split opening animation specifically for all obstacles in Levels 1-20 (excluding Levels 2, 4-14, 16-20), special legacy levels, and the Chrono Warp Miniboss Group 1
-      const isSpecialSplit = 
+      const isSpecialSplit =
         (levelNum !== undefined && levelNum >= 1 && levelNum <= 20 && levelNum !== 11 && levelNum !== 2 && levelNum !== 4 && levelNum !== 5 && levelNum !== 6 && levelNum !== 7 && levelNum !== 8 && levelNum !== 9 && levelNum !== 10 && levelNum !== 12 && levelNum !== 13 && levelNum !== 14 && levelNum !== 16 && levelNum !== 17 && levelNum !== 18 && levelNum !== 19 && levelNum !== 20) ||
         (patternType === 'level40_miniboss' && groupIdx === 0);
 
@@ -2675,7 +2674,7 @@ export class ObstacleManager {
         laserTimer: 0,
         isMutated,
         isStructured,
-        
+
         patternType,
         isTriggered: initTriggered,
         isSpecialSplit,
@@ -3074,7 +3073,7 @@ export class ObstacleManager {
 
     // Procedural variation: vertical height scale multiplier (0.85 to 1.15)
     const heightScale = 0.85 + Math.random() * 0.30;
-    
+
     // Copy and scale the offsets
     let offsets = randPattern.offsets.map(o => o * heightScale);
 
@@ -3141,12 +3140,12 @@ export class ObstacleManager {
         const ballX = obs.x + obs.width / 2;
         const ballY = obs.energyBallY;
         const ballRad = obs.energyBallRadius || 16;
-        
+
         const dx = bird.x - ballX;
         const dy = bird.y - ballY;
         const distSq = dx * dx + dy * dy;
         const radiusSum = effectiveRadius + ballRad;
-        
+
         if (distSq <= radiusSum * radiusSum) {
           return obs; // Collided with the moving ball obstacle!
         }
@@ -3286,7 +3285,7 @@ export class ObstacleManager {
     ctx.shadowBlur = 0; // Disable shadows for high performance
     for (let i = 0; i < this.list.length; i++) {
       const obs = this.list[i];
-      
+
       // Store original float values to keep physics update clean and drift-free
       const origX = obs.x;
       const origTopHeight = obs.topHeight;
@@ -3492,14 +3491,14 @@ export class ObstacleManager {
         const centerY = obs.topHeight + (height - obs.bottomHeight - obs.topHeight) / 2;
         ctx.save();
         ctx.translate(obs.x + obs.width / 2, centerY);
-        
+
         const isPerformance = (window as any).gameDisableShadows;
         if (isPerformance) {
           ctx.fillStyle = '#ff8800';
           ctx.beginPath();
           ctx.arc(0, 0, 16, 0, Math.PI * 2);
           ctx.fill();
-          
+
           ctx.strokeStyle = 'rgba(255, 69, 0, 0.9)';
           ctx.lineWidth = 2.5;
           ctx.beginPath();
@@ -3511,12 +3510,12 @@ export class ObstacleManager {
           grad.addColorStop(0, '#ffffff');
           grad.addColorStop(0.3, '#ff8800');
           grad.addColorStop(1, 'rgba(255, 68, 0, 0)');
-          
+
           ctx.fillStyle = grad;
           ctx.beginPath();
           ctx.arc(0, 0, pulse, 0, Math.PI * 2);
           ctx.fill();
-          
+
           ctx.rotate(-this.waveTime * 3.5);
           ctx.strokeStyle = 'rgba(255, 69, 0, 0.9)';
           ctx.lineWidth = 2.5;
@@ -3529,18 +3528,18 @@ export class ObstacleManager {
         const centerY = obs.topHeight + (height - obs.bottomHeight - obs.topHeight) / 2;
         ctx.save();
         ctx.translate(obs.x + obs.width / 2, centerY);
-        
+
         const isPerformance = (window as any).gameDisableShadows;
         if (isPerformance) {
           ctx.fillStyle = '#ff007f';
           ctx.beginPath();
           ctx.arc(0, 0, 26, 0, Math.PI * 2);
           ctx.fill();
-          
+
           ctx.strokeStyle = '#00f3ff';
           ctx.lineWidth = 2.0;
           ctx.strokeRect(-20, -20, 40, 40);
-          
+
           ctx.strokeStyle = '#ffd700';
           ctx.beginPath();
           ctx.arc(0, 0, 28, 0, Math.PI * 1.8);
@@ -3554,18 +3553,18 @@ export class ObstacleManager {
           grad.addColorStop(0.4, '#00f3ff'); // Neon Cyan
           grad.addColorStop(0.7, '#ffff00'); // Neon Yellow
           grad.addColorStop(1, 'rgba(57, 255, 20, 0)'); // Fading green glow
-          
+
           ctx.fillStyle = grad;
           ctx.beginPath();
           ctx.arc(0, 0, pulse, 0, Math.PI * 2);
           ctx.fill();
-          
+
           // Rotating concentric geometric lines
           ctx.rotate(this.waveTime * 3.5);
           ctx.strokeStyle = '#00f3ff';
           ctx.lineWidth = 2.0;
           ctx.strokeRect(-20, -20, 40, 40);
-          
+
           ctx.rotate(-this.waveTime * 7.0);
           ctx.strokeStyle = '#ffd700';
           ctx.beginPath();
@@ -3581,14 +3580,14 @@ export class ObstacleManager {
         const ballX = obs.x + obs.width / 2;
         const ballY = obs.energyBallY;
         const radius = obs.energyBallRadius || 16;
-        
+
         ctx.translate(ballX, ballY);
-        
+
         // Draw glow aura
         const isPerformance = (window as any).gameDisableShadows;
         let colorCore = '#ffffff';
         let colorGlow = '#ff007f'; // Default hot pink
-        
+
         if (obs.worldId === 'volcano') {
           colorGlow = '#ff4500'; // Fire orange
         } else if (obs.worldId === 'ice') {
@@ -3598,13 +3597,13 @@ export class ObstacleManager {
         } else if (obs.worldId === 'heaven') {
           colorGlow = '#ffd700'; // Heavenly gold
         }
-        
+
         if (isPerformance) {
           ctx.fillStyle = colorGlow;
           ctx.beginPath();
           ctx.arc(0, 0, radius, 0, Math.PI * 2);
           ctx.fill();
-          
+
           ctx.fillStyle = colorCore;
           ctx.beginPath();
           ctx.arc(0, 0, radius * 0.4, 0, Math.PI * 2);
@@ -3617,12 +3616,12 @@ export class ObstacleManager {
           grad.addColorStop(0.3, colorCore);
           grad.addColorStop(0.6, colorGlow);
           grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-          
+
           ctx.fillStyle = grad;
           ctx.beginPath();
           ctx.arc(0, 0, pulse, 0, Math.PI * 2);
           ctx.fill();
-          
+
           // Rotating orbit ring
           ctx.rotate(this.waveTime * 4.0);
           ctx.strokeStyle = colorGlow;
@@ -3630,7 +3629,7 @@ export class ObstacleManager {
           ctx.beginPath();
           ctx.arc(0, 0, radius * 1.1, 0, Math.PI * 1.5);
           ctx.stroke();
-          
+
           // Reverse rotating inner orbit ring
           ctx.rotate(-this.waveTime * 8.0);
           ctx.strokeStyle = '#ffffff';
@@ -3857,7 +3856,7 @@ export class ObstacleManager {
     let stop0 = '#362215', stop3 = '#573d27', stop5 = '#ea580c', stop7 = '#3d2514', stop1 = '#231208'; // Style 0: Bark Brown
     let ringStop0 = '#4e3629', ringStop5 = '#d97706', ringStop1 = '#2d1c14'; // Bronze cuff
     let leafColor = '#22c55e', flowerColor = '', flowerCore = '';
-    
+
     if (styleIdx === 1) {
       // Style 1: Golden Teak
       stop0 = '#45290a'; stop3 = '#8c5213'; stop5 = '#f59e0b'; stop7 = '#783d06'; stop1 = '#2e1702';
@@ -4629,7 +4628,7 @@ export class ObstacleManager {
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-    
+
     // Draw rocky layers and texture lines inside the top cavern
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
     ctx.lineWidth = 2;
@@ -4771,7 +4770,7 @@ export class ObstacleManager {
       ctx.lineWidth = 3;
       const brickH = 16;
       const brickW = 24;
-      
+
       for (let y = yStart + 10; y < yStart + h - 10; y += brickH) {
         if (y + brickH > yStart + h && isTop) continue;
         const rowShift = Math.floor((y - yStart) / brickH) % 2 === 0 ? 0 : brickW / 2;
@@ -4802,7 +4801,7 @@ export class ObstacleManager {
       ctx.strokeStyle = '#000000';
       ctx.strokeRect(rx + rw / 2 - 4, capY + 8, 8, 8);
     };
-    
+
     drawRetroBlock(-1000, rTop + 1000, true);
     drawRetroBlock(height - rBottom, rBottom + 1000, false);
   }
@@ -4833,7 +4832,7 @@ export class ObstacleManager {
       barkGrad.addColorStop(1, '#2b1d14');
       ctx.fillStyle = barkGrad;
       ctx.fillRect(rx, yStart, rw, h);
-      
+
       // Draw vertical bark texture lines
       ctx.strokeStyle = '#231812';
       ctx.lineWidth = 2.5;
@@ -4939,7 +4938,7 @@ export class ObstacleManager {
       holoGrad.addColorStop(1, 'rgba(255, 0, 127, 0.20)'); // Bright pink
       ctx.fillStyle = holoGrad;
       ctx.fillRect(rx, yStart, rw, h);
-      
+
       // Cyber corner frames/brackets
       ctx.strokeStyle = '#00f3ff';
       ctx.lineWidth = 2.5;
@@ -5041,7 +5040,7 @@ export class ObstacleManager {
 
       // Attractive spiky crown frost ridge with diamond glistening cap on surface
       const capY = _isTop ? yStart + h - 22 : yStart;
-      
+
       // Draw glistening white snow caps
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(rx - 2, capY, rw + 4, 14);
@@ -5185,15 +5184,15 @@ export class ObstacleManager {
     const drawVolcanoBlock = (yStart: number, h: number, isTop: boolean) => {
       // Hexagonal basalt joints (3 staggered vertical pillars)
       const colW = rw / 3;
-      
+
       const drawJoint = (xOffset: number, heightOffset: number, baseColor: string) => {
         ctx.fillStyle = baseColor;
         ctx.strokeStyle = '#f97316'; // Lava orange outlines
         ctx.lineWidth = 2.5;
-        
+
         const jy = isTop ? yStart : yStart + heightOffset;
         const jh = isTop ? h - heightOffset : h - heightOffset;
-        
+
         ctx.fillRect(xOffset, jy, colW, jh);
         ctx.strokeRect(xOffset, jy, colW, jh);
 
@@ -5207,7 +5206,7 @@ export class ObstacleManager {
         ctx.lineTo(xOffset + colW / 2 + Math.sin(jy) * 4, jy + jh);
         ctx.stroke();
         ctx.shadowBlur = 0;
-        
+
         // Jagged volcanic magma teeth/caps on the safe lips
         const capY = isTop ? jy + jh - 16 : jy;
         const magmaGrad = ctx.createLinearGradient(xOffset, 0, xOffset + colW, 0);

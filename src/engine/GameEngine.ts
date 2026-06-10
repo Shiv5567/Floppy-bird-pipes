@@ -48,12 +48,17 @@ export class GameEngine {
   private scoreThreshold = 100;
 
   // Flock Evolution (Rescue Mode)
-  public evolvedBirdTier: number = 0;        // 0=none, 1–4=evolution level
+  public evolvedBirdTier: number = 0;        // 0=none, 1–3=evolution level
   public rescuedBirdsTotal: number = 0;      // total cages rescued this run
   public mergeReadyCount: number = 0;        // birds in flock available to merge
   private rescueMilestoneNext: number = 5;   // next milestone checkpoint
   // expose read-only for UIManager
   public get nextRescueMilestone(): number { return this.rescueMilestoneNext; }
+
+  // Active Skill Evolution System
+  public activeSkillUnlocked: string | null = null; // 'shield' | 'slowmo' | 'booster' | null
+  public activeSkillCooldown: number = 0;           // current cooldown in seconds
+  public activeSkillMaxCooldown: number = 0;        // max cooldown
 
   // Auto-Hyper Boost: fires every 6 birds joined across all flock modes
   public birdsJoinedThisRun: number = 0;
@@ -190,6 +195,9 @@ export class GameEngine {
     this.mergeReadyCount = 0;
     this.rescueMilestoneNext = 5;
     this.birdsJoinedThisRun = 0;
+    this.activeSkillUnlocked = null;
+    this.activeSkillCooldown = 0;
+    this.activeSkillMaxCooldown = 0;
 
     if (this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') {
       const width = this.renderer.canvas.width / this.renderer.dpr;
@@ -283,6 +291,11 @@ export class GameEngine {
 
     // Update active powerups durations
     this.updatePowerupTimers(dt);
+
+    // Tick active skill cooldown
+    if (this.gameMode === 'rescue' && this.activeSkillCooldown > 0) {
+      this.activeSkillCooldown = Math.max(0, this.activeSkillCooldown - dt);
+    }
 
     // 2. Update state machine
     if (this.state === 'PLAYING' || this.state === 'BOSS_FIGHT') {
@@ -1186,22 +1199,13 @@ export class GameEngine {
         this.checkAutoBoost();
 
         const flockSize = this.flock.length;
-        if (this.evolvedBirdTier === 0) {
-          const canEvolve = flockSize >= 2;
-          window.dispatchEvent(new CustomEvent('hud_alert', {
-            detail: {
-              text: `RESCUED! 🕊️ (Squad Size: ${flockSize})`,
-              sub: canEvolve ? 'Tap EVOLVE to fuse your flock into a powerful bird!' : 'Keep rescuing more birds to evolve!'
-            }
-          }));
-        } else {
-          window.dispatchEvent(new CustomEvent('hud_alert', {
-            detail: { 
-              text: `RESCUED AGAIN! 🕊️ (Squad Size: ${flockSize})`, 
-              sub: `Growing your squad for next evolution!` 
-            }
-          }));
-        }
+        const canEvolve = flockSize >= 4;
+        window.dispatchEvent(new CustomEvent('hud_alert', {
+          detail: {
+            text: `RESCUED! 🕊️ (Squad Size: ${flockSize})`,
+            sub: canEvolve ? 'Tap EVOLVE to fuse your flock into a powerful bird!' : 'Keep rescuing more birds to evolve!'
+          }
+        }));
       }
       return;
     }
@@ -1497,13 +1501,42 @@ export class GameEngine {
    */
   public triggerFlockMerge() {
     if (this.gameMode !== 'rescue') return;
-    if (this.flock.length < 2) return;
-
     const mergeCount = this.flock.length;
-    // Determine evolution tier: 2→1, 3→2, 4→3, 5→4
-    const tier = Math.min(4, mergeCount - 1);
-    const previousTier = this.evolvedBirdTier;
-    const newTier = previousTier + tier; // accumulate tiers across multiple merges
+    if (mergeCount < 4) return;
+
+    let skillName = '';
+    let skillColor = '';
+    let abilityText = '';
+    let skillType: string = '';
+    let cooldown = 0;
+    let sizeMult = 1.0;
+    let tierNum = 0;
+
+    if (mergeCount >= 4 && mergeCount <= 6) {
+      tierNum = 1;
+      skillType = 'shield';
+      cooldown = 15;
+      sizeMult = 1.25;
+      skillName = 'SHIELD DEFENDER';
+      skillColor = '#00f3ff';
+      abilityText = 'Unlocks Active Shield Ability (15s Cooldown)!';
+    } else if (mergeCount >= 7 && mergeCount <= 8) {
+      tierNum = 2;
+      skillType = 'slowmo';
+      cooldown = 18;
+      sizeMult = 1.45;
+      skillName = 'TEMPORAL CHRONO';
+      skillColor = '#ff007f';
+      abilityText = 'Unlocks Active Slow-Motion Ability (18s Cooldown)!';
+    } else if (mergeCount >= 9) {
+      tierNum = 3;
+      skillType = 'booster';
+      cooldown = 25;
+      sizeMult = 1.70;
+      skillName = 'HYPER CELESTIAL';
+      skillColor = '#ffd700';
+      abilityText = 'Unlocks Active Speed Booster Ability (25s Cooldown)!';
+    }
 
     const width  = this.renderer.canvas.width  / this.renderer.dpr;
     const height = this.renderer.canvas.height / this.renderer.dpr;
@@ -1514,7 +1547,7 @@ export class GameEngine {
       this.particleEngine.emitExplosion(b.x, b.y, b.getSkin().glowColor || '#ffaa00', 25);
     }
     this.particleEngine.emitRing(this.bird.x, this.bird.y, '#ffffff', 40);
-    this.particleEngine.emitExplosion(width / 2, height / 2, '#ffd700', 60);
+    this.particleEngine.emitExplosion(width / 2, height / 2, skillColor, 60);
     this.renderer.triggerScreenShake(30, 0.6);
     this.soundManager.playLevelUp();
 
@@ -1522,58 +1555,46 @@ export class GameEngine {
     this.flock = [this.flock[0]];
     this.bird = this.flock[0];
 
-    // Set size boost based on tier
-    const sizeBoosts = [1.0, 1.2, 1.35, 1.55, 1.8];
-    this.bird.sizeMultiplier = sizeBoosts[Math.min(4, newTier)];
-
-    // Apply tier ability
-    const TIER_INFO: {name: string; color: string; abilityText: string}[] = [
-      { name: '', color: '#fff', abilityText: '' },
-      { name: 'SWIFT EAGLE',         color: '#00f3ff', abilityText: '+10% Bonus Score per Obstacle!' },
-      { name: 'MAGNET PHOENIX',      color: '#ff007f', abilityText: 'Permanent Coin Magnet Active!' },
-      { name: 'STORM TITAN',         color: '#ffd700', abilityText: 'Shield + 2× Coin Value Active!' },
-      { name: 'CELESTIAL SOVEREIGN', color: '#a855f7', abilityText: '8-Second Invincibility + Score Burst!' },
-    ];
-    const clampedTier = Math.min(4, newTier);
-    const info = TIER_INFO[clampedTier];
-
-    this.evolvedBirdTier = clampedTier;
+    // Set size boost and active skill properties
+    this.bird.sizeMultiplier = sizeMult;
+    this.evolvedBirdTier = tierNum;
+    this.activeSkillUnlocked = skillType;
+    this.activeSkillMaxCooldown = cooldown;
+    this.activeSkillCooldown = 0; // Starts ready to use!
     this.mergeReadyCount = this.flock.length;
-
-    // Apply passive abilities
-    if (clampedTier >= 2) {
-      // Tier 2+: Permanent magnet
-      this.activePowerupsList['magnet'] = {
-        type: 'magnet',
-        durationLeft: 9999,
-        maxDuration: 9999
-      };
-    }
-    if (clampedTier >= 3) {
-      // Tier 3+: Shield + 2x coins
-      this.bird.hasShield = true;
-      this.scoreMultiplier = 2;
-    }
-    if (clampedTier >= 4) {
-      // Tier 4: 8s invincibility + massive score burst
-      this.bird.isInvincible = true;
-      this.incrementScore(50);
-      setTimeout(() => {
-        this.bird.isInvincible = false;
-      }, 8000);
-    }
 
     // HUD alert
     window.dispatchEvent(new CustomEvent('hud_alert', {
       detail: {
-        text: `⚡ EVOLVED: ${info.name} (Tier ${clampedTier})`,
-        sub: info.abilityText
+        text: `⚡ EVOLVED: ${skillName} (Tier ${tierNum})`,
+        sub: abilityText
       }
     }));
 
-    // Dispatch evolution event for rendering aura color
+    // Dispatch evolution event for UIManager and rendering aura color
     window.dispatchEvent(new CustomEvent('bird_evolved', {
-      detail: { tier: clampedTier, color: info.color }
+      detail: { tier: tierNum, color: skillColor }
+    }));
+  }
+
+  public triggerActiveSkill() {
+    if (this.gameMode !== 'rescue' || !this.activeSkillUnlocked) return;
+    if (this.activeSkillCooldown > 0) return;
+
+    // Activate the powerup dynamically
+    this.activatePowerup(this.activeSkillUnlocked);
+
+    // Apply the max cooldown
+    this.activeSkillCooldown = this.activeSkillMaxCooldown;
+
+    // Play visual triggers
+    const activeColor = this.evolvedBirdTier === 1 ? '#00f3ff' : this.evolvedBirdTier === 2 ? '#ff007f' : '#ffd700';
+    this.particleEngine.emitRing(this.bird.x, this.bird.y, activeColor, 25);
+    this.soundManager.playCoin(); // chime sound on active skill trigger
+
+    // Dispatch event to force HUD update
+    window.dispatchEvent(new CustomEvent('active_skill_triggered', {
+      detail: { type: this.activeSkillUnlocked, cooldown: this.activeSkillMaxCooldown }
     }));
   }
 
