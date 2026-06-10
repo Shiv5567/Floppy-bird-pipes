@@ -1407,6 +1407,8 @@ export class ObstacleManager {
 
           // Use the score at spawn time to keep transitions completely smooth and stutter-free!
           const activeScore = obs.spawnScore !== undefined ? obs.spawnScore : score;
+          const isFlockMode = (gameMode === 'flock' || gameMode === 'rescue' || gameMode === 'formation');
+          const effectiveScore = isFlockMode ? Math.max(100, activeScore) : activeScore;
 
           // Slower/less extreme movement for flock/rescue modes to accommodate larger squad height spreads
           let motionSpeedMult = 1.0;
@@ -1414,12 +1416,15 @@ export class ObstacleManager {
           if (gameMode === 'rescue') {
             motionSpeedMult = 0.4; // 60% slower
             motionAmpMult = 0.45;  // 55% less amplitude
-          } else if (gameMode === 'flock' || gameMode === 'formation') {
+          } else if (gameMode === 'flock') {
+            motionSpeedMult = 0.7;
+            motionAmpMult = 1.60;  // 60% increase in vertical path shifting/sways (was 0.7)
+          } else if (gameMode === 'formation') {
             motionSpeedMult = 0.7;
             motionAmpMult = 0.7;
           }
 
-          if (activeScore >= 100 && activeScore < 200) {
+          if (effectiveScore >= 100 && effectiveScore < 200) {
             // 10% difficulty: shift centerY up and down by 25px
             const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
             if (motionStyle === 0) {
@@ -1428,7 +1433,7 @@ export class ObstacleManager {
               const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
               verticalShift = Math.sin(this.waveTime * 1.2 * motionSpeedMult) * 20 * elevatorDir * motionAmpMult;
             }
-          } else if (activeScore >= 200 && activeScore < 300) {
+          } else if (effectiveScore >= 200 && effectiveScore < 300) {
             // 10% + 15% = 25% difficulty: shift centerY up and down by 50px
             const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
             if (motionStyle === 0) {
@@ -1437,7 +1442,7 @@ export class ObstacleManager {
               const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
               verticalShift = Math.sin(this.waveTime * 1.8 * motionSpeedMult) * 39.6 * elevatorDir * motionAmpMult; // Reduced by 12% (from 45)
             }
-          } else if (activeScore >= 300 && activeScore < 500) {
+          } else if (effectiveScore >= 300 && effectiveScore < 500) {
             // Score 300-500: full high difficulty sways up to 60px
             const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
             if (motionStyle === 0) {
@@ -1446,9 +1451,9 @@ export class ObstacleManager {
               const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
               verticalShift = Math.sin(this.waveTime * 2.0 * motionSpeedMult) * 48.4 * elevatorDir * motionAmpMult; // Reduced by 12% (from 55)
             }
-          } else if (activeScore >= 500) {
+          } else if (effectiveScore >= 500) {
             // Apply the same vertical motion or animation as score 200 to 300 but progressively increased so it can be felt!
-            let intervals = Math.floor((activeScore - 500) / 100);
+            let intervals = Math.floor((effectiveScore - 500) / 100);
             if (intervals < 0) intervals = 0;
 
             // Progressive difficulty: increase amplitude (starting at 1.3x) and frequency (starting at 1.25x)
@@ -1474,14 +1479,14 @@ export class ObstacleManager {
             }
           }
           if (isTightHorizontalGap) {
-            const maxClamp = score >= 500 ? 70 : 40; // Relax clamp at score >= 500 so the movement can be felt clearly!
+            const maxClamp = effectiveScore >= 500 ? 70 : 40; // Relax clamp at score >= 500 so the movement can be felt clearly!
             verticalShift = Math.max(-maxClamp, Math.min(maxClamp, verticalShift));
           }
 
           centerY += verticalShift;
 
           // Intersection Safeguard (Score >= 200, specially 400+): Enforce minimum 30% gap overlap or highly parallel alignment for adjacent pipes
-          if (score >= 200) {
+          if (effectiveScore >= 200) {
             let nearestOther: Obstacle | null = null;
             let minDistance = Infinity;
             for (let j = 0; j < this.list.length; j++) {
@@ -2738,14 +2743,17 @@ export class ObstacleManager {
     // Set the endless layout spacing scaling multiplier for the NEXT spawned pipe!
     this.currentEndlessDistScale = nextPattern.distScale !== undefined ? nextPattern.distScale : 1.0;
 
+    const isFlockMode = (gameMode === 'flock' || gameMode === 'rescue' || gameMode === 'formation');
+    const effectiveScore = isFlockMode ? Math.max(100, score) : score;
+
     let endlessShiftScale = 1.0;
-    if (score >= 100 && score < 200) {
+    if (effectiveScore >= 100 && effectiveScore < 200) {
       endlessShiftScale = 1.0;
       isMoving = !!nextPattern.isMoving;
-    } else if (score >= 200 && score < 300) {
+    } else if (effectiveScore >= 200 && effectiveScore < 300) {
       endlessShiftScale = 1.25; // 25% more extreme vertical sways
       isMoving = !!nextPattern.isMoving;
-    } else if (score >= 300) {
+    } else if (effectiveScore >= 300) {
       endlessShiftScale = 1.30;
       isMoving = !!nextPattern.isMoving;
     }
