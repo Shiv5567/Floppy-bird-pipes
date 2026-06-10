@@ -332,9 +332,9 @@ export class GameEngine {
       this.bird.update(dt, this.particleEngine, true, activeTimeScale, this.score);
 
       // Flocking score-based additions:
-      // - Squad Survival (flock) and Formation modes: auto-add via score threshold
-      // - Rescue mode: birds ONLY come from cage rescues, NOT score thresholds
-      if ((this.gameMode === 'flock' || this.gameMode === 'formation') && this.score >= this.scoreThreshold) {
+      // - Formation mode: auto-add via score threshold
+      // - Rescue and Squad Survival (flock) modes: birds ONLY come from cage rescues, NOT score thresholds
+      if (this.gameMode === 'formation' && this.score >= this.scoreThreshold) {
         const skins = this.progressManager.getSkins().filter(s => s.unlocked);
         const skin = skins[Math.floor(Math.random() * skins.length)] || this.bird.getSkin();
         const newBird = new Bird(skin);
@@ -1248,7 +1248,7 @@ export class GameEngine {
     let max = 8.0;
 
     if (type === 'rescue') {
-      if (this.gameMode === 'rescue') {
+      if (this.gameMode === 'rescue' || this.gameMode === 'flock') {
         const skins = this.progressManager.getSkins().filter(s => s.unlocked);
         const skin = skins[Math.floor(Math.random() * skins.length)] || this.bird.getSkin();
         const newBird = new Bird(skin);
@@ -1266,11 +1266,17 @@ export class GameEngine {
         this.checkAutoBoost();
 
         const flockSize = this.flock.length;
-        const canEvolve = flockSize >= 4;
+        let subText = '';
+        if (this.gameMode === 'rescue') {
+          const canEvolve = flockSize >= 4;
+          subText = canEvolve ? 'Tap EVOLVE to fuse your flock into a powerful bird!' : 'Keep rescuing more birds to evolve!';
+        } else {
+          subText = 'Tap MERGE to fuse your flock into Boss HP!';
+        }
         window.dispatchEvent(new CustomEvent('hud_alert', {
           detail: {
             text: `RESCUED! 🕊️ (Squad Size: ${flockSize})`,
-            sub: canEvolve ? 'Tap EVOLVE to fuse your flock into a powerful bird!' : 'Keep rescuing more birds to evolve!'
+            sub: subText
           }
         }));
       }

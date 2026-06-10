@@ -349,6 +349,35 @@ export class PowerupManager {
         }
       }
 
+      // ── Squad Survival (flock) Mode: Spawn cages every 10 to 20 obstacles, coins/gems/powerups elsewhere ──────
+      if (gameMode === 'flock') {
+        const obsIdx = unrewardedObstacle.obstacleIdx !== undefined ? unrewardedObstacle.obstacleIdx : 0;
+
+        // Initialize target for flock mode on first obstacle to ensure it is in the 10-20 range
+        if (obsIdx === 0) {
+          this.nextRescueSpawnTarget = 10 + Math.floor(Math.random() * 11); // 10 to 20
+        }
+
+        if (obsIdx === this.nextRescueSpawnTarget) {
+          // Spawn a cage in the gap center
+          this.spawnItem('rescue', width, height, targetX, gapCenterY);
+          this.nextRescueSpawnTarget = obsIdx + 10 + Math.floor(Math.random() * 11); // Set next spawn between 10 and 20 obstacles
+        } else if (obsIdx % 3 === 0) {
+          // Spawn 3 coins group
+          this.spawnItem('coin', width, height, targetX - 45, gapCenterY);
+          this.spawnItem('coin', width, height, targetX, gapCenterY);
+          this.spawnItem('coin', width, height, targetX + 45, gapCenterY);
+        } else if (obsIdx % 7 === 4) {
+          // Spare slots: gems
+          this.spawnItem('gem', width, height, targetX, gapCenterY);
+        } else if (obsIdx % 12 === 8) {
+          // Rare random powerups
+          const pool: PowerupType[] = ['shield', 'slowmo', 'magnet', 'turbo', 'mini'];
+          const randomType = pool[Math.floor(Math.random() * pool.length)];
+          this.spawnItem(randomType, width, height, targetX, gapCenterY);
+        }
+      }
+
       if (gameMode === 'level') {
         // Track the last spawned obstacle gap center Y
         this.lastSpawnedObstacleCenterY = gapCenterY;
