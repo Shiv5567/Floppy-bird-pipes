@@ -235,9 +235,9 @@ export class ObstacleManager {
       minGap = 345;
       distMultiplier = 1.45; // Generous horizontal spacing for the flock
     } else if (gameMode === 'flock') {
-      startGap = 320;
-      minGap = 320;
-      distMultiplier = 2.25; // Spacing increased by 80% (1.25 * 1.8 = 2.25)
+      startGap = 256; // Reduced by 20% (was 320)
+      minGap = 256;   // Reduced by 20% (was 320)
+      distMultiplier = 1.575; // 30% reduction from 2.25 (2.25 * 0.7 = 1.575)
     } else if (gameMode === 'formation') {
       startGap = 320;
       minGap = 320;
@@ -1604,7 +1604,7 @@ export class ObstacleManager {
         // Scale by endless difficulty scaling factor & speed factor!
         let dist = baseDist * this.currentEndlessDistScale * (1.0 - pct) * speedFactor;
         if (gameMode === 'flock') {
-          dist *= 1.80; // Horizontally increase gap by 80%
+          dist *= 1.26; // 30% reduction from 1.80 (1.80 * 0.7 = 1.26)
         }
 
         // Dynamic Spacing Balance: Increase horizontal distance by 50% if the next pipe has a maximum vertical alignment difference
