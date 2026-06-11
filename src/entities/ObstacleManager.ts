@@ -3779,10 +3779,11 @@ export class ObstacleManager {
       if ((this.gameMode === 'flock' && obs.spawnScore !== undefined && obs.spawnScore >= 25 && obs.spawnScore < 100) || obs.isClassicSpecialGroup2 || obs.isClassicSpecialGroup3 || obs.isVerticalApproachSplit) {
         const topShift = obs.shakeX || 0;
         const bottomShift = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
-        const leftTop = obs.x + topShift;
-        const rightTop = obs.x + obs.width + topShift;
-        const leftBottom = obs.x + bottomShift;
-        const rightBottom = obs.x + obs.width + bottomShift;
+        // Extend glow lines by 8px on both sides to align perfectly with the wider pipe caps and prevent cut-off edges!
+        const leftTop = obs.x + topShift - 8;
+        const rightTop = obs.x + obs.width + topShift + 8;
+        const leftBottom = obs.x + bottomShift - 8;
+        const rightBottom = obs.x + obs.width + bottomShift + 8;
 
         let glowColor = '#39ff14'; // Group 1 Default green
         if (obs.isVerticalApproachSplit) {
