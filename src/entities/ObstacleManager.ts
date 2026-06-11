@@ -235,8 +235,8 @@ export class ObstacleManager {
       minGap = 345;
       distMultiplier = 1.45; // Generous horizontal spacing for the flock
     } else if (gameMode === 'flock') {
-      startGap = 256; // Reduced by 20% (was 320)
-      minGap = 256;   // Reduced by 20% (was 320)
+      startGap = 270; // Set minimum vertical gap to 270 (was 256)
+      minGap = 270;   // Set minimum vertical gap to 270 (was 256)
       distMultiplier = 1.575; // 30% reduction from 2.25 (2.25 * 0.7 = 1.575)
     } else if (gameMode === 'formation') {
       startGap = 320;
@@ -1651,6 +1651,10 @@ export class ObstacleManager {
           }
         }
 
+        if (gameMode === 'flock') {
+          dist = Math.max(420, dist); // Enforce minimum horizontal gap of 420px
+        }
+
         this.nextSpawnDistance = dist;
       }
     }
@@ -2774,7 +2778,10 @@ export class ObstacleManager {
       gapScaleFactor *= 1.10;
     }
 
-    const currentStepGap = gapHeight * gapScaleFactor;
+    let currentStepGap = gapHeight * gapScaleFactor;
+    if (gameMode === 'flock') {
+      currentStepGap = Math.max(270, currentStepGap); // Enforce vertical gap minimum of 270px
+    }
 
     // Safeguard boundaries to keep safe gap consistent and within bounds
     const minCenterY = margin + currentStepGap / 2;
