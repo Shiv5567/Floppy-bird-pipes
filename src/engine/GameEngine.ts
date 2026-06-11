@@ -1127,6 +1127,13 @@ export class GameEngine {
 
     this.revivesUsedThisRun++;
     this.hasRevivedThisRun = false; // Unlimited revives!
+    
+    // Ensure flock is restored in flock modes so collisions and collections resume
+    if (this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') {
+      this.flock = [this.bird];
+      this.mergeReadyCount = 1;
+    }
+    
     this.bird.isCrashing = false;
     this.bird.isInvincible = true;
     this.bird.vy = -4.5; // slight upwards jump impulse to resume
@@ -1164,6 +1171,13 @@ export class GameEngine {
     if (this.revivesUsedThisRun >= 3) return;
     this.revivesUsedThisRun++;
     this.hasRevivedThisRun = false;
+    
+    // Ensure flock is restored in flock modes so collisions and collections resume
+    if (this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') {
+      this.flock = [this.bird];
+      this.mergeReadyCount = 1;
+    }
+    
     this.bird.isCrashing = false;
     this.bird.isInvincible = true;
     this.bird.vy = -4.5; // slight upwards jump impulse to resume
