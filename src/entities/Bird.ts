@@ -94,7 +94,12 @@ export class Bird {
     const isLevel2 = engine && engine.gameMode === 'level' && (engine.currentLevelNum === 2 || engine.currentLevelNum === 13);
     const jumpReduction = isLevel2 ? 0.78 : 1.0;
     
-    const impulse = this.jumpLift * (1 + levelBonus) * jumpScale * jumpReduction;
+    let impulse = this.jumpLift * (1 + levelBonus) * jumpScale * jumpReduction;
+    
+    // Scale velocity impulse by 7% in squad/flock mode from score 50
+    if (engine && engine.gameMode === 'flock' && score >= 50) {
+      impulse *= 1.07;
+    }
     
     // Instant, sharp, predictable and completely constant jump:
     // Instantly set vertical velocity to the jump impulse to give an immediate constant response on every tap.
@@ -118,14 +123,21 @@ export class Bird {
     const isLevel2 = engine && engine.gameMode === 'level' && (engine.currentLevelNum === 2 || engine.currentLevelNum === 13);
     const speedReduction = isLevel2 ? 0.75 : 1.0;
     
-    const currentGravity = this.gravity * speedMultiplier * speedReduction;
-    const currentMaxFallSpeed = this.maxFallSpeed * speedMultiplier * speedReduction;
+    let currentGravity = this.gravity * speedMultiplier * speedReduction;
+    let currentMaxFallSpeed = this.maxFallSpeed * speedMultiplier * speedReduction;
     
     // Custom progressive score-based jump scaling:
     const jumpScale = this.getJumpScale(effectiveScore);
     
     // Scale maximum rise speed dynamically to stay fully synchronized with jump impulse (unreduced for upward speed!)
-    const currentMaxRiseSpeed = this.maxRiseSpeed * jumpScale * (isLevel2 ? 0.78 : 1.0);
+    let currentMaxRiseSpeed = this.maxRiseSpeed * jumpScale * (isLevel2 ? 0.78 : 1.0);
+    
+    // Scale vertical velocity physics (gravity, max speeds) by 7% in squad/flock mode from score 50
+    if (engine && engine.gameMode === 'flock' && score >= 50) {
+      currentGravity *= 1.07;
+      currentMaxFallSpeed *= 1.07;
+      currentMaxRiseSpeed *= 1.07;
+    }
     
     if (isPlaying) {
       // Apply gravity
