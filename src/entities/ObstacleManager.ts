@@ -67,6 +67,7 @@ export class ObstacleManager {
   private spawnTimer = 0;
   private obstacleWidth = 72;
   private currentScore = 0;
+  private gameMode = 'endless';
   private waveTime = 0;
   private nextSpawnDistance = 350;
 
@@ -171,6 +172,7 @@ export class ObstacleManager {
     gameMode: 'endless' | 'level' | 'flock' | 'rescue' | 'formation' = 'endless'
   ) {
     this.currentScore = score;
+    this.gameMode = gameMode;
     const dtCoeff = deltaTime * 60 * timeScale;
     let activeEffectiveLevelNum = this.activeLevelConfig ? this.activeLevelConfig.levelNum : undefined;
     if (this.activeLevelConfig && this.activeLevelConfig.patterns && this.activeLevelConfig.patterns[0]) {
@@ -1387,7 +1389,10 @@ export class ObstacleManager {
           let verticalShift = 0;
           const activeScore = obs.spawnScore !== undefined ? obs.spawnScore : score;
           
-          if (gameMode === 'flock' && activeScore >= 100 && activeScore <= 200) {
+          if (gameMode === 'flock' && activeScore >= 75 && activeScore < 100) {
+            // Group 3 (score 75-100) gentle electric bobbing/sway once opened
+            verticalShift = Math.sin(this.waveTime * 4.0 + (obs.obstacleIdx || 0) * 0.8) * 8;
+          } else if (gameMode === 'flock' && activeScore >= 100 && activeScore <= 200) {
             const effectiveScore = Math.max(100, activeScore);
             const motionSpeedMult = 0.7;
             const motionAmpMult = 2.24;
@@ -1441,9 +1446,57 @@ export class ObstacleManager {
             const ease = Math.sin((progress * Math.PI) / 2);
             obs.topHeight = obs.closedTopHeight! + (obs.targetTopHeight! - obs.closedTopHeight!) * ease;
             obs.bottomHeight = obs.closedBottomHeight! + (obs.targetBottomHeight! - obs.closedBottomHeight!) * ease;
+
+            // Apply custom different-direction split opening animation for special obstacles in endless mode
+            if (obs.isSpecialSplit && progress < 1) {
+              const levelNum = obs.levelNum || 11;
+              const splitStyle = Math.floor((levelNum - 1) / 5) % 5;
+              const decay = 1 - progress;
+
+              if (splitStyle === 0) {
+                obs.shakeX = -50 * decay;
+                obs.shakeX2 = 50 * decay;
+              } else if (splitStyle === 1) {
+                obs.shakeX = -65 * decay;
+                obs.shakeX2 = 65 * decay;
+              } else if (splitStyle === 2) {
+                obs.shakeX = 65 * decay;
+                obs.shakeX2 = -65 * decay;
+              } else if (splitStyle === 3) {
+                obs.shakeX = 50 * decay;
+                obs.shakeX2 = -50 * decay;
+              } else {
+                const swing = Math.sin((1 - progress) * Math.PI) * 55;
+                obs.shakeX = -swing;
+                obs.shakeX2 = swing;
+              }
+            } else if (obs.isSpecialSplit && progress >= 1) {
+              obs.shakeX = 0;
+              obs.shakeX2 = 0;
+            }
           } else {
             obs.topHeight = obs.closedTopHeight!;
             obs.bottomHeight = obs.closedBottomHeight!;
+            if (obs.isSpecialSplit) {
+              const levelNum = obs.levelNum || 11;
+              const splitStyle = Math.floor((levelNum - 1) / 5) % 5;
+              if (splitStyle === 0) {
+                obs.shakeX = -50;
+                obs.shakeX2 = 50;
+              } else if (splitStyle === 1) {
+                obs.shakeX = -65;
+                obs.shakeX2 = 65;
+              } else if (splitStyle === 2) {
+                obs.shakeX = 65;
+                obs.shakeX2 = -65;
+              } else if (splitStyle === 3) {
+                obs.shakeX = 50;
+                obs.shakeX2 = -50;
+              } else {
+                obs.shakeX = 0;
+                obs.shakeX2 = 0;
+              }
+            }
           }
         } else {
           // Standard endless mode obstacle movement (sways/oscillations)
@@ -1472,7 +1525,23 @@ export class ObstacleManager {
             motionAmpMult = 0.7;
           }
 
-          if (gameMode !== 'flock' || (activeScore >= 100 && activeScore <= 300)) {
+          if (gameMode === 'flock' && activeScore >= 25 && activeScore < 100) {
+            if (activeScore >= 25 && activeScore < 50) {
+              // Group 1 (Score 25-50): Emerald Cavern Undulation (Sine-wave sway)
+              // Mode friendly: gentle 25px amplitude, moderate speed
+              verticalShift = Math.sin(this.waveTime * 1.5 + (obs.obstacleIdx || 0) * 0.5) * 25;
+            } else if (activeScore >= 50 && activeScore < 75) {
+              // Group 2 (Score 50-75): Cyberpunk Neon Breathing Gate (Pulsating gap size)
+              // Mode friendly: clamp minimum gap to 225px (baseline 270px)
+              const pulseVal = Math.sin(this.waveTime * 2.0 + (obs.obstacleIdx || 0) * 0.3) * 45;
+              currentGap = Math.max(225, currentGap + pulseVal);
+              verticalShift = 0;
+            } else if (activeScore >= 75 && activeScore < 100) {
+              // Group 3 (Score 75-100): Electric Gold Split Gate
+              // Opening is handled in approachAnim. Once opened, apply subtle vertical bobbing.
+              verticalShift = Math.sin(this.waveTime * 4.0 + (obs.obstacleIdx || 0) * 0.8) * 8;
+            }
+          } else if (gameMode !== 'flock' || (activeScore >= 100 && activeScore <= 300)) {
             if (effectiveScore >= 100 && effectiveScore < 200) {
               // 10% difficulty: shift centerY up and down by 25px
               const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
@@ -1594,20 +1663,84 @@ export class ObstacleManager {
         }
 
         // 4. Visual effects - spawn dynamic movement particles
-        if (_particleEngine && Math.random() < 0.08) {
-          const pxTop = obs.x + Math.random() * obs.width;
-          const pyTop = obs.topHeight;
-          let pColor = obs.worldId === 'cyberpunk' ? '#ff007f' : '#39ff14';
-          _particleEngine.spawn(
-            pxTop, pyTop,
-            -scrollSpeed * 0.4 + (Math.random() - 0.5) * 1.0,
-            (Math.random() - 0.5) * 1.5,
-            pColor,
-            2.0 + Math.random() * 2.0,
-            0.8,
-            0.03,
-            'spark'
-          );
+        if (_particleEngine) {
+          const activeScore = obs.spawnScore !== undefined ? obs.spawnScore : score;
+          if (gameMode === 'flock' && activeScore >= 25 && activeScore < 100) {
+            // High-density particle effects for Squad Survival Mode 25-100 range (spawning from both lips)
+            if (Math.random() < 0.16) {
+              const pxTop = obs.x + Math.random() * obs.width;
+              const pyTop = obs.topHeight;
+              const pxBot = obs.x + Math.random() * obs.width;
+              const pyBot = height - obs.bottomHeight;
+              
+              let pColor = '#39ff14'; // Group 1 Default green
+              let pShape: 'circle' | 'square' | 'snowflake' | 'star' | 'bubble' | 'spark' | 'leaf' | 'flower' = 'spark';
+              let pGlow = true;
+              let pGlowColor = 'rgba(57, 255, 20, 0.4)';
+
+              if (activeScore >= 25 && activeScore < 50) {
+                // Group 1 (Green/Emerald Leafs & Sparks)
+                pColor = Math.random() > 0.5 ? '#39ff14' : '#00ff88';
+                pShape = Math.random() > 0.6 ? 'leaf' : 'spark';
+                pGlowColor = 'rgba(57, 255, 20, 0.4)';
+              } else if (activeScore >= 50 && activeScore < 75) {
+                // Group 2 (Cyberpunk Neon Pink Sparks & Bubbles)
+                pColor = Math.random() > 0.5 ? '#ff007f' : '#da70d6';
+                pShape = Math.random() > 0.6 ? 'bubble' : 'spark';
+                pGlowColor = 'rgba(255, 0, 127, 0.4)';
+              } else if (activeScore >= 75 && activeScore < 100) {
+                // Group 3 (Electric Gold Stars & Sparks)
+                pColor = Math.random() > 0.5 ? '#ffd700' : '#ffff00';
+                pShape = Math.random() > 0.5 ? 'star' : 'spark';
+                pGlowColor = 'rgba(255, 215, 0, 0.4)';
+              }
+
+              // Spawn top lip
+              _particleEngine.spawn(
+                pxTop, pyTop,
+                -scrollSpeed * 0.4 + (Math.random() - 0.5) * 1.0,
+                (Math.random() - 0.5) * 1.5,
+                pColor,
+                2.0 + Math.random() * 2.0,
+                0.85,
+                0.02,
+                pShape,
+                pGlow,
+                pGlowColor
+              );
+
+              // Spawn bottom lip
+              _particleEngine.spawn(
+                pxBot, pyBot,
+                -scrollSpeed * 0.4 + (Math.random() - 0.5) * 1.0,
+                (Math.random() - 0.5) * 1.5,
+                pColor,
+                2.0 + Math.random() * 2.0,
+                0.85,
+                0.02,
+                pShape,
+                pGlow,
+                pGlowColor
+              );
+            }
+          } else {
+            // Standard endless particles
+            if (Math.random() < 0.08) {
+              const pxTop = obs.x + Math.random() * obs.width;
+              const pyTop = obs.topHeight;
+              let pColor = obs.worldId === 'cyberpunk' ? '#ff007f' : '#39ff14';
+              _particleEngine.spawn(
+                pxTop, pyTop,
+                -scrollSpeed * 0.4 + (Math.random() - 0.5) * 1.0,
+                (Math.random() - 0.5) * 1.5,
+                pColor,
+                2.0 + Math.random() * 2.0,
+                0.8,
+                0.03,
+                'spark'
+              );
+            }
+          }
         }
       }
 
@@ -2865,8 +2998,15 @@ export class ObstacleManager {
     let animDuration = 0.35;
     let triggerDistance = this.nextSpawnDistance * 0.50;
 
-    // Enable approach vertical shift animations in endless flock mode for score 100 to 200
-    if (gameMode === 'flock' && score >= 100 && score <= 200) {
+    // Enable approach vertical shift animations in endless flock mode for score 75 to 100 and 100 to 200
+    if (gameMode === 'flock' && score >= 75 && score < 100) {
+      approachAnimType = 'open';
+      // Completely closed, meeting at targetCenterY
+      closedTopHeight = targetCenterY;
+      closedBottomHeight = height - targetCenterY;
+      animDuration = 0.45;
+      triggerDistance = 260; // trigger opening 260px before bird reaches the pipe
+    } else if (gameMode === 'flock' && score >= 100 && score <= 200) {
       approachAnimType = 'open';
       closedTopHeight = height / 2 - currentStepGap / 2;
       closedBottomHeight = height / 2 - currentStepGap / 2;
@@ -2895,7 +3035,9 @@ export class ObstacleManager {
       laserTimer: 0,
       oscillationFrequency: 0,
       oscillationRange: 0,
-      levelNum,
+      levelNum: (gameMode === 'flock' && score >= 75 && score < 100)
+        ? 1 + (this.endlessObstacleCount % 5) * 5
+        : levelNum,
       gapHeight: currentStepGap,
       spawnCenterY: targetCenterY,
       obstacleIdx: this.endlessObstacleCount++,
@@ -2908,7 +3050,8 @@ export class ObstacleManager {
       animTimer: 0,
       animDuration,
       triggerDistance,
-      isTriggered: false
+      isTriggered: false,
+      isSpecialSplit: (gameMode === 'flock' && score >= 75 && score < 100)
     }));
   }
 
@@ -3572,6 +3715,41 @@ export class ObstacleManager {
         }
         ctx.strokeStyle = glowColor;
         ctx.lineWidth = pulse;
+        ctx.lineCap = 'round';
+
+        // Draw top lip inner border line
+        ctx.beginPath();
+        ctx.moveTo(leftTop, obs.topHeight);
+        ctx.lineTo(rightTop, obs.topHeight);
+        ctx.stroke();
+
+        // Draw bottom lip inner border line
+        ctx.beginPath();
+        ctx.moveTo(leftBottom, height - obs.bottomHeight);
+        ctx.lineTo(rightBottom, height - obs.bottomHeight);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Pulsing neon gap-border glow along inner lips of Squad Survival animated obstacles (score 25-100)
+      if (this.gameMode === 'flock' && obs.spawnScore !== undefined && obs.spawnScore >= 25 && obs.spawnScore < 100) {
+        const topShift = obs.shakeX || 0;
+        const bottomShift = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
+        const leftTop = obs.x + topShift;
+        const rightTop = obs.x + obs.width + topShift;
+        const leftBottom = obs.x + bottomShift;
+        const rightBottom = obs.x + obs.width + bottomShift;
+
+        let glowColor = '#39ff14'; // Group 1 Default green
+        if (obs.spawnScore >= 50 && obs.spawnScore < 75) {
+          glowColor = '#ff007f'; // Group 2 neon pink/magenta
+        } else if (obs.spawnScore >= 75 && obs.spawnScore < 100) {
+          glowColor = '#ffd700'; // Group 3 neon gold
+        }
+
+        ctx.save();
+        ctx.strokeStyle = glowColor;
+        ctx.lineWidth = 4.5 + Math.sin(this.waveTime * 6.0) * 1.5; // nice pulsing thickness
         ctx.lineCap = 'round';
 
         // Draw top lip inner border line
