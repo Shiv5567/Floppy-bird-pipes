@@ -3775,8 +3775,8 @@ export class ObstacleManager {
         ctx.restore();
       }
 
-      // Pulsing neon gap-border glow along inner lips of Squad Survival / Classic Special / Vertical Split animated obstacles
-      if ((this.gameMode === 'flock' && obs.spawnScore !== undefined && obs.spawnScore >= 25 && obs.spawnScore < 100) || obs.isClassicSpecialGroup2 || obs.isClassicSpecialGroup3 || obs.isVerticalApproachSplit) {
+      // Pulsing neon gap-border glow along inner lips of Squad Survival Group 1 animated obstacles (score 25-50)
+      if (this.gameMode === 'flock' && obs.spawnScore !== undefined && obs.spawnScore >= 25 && obs.spawnScore < 50) {
         const topShift = obs.shakeX || 0;
         const bottomShift = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
         // Extend glow lines by 8px on both sides to align perfectly with the wider pipe caps and prevent cut-off edges!
@@ -3786,13 +3786,6 @@ export class ObstacleManager {
         const rightBottom = obs.x + obs.width + bottomShift + 8;
 
         let glowColor = '#39ff14'; // Group 1 Default green
-        if (obs.isVerticalApproachSplit) {
-          glowColor = '#00f3ff'; // Vertical Split neon cyan
-        } else if (obs.isClassicSpecialGroup2 || (obs.spawnScore !== undefined && obs.spawnScore >= 50 && obs.spawnScore < 75)) {
-          glowColor = '#ff007f'; // Group 2 neon pink/magenta
-        } else if (obs.isClassicSpecialGroup3 || (obs.spawnScore !== undefined && obs.spawnScore >= 75 && obs.spawnScore < 100)) {
-          glowColor = '#ffd700'; // Group 3 neon gold
-        }
 
         ctx.save();
         ctx.strokeStyle = glowColor;
