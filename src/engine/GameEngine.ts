@@ -87,6 +87,7 @@ export class GameEngine {
   public boosterDeactivateTimer = 0.0;
   public boosterSpawnTimer = 5.0;
   private boosterScoreAccumulator = 0.0;
+  public boosterTapsThisRun = 0;
   
   // Powerups timers
   private activePowerupsList: Record<string, ActivePowerup> = {};
@@ -173,6 +174,7 @@ export class GameEngine {
     this.boosterDeactivateTimer = 0.0;
     this.boosterSpawnTimer = 0.0; // Button starts fully charged and ready at start!
     this.boosterScoreAccumulator = 0.0;
+    this.boosterTapsThisRun = 0;
     
     // Reset ultimate skill status
     this.ultimateEnergy = 0;
@@ -587,8 +589,8 @@ export class GameEngine {
         const selectedZone = this.progressManager.getState().selectedZone;
         const selectedDifficulty = this.progressManager.getState().selectedDifficulty;
 
-        // Tick booster button charge timer in Endless Mode
-        if (this.gameMode === 'endless' && !this.boosterActive && !this.boosterDeactivating) {
+        // Tick booster button charge timer in Endless Mode & Flock Mode
+        if ((this.gameMode === 'endless' || this.gameMode === 'flock') && !this.boosterActive && !this.boosterDeactivating) {
           this.boosterSpawnTimer = Math.max(0, this.boosterSpawnTimer - dt);
         }
 
@@ -1301,7 +1303,14 @@ export class GameEngine {
 
     if (type === 'booster') {
       this.boosterActive = true;
-      this.boosterTimer = 2.0;
+      this.boosterTapsThisRun++;
+      
+      // On the first tap/activation in flock mode, it should add 50 points (cross 50 score/obstacles).
+      if (this.gameMode === 'flock' && this.boosterTapsThisRun === 1) {
+        this.boosterTimer = 1.0; // 1 second * 50 score/sec = 50 score points/obstacles
+      } else {
+        this.boosterTimer = 2.0; // 2 seconds * 50 score/sec = 100 score points/obstacles
+      }
       this.boosterScoreAccumulator = 0.0;
       this.bird.isInvincible = true;
       

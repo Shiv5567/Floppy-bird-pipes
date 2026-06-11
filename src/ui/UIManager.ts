@@ -1770,8 +1770,8 @@ export class UIManager {
     }
 
     let boosterBtnHTML = '';
-    if (this.engine.gameMode === 'endless') {
-      // Classic endless: manual tap-to-activate booster button
+    if (this.engine.gameMode === 'endless' || this.engine.gameMode === 'flock') {
+      // Classic endless & Squad flock: manual tap-to-activate booster button
       const bTimer = this.engine.boosterSpawnTimer;
       const bReady = bTimer <= 0;
       const bPercent = Math.min(100, Math.floor((1 - bTimer / 5.0) * 100));
@@ -1791,8 +1791,8 @@ export class UIManager {
           <span style="font-size: 26px; z-index: 2; transition: transform 0.2s ease; margin: 0; line-height: 1; text-shadow: ${bReady ? '0 0 8px #ffd700' : 'none'};">${bReady ? '⚡' : '⏳'}</span>
         </div>
       `;
-    } else if (this.engine.gameMode === 'flock' || this.engine.gameMode === 'rescue' || this.engine.gameMode === 'formation') {
-      // Flock modes: show auto-boost progress — fires every 6 birds joined
+    } else if (this.engine.gameMode === 'rescue' || this.engine.gameMode === 'formation') {
+      // Other modes: show auto-boost progress — fires every 6 birds joined
       const joined = this.engine.birdsJoinedThisRun;
       const progressIn6 = joined % 6;                           // 0..5
       const pct = Math.round((progressIn6 / 6) * 100);
