@@ -2950,8 +2950,8 @@ export class ObstacleManager {
     let isOrbitalSway = false;
     let isGoldSplitGate = false;
 
-    // Check for random distribution of Group 1 (Orbital Sway) and Group 3 (Gold Split Gate) in score 1-200 range
-    if ((gameMode === 'endless' || gameMode === 'flock') && score >= 1 && score <= 200) {
+    // Check for random distribution of Group 1 (Orbital Sway) and Group 3 (Gold Split Gate) in score 1-99 range
+    if ((gameMode === 'endless' || gameMode === 'flock') && score >= 1 && score < 100) {
       if (Math.random() < 0.35) { // 35% chance of applying a special animation
         if (Math.random() < 0.50) {
           isOrbitalSway = true;
