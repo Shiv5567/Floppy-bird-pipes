@@ -207,7 +207,7 @@ export class GameEngine {
 
     if (this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') {
       const width = this.renderer.canvas.width / this.renderer.dpr;
-      this.bird.x = width > 0 ? width * 0.30 : 144;
+      this.bird.x = width > 0 ? width * 0.40 : 192;
       this.flock = [this.bird];
       this.scoreThreshold = Math.floor(Math.random() * 11) + 10;
       this.currentFormation = 'v_shape';
@@ -307,7 +307,7 @@ export class GameEngine {
       targetX = 180;
     } else {
       if (this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') {
-        targetX = width > 0 ? width * 0.30 : 144;
+        targetX = width > 0 ? width * 0.40 : 192;
       } else {
         targetX = 120;
       }
