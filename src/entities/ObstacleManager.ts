@@ -1654,7 +1654,7 @@ export class ObstacleManager {
         // Scale by endless difficulty scaling factor & speed factor!
         let dist = baseDist * this.currentEndlessDistScale * (1.0 - pct) * speedFactor;
         if (gameMode === 'flock') {
-          dist *= 1.26; // 30% reduction from 1.80 (1.80 * 0.7 = 1.26)
+          dist *= 1.134; // 10% reduction from 1.26 (1.26 * 0.90 = 1.134)
         }
 
         // Dynamic Spacing Balance: Increase horizontal distance by 50% if the next pipe has a maximum vertical alignment difference
