@@ -1508,14 +1508,8 @@ export class ObstacleManager {
               const ampIncrease = effectiveScore < 150 ? 1.15 : 1.25; // 15% increase for score 100-150, 25% increase for score 150-200
               verticalShift = Math.sin(this.waveTime * 1.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.4) * (32 * ampIncrease) * motionAmpMult;
             } else if (effectiveScore >= 200 && effectiveScore < 300) {
-              // 10% + 15% = 25% difficulty: shift centerY up and down by 50px
-              const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
-              if (motionStyle === 0) {
-                verticalShift = Math.sin(this.waveTime * 2.2 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 50 * motionAmpMult;
-              } else {
-                const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-                verticalShift = Math.sin(this.waveTime * 1.8 * motionSpeedMult) * 39.6 * elevatorDir * motionAmpMult; // Reduced by 12% (from 45)
-              }
+              // 10% + 15% = 25% difficulty: shift centerY up and down by 50px using smooth up-down animation
+              verticalShift = Math.sin(this.waveTime * 2.2 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 50 * motionAmpMult;
             } else if (effectiveScore >= 300 && effectiveScore < 500) {
               if (gameMode === 'flock') {
                 // Interactive Proximity-Damped Breathing Gate:
@@ -1530,14 +1524,8 @@ export class ObstacleManager {
                 verticalShift = baseSway * proximity;
                 currentGap = currentGap + (baseGapDelta * proximity);
               } else {
-                // Score 300-500: full high difficulty sways up to 60px
-                const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
-                if (motionStyle === 0) {
-                  verticalShift = Math.sin(this.waveTime * 2.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 60 * motionAmpMult;
-                } else {
-                  const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-                  verticalShift = Math.sin(this.waveTime * 2.0 * motionSpeedMult) * 48.4 * elevatorDir * motionAmpMult; // Reduced by 12% (from 55)
-                }
+                // Score 300-500: full high difficulty smooth up-down sways up to 60px
+                verticalShift = Math.sin(this.waveTime * 2.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 60 * motionAmpMult;
               }
             } else if (effectiveScore >= 500) {
               // Apply the same vertical motion or animation as score 200 to 300 but progressively increased so it can be felt!
@@ -1548,13 +1536,8 @@ export class ObstacleManager {
               const amplitudeMultiplier = Math.min(1.8, 1.3 + intervals * 0.10) * motionAmpMult;
               const frequencyMultiplier = Math.min(1.5, 1.25 + intervals * 0.05) * motionSpeedMult;
 
-              const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
-              if (motionStyle === 0) {
-                verticalShift = Math.sin(this.waveTime * 2.2 * frequencyMultiplier + (obs.obstacleIdx || 0) * 0.5) * 50 * amplitudeMultiplier;
-              } else {
-                const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-                verticalShift = Math.sin(this.waveTime * 1.8 * frequencyMultiplier) * 39.6 * amplitudeMultiplier * elevatorDir; // Reduced by 12% (from 45)
-              }
+              // Smooth up-down animation with progressive difficulty
+              verticalShift = Math.sin(this.waveTime * 2.2 * frequencyMultiplier + (obs.obstacleIdx || 0) * 0.5) * 50 * amplitudeMultiplier;
             }
           }
 
