@@ -61,6 +61,7 @@ export interface Obstacle {
   energyBallRadius?: number;
   isClassicSpecialGroup2?: boolean;
   isClassicSpecialGroup3?: boolean;
+  isVerticalApproachSplit?: boolean;
 }
 
 export class ObstacleManager {
@@ -133,7 +134,8 @@ export class ObstacleManager {
       energyBallSpeedY: undefined,
       energyBallRadius: undefined,
       isClassicSpecialGroup2: false,
-      isClassicSpecialGroup3: false
+      isClassicSpecialGroup3: false,
+      isVerticalApproachSplit: false
     }, props);
     return obs;
   }
@@ -1396,28 +1398,17 @@ export class ObstacleManager {
           if (obs.isClassicSpecialGroup3 || (gameMode === 'flock' && activeScore >= 75 && activeScore < 100)) {
             // Group 3 (score 75-100 / classic special Group 3) gentle electric bobbing/sway once opened
             verticalShift = Math.sin(this.waveTime * 4.0 + (obs.obstacleIdx || 0) * 0.8) * 8;
-          } else if (gameMode === 'flock' && activeScore >= 100 && activeScore <= 200) {
-            const effectiveScore = Math.max(100, activeScore);
-            const motionSpeedMult = 0.7;
-            const motionAmpMult = 2.24;
+          } else if (obs.isVerticalApproachSplit || (gameMode === 'flock' && activeScore >= 100 && activeScore <= 200)) {
+            const motionSpeedMult = gameMode === 'flock' ? 0.7 : 1.0;
+            const motionAmpMult = gameMode === 'flock' ? 2.24 : 1.0;
             
-            // Score 100 to 200 range
-            if (effectiveScore >= 100 && effectiveScore < 200) {
-              const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(obs.spawnCenterY!)) % 2;
-              if (motionStyle === 0) {
-                verticalShift = Math.sin(this.waveTime * 1.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 25 * motionAmpMult;
-              } else {
-                const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-                verticalShift = Math.sin(this.waveTime * 1.2 * motionSpeedMult) * 20 * elevatorDir * motionAmpMult;
-              }
-            } else if (effectiveScore === 200) {
-              const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(obs.spawnCenterY!)) % 2;
-              if (motionStyle === 0) {
-                verticalShift = Math.sin(this.waveTime * 2.2 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 50 * motionAmpMult;
-              } else {
-                const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-                verticalShift = Math.sin(this.waveTime * 1.8 * motionSpeedMult) * 39.6 * elevatorDir * motionAmpMult;
-              }
+            // Score 100 to 200 range sways
+            const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(obs.spawnCenterY!)) % 2;
+            if (motionStyle === 0) {
+              verticalShift = Math.sin(this.waveTime * 1.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 25 * motionAmpMult;
+            } else {
+              const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
+              verticalShift = Math.sin(this.waveTime * 1.2 * motionSpeedMult) * 20 * elevatorDir * motionAmpMult;
             }
 
             // Playability Safeguard: Clamp vertical shift to prevent physically impossible transitions
@@ -1680,8 +1671,8 @@ export class ObstacleManager {
         // 4. Visual effects - spawn dynamic movement particles
         if (_particleEngine) {
           const activeScore = obs.spawnScore !== undefined ? obs.spawnScore : score;
-          if ((gameMode === 'flock' && activeScore >= 25 && activeScore < 100) || obs.isClassicSpecialGroup2 || obs.isClassicSpecialGroup3) {
-            // High-density particle effects for Squad Survival/Classic Special range (spawning from both lips)
+          if ((gameMode === 'flock' && activeScore >= 25 && activeScore < 100) || obs.isClassicSpecialGroup2 || obs.isClassicSpecialGroup3 || obs.isVerticalApproachSplit) {
+            // High-density particle effects for Squad Survival/Classic Special/Vertical Split range (spawning from both lips)
             if (Math.random() < 0.16) {
               const pxTop = obs.x + Math.random() * obs.width;
               const pyTop = obs.topHeight;
@@ -1693,7 +1684,12 @@ export class ObstacleManager {
               let pGlow = true;
               let pGlowColor = 'rgba(57, 255, 20, 0.4)';
 
-              if (obs.isClassicSpecialGroup2 || (activeScore >= 50 && activeScore < 75)) {
+              if (obs.isVerticalApproachSplit) {
+                // Cyan / electric blue stars and sparks for vertical approach split obstacles
+                pColor = Math.random() > 0.5 ? '#00f3ff' : '#ffffff';
+                pShape = Math.random() > 0.5 ? 'star' : 'spark';
+                pGlowColor = 'rgba(0, 243, 255, 0.4)';
+              } else if (obs.isClassicSpecialGroup2 || (activeScore >= 50 && activeScore < 75)) {
                 // Group 2 (Cyberpunk Neon Pink Sparks & Bubbles)
                 pColor = Math.random() > 0.5 ? '#ff007f' : '#da70d6';
                 pShape = Math.random() > 0.6 ? 'bubble' : 'spark';
@@ -3015,37 +3011,48 @@ export class ObstacleManager {
 
     let isClassicSpecialGroup2 = false;
     let isClassicSpecialGroup3 = false;
+    let isVerticalApproachSplit = false;
 
-    if (gameMode === 'endless' && score >= 1 && score <= 200) {
-      if (Math.random() < 0.30) {
-        if (Math.random() < 0.5) {
-          isClassicSpecialGroup2 = true;
-        } else {
-          isClassicSpecialGroup3 = true;
-          approachAnimType = 'open';
-          // Completely closed, meeting at targetCenterY
-          closedTopHeight = targetCenterY;
-          closedBottomHeight = height - targetCenterY;
-          animDuration = 0.45;
-          triggerDistance = 260; // trigger opening 260px before bird reaches the pipe
-        }
-      }
-    }
-
-    // Enable approach vertical shift animations in endless flock mode for score 75 to 100 and 100 to 200
-    if (gameMode === 'flock' && score >= 75 && score < 100) {
+    if ((gameMode === 'endless' || gameMode === 'flock') && score >= 100 && score <= 200 && Math.random() < 0.15) {
+      isVerticalApproachSplit = true;
       approachAnimType = 'open';
       // Completely closed, meeting at targetCenterY
       closedTopHeight = targetCenterY;
       closedBottomHeight = height - targetCenterY;
-      animDuration = 0.45;
+      animDuration = 0.50;
       triggerDistance = 260; // trigger opening 260px before bird reaches the pipe
-    } else if (gameMode === 'flock' && score >= 100 && score <= 200) {
-      approachAnimType = 'open';
-      closedTopHeight = height / 2 - currentStepGap / 2;
-      closedBottomHeight = height / 2 - currentStepGap / 2;
-      animDuration = 0.60;
-      triggerDistance = 224; // trigger opening 224px before bird reaches the pipe (20% closer than 280px)
+    } else {
+      if (gameMode === 'endless' && score >= 1 && score <= 200) {
+        if (Math.random() < 0.30) {
+          if (Math.random() < 0.5) {
+            isClassicSpecialGroup2 = true;
+          } else {
+            isClassicSpecialGroup3 = true;
+            approachAnimType = 'open';
+            // Completely closed, meeting at targetCenterY
+            closedTopHeight = targetCenterY;
+            closedBottomHeight = height - targetCenterY;
+            animDuration = 0.45;
+            triggerDistance = 260; // trigger opening 260px before bird reaches the pipe
+          }
+        }
+      }
+
+      // Enable approach vertical shift animations in endless flock mode for score 75 to 100 and 100 to 200
+      if (gameMode === 'flock' && score >= 75 && score < 100) {
+        approachAnimType = 'open';
+        // Completely closed, meeting at targetCenterY
+        closedTopHeight = targetCenterY;
+        closedBottomHeight = height - targetCenterY;
+        animDuration = 0.45;
+        triggerDistance = 260; // trigger opening 260px before bird reaches the pipe
+      } else if (gameMode === 'flock' && score >= 100 && score <= 200) {
+        approachAnimType = 'open';
+        closedTopHeight = height / 2 - currentStepGap / 2;
+        closedBottomHeight = height / 2 - currentStepGap / 2;
+        animDuration = 0.60;
+        triggerDistance = 224; // trigger opening 224px before bird reaches the pipe (20% closer than 280px)
+      }
     }
 
     this.list.push(this.acquireObstacle({
@@ -3087,7 +3094,8 @@ export class ObstacleManager {
       isTriggered: false,
       isSpecialSplit: isClassicSpecialGroup3 || (gameMode === 'flock' && score >= 75 && score < 100),
       isClassicSpecialGroup2,
-      isClassicSpecialGroup3
+      isClassicSpecialGroup3,
+      isVerticalApproachSplit
     }));
   }
 
@@ -3767,8 +3775,8 @@ export class ObstacleManager {
         ctx.restore();
       }
 
-      // Pulsing neon gap-border glow along inner lips of Squad Survival / Classic Special animated obstacles
-      if ((this.gameMode === 'flock' && obs.spawnScore !== undefined && obs.spawnScore >= 25 && obs.spawnScore < 100) || obs.isClassicSpecialGroup2 || obs.isClassicSpecialGroup3) {
+      // Pulsing neon gap-border glow along inner lips of Squad Survival / Classic Special / Vertical Split animated obstacles
+      if ((this.gameMode === 'flock' && obs.spawnScore !== undefined && obs.spawnScore >= 25 && obs.spawnScore < 100) || obs.isClassicSpecialGroup2 || obs.isClassicSpecialGroup3 || obs.isVerticalApproachSplit) {
         const topShift = obs.shakeX || 0;
         const bottomShift = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
         const leftTop = obs.x + topShift;
@@ -3777,7 +3785,9 @@ export class ObstacleManager {
         const rightBottom = obs.x + obs.width + bottomShift;
 
         let glowColor = '#39ff14'; // Group 1 Default green
-        if (obs.isClassicSpecialGroup2 || (obs.spawnScore !== undefined && obs.spawnScore >= 50 && obs.spawnScore < 75)) {
+        if (obs.isVerticalApproachSplit) {
+          glowColor = '#00f3ff'; // Vertical Split neon cyan
+        } else if (obs.isClassicSpecialGroup2 || (obs.spawnScore !== undefined && obs.spawnScore >= 50 && obs.spawnScore < 75)) {
           glowColor = '#ff007f'; // Group 2 neon pink/magenta
         } else if (obs.isClassicSpecialGroup3 || (obs.spawnScore !== undefined && obs.spawnScore >= 75 && obs.spawnScore < 100)) {
           glowColor = '#ffd700'; // Group 3 neon gold
