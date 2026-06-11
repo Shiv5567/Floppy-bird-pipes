@@ -1246,7 +1246,7 @@ export class GameEngine {
     this.particleEngine.emitCoinSparkle(this.bird.x + 30, this.bird.y, '#00ffcc');
 
     // Flocking demo completion at score 500
-    if ((this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') && this.score >= 500 && this.state !== 'DEMO_COMPLETE') {
+    if ((this.gameMode === 'rescue' || this.gameMode === 'formation') && this.score >= 500 && this.state !== 'DEMO_COMPLETE') {
       this.state = 'DEMO_COMPLETE';
       this.soundManager.stopMusic();
       this.soundManager.playLevelUp();
