@@ -2857,7 +2857,7 @@ export class ObstacleManager {
       closedTopHeight = height / 2 - currentStepGap / 2;
       closedBottomHeight = height / 2 - currentStepGap / 2;
       animDuration = 0.60;
-      triggerDistance = 280; // trigger opening 280px before bird reaches the pipe
+      triggerDistance = 224; // trigger opening 224px before bird reaches the pipe (20% closer than 280px)
     }
 
     this.list.push(this.acquireObstacle({
