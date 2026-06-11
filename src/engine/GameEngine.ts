@@ -1117,7 +1117,7 @@ export class GameEngine {
   }
 
   public attemptRevive(): boolean {
-    if (this.revivesUsedThisRun >= 3) return false;
+    if (this.revivesUsedThisRun >= 10) return false;
     const progress = this.progressManager.getState();
     if (progress.gems < 5) return false;
 
@@ -1168,7 +1168,7 @@ export class GameEngine {
   }
 
   public attemptReviveFree(): void {
-    if (this.revivesUsedThisRun >= 3) return;
+    if (this.revivesUsedThisRun >= 10) return;
     this.revivesUsedThisRun++;
     this.hasRevivedThisRun = false;
     

@@ -2345,7 +2345,7 @@ export class UIManager {
 
 
 
-          ${this.engine.revivesUsedThisRun < 3 ? `
+          ${this.engine.revivesUsedThisRun < 10 ? `
           <div class="revive-heartbeat-box">
             
             <div style="position: relative; text-align: center; margin-bottom: 20px;">
@@ -2353,7 +2353,7 @@ export class UIManager {
                 REVIVE
               </div>
               <div style="position: absolute; right: 0; top: 50%; transform: translateY(-50%); font-size: 14px; color: #fff; font-weight: 800; letter-spacing: 1.5px; background: rgba(0,0,0,0.4); padding: 4px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
-                ${3 - this.engine.revivesUsedThisRun} / 3
+                ${10 - this.engine.revivesUsedThisRun} / 10
               </div>
             </div>
 
