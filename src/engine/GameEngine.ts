@@ -207,7 +207,7 @@ export class GameEngine {
 
     if (this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') {
       const width = this.renderer.canvas.width / this.renderer.dpr;
-      this.bird.x = width > 0 ? width / 2 : 240;
+      this.bird.x = width > 0 ? width * 0.30 : 144;
       this.flock = [this.bird];
       this.scoreThreshold = Math.floor(Math.random() * 11) + 10;
       this.currentFormation = 'v_shape';
@@ -307,7 +307,7 @@ export class GameEngine {
       targetX = 180;
     } else {
       if (this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') {
-        targetX = width > 0 ? width / 2 : 240;
+        targetX = width > 0 ? width * 0.30 : 144;
       } else {
         targetX = 120;
       }
@@ -1720,10 +1720,10 @@ export class GameEngine {
       
       let offsets = [
         { dx: 0, dy: 0 },         // Leader
-        { dx: -55, dy: -40 },     // Bird 1 (upper-back)
-        { dx: -55, dy: 40 },      // Bird 2 (lower-back)
-        { dx: -110, dy: -80 },    // Bird 3 (far upper-back)
-        { dx: -110, dy: 80 }      // Bird 4 (far lower-back)
+        { dx: -44, dy: -32 },     // Bird 1 (upper-back) - reduced 20% (from -55, -40)
+        { dx: -44, dy: 32 },      // Bird 2 (lower-back) - reduced 20% (from -55, 40)
+        { dx: -88, dy: -64 },     // Bird 3 (far upper-back) - reduced 20% (from -110, -80)
+        { dx: -88, dy: 64 }       // Bird 4 (far lower-back) - reduced 20% (from -110, 80)
       ];
 
       if (this.gameMode === 'formation') {
@@ -1755,11 +1755,13 @@ export class GameEngine {
         if (this.gameMode === 'rescue' || this.gameMode === 'flock') {
           const groupIdx = Math.floor((i - 1) / 4);
           const subIdx = (i - 1) % 4;
-          const dx = -55 * (Math.floor(subIdx / 2) + 1) - 35 * groupIdx;
-          const dy = (subIdx % 2 === 0 ? -40 : 40) * (Math.floor(subIdx / 2) + 1) + (groupIdx * (i % 2 === 0 ? -12 : 12));
+          const dx = (-55 * (Math.floor(subIdx / 2) + 1) - 35 * groupIdx) * 0.8;
+          const dy = ((subIdx % 2 === 0 ? -40 : 40) * (Math.floor(subIdx / 2) + 1) + (groupIdx * (i % 2 === 0 ? -12 : 12))) * 0.8;
           offset = { dx, dy };
         } else {
-          offset = offsets[i] || { dx: -55 * i, dy: (i % 2 === 0 ? 40 : -40) * Math.ceil(i / 2) };
+          const fallbackDx = -55 * i * 0.8;
+          const fallbackDy = ((i % 2 === 0 ? 40 : -40) * Math.ceil(i / 2)) * 0.8;
+          offset = offsets[i] || { dx: fallbackDx, dy: fallbackDy };
         }
         
         const targetX = this.bird.x + offset.dx;
