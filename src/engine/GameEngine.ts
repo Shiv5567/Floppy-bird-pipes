@@ -594,7 +594,7 @@ export class GameEngine {
 
         // Standard scrolling hazards
         this.obstacleManager.update(dt, this.scrollSpeed, this.score, this.progressManager.getState().activeWorld, width, height, activeTimeScale, selectedZone, selectedDifficulty, this.bird.x, undefined, this.gameMode);
-        this.powerupManager.update(dt, this.scrollSpeed, this.bird.x, this.bird.y, !!this.activePowerupsList['magnet'], width, height, activeTimeScale, this.obstacleManager.getList(), this.gameMode);
+        this.powerupManager.update(dt, this.scrollSpeed, this.bird.x, this.bird.y, !!this.activePowerupsList['magnet'], width, height, activeTimeScale, this.obstacleManager.getList(), this.gameMode, this.particleEngine, this.flock);
 
         // Check near-miss grazes
         const obstacles = this.obstacleManager.getList();
@@ -961,11 +961,11 @@ export class GameEngine {
         for (let idx = 0; idx < flockLen; idx++) {
           const b = this.flock[idx];
           if (!b) continue;
-          // Keep collecting until no more items are in range for this bird
+          // Keep collecting until no more items are in range for this bird (with 1.15x sensitivity boost)
           let collectedType = this.powerupManager.checkItemCollisions(
             b.x,
             b.y,
-            b.radius,
+            b.radius * b.sizeMultiplier * 1.15,
             this.particleEngine,
             this.soundManager
           );
@@ -974,7 +974,7 @@ export class GameEngine {
             collectedType = this.powerupManager.checkItemCollisions(
               b.x,
               b.y,
-              b.radius,
+              b.radius * b.sizeMultiplier * 1.15,
               this.particleEngine,
               this.soundManager
             );
@@ -984,7 +984,7 @@ export class GameEngine {
         const collectedType = this.powerupManager.checkItemCollisions(
           this.bird.x,
           this.bird.y,
-          this.bird.radius,
+          this.bird.radius * this.bird.sizeMultiplier,
           this.particleEngine,
           this.soundManager
         );

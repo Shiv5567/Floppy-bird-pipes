@@ -215,7 +215,8 @@ export class PowerupManager {
     timeScale: number,
     obstacles: Obstacle[],
     gameMode: 'endless' | 'level' | 'flock' | 'rescue' | 'formation' = 'endless',
-    particleEngine?: ParticleEngine
+    particleEngine?: ParticleEngine,
+    flock?: any[]
   ) {
     const dtCoeff = deltaTime * 60 * timeScale;
     const actualScrollSpeed = scrollSpeed * dtCoeff;
@@ -246,9 +247,28 @@ export class PowerupManager {
       }
       
       if (hasMagnet && (item.type === 'coin' || item.type === 'gem' || Math.random() < 0.2)) {
-        // Pull items towards the bird!
-        const dx = birdX - item.x;
-        const dy = birdY - item.y;
+        // Pull items towards the closest bird in the squad (or leader)!
+        let targetX = birdX;
+        let targetY = birdY;
+
+        if (flock && flock.length > 0) {
+          let minDistance = Infinity;
+          for (let j = 0; j < flock.length; j++) {
+            const b = flock[j];
+            if (!b) continue;
+            const tdx = b.x - item.x;
+            const tdy = b.y - item.y;
+            const tdist = Math.sqrt(tdx * tdx + tdy * tdy);
+            if (tdist < minDistance) {
+              minDistance = tdist;
+              targetX = b.x;
+              targetY = b.y;
+            }
+          }
+        }
+
+        const dx = targetX - item.x;
+        const dy = targetY - item.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         if (distance < 280) {
