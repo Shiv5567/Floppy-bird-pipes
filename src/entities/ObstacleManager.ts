@@ -1589,7 +1589,8 @@ export class ObstacleManager {
               }
             }
 
-            if (nearestOther && minDistance < 450) {
+            // Only apply safeguard correction to trailing pipes (obs.x > nearestOther.x) to completely eliminate mutual feedback loops and stutters!
+            if (nearestOther && minDistance < 450 && obs.x > nearestOther.x) {
               const otherGap = height - nearestOther.bottomHeight - nearestOther.topHeight;
               const otherCenterY = nearestOther.topHeight + otherGap / 2;
 
@@ -1599,11 +1600,9 @@ export class ObstacleManager {
 
               const diffY = centerY - otherCenterY;
               if (Math.abs(diffY) > maxCenterDiff) {
-                if (diffY > 0) {
-                  centerY = otherCenterY + maxCenterDiff;
-                } else {
-                  centerY = otherCenterY - maxCenterDiff;
-                }
+                const targetCenterY = otherCenterY + (diffY > 0 ? maxCenterDiff : -maxCenterDiff);
+                // Smoothly interpolate (lerp) toward target position to prevent sudden visual snapping/stuttering
+                centerY = centerY + (targetCenterY - centerY) * 0.15;
               }
             }
           }
