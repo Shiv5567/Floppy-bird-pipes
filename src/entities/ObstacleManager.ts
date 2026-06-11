@@ -2851,11 +2851,11 @@ export class ObstacleManager {
     let animDuration = 0.35;
     let triggerDistance = this.nextSpawnDistance * 0.50;
 
-    // Enable approach slide-open animations in endless flock mode for score 100 to 200
+    // Enable approach vertical shift animations in endless flock mode for score 100 to 200
     if (gameMode === 'flock' && score >= 100 && score <= 200) {
       approachAnimType = 'open';
-      closedTopHeight = targetCenterY;
-      closedBottomHeight = height - targetCenterY;
+      closedTopHeight = height / 2 - currentStepGap / 2;
+      closedBottomHeight = height / 2 - currentStepGap / 2;
       animDuration = 0.60;
       triggerDistance = 380; // trigger opening 380px before bird reaches the pipe
     }
