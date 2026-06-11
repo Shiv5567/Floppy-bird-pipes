@@ -62,7 +62,7 @@ export class GameEngine {
 
   // Auto-Hyper Boost: fires every 6 birds joined across all flock modes
   public birdsJoinedThisRun: number = 0;
-  public nextBossScore = 50;
+  public nextBossScore = 150;
   public playerBossHP = 0;
   public maxPlayerBossHP = 0;
   public obstacleManager: ObstacleManager;
@@ -201,7 +201,7 @@ export class GameEngine {
     this.activeSkillUnlocked = null;
     this.activeSkillCooldown = 0;
     this.activeSkillMaxCooldown = 0;
-    this.nextBossScore = 50;
+    this.nextBossScore = 150;
     this.playerBossHP = 0;
     this.maxPlayerBossHP = 0;
 
@@ -852,7 +852,7 @@ export class GameEngine {
             this.state = 'PLAYING';
             this.incrementScore(10); // Massive points
             if (this.gameMode === 'flock') {
-              this.nextBossScore = this.score + 50;
+              this.nextBossScore = this.score + 150;
             }
           }
         }
