@@ -1505,7 +1505,8 @@ export class ObstacleManager {
           } else if (gameMode !== 'flock' || (activeScore >= 100 && activeScore <= 300)) {
             if (effectiveScore >= 100 && effectiveScore < 200) {
               // Simple up-down (elevator) animation keeping gap constant
-              verticalShift = Math.sin(this.waveTime * 1.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.4) * 32 * motionAmpMult;
+              const ampIncrease = effectiveScore < 150 ? 1.15 : 1.25; // 15% increase for score 100-150, 25% increase for score 150-200
+              verticalShift = Math.sin(this.waveTime * 1.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.4) * (32 * ampIncrease) * motionAmpMult;
             } else if (effectiveScore >= 200 && effectiveScore < 300) {
               // 10% + 15% = 25% difficulty: shift centerY up and down by 50px
               const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
