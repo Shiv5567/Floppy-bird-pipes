@@ -1492,13 +1492,27 @@ export class ObstacleManager {
                 verticalShift = Math.sin(this.waveTime * 1.8 * motionSpeedMult) * 39.6 * elevatorDir * motionAmpMult; // Reduced by 12% (from 45)
               }
             } else if (effectiveScore >= 300 && effectiveScore < 500) {
-              // Score 300-500: full high difficulty sways up to 60px
-              const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
-              if (motionStyle === 0) {
-                verticalShift = Math.sin(this.waveTime * 2.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 60 * motionAmpMult;
+              if (gameMode === 'flock') {
+                // Interactive Proximity-Damped Breathing Gate:
+                // Obstacle sways and breathes (pulses gap) dynamically when far away, 
+                // but smoothly stabilizes and stops as the bird approaches within 350px.
+                const dx = _birdX !== undefined ? obs.x - _birdX : 500;
+                const proximity = Math.max(0.0, Math.min(1.0, (dx - 80) / 270)); // Lerps from 1.0 (far) to 0.0 (near)
+                
+                const baseSway = Math.sin(this.waveTime * 2.0 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 60 * motionAmpMult;
+                const baseGapDelta = Math.sin(this.waveTime * 3.0 * motionSpeedMult) * 35;
+                
+                verticalShift = baseSway * proximity;
+                currentGap = currentGap + (baseGapDelta * proximity);
               } else {
-                const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-                verticalShift = Math.sin(this.waveTime * 2.0 * motionSpeedMult) * 48.4 * elevatorDir * motionAmpMult; // Reduced by 12% (from 55)
+                // Score 300-500: full high difficulty sways up to 60px
+                const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
+                if (motionStyle === 0) {
+                  verticalShift = Math.sin(this.waveTime * 2.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 60 * motionAmpMult;
+                } else {
+                  const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
+                  verticalShift = Math.sin(this.waveTime * 2.0 * motionSpeedMult) * 48.4 * elevatorDir * motionAmpMult; // Reduced by 12% (from 55)
+                }
               }
             } else if (effectiveScore >= 500) {
               // Apply the same vertical motion or animation as score 200 to 300 but progressively increased so it can be felt!
