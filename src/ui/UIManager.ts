@@ -458,7 +458,7 @@ export class UIManager {
           timerText.innerText = `⚡ HYPER BOOST: ${this.engine.boosterTimer.toFixed(1)}s`;
         }
         if (barInner) {
-          const bPct = Math.max(0, Math.min(100, (this.engine.boosterTimer / 2.0) * 100));
+          const bPct = Math.max(0, Math.min(100, (this.engine.boosterTimer / 1.0) * 100));
           barInner.style.width = `${bPct}%`;
         }
       }
@@ -1756,7 +1756,7 @@ export class UIManager {
 
     let boosterOverlayHTML = '';
     if (this.engine.boosterActive) {
-      const bPct = Math.max(0, Math.min(100, (this.engine.boosterTimer / 2.0) * 100));
+      const bPct = Math.max(0, Math.min(100, (this.engine.boosterTimer / 1.0) * 100));
       boosterOverlayHTML = `
         <div class="hud-booster-overlay fade-in glass-card" style="position: absolute; top: 85px; left: 50%; transform: translateX(-50%); padding: 10px 24px; border-radius: 12px; border: 2px solid #ffd700; background: rgba(20, 15, 0, 0.85); box-shadow: 0 0 20px rgba(255, 215, 0, 0.45); display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; z-index: 100;">
           <div class="hud-booster-title" style="font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 900; color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.6); display: flex; align-items: center; gap: 8px;">

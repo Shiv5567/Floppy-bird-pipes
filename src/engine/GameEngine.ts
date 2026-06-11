@@ -1305,12 +1305,8 @@ export class GameEngine {
       this.boosterActive = true;
       this.boosterTapsThisRun++;
       
-      // Every tap/activation in flock mode should add 50 points (cross 50 score/obstacles).
-      if (this.gameMode === 'flock') {
-        this.boosterTimer = 1.0; // 1 second * 50 score/sec = 50 score points/obstacles
-      } else {
-        this.boosterTimer = 2.0; // 2 seconds * 50 score/sec = 100 score points/obstacles
-      }
+      // Every tap/activation should add exactly 50 points (cross 50 score/obstacles).
+      this.boosterTimer = 1.0; // 1 second * 50 score/sec = 50 score points/obstacles on every action/tap
       this.boosterScoreAccumulator = 0.0;
       this.bird.isInvincible = true;
       
