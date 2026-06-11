@@ -61,7 +61,6 @@ export interface Obstacle {
   energyBallRadius?: number;
   isOrbitalSway?: boolean;
   isGoldSplitGate?: boolean;
-  isVerticalApproachSplit?: boolean;
 }
 
 export class ObstacleManager {
@@ -133,8 +132,7 @@ export class ObstacleManager {
       energyBallSpeedY: undefined,
       energyBallRadius: undefined,
       isOrbitalSway: false,
-      isGoldSplitGate: false,
-      isVerticalApproachSplit: false
+      isGoldSplitGate: false
     }, props);
     return obs;
   }
@@ -1391,37 +1389,10 @@ export class ObstacleManager {
 
           // Calculate vertical shift if sways are active
           let verticalShift = 0;
-          const activeScore = obs.spawnScore !== undefined ? obs.spawnScore : score;
           
           if (obs.isGoldSplitGate) {
             // Gold Split Gate gentle electric bobbing/sway once opened
             verticalShift = Math.sin(this.waveTime * 4.0 + (obs.obstacleIdx || 0) * 0.8) * 8;
-          } else if (obs.isVerticalApproachSplit || (gameMode === 'flock' && activeScore >= 100 && activeScore <= 200)) {
-            const motionSpeedMult = gameMode === 'flock' ? 0.7 : 1.0;
-            const motionAmpMult = gameMode === 'flock' ? 2.24 : 1.0;
-            
-            // Score 100 to 200 range sways
-            const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(obs.spawnCenterY!)) % 2;
-            if (motionStyle === 0) {
-              verticalShift = Math.sin(this.waveTime * 1.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 25 * motionAmpMult;
-            } else {
-              const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-              verticalShift = Math.sin(this.waveTime * 1.2 * motionSpeedMult) * 20 * elevatorDir * motionAmpMult;
-            }
-
-            // Playability Safeguard: Clamp vertical shift to prevent physically impossible transitions
-            let isTightHorizontalGap = false;
-            for (let j = 0; j < this.list.length; j++) {
-              const other = this.list[j];
-              if (other !== obs && Math.abs(obs.x - other.x) < 320) {
-                isTightHorizontalGap = true;
-                break;
-              }
-            }
-            if (isTightHorizontalGap) {
-              const maxClamp = 40;
-              verticalShift = Math.max(-maxClamp, Math.min(maxClamp, verticalShift));
-            }
           }
 
           const baseTargetTop = obs.spawnCenterY! - obs.gapHeight! / 2;
@@ -1533,14 +1504,8 @@ export class ObstacleManager {
             verticalShift = Math.sin(this.waveTime * 4.0 + (obs.obstacleIdx || 0) * 0.8) * 8;
           } else if (gameMode !== 'flock' || (activeScore >= 100 && activeScore <= 300)) {
             if (effectiveScore >= 100 && effectiveScore < 200) {
-              // 10% difficulty: shift centerY up and down by 25px
-              const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
-              if (motionStyle === 0) {
-                verticalShift = Math.sin(this.waveTime * 1.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 25 * motionAmpMult;
-              } else {
-                const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-                verticalShift = Math.sin(this.waveTime * 1.2 * motionSpeedMult) * 20 * elevatorDir * motionAmpMult;
-              }
+              // Simple up-down (elevator) animation keeping gap constant
+              verticalShift = Math.sin(this.waveTime * 1.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.4) * 32 * motionAmpMult;
             } else if (effectiveScore >= 200 && effectiveScore < 300) {
               // 10% + 15% = 25% difficulty: shift centerY up and down by 50px
               const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
@@ -1654,7 +1619,7 @@ export class ObstacleManager {
 
         // 4. Visual effects - spawn dynamic movement particles
         if (_particleEngine) {
-          if (obs.isOrbitalSway || obs.isGoldSplitGate || obs.isVerticalApproachSplit) {
+          if (obs.isOrbitalSway || obs.isGoldSplitGate) {
             // High-density particle effects for Special range (spawning from both lips)
             if (Math.random() < 0.16) {
               const pxTop = obs.x + Math.random() * obs.width;
@@ -1667,12 +1632,7 @@ export class ObstacleManager {
               let pGlow = true;
               let pGlowColor = 'rgba(57, 255, 20, 0.4)';
 
-              if (obs.isVerticalApproachSplit) {
-                // Cyan / electric blue stars and sparks for vertical approach split obstacles
-                pColor = Math.random() > 0.5 ? '#00f3ff' : '#ffffff';
-                pShape = Math.random() > 0.5 ? 'star' : 'spark';
-                pGlowColor = 'rgba(0, 243, 255, 0.4)';
-              } else if (obs.isGoldSplitGate) {
+              if (obs.isGoldSplitGate) {
                 // Group 3 (Electric Gold Stars & Sparks)
                 pColor = Math.random() > 0.5 ? '#ffd700' : '#ffff00';
                 pShape = Math.random() > 0.5 ? 'star' : 'spark';
@@ -2989,41 +2949,20 @@ export class ObstacleManager {
 
     let isOrbitalSway = false;
     let isGoldSplitGate = false;
-    let isVerticalApproachSplit = false;
 
-    // 1. Check for 15% vertical approach split gate in 100-200 range (for both endless and flock modes)
-    if ((gameMode === 'endless' || gameMode === 'flock') && score >= 100 && score <= 200 && Math.random() < 0.15) {
-      isVerticalApproachSplit = true;
-      approachAnimType = 'open';
-      // Completely closed, meeting at targetCenterY
-      closedTopHeight = targetCenterY;
-      closedBottomHeight = height - targetCenterY;
-      animDuration = 0.50;
-      triggerDistance = 260; // trigger opening 260px before bird reaches the pipe
-    } else {
-      // 2. Otherwise, check for random distribution of Group 1 (Orbital Sway) and Group 3 (Gold Split Gate) in score 1-200 range
-      if ((gameMode === 'endless' || gameMode === 'flock') && score >= 1 && score <= 200) {
-        if (Math.random() < 0.35) { // 35% chance of applying a special animation
-          if (Math.random() < 0.50) {
-            isOrbitalSway = true;
-          } else {
-            isGoldSplitGate = true;
-            approachAnimType = 'open';
-            closedTopHeight = targetCenterY;
-            closedBottomHeight = height - targetCenterY;
-            animDuration = 0.45;
-            triggerDistance = 260; // trigger opening 260px before bird reaches the pipe
-          }
+    // Check for random distribution of Group 1 (Orbital Sway) and Group 3 (Gold Split Gate) in score 1-200 range
+    if ((gameMode === 'endless' || gameMode === 'flock') && score >= 1 && score <= 200) {
+      if (Math.random() < 0.35) { // 35% chance of applying a special animation
+        if (Math.random() < 0.50) {
+          isOrbitalSway = true;
+        } else {
+          isGoldSplitGate = true;
+          approachAnimType = 'open';
+          closedTopHeight = targetCenterY;
+          closedBottomHeight = height - targetCenterY;
+          animDuration = 0.45;
+          triggerDistance = 260; // trigger opening 260px before bird reaches the pipe
         }
-      }
-
-      // 3. For flock mode, the 100-200 range has its own standard vertical approach split gates if none of the above were rolled
-      if (gameMode === 'flock' && score >= 100 && score <= 200 && !isOrbitalSway && !isGoldSplitGate) {
-        approachAnimType = 'open';
-        closedTopHeight = height / 2 - currentStepGap / 2;
-        closedBottomHeight = height / 2 - currentStepGap / 2;
-        animDuration = 0.60;
-        triggerDistance = 224; // trigger opening 224px before bird reaches the pipe
       }
     }
 
@@ -3066,8 +3005,7 @@ export class ObstacleManager {
       isTriggered: false,
       isSpecialSplit: false,
       isOrbitalSway,
-      isGoldSplitGate,
-      isVerticalApproachSplit
+      isGoldSplitGate
     }));
   }
 
