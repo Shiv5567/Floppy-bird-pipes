@@ -59,6 +59,8 @@ export interface Obstacle {
   energyBallY?: number;
   energyBallSpeedY?: number;
   energyBallRadius?: number;
+  isClassicSpecialGroup2?: boolean;
+  isClassicSpecialGroup3?: boolean;
 }
 
 export class ObstacleManager {
@@ -129,7 +131,9 @@ export class ObstacleManager {
       hasEnergyBall: false,
       energyBallY: undefined,
       energyBallSpeedY: undefined,
-      energyBallRadius: undefined
+      energyBallRadius: undefined,
+      isClassicSpecialGroup2: false,
+      isClassicSpecialGroup3: false
     }, props);
     return obs;
   }
@@ -1389,8 +1393,8 @@ export class ObstacleManager {
           let verticalShift = 0;
           const activeScore = obs.spawnScore !== undefined ? obs.spawnScore : score;
           
-          if (gameMode === 'flock' && activeScore >= 75 && activeScore < 100) {
-            // Group 3 (score 75-100) gentle electric bobbing/sway once opened
+          if (obs.isClassicSpecialGroup3 || (gameMode === 'flock' && activeScore >= 75 && activeScore < 100)) {
+            // Group 3 (score 75-100 / classic special Group 3) gentle electric bobbing/sway once opened
             verticalShift = Math.sin(this.waveTime * 4.0 + (obs.obstacleIdx || 0) * 0.8) * 8;
           } else if (gameMode === 'flock' && activeScore >= 100 && activeScore <= 200) {
             const effectiveScore = Math.max(100, activeScore);
@@ -1525,7 +1529,18 @@ export class ObstacleManager {
             motionAmpMult = 0.7;
           }
 
-          if (gameMode === 'flock' && activeScore >= 25 && activeScore < 100) {
+          if (obs.isClassicSpecialGroup2 || obs.isClassicSpecialGroup3) {
+            if (obs.isClassicSpecialGroup2) {
+              // Group 2 (Score 50-75): Cyberpunk Neon Breathing Gate (Pulsating gap size)
+              const pulseVal = Math.sin(this.waveTime * 2.0 + (obs.obstacleIdx || 0) * 0.3) * 45;
+              currentGap = Math.max(225, currentGap + pulseVal);
+              verticalShift = 0;
+            } else if (obs.isClassicSpecialGroup3) {
+              // Group 3 (Score 75-100): Electric Gold Split Gate
+              // Opening is handled in approachAnim. Once opened, apply subtle vertical bobbing.
+              verticalShift = Math.sin(this.waveTime * 4.0 + (obs.obstacleIdx || 0) * 0.8) * 8;
+            }
+          } else if (gameMode === 'flock' && activeScore >= 25 && activeScore < 100) {
             if (activeScore >= 25 && activeScore < 50) {
               // Group 1 (Score 25-50): Emerald Cavern Undulation (Sine-wave sway)
               // Mode friendly: gentle 25px amplitude, moderate speed
@@ -1665,8 +1680,8 @@ export class ObstacleManager {
         // 4. Visual effects - spawn dynamic movement particles
         if (_particleEngine) {
           const activeScore = obs.spawnScore !== undefined ? obs.spawnScore : score;
-          if (gameMode === 'flock' && activeScore >= 25 && activeScore < 100) {
-            // High-density particle effects for Squad Survival Mode 25-100 range (spawning from both lips)
+          if ((gameMode === 'flock' && activeScore >= 25 && activeScore < 100) || obs.isClassicSpecialGroup2 || obs.isClassicSpecialGroup3) {
+            // High-density particle effects for Squad Survival/Classic Special range (spawning from both lips)
             if (Math.random() < 0.16) {
               const pxTop = obs.x + Math.random() * obs.width;
               const pyTop = obs.topHeight;
@@ -1678,21 +1693,21 @@ export class ObstacleManager {
               let pGlow = true;
               let pGlowColor = 'rgba(57, 255, 20, 0.4)';
 
-              if (activeScore >= 25 && activeScore < 50) {
-                // Group 1 (Green/Emerald Leafs & Sparks)
-                pColor = Math.random() > 0.5 ? '#39ff14' : '#00ff88';
-                pShape = Math.random() > 0.6 ? 'leaf' : 'spark';
-                pGlowColor = 'rgba(57, 255, 20, 0.4)';
-              } else if (activeScore >= 50 && activeScore < 75) {
+              if (obs.isClassicSpecialGroup2 || (activeScore >= 50 && activeScore < 75)) {
                 // Group 2 (Cyberpunk Neon Pink Sparks & Bubbles)
                 pColor = Math.random() > 0.5 ? '#ff007f' : '#da70d6';
                 pShape = Math.random() > 0.6 ? 'bubble' : 'spark';
                 pGlowColor = 'rgba(255, 0, 127, 0.4)';
-              } else if (activeScore >= 75 && activeScore < 100) {
+              } else if (obs.isClassicSpecialGroup3 || (activeScore >= 75 && activeScore < 100)) {
                 // Group 3 (Electric Gold Stars & Sparks)
                 pColor = Math.random() > 0.5 ? '#ffd700' : '#ffff00';
                 pShape = Math.random() > 0.5 ? 'star' : 'spark';
                 pGlowColor = 'rgba(255, 215, 0, 0.4)';
+              } else {
+                // Group 1 (Green/Emerald Leafs & Sparks)
+                pColor = Math.random() > 0.5 ? '#39ff14' : '#00ff88';
+                pShape = Math.random() > 0.6 ? 'leaf' : 'spark';
+                pGlowColor = 'rgba(57, 255, 20, 0.4)';
               }
 
               // Spawn top lip
@@ -2998,6 +3013,25 @@ export class ObstacleManager {
     let animDuration = 0.35;
     let triggerDistance = this.nextSpawnDistance * 0.50;
 
+    let isClassicSpecialGroup2 = false;
+    let isClassicSpecialGroup3 = false;
+
+    if (gameMode === 'endless' && score >= 1 && score <= 200) {
+      if (Math.random() < 0.30) {
+        if (Math.random() < 0.5) {
+          isClassicSpecialGroup2 = true;
+        } else {
+          isClassicSpecialGroup3 = true;
+          approachAnimType = 'open';
+          // Completely closed, meeting at targetCenterY
+          closedTopHeight = targetCenterY;
+          closedBottomHeight = height - targetCenterY;
+          animDuration = 0.45;
+          triggerDistance = 260; // trigger opening 260px before bird reaches the pipe
+        }
+      }
+    }
+
     // Enable approach vertical shift animations in endless flock mode for score 75 to 100 and 100 to 200
     if (gameMode === 'flock' && score >= 75 && score < 100) {
       approachAnimType = 'open';
@@ -3035,7 +3069,7 @@ export class ObstacleManager {
       laserTimer: 0,
       oscillationFrequency: 0,
       oscillationRange: 0,
-      levelNum: (gameMode === 'flock' && score >= 75 && score < 100)
+      levelNum: (isClassicSpecialGroup3 || (gameMode === 'flock' && score >= 75 && score < 100))
         ? 1 + (this.endlessObstacleCount % 5) * 5
         : levelNum,
       gapHeight: currentStepGap,
@@ -3051,7 +3085,9 @@ export class ObstacleManager {
       animDuration,
       triggerDistance,
       isTriggered: false,
-      isSpecialSplit: (gameMode === 'flock' && score >= 75 && score < 100)
+      isSpecialSplit: isClassicSpecialGroup3 || (gameMode === 'flock' && score >= 75 && score < 100),
+      isClassicSpecialGroup2,
+      isClassicSpecialGroup3
     }));
   }
 
@@ -3731,8 +3767,8 @@ export class ObstacleManager {
         ctx.restore();
       }
 
-      // Pulsing neon gap-border glow along inner lips of Squad Survival animated obstacles (score 25-100)
-      if (this.gameMode === 'flock' && obs.spawnScore !== undefined && obs.spawnScore >= 25 && obs.spawnScore < 100) {
+      // Pulsing neon gap-border glow along inner lips of Squad Survival / Classic Special animated obstacles
+      if ((this.gameMode === 'flock' && obs.spawnScore !== undefined && obs.spawnScore >= 25 && obs.spawnScore < 100) || obs.isClassicSpecialGroup2 || obs.isClassicSpecialGroup3) {
         const topShift = obs.shakeX || 0;
         const bottomShift = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
         const leftTop = obs.x + topShift;
@@ -3741,9 +3777,9 @@ export class ObstacleManager {
         const rightBottom = obs.x + obs.width + bottomShift;
 
         let glowColor = '#39ff14'; // Group 1 Default green
-        if (obs.spawnScore >= 50 && obs.spawnScore < 75) {
+        if (obs.isClassicSpecialGroup2 || (obs.spawnScore !== undefined && obs.spawnScore >= 50 && obs.spawnScore < 75)) {
           glowColor = '#ff007f'; // Group 2 neon pink/magenta
-        } else if (obs.spawnScore >= 75 && obs.spawnScore < 100) {
+        } else if (obs.isClassicSpecialGroup3 || (obs.spawnScore !== undefined && obs.spawnScore >= 75 && obs.spawnScore < 100)) {
           glowColor = '#ffd700'; // Group 3 neon gold
         }
 
