@@ -3161,10 +3161,11 @@ export class ObstacleManager {
     }
 
     // 1. Check floor/ceiling boundaries with generous collision tolerance
+    // Ceiling is a fixed clamped boundary like classic endless (no death)
     if (bird.y - effectiveRadius <= 5) {
-      return {} as Obstacle; // Collided with ceiling
-    }
-    if (bird.y + effectiveRadiusBottom >= height - 35) {
+      bird.y = 5 + effectiveRadius;
+      if (bird.vy < 0) bird.vy = 0;
+    } else if (bird.y + effectiveRadiusBottom >= height - 35) {
       return {} as Obstacle; // Collided with floor
     }
 

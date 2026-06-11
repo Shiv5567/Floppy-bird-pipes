@@ -416,23 +416,26 @@ export class GameEngine {
       }
       
       // Keep bird within screen boundaries for all playing states (including powerups)
-      if (this.state !== 'PLAYING' || this.bird.isInvincible || this.bird.isGhost) {
-        if (this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') {
-          for (const b of this.flock) {
-            if (b.y - b.radius < 5) {
-              b.y = 5 + b.radius;
-              if (b.vy < 0) b.vy = 0;
-            }
+      // Top boundary (ceiling) is always clamped so you cannot fly above the screen
+      if (this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') {
+        for (const b of this.flock) {
+          if (b.y - b.radius < 5) {
+            b.y = 5 + b.radius;
+            if (b.vy < 0) b.vy = 0;
+          }
+          if (this.state !== 'PLAYING' || b.isInvincible || b.isGhost || this.boosterActive || this.boosterDeactivating) {
             if (b.y + b.radius > height - 35) {
               b.y = height - 35 - b.radius;
               if (b.vy > 0) b.vy = 0;
             }
           }
-        } else {
-          if (this.bird.y - this.bird.radius < 5) {
-            this.bird.y = 5 + this.bird.radius;
-            if (this.bird.vy < 0) this.bird.vy = 0;
-          }
+        }
+      } else {
+        if (this.bird.y - this.bird.radius < 5) {
+          this.bird.y = 5 + this.bird.radius;
+          if (this.bird.vy < 0) this.bird.vy = 0;
+        }
+        if (this.state !== 'PLAYING' || this.bird.isInvincible || this.bird.isGhost || this.boosterActive || this.boosterDeactivating) {
           if (this.bird.y + this.bird.radius > height - 35) {
             this.bird.y = height - 35 - this.bird.radius;
             if (this.bird.vy > 0) this.bird.vy = 0;
@@ -952,22 +955,29 @@ export class GameEngine {
         }
       }
 
-      // Check items pickup
+      // Check items pickup — all birds in flock collect all objects in their path
       if (this.gameMode === 'flock' || this.gameMode === 'rescue' || this.gameMode === 'formation') {
         const flockLen = this.flock.length;
         for (let idx = 0; idx < flockLen; idx++) {
           const b = this.flock[idx];
           if (!b) continue;
-          const collectedType = this.powerupManager.checkItemCollisions(
+          // Keep collecting until no more items are in range for this bird
+          let collectedType = this.powerupManager.checkItemCollisions(
             b.x,
             b.y,
             b.radius,
             this.particleEngine,
             this.soundManager
           );
-          if (collectedType) {
+          while (collectedType) {
             this.activatePowerup(collectedType);
-            break; // only process one item per frame/collision event
+            collectedType = this.powerupManager.checkItemCollisions(
+              b.x,
+              b.y,
+              b.radius,
+              this.particleEngine,
+              this.soundManager
+            );
           }
         }
       } else {
