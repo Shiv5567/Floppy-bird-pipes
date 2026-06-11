@@ -1686,24 +1686,7 @@ export class GameEngine {
    * Called after any bird joins the flock.
    */
   private checkAutoBoost() {
-    if (this.birdsJoinedThisRun > 0 && this.birdsJoinedThisRun % 6 === 0) {
-      if (!this.boosterActive && !this.boosterDeactivating) {
-        this.activatePowerup('booster');
-        // Reset HUD charge timer so the button doesn't also immediately fire
-        this.boosterSpawnTimer = 5.0;
-        // Extra visual fireworks for the milestone
-        const width  = this.renderer.canvas.width  / this.renderer.dpr;
-        const height = this.renderer.canvas.height / this.renderer.dpr;
-        this.particleEngine.emitExplosion(width / 2, height / 2, '#ffd700', 40);
-        this.particleEngine.emitExplosion(width / 2, height / 2, '#00f3ff', 30);
-        window.dispatchEvent(new CustomEvent('hud_alert', {
-          detail: {
-            text: '⚡ HYPER BOOST UNLOCKED! ⚡',
-            sub: `${this.birdsJoinedThisRun} birds rescued — Invincible speed burst!`
-          }
-        }));
-      }
-    }
+    // Automatic hyper boost speed activation removed as requested
   }
 
   /**
