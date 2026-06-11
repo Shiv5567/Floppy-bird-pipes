@@ -1700,7 +1700,7 @@ export class ObstacleManager {
         }
 
         if (gameMode === 'flock') {
-          dist = Math.max(420, Math.min(900, dist)); // Clamp horizontal gap between 420px and 900px
+          dist = Math.max(400, Math.min(900, dist)); // Clamp horizontal gap between 400px and 900px
         }
 
         this.nextSpawnDistance = dist;
