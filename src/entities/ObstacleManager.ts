@@ -1652,7 +1652,7 @@ export class ObstacleManager {
         }
 
         if (gameMode === 'flock') {
-          dist = Math.max(420, dist); // Enforce minimum horizontal gap of 420px
+          dist = Math.max(500, dist); // Enforce minimum horizontal gap of 500px
         }
 
         this.nextSpawnDistance = dist;
