@@ -1305,8 +1305,8 @@ export class GameEngine {
       this.boosterActive = true;
       this.boosterTapsThisRun++;
       
-      // On the first tap/activation in flock mode, it should add 50 points (cross 50 score/obstacles).
-      if (this.gameMode === 'flock' && this.boosterTapsThisRun === 1) {
+      // Every tap/activation in flock mode should add 50 points (cross 50 score/obstacles).
+      if (this.gameMode === 'flock') {
         this.boosterTimer = 1.0; // 1 second * 50 score/sec = 50 score points/obstacles
       } else {
         this.boosterTimer = 2.0; // 2 seconds * 50 score/sec = 100 score points/obstacles
