@@ -1495,6 +1495,8 @@ export class ObstacleManager {
           }
         } else {
           // Standard endless mode obstacle movement (sways/oscillations)
+          obs.shakeX = 0;
+          obs.shakeX2 = 0;
           let centerY = obs.spawnCenterY !== undefined ? obs.spawnCenterY : (obs.initialTopHeight + (height - obs.initialBottomHeight - obs.initialTopHeight) / 2);
           let currentGap = obs.gapHeight !== undefined ? obs.gapHeight : (height - obs.initialBottomHeight - obs.initialTopHeight);
 
@@ -1533,15 +1535,105 @@ export class ObstacleManager {
             }
           } else if (gameMode === 'flock' && activeScore >= 25 && activeScore < 100) {
             if (activeScore >= 25 && activeScore < 50) {
-              // Group 1 (Score 25-50): Emerald Cavern Undulation (Sine-wave sway)
-              // Mode friendly: gentle 25px amplitude, moderate speed
-              verticalShift = Math.sin(this.waveTime * 1.5 + (obs.obstacleIdx || 0) * 0.5) * 25;
+              // Group 1 (Score 25-50): Cosmic Vortex Orbital Gates (Circular orbital sway)
+              const orbitSpeed = 2.2;
+              const orbitRadius = 28;
+              const angle = this.waveTime * orbitSpeed + (obs.obstacleIdx || 0) * 0.7;
+              obs.shakeX = Math.cos(angle) * orbitRadius;
+              obs.shakeX2 = obs.shakeX;
+              verticalShift = Math.sin(angle) * orbitRadius;
             } else if (activeScore >= 50 && activeScore < 75) {
-              // Group 2 (Score 50-75): Cyberpunk Neon Breathing Gate (Pulsating gap size)
-              // Mode friendly: clamp minimum gap to 225px (baseline 270px)
-              const pulseVal = Math.sin(this.waveTime * 2.0 + (obs.obstacleIdx || 0) * 0.3) * 45;
-              currentGap = Math.max(225, currentGap + pulseVal);
+              // Group 2 (Score 50-75): Industrial Piston Crusher Gates (Heavy piston snapping crusher motion)
+              const cyclePeriod = 3.0;
+              const actualIdx = obs.obstacleIdx || 0;
+              const cycleTime = (this.waveTime + actualIdx * 0.9) % cyclePeriod;
+
+              let gapPulse = 0;
+              if (cycleTime < 1.2) {
+                // Wide open (+35px gap extension)
+                gapPulse = 35;
+              } else if (cycleTime >= 1.2 && cycleTime < 1.4) {
+                // Slamming shut (0.2s transition): drops from +35px to -65px (tight gap 205px if baseline is 270px)
+                const t = (cycleTime - 1.2) / 0.2;
+                const easeSlam = t * t * t; // Cubic ease-in
+                gapPulse = 35 - 100 * easeSlam;
+              } else if (cycleTime >= 1.4 && cycleTime < 2.0) {
+                // Held closed (0.6s duration): gap is -65px (tight 205px)
+                gapPulse = -65;
+              } else if (cycleTime >= 2.0 && cycleTime < 3.0) {
+                // Slow retract/open (1.0s transition): back from -65px to +35px
+                const t = (cycleTime - 2.0) / 1.0;
+                const easeOpen = 1 - (1 - t) * (1 - t); // Quadratic ease-out
+                gapPulse = -65 + 100 * easeOpen;
+              }
+
+              currentGap = currentGap + gapPulse;
               verticalShift = 0;
+
+              // Check if we just transitioned past t = 1.4s (fully slammed shut) to trigger particle burst
+              const prevTime = ((this.waveTime - deltaTime * timeScale * motionSpeedScale) + actualIdx * 0.9) % cyclePeriod;
+              if (prevTime < 1.4 && cycleTime >= 1.4 && _particleEngine) {
+                // Spawn a dense explosion of hot orange sparks and grey smoke from both lips!
+                const numParticles = 14;
+                for (let k = 0; k < numParticles; k++) {
+                  const pxTop = obs.x + Math.random() * obs.width;
+                  const pyTop = obs.topHeight;
+                  const pxBot = obs.x + Math.random() * obs.width;
+                  const pyBot = height - obs.bottomHeight;
+
+                  // Sparks
+                  _particleEngine.spawn(
+                    pxTop, pyTop,
+                    -scrollSpeed * 0.3 + (Math.random() - 0.5) * 2.5,
+                    (Math.random() - 0.7) * 2.0,
+                    '#ff4500', // orange-red fire
+                    2.0 + Math.random() * 2.5,
+                    1.0,
+                    0.03 + Math.random() * 0.02,
+                    'spark',
+                    true,
+                    'rgba(255, 69, 0, 0.4)'
+                  );
+                  _particleEngine.spawn(
+                    pxBot, pyBot,
+                    -scrollSpeed * 0.3 + (Math.random() - 0.5) * 2.5,
+                    (Math.random() - 0.3) * 2.0,
+                    '#ffcc00', // yellow-orange fire
+                    2.0 + Math.random() * 2.5,
+                    1.0,
+                    0.03 + Math.random() * 0.02,
+                    'spark',
+                    true,
+                    'rgba(255, 204, 0, 0.4)'
+                  );
+
+                  // Smoke
+                  _particleEngine.spawn(
+                    pxTop + (Math.random() - 0.5) * 15,
+                    pyTop + (Math.random() - 0.5) * 8,
+                    -scrollSpeed * 0.4 + (Math.random() - 0.5) * 0.8,
+                    (Math.random() - 0.5) * 0.5,
+                    '#a9a9a9', // dark grey smoke
+                    3.0 + Math.random() * 3.0,
+                    0.6,
+                    0.015,
+                    'bubble',
+                    false
+                  );
+                  _particleEngine.spawn(
+                    pxBot + (Math.random() - 0.5) * 15,
+                    pyBot + (Math.random() - 0.5) * 8,
+                    -scrollSpeed * 0.4 + (Math.random() - 0.5) * 0.8,
+                    (Math.random() - 0.5) * 0.5,
+                    '#d3d3d3', // light grey smoke
+                    3.0 + Math.random() * 3.0,
+                    0.6,
+                    0.015,
+                    'bubble',
+                    false
+                  );
+                }
+              }
             } else if (activeScore >= 75 && activeScore < 100) {
               // Group 3 (Score 75-100): Electric Gold Split Gate
               // Opening is handled in approachAnim. Once opened, apply subtle vertical bobbing.
@@ -1689,18 +1781,23 @@ export class ObstacleManager {
                 pColor = Math.random() > 0.5 ? '#00f3ff' : '#ffffff';
                 pShape = Math.random() > 0.5 ? 'star' : 'spark';
                 pGlowColor = 'rgba(0, 243, 255, 0.4)';
-              } else if (obs.isClassicSpecialGroup2 || (activeScore >= 50 && activeScore < 75)) {
-                // Group 2 (Cyberpunk Neon Pink Sparks & Bubbles)
-                pColor = Math.random() > 0.5 ? '#ff007f' : '#da70d6';
-                pShape = Math.random() > 0.6 ? 'bubble' : 'spark';
-                pGlowColor = 'rgba(255, 0, 127, 0.4)';
-              } else if (obs.isClassicSpecialGroup3 || (activeScore >= 75 && activeScore < 100)) {
+              } else if (obs.isClassicSpecialGroup2 || (gameMode === 'flock' && activeScore >= 50 && activeScore < 75)) {
+                // Group 2 (Crusher Gate - orange fire sparks or grey smoke bubbles)
+                pColor = Math.random() > 0.5 ? '#ff4500' : '#a9a9a9';
+                pShape = Math.random() > 0.5 ? 'spark' : 'bubble';
+                pGlowColor = 'rgba(255, 69, 0, 0.3)';
+              } else if (obs.isClassicSpecialGroup3 || (gameMode === 'flock' && activeScore >= 75 && activeScore < 100)) {
                 // Group 3 (Electric Gold Stars & Sparks)
                 pColor = Math.random() > 0.5 ? '#ffd700' : '#ffff00';
                 pShape = Math.random() > 0.5 ? 'star' : 'spark';
                 pGlowColor = 'rgba(255, 215, 0, 0.4)';
+              } else if (gameMode === 'flock' && activeScore >= 25 && activeScore < 50) {
+                // Group 1 (Cosmic Vortex - violet/purple sparks & bubbles)
+                pColor = Math.random() > 0.5 ? '#d946ef' : '#8b5cf6';
+                pShape = Math.random() > 0.5 ? 'bubble' : 'spark';
+                pGlowColor = 'rgba(217, 70, 239, 0.4)';
               } else {
-                // Group 1 (Green/Emerald Leafs & Sparks)
+                // Group 1 (Green/Emerald Leafs & Sparks) - default other cases
                 pColor = Math.random() > 0.5 ? '#39ff14' : '#00ff88';
                 pShape = Math.random() > 0.6 ? 'leaf' : 'spark';
                 pGlowColor = 'rgba(57, 255, 20, 0.4)';
@@ -3775,35 +3872,178 @@ export class ObstacleManager {
         ctx.restore();
       }
 
-      // Pulsing neon gap-border glow along inner lips of Squad Survival Group 1 animated obstacles (score 25-50)
+      // ─── Group 1 (Score 25-50): Cosmic Vortex & Glowing Plasma Lips ───
       if (this.gameMode === 'flock' && obs.spawnScore !== undefined && obs.spawnScore >= 25 && obs.spawnScore < 50) {
         const topShift = obs.shakeX || 0;
         const bottomShift = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
-        // Extend glow lines by 8px on both sides to align perfectly with the wider pipe caps and prevent cut-off edges!
         const leftTop = obs.x + topShift - 8;
         const rightTop = obs.x + obs.width + topShift + 8;
         const leftBottom = obs.x + bottomShift - 8;
         const rightBottom = obs.x + obs.width + bottomShift + 8;
 
-        let glowColor = '#39ff14'; // Group 1 Default green
+        const glowColor = '#d946ef'; // Neon Magenta/Purple
 
         ctx.save();
+        // Dual layer glowing line for high-fidelity plasma look
+        // 1. Thick background glow
         ctx.strokeStyle = glowColor;
-        ctx.lineWidth = 4.5 + Math.sin(this.waveTime * 6.0) * 1.5; // nice pulsing thickness
+        ctx.lineWidth = 6.0 + Math.sin(this.waveTime * 8.0) * 1.5;
         ctx.lineCap = 'round';
-
-        // Draw top lip inner border line
         ctx.beginPath();
         ctx.moveTo(leftTop, obs.topHeight);
         ctx.lineTo(rightTop, obs.topHeight);
         ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(leftBottom, height - obs.bottomHeight);
+        ctx.lineTo(rightBottom, height - obs.bottomHeight);
+        ctx.stroke();
 
-        // Draw bottom lip inner border line
+        // 2. Thin bright inner core
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.0;
+        ctx.beginPath();
+        ctx.moveTo(leftTop, obs.topHeight);
+        ctx.lineTo(rightTop, obs.topHeight);
+        ctx.stroke();
         ctx.beginPath();
         ctx.moveTo(leftBottom, height - obs.bottomHeight);
         ctx.lineTo(rightBottom, height - obs.bottomHeight);
         ctx.stroke();
         ctx.restore();
+
+        // 3. Draw Cosmic Vortex in the gap center
+        const centerY = obs.topHeight + (height - obs.bottomHeight - obs.topHeight) / 2;
+        const centerX = obs.x + obs.width / 2 + topShift;
+        const gapSize = height - obs.bottomHeight - obs.topHeight;
+
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(this.waveTime * 2.0); // Spinning vortex
+
+        const numSpirals = 3;
+        const dotsPerSpiral = 9;
+        const maxRadius = Math.min(gapSize / 2.5, 45);
+
+        for (let s = 0; s < numSpirals; s++) {
+          const startAngle = (s * Math.PI * 2) / numSpirals;
+          for (let dot = 0; dot < dotsPerSpiral; dot++) {
+            const t = dot / dotsPerSpiral;
+            const angle = startAngle + t * Math.PI * 1.8;
+            const r = t * maxRadius;
+            const dotX = Math.cos(angle) * r;
+            const dotY = Math.sin(angle) * r;
+
+            ctx.fillStyle = `rgba(217, 70, 239, ${0.85 - t * 0.6})`;
+            ctx.beginPath();
+            ctx.arc(dotX, dotY, 4.0 - t * 2.2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        // Draw pulsing core in center
+        const corePulse = 7 + Math.sin(this.waveTime * 6) * 2;
+        const coreGrad = ctx.createRadialGradient(0, 0, 1, 0, 0, corePulse * 2.0);
+        coreGrad.addColorStop(0, '#ffffff');
+        coreGrad.addColorStop(0.3, '#d946ef');
+        coreGrad.addColorStop(1, 'rgba(217, 70, 239, 0)');
+        ctx.fillStyle = coreGrad;
+        ctx.beginPath();
+        ctx.arc(0, 0, corePulse * 2.0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      // ─── Group 2 (Score 50-75): Industrial Crusher Warning & Glowing Lips ───
+      if (this.gameMode === 'flock' && obs.spawnScore !== undefined && obs.spawnScore >= 50 && obs.spawnScore < 75) {
+        const topShift = obs.shakeX || 0;
+        const bottomShift = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
+        const leftTop = obs.x + topShift - 8;
+        const rightTop = obs.x + obs.width + topShift + 8;
+        const leftBottom = obs.x + bottomShift - 8;
+        const rightBottom = obs.x + obs.width + bottomShift + 8;
+
+        const cyclePeriod = 3.0;
+        const actualIdx = obs.obstacleIdx || 0;
+        const cycleTime = (this.waveTime + actualIdx * 0.9) % cyclePeriod;
+
+        const isWarningPhase = (cycleTime >= 0.8 && cycleTime < 1.2);
+        const isClosingOrClosed = (cycleTime >= 1.2 && cycleTime < 2.0);
+
+        if (isWarningPhase) {
+          // Warning state: flashing red/amber borders + center warning triangle
+          const isFlashOn = Math.floor(this.waveTime * 10) % 2 === 0;
+          const warningColor = isFlashOn ? '#ff3333' : '#ffcc00';
+
+          ctx.save();
+          ctx.strokeStyle = warningColor;
+          ctx.lineWidth = 4.0;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(leftTop, obs.topHeight);
+          ctx.lineTo(rightTop, obs.topHeight);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(leftBottom, height - obs.bottomHeight);
+          ctx.lineTo(rightBottom, height - obs.bottomHeight);
+          ctx.stroke();
+          ctx.restore();
+
+          // Blinking warning exclamation mark triangle
+          const centerY = obs.topHeight + (height - obs.bottomHeight - obs.topHeight) / 2;
+          const centerX = obs.x + obs.width / 2 + topShift;
+          ctx.save();
+          ctx.translate(centerX, centerY);
+
+          const flashScale = 1.0 + Math.sin(this.waveTime * 15.0) * 0.12;
+          ctx.strokeStyle = isFlashOn ? '#ff3333' : '#ffcc00';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(0, 0, 20 * flashScale, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.fillStyle = '#ffcc00';
+          ctx.beginPath();
+          ctx.moveTo(0, -10 * flashScale);
+          ctx.lineTo(-9 * flashScale, 6 * flashScale);
+          ctx.lineTo(9 * flashScale, 6 * flashScale);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.fillStyle = '#000000';
+          ctx.font = `bold ${10 * flashScale}px Arial`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('!', 0, 1 * flashScale);
+
+          ctx.restore();
+        } else if (isClosingOrClosed) {
+          // Closing/closed: white-hot core & red-hot steel glow
+          ctx.save();
+          ctx.strokeStyle = '#ff4500'; // Orange-Red glow
+          ctx.lineWidth = 7.0 + Math.sin(this.waveTime * 12.0) * 2.0;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(leftTop, obs.topHeight);
+          ctx.lineTo(rightTop, obs.topHeight);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(leftBottom, height - obs.bottomHeight);
+          ctx.lineTo(rightBottom, height - obs.bottomHeight);
+          ctx.stroke();
+
+          ctx.strokeStyle = '#ffffff'; // White-hot core
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(leftTop, obs.topHeight);
+          ctx.lineTo(rightTop, obs.topHeight);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(leftBottom, height - obs.bottomHeight);
+          ctx.lineTo(rightBottom, height - obs.bottomHeight);
+          ctx.stroke();
+          ctx.restore();
+        }
       }
 
       // Draw custom overlays for level patterns
