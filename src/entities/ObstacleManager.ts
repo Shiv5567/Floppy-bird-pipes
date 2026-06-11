@@ -2895,19 +2895,19 @@ export class ObstacleManager {
         {
           name: 'Flock W-Shape',
           offsets: [-75, 45, -15, 45, -75],
-          distScales: [0.9, 0.9, 0.9, 0.9, 0.9],
+          distScales: [1.1, 1.1, 1.1, 1.1, 1.1], // min ~500px horizontal gap
           gapScales: [1.1, 1.0, 0.95, 1.0, 1.1]
         },
         {
           name: 'Flock M-Shape',
           offsets: [75, -45, 15, -45, 75],
-          distScales: [0.9, 0.9, 0.9, 0.9, 0.9],
+          distScales: [1.1, 1.1, 1.1, 1.1, 1.1], // min ~500px horizontal gap
           gapScales: [1.1, 1.0, 0.95, 1.0, 1.1]
         },
         {
           name: 'Flock Wave',
           offsets: [0, 30, 55, 30, 0, -30, -55, -30],
-          distScales: [0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95],
+          distScales: [1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1], // min ~500px horizontal gap
           gapScales: [1.15, 1.0, 0.9, 1.0, 1.15, 1.0, 0.9, 1.0]
         },
         {
