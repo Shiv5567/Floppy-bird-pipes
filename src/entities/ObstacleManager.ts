@@ -1424,7 +1424,7 @@ export class ObstacleManager {
             motionAmpMult = 0.7;
           }
 
-          if (gameMode !== 'flock') {
+          if (gameMode !== 'flock' || (activeScore >= 100 && activeScore <= 300)) {
             if (effectiveScore >= 100 && effectiveScore < 200) {
               // 10% difficulty: shift centerY up and down by 25px
               const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(centerY)) % 2;
