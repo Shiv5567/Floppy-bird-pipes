@@ -3092,7 +3092,7 @@ export class ObstacleManager {
       animDuration,
       triggerDistance,
       isTriggered: false,
-      isSpecialSplit: isClassicSpecialGroup3 || (gameMode === 'flock' && score >= 75 && score < 100),
+      isSpecialSplit: false,
       isClassicSpecialGroup2,
       isClassicSpecialGroup3,
       isVerticalApproachSplit
