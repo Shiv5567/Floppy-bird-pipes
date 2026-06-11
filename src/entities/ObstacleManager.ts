@@ -1383,6 +1383,54 @@ export class ObstacleManager {
             }
           }
 
+          // Calculate vertical shift if sways are active
+          let verticalShift = 0;
+          const activeScore = obs.spawnScore !== undefined ? obs.spawnScore : score;
+          
+          if (gameMode === 'flock' && activeScore >= 100 && activeScore <= 200) {
+            const effectiveScore = Math.max(100, activeScore);
+            const motionSpeedMult = 0.7;
+            const motionAmpMult = 2.24;
+            
+            // Score 100 to 200 range
+            if (effectiveScore >= 100 && effectiveScore < 200) {
+              const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(obs.spawnCenterY!)) % 2;
+              if (motionStyle === 0) {
+                verticalShift = Math.sin(this.waveTime * 1.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 25 * motionAmpMult;
+              } else {
+                const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
+                verticalShift = Math.sin(this.waveTime * 1.2 * motionSpeedMult) * 20 * elevatorDir * motionAmpMult;
+              }
+            } else if (effectiveScore === 200) {
+              const motionStyle = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : Math.floor(obs.spawnCenterY!)) % 2;
+              if (motionStyle === 0) {
+                verticalShift = Math.sin(this.waveTime * 2.2 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 50 * motionAmpMult;
+              } else {
+                const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
+                verticalShift = Math.sin(this.waveTime * 1.8 * motionSpeedMult) * 39.6 * elevatorDir * motionAmpMult;
+              }
+            }
+
+            // Playability Safeguard: Clamp vertical shift to prevent physically impossible transitions
+            let isTightHorizontalGap = false;
+            for (let j = 0; j < this.list.length; j++) {
+              const other = this.list[j];
+              if (other !== obs && Math.abs(obs.x - other.x) < 320) {
+                isTightHorizontalGap = true;
+                break;
+              }
+            }
+            if (isTightHorizontalGap) {
+              const maxClamp = 40;
+              verticalShift = Math.max(-maxClamp, Math.min(maxClamp, verticalShift));
+            }
+          }
+
+          const baseTargetTop = obs.spawnCenterY! - obs.gapHeight! / 2;
+          const baseTargetBottom = height - obs.spawnCenterY! - obs.gapHeight! / 2;
+          obs.targetTopHeight = baseTargetTop + verticalShift;
+          obs.targetBottomHeight = baseTargetBottom - verticalShift;
+
           if (obs.isTriggered) {
             obs.animTimer! += deltaTime * timeScale;
             if (obs.animTimer! > obs.animDuration!) {
@@ -2803,7 +2851,14 @@ export class ObstacleManager {
     let animDuration = 0.35;
     let triggerDistance = this.nextSpawnDistance * 0.50;
 
-    // Proximity approach animations removed in Endless Mode as requested
+    // Enable approach slide-open animations in endless flock mode for score 100 to 200
+    if (gameMode === 'flock' && score >= 100 && score <= 200) {
+      approachAnimType = 'open';
+      closedTopHeight = targetCenterY;
+      closedBottomHeight = height - targetCenterY;
+      animDuration = 0.60;
+      triggerDistance = 380; // trigger opening 380px before bird reaches the pipe
+    }
 
     this.list.push(this.acquireObstacle({
       x: width + 50,
