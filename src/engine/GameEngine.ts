@@ -1442,7 +1442,6 @@ export class GameEngine {
     this.ultimateEnergy = 0;
 
     const skin = this.bird.getSkin();
-    const skinId = skin.id;
     let duration = 4.0; // Default duration in seconds
 
     // Play a cool ultimate trigger sound & tremors shake
@@ -1454,37 +1453,10 @@ export class GameEngine {
     this.particleEngine.emitRing(this.bird.x, this.bird.y, skinColor, 32);
     this.particleEngine.emitExplosion(this.bird.x, this.bird.y, '#ffffff', 20);
 
-    switch (skinId) {
-      case 'phoenix': {
-        // Blazing Flame Sweep: Instantly clears all visible obstacles/hazards!
-        duration = 1.0;
-        this.obstacleManager.clear();
-        this.particleEngine.emitExplosion(this.bird.x, this.bird.y, '#ff4500', 50);
-        break;
-      }
-
-      case 'ice': {
-        // Time Freeze Blizzard: Slows down gameplay/physics to 20% speed
-        duration = 6.0;
-        this.timeScale = 0.2;
-        break;
-      }
-
-      case 'nebula': {
-        // Cosmic Magnet Warp: Activates a strong magnet pulling currency from everywhere
-        duration = 7.0;
-        this.activatePowerup('magnet');
-        break;
-      }
-
-      default: {
-        // Golden Wing Dash: Golden invincibility speedup
-        duration = 3.5;
-        this.bird.isInvincible = true;
-        this.scrollSpeed = this.baseScrollSpeed * 1.8;
-        break;
-      }
-    }
+    // All active skins now use the Golden Wing Dash ultimate: Golden invincibility speedup
+    duration = 3.5;
+    this.bird.isInvincible = true;
+    this.scrollSpeed = this.baseScrollSpeed * 1.8;
 
     this.ultimateDurationLeft = duration;
 
@@ -1500,17 +1472,9 @@ export class GameEngine {
   // Deactivate the active Ultimate powerup cleanly
   private deactivateUltimate() {
     this.ultimateActive = false;
-    const skinId = this.bird.getSkin().id;
 
-    switch (skinId) {
-      case 'ice':
-        this.timeScale = 1.0;
-        break;
-      default:
-        this.bird.isInvincible = false;
-        this.scrollSpeed = this.baseScrollSpeed;
-        break;
-    }
+    this.bird.isInvincible = false;
+    this.scrollSpeed = this.baseScrollSpeed;
 
     window.dispatchEvent(new CustomEvent('hud_alert', { 
       detail: { 

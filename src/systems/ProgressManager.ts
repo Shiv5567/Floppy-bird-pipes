@@ -84,54 +84,6 @@ export class ProgressManager {
         maxUpgrade: 5
       },
       {
-        id: 'phoenix',
-        name: 'Fire Phoenix',
-        rarity: 'Legendary',
-        glowColor: 'rgba(255, 69, 0, 0.8)',
-        particleType: 'fire',
-        costCoins: 5000,
-        costGems: 0,
-        unlocked: false,
-        upgradeLevel: 1,
-        maxUpgrade: 5
-      },
-      {
-        id: 'ice',
-        name: 'Ice Crystal',
-        rarity: 'Rare',
-        glowColor: 'rgba(0, 243, 255, 0.5)',
-        particleType: 'ice',
-        costCoins: 1200,
-        costGems: 0,
-        unlocked: false,
-        upgradeLevel: 1,
-        maxUpgrade: 5
-      },
-      {
-        id: 'nebula',
-        name: 'Cosmic Nebula',
-        rarity: 'Legendary',
-        glowColor: 'rgba(255, 20, 147, 0.8)',
-        particleType: 'cosmic',
-        costCoins: 0,
-        costGems: 250,
-        unlocked: false,
-        upgradeLevel: 1,
-        maxUpgrade: 5
-      },
-      {
-        id: 'cyber_owl',
-        name: 'Cyber Owl',
-        rarity: 'Epic',
-        glowColor: 'rgba(0, 243, 255, 0.7)',
-        particleType: 'neon_cyan',
-        costCoins: 4000,
-        costGems: 0,
-        unlocked: false,
-        upgradeLevel: 1,
-        maxUpgrade: 5
-      },
-      {
         id: 'neon_crow',
         name: 'Neon Rogue Crow',
         rarity: 'Epic',
@@ -251,30 +203,7 @@ export class ProgressManager {
         upgradeLevel: 1,
         maxUpgrade: 5
       },
-      {
-        id: 'cosmic_nova',
-        name: 'Cosmic Nova',
-        rarity: 'Epic',
-        glowColor: 'rgba(24, 255, 255, 0.85)',
-        particleType: 'cosmic_nova',
-        costCoins: 5000,
-        costGems: 0,
-        unlocked: false,
-        upgradeLevel: 1,
-        maxUpgrade: 5
-      },
-      {
-        id: 'storm_tempest_eagle',
-        name: 'Crimson Tempest Eagle',
-        rarity: 'Legendary',
-        glowColor: 'rgba(255, 60, 0, 0.9)',
-        particleType: 'storm_thunder',
-        costCoins: 8500,
-        costGems: 0,
-        unlocked: false,
-        upgradeLevel: 1,
-        maxUpgrade: 5
-      }
+
     ];
   }
 
@@ -343,20 +272,20 @@ export class ProgressManager {
       if (i % 10 === 0) {
         rewardType = 'skin';
         if (i === 10) {
-          rewardName = 'Ice Crystal Shard';
-          rewardValue = 'ice';
+          rewardName = 'White Dragon';
+          rewardValue = 'white_dragon';
         } else if (i === 20) {
-          rewardName = 'Cyber Owl Armor';
-          rewardValue = 'cyber_owl';
-        } else if (i === 30) {
           rewardName = 'Neon Rogue Crow';
           rewardValue = 'neon_crow';
+        } else if (i === 30) {
+          rewardName = 'Dread Falcon Overlord';
+          rewardValue = 'dread_falcon';
         } else if (i === 40) {
           rewardName = 'Aviator Chick Unit';
           rewardValue = 'aviator_chick';
         } else {
-          rewardName = 'Legendary Cosmic Nebula';
-          rewardValue = 'nebula';
+          rewardName = 'Legendary Eagle King';
+          rewardValue = 'legendary_eagle_king';
         }
       } else if (i % 2 === 0) {
         rewardType = 'gems';
