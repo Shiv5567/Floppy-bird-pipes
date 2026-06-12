@@ -238,6 +238,30 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5
+      },
+      {
+        id: 'jade_lotus',
+        name: 'Jade Lotus Hummingbird',
+        rarity: 'Rare',
+        glowColor: 'rgba(0, 230, 118, 0.7)',
+        particleType: 'jade_lotus',
+        costCoins: 2500,
+        costGems: 0,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5
+      },
+      {
+        id: 'cosmic_nova',
+        name: 'Cosmic Nova',
+        rarity: 'Epic',
+        glowColor: 'rgba(24, 255, 255, 0.85)',
+        particleType: 'cosmic_nova',
+        costCoins: 5000,
+        costGems: 0,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5
       }
     ];
   }
