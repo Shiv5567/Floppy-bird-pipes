@@ -3561,32 +3561,34 @@ export class Bird {
     const faceX = Math.cos(this.angle) * 1.8;
     const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.18;
 
-    // --- 1. FAR CRYSTAL WING (Drawn behind the body to establish 3D camera depth) ---
+    // --- 1. FAR FLAPPY WING (Drawn behind the body to establish 3D camera depth) ---
     ctx.save();
-    ctx.translate(-8, -2);
-    const farFlapAngle = Math.sin(this.flapCycle + 0.3) * 0.6;
+    ctx.translate(-7, -2);
+    const farFlapAngle = Math.sin(this.flapCycle + 0.3) * 0.55;
     ctx.rotate(farFlapAngle);
 
-    const farCrystGrad = ctx.createLinearGradient(0, 0, -26, 0);
-    farCrystGrad.addColorStop(0, '#b71c1c'); // Dark red base
-    farCrystGrad.addColorStop(1, 'rgba(255, 138, 128, 0.7)'); // Muted red tip
-    ctx.fillStyle = farCrystGrad;
-    ctx.strokeStyle = '#ff8a80'; // Pinkish-red outline for far wing
-    ctx.lineWidth = 1.0;
-
-    // Wing comprised of crystal shard feathers (drawn in red)
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(-20, -12);
-    ctx.lineTo(-12, 0);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+    ctx.fillStyle = '#990000'; // Muted dark red for far wing
+    ctx.strokeStyle = '#550000'; // Darker outline
+    ctx.lineWidth = 1.5;
+    ctx.lineJoin = 'round';
 
     ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(-26, -3);
-    ctx.lineTo(-16, 6);
+    ctx.moveTo(2, 2);
+    
+    // Bottom feather
+    ctx.quadraticCurveTo(-5, 9, -10, 5);
+    ctx.quadraticCurveTo(-12, 1, -5, -1);
+    
+    // Middle feather
+    ctx.quadraticCurveTo(-13, 1, -15, -5);
+    ctx.quadraticCurveTo(-15, -9, -4, -5);
+    
+    // Top feather
+    ctx.quadraticCurveTo(-11, -11, -9, -18);
+    ctx.quadraticCurveTo(-5, -18, 2, -9);
+    
+    // Back to base
+    ctx.quadraticCurveTo(4, -4, 2, 2);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
@@ -3730,35 +3732,44 @@ export class Bird {
 
     ctx.restore();
 
-    // --- 7. NEAR CRYSTAL WING (Drawn in front of the body, copying the Ice Crystal style in red) ---
+    // --- 7. NEAR FLAPPY WING (Drawn in front of the body, copying the Flappy Birds style in red) ---
     ctx.save();
-    ctx.translate(-4, 2);
-    const nearFlapAngle = Math.sin(this.flapCycle) * 0.6;
+    ctx.translate(-3, 1);
+    const nearFlapAngle = Math.sin(this.flapCycle) * 0.5;
     ctx.rotate(nearFlapAngle);
 
-    const nearCrystGrad = ctx.createLinearGradient(0, 0, -26, 0);
-    nearCrystGrad.addColorStop(0, '#ff1744'); // Vibrant red base
-    nearCrystGrad.addColorStop(1, 'rgba(255, 255, 255, 0.85)'); // Shiny white/pink tip
-    ctx.fillStyle = nearCrystGrad;
-    ctx.strokeStyle = '#ffffff'; // White outline for crystal shine
-    ctx.lineWidth = 1.0;
+    ctx.fillStyle = '#ff3333'; // Bright red
+    ctx.strokeStyle = '#660000'; // Dark red outline
+    ctx.lineWidth = 1.5;
+    ctx.lineJoin = 'round';
 
-    // Shard 1
     ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(-20, -12);
-    ctx.lineTo(-12, 0);
+    ctx.moveTo(2, 2);
+    
+    // Bottom feather (rounded)
+    ctx.quadraticCurveTo(-5, 9, -10, 5);
+    ctx.quadraticCurveTo(-12, 1, -5, -1);
+    
+    // Middle feather (rounded)
+    ctx.quadraticCurveTo(-13, 1, -15, -5);
+    ctx.quadraticCurveTo(-15, -9, -4, -5);
+    
+    // Top feather (rounded)
+    ctx.quadraticCurveTo(-11, -11, -9, -18);
+    ctx.quadraticCurveTo(-5, -18, 2, -9);
+    
+    // Back to base
+    ctx.quadraticCurveTo(4, -4, 2, 2);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Shard 2
+    // White wing highlight (like a glossy reflection on the top feather)
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 0.8;
     ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(-26, -3);
-    ctx.lineTo(-16, 6);
-    ctx.closePath();
-    ctx.fill();
+    ctx.moveTo(-1, -9);
+    ctx.quadraticCurveTo(-4, -14, -7, -16);
     ctx.stroke();
 
     ctx.restore();
