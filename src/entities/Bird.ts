@@ -1059,10 +1059,7 @@ export class Bird {
 
   // ===== DAPPER BLUE (No hat, spiky head crest, navy outlines) =====
   private drawDapperBlue(ctx: CanvasRenderingContext2D) {
-    if (!(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = 'rgba(0, 191, 255, 0.4)';
-    }
+    // No shadow glow — clean flat style for Dapper Blue
 
     // 2.5D Face shift offset
     const faceX = Math.cos(this.angle) * 1.8;
