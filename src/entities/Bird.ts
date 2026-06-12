@@ -267,6 +267,11 @@ export class Bird {
 
 
 
+      case 'flappy_bird':
+        // Classic yellow & orange pixel-like sparkles!
+        particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -1 - Math.random() * 1, (Math.random() - 0.5) * 0.5, '#fcd01c', 2.5, 0.85, 0.02, 'circle', true, '#f85800');
+        break;
+
       default:
         particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -1 - Math.random() * 1, (Math.random() - 0.5) * 0.5, 'rgba(255, 255, 255, 0.4)', 2, 0.8, 0.03, 'circle');
     }
@@ -380,6 +385,10 @@ export class Bird {
         this.drawCosmicNova(ctx);
         break;
 
+      case 'flappy_bird':
+        this.drawFlappyBird(ctx);
+        break;
+
       default:
         this.drawEagle(ctx); // Default Eagle
     }
@@ -479,6 +488,10 @@ export class Bird {
         break;
       case 'cosmic_nova':
         this.drawCosmicNova(ctx);
+        break;
+
+      case 'flappy_bird':
+        this.drawFlappyBird(ctx);
         break;
 
       default:
@@ -899,6 +912,11 @@ export class Bird {
       }
 
 
+
+      case 'flappy_bird': {
+        // No magic aura — clean flat style
+        break;
+      }
 
       default: {
         // Gold celestial wing shield (Default Eagle)
@@ -3770,6 +3788,156 @@ export class Bird {
     ctx.beginPath();
     ctx.moveTo(-1, -9);
     ctx.quadraticCurveTo(-4, -14, -7, -16);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  // ===== CLASSIC FLAPPY BIRD =====
+  private drawFlappyBird(ctx: CanvasRenderingContext2D) {
+    // 2.5D Face shift offset
+    const faceX = Math.cos(this.angle) * 1.8;
+    const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.18;
+
+    // --- 1. BLACK TAIL FEATHERS ---
+    ctx.save();
+    ctx.fillStyle = '#000000';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2.0;
+    
+    // Top tail feather
+    ctx.beginPath();
+    ctx.moveTo(-13, -2);
+    ctx.lineTo(-24, -2);
+    ctx.lineTo(-24, 3);
+    ctx.lineTo(-13, 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Middle tail feather
+    ctx.beginPath();
+    ctx.moveTo(-12, 1);
+    ctx.lineTo(-21, 4);
+    ctx.lineTo(-20, 8);
+    ctx.lineTo(-11, 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Bottom tail feather
+    ctx.beginPath();
+    ctx.moveTo(-10, 4);
+    ctx.lineTo(-17, 10);
+    ctx.lineTo(-15, 14);
+    ctx.lineTo(-8, 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore();
+
+    // --- 2. MAIN ROUND YELLOW BODY ---
+    ctx.fillStyle = '#fcd01c'; // Classic Flappy Bird yellow
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    ctx.arc(0, 0, 15, 0, Math.PI * 2);
+    ctx.fill();
+
+    // --- 3. WHITE UNDERBELLY (Clipped inside body) ---
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0, 0, 15, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.fillStyle = '#ffffff'; // White underbelly
+    ctx.beginPath();
+    ctx.ellipse(-4, 7, 12, 8, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    
+    // Redraw body outline to cover clip edge
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    ctx.arc(0, 0, 15, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // --- 4. LARGE ROUND EYE ---
+    ctx.save();
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    ctx.arc(4, -5, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Pupil
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.arc(5, -5, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // --- 5. ORANGE/RED DUCK BEAK ---
+    ctx.save();
+    ctx.translate(faceX, faceY);
+    
+    // Lower beak
+    ctx.fillStyle = '#e04800'; // Darker orange-red
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    ctx.moveTo(8, 3);
+    ctx.bezierCurveTo(11, 3, 17, 7, 17, 4);
+    ctx.bezierCurveTo(14, 7, 11, 7, 8, 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Upper beak
+    ctx.fillStyle = '#f85800'; // Vibrant orange-red
+    ctx.beginPath();
+    ctx.moveTo(8, -1);
+    ctx.bezierCurveTo(16, -3, 22, 1, 20, 4);
+    ctx.bezierCurveTo(15, 5, 11, 3, 8, 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    ctx.restore();
+
+    // --- 6. FLAPPING WHITE WING (Drawn in front of the body) ---
+    ctx.save();
+    ctx.translate(-3, 1);
+    const wingFlap = Math.sin(this.flapCycle) * 0.65;
+    ctx.rotate(wingFlap);
+
+    ctx.fillStyle = '#ffffff'; // White wing
+    ctx.strokeStyle = '#000000'; // Black outline
+    ctx.lineWidth = 2.0;
+    ctx.lineJoin = 'round';
+
+    ctx.beginPath();
+    ctx.moveTo(2, 2);
+    
+    // Bottom feather
+    ctx.quadraticCurveTo(-5, 9, -10, 5);
+    ctx.quadraticCurveTo(-12, 1, -5, -1);
+    
+    // Middle feather
+    ctx.quadraticCurveTo(-13, 1, -15, -5);
+    ctx.quadraticCurveTo(-15, -9, -4, -5);
+    
+    // Top feather
+    ctx.quadraticCurveTo(-11, -11, -9, -18);
+    ctx.quadraticCurveTo(-5, -18, 2, -9);
+    
+    // Back to base
+    ctx.quadraticCurveTo(4, -4, 2, 2);
+    ctx.closePath();
+    ctx.fill();
     ctx.stroke();
 
     ctx.restore();
