@@ -209,7 +209,12 @@ export class ObstacleManager {
       motionSpeedScale *= 0.80; // 20% reduce for Level 50
     }
 
-    this.waveTime += deltaTime * timeScale * motionSpeedScale;
+    const gameEngine = (window as any).gameEngine;
+    const isArticunoUltimate = gameEngine && gameEngine.ultimateActive && gameEngine.bird && gameEngine.bird.getSkin().id === 'articuno';
+
+    if (!isArticunoUltimate) {
+      this.waveTime += deltaTime * timeScale * motionSpeedScale;
+    }
 
     // Endless progressive difficulty scaling math based on user specifications
     let pct = 0.0;

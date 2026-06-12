@@ -9,6 +9,8 @@ export interface Skin {
   unlocked: boolean;
   upgradeLevel: number;
   maxUpgrade: number;
+  abilityName?: string;
+  abilityDesc?: string;
 }
 
 export interface BattlePassTier {
@@ -73,7 +75,7 @@ export class ProgressManager {
     this.skins = [
       {
         id: 'default',
-        name: 'Golden Eagle',
+        name: 'Sky Sovereign',
         rarity: 'Common',
         glowColor: 'rgba(212, 175, 55, 0.4)',
         particleType: 'default',
@@ -81,11 +83,13 @@ export class ProgressManager {
         costGems: 0,
         unlocked: true,
         upgradeLevel: 1,
-        maxUpgrade: 5
+        maxUpgrade: 5,
+        abilityName: 'Tiny Glider',
+        abilityDesc: 'Body size is 20% smaller and falls 15% slower.'
       },
       {
         id: 'neon_crow',
-        name: 'Neon Rogue Crow',
+        name: 'Neon Raven',
         rarity: 'Epic',
         glowColor: 'rgba(255, 0, 127, 0.7)',
         particleType: 'neon_pink',
@@ -93,11 +97,13 @@ export class ProgressManager {
         costGems: 0,
         unlocked: false,
         upgradeLevel: 1,
-        maxUpgrade: 5
+        maxUpgrade: 5,
+        abilityName: 'Cyber Magnet',
+        abilityDesc: 'Passively attracts nearby coins and gems within 160px.'
       },
       {
         id: 'white_dragon',
-        name: 'White Dragon',
+        name: 'Seto Drake',
         rarity: 'Legendary',
         glowColor: 'rgba(224, 180, 255, 0.7)',
         particleType: 'purple_sparkle',
@@ -105,11 +111,13 @@ export class ProgressManager {
         costGems: 300,
         unlocked: false,
         upgradeLevel: 1,
-        maxUpgrade: 5
+        maxUpgrade: 5,
+        abilityName: 'Lunar Shield',
+        abilityDesc: 'Starts with a shield. Regenerates a new shield every 35s.'
       },
       {
         id: 'kingfisher',
-        name: 'Kingfisher Overlord',
+        name: 'Azure Kingfisher',
         rarity: 'Legendary',
         glowColor: 'rgba(255, 61, 0, 0.95)',
         particleType: 'valkyrie',
@@ -117,11 +125,13 @@ export class ProgressManager {
         costGems: 0,
         unlocked: false,
         upgradeLevel: 1,
-        maxUpgrade: 5
+        maxUpgrade: 5,
+        abilityName: 'Temporal Focus',
+        abilityDesc: 'Slows down time by 30% when approaching obstacles.'
       },
       {
         id: 'dread_owl',
-        name: 'Dread Owl Overlord',
+        name: 'Great Horned Owl',
         rarity: 'Legendary',
         glowColor: 'rgba(0, 230, 118, 0.95)',
         particleType: 'wyvern',
@@ -129,23 +139,14 @@ export class ProgressManager {
         costGems: 0,
         unlocked: false,
         upgradeLevel: 1,
-        maxUpgrade: 5
+        maxUpgrade: 5,
+        abilityName: 'Ghost Phasing',
+        abilityDesc: 'Automatically becomes a ghost for 3.5s every 18s.'
       },
-      {
-        id: 'aviator_chick',
-        name: 'Aviator Chick',
-        rarity: 'Legendary',
-        glowColor: 'rgba(244, 81, 30, 0.9)',
-        particleType: 'feathers',
-        costCoins: 5000,
-        costGems: 0,
-        unlocked: false,
-        upgradeLevel: 1,
-        maxUpgrade: 5
-      },
+
       {
         id: 'dread_falcon',
-        name: 'Dread Falcon Overlord',
+        name: 'Charan Falcon',
         rarity: 'Legendary',
         glowColor: 'rgba(255, 191, 0, 0.95)',
         particleType: 'valkyrie',
@@ -153,7 +154,9 @@ export class ProgressManager {
         costGems: 0,
         unlocked: false,
         upgradeLevel: 1,
-        maxUpgrade: 5
+        maxUpgrade: 5,
+        abilityName: 'Sonic Boost',
+        abilityDesc: 'Automatically triggers a 2.5s hyper booster every 22s.'
       },
       {
         id: 'legendary_eagle_king',
@@ -165,11 +168,13 @@ export class ProgressManager {
         costGems: 0,
         unlocked: false,
         upgradeLevel: 1,
-        maxUpgrade: 5
+        maxUpgrade: 5,
+        abilityName: 'Gilded Fortune',
+        abilityDesc: 'Starts with a shield. Passively gains 2x score and coin values.'
       },
       {
         id: 'angry_red',
-        name: 'Furious Red',
+        name: 'Angry Bird',
         rarity: 'Legendary',
         glowColor: 'rgba(255, 30, 0, 0.9)',
         particleType: 'angry_fire',
@@ -177,11 +182,13 @@ export class ProgressManager {
         costGems: 0,
         unlocked: false,
         upgradeLevel: 1,
-        maxUpgrade: 5
+        maxUpgrade: 5,
+        abilityName: 'Furious Smash',
+        abilityDesc: 'Can crash and demolish 1 obstacle every 20s.'
       },
       {
         id: 'articuno',
-        name: 'Articuno',
+        name: 'Ice Phoenix',
         rarity: 'Legendary',
         glowColor: 'rgba(100, 200, 255, 0.9)',
         particleType: 'blizzard_crystal',
@@ -189,11 +196,13 @@ export class ProgressManager {
         costGems: 0,
         unlocked: false,
         upgradeLevel: 1,
-        maxUpgrade: 5
+        maxUpgrade: 5,
+        abilityName: 'Blizzard Chill',
+        abilityDesc: 'Passively freezes and slows down game speed by 20% globally.'
       },
       {
         id: 'jade_lotus',
-        name: 'Jade Lotus Hummingbird',
+        name: 'Lotus Hummingbird',
         rarity: 'Rare',
         glowColor: 'rgba(0, 230, 118, 0.7)',
         particleType: 'jade_lotus',
@@ -201,7 +210,9 @@ export class ProgressManager {
         costGems: 0,
         unlocked: false,
         upgradeLevel: 1,
-        maxUpgrade: 5
+        maxUpgrade: 5,
+        abilityName: 'Blossom Hover',
+        abilityDesc: 'Hummingbird wings decrease gravity by 30% and boost lift by 8%.'
       },
 
     ];
@@ -272,17 +283,17 @@ export class ProgressManager {
       if (i % 10 === 0) {
         rewardType = 'skin';
         if (i === 10) {
-          rewardName = 'White Dragon';
+          rewardName = 'Seto Drake';
           rewardValue = 'white_dragon';
         } else if (i === 20) {
-          rewardName = 'Neon Rogue Crow';
+          rewardName = 'Neon Raven';
           rewardValue = 'neon_crow';
         } else if (i === 30) {
-          rewardName = 'Dread Falcon Overlord';
+          rewardName = 'Charan Falcon';
           rewardValue = 'dread_falcon';
         } else if (i === 40) {
-          rewardName = 'Aviator Chick Unit';
-          rewardValue = 'aviator_chick';
+          rewardName = 'Ice Phoenix';
+          rewardValue = 'articuno';
         } else {
           rewardName = 'Legendary Eagle King';
           rewardValue = 'legendary_eagle_king';

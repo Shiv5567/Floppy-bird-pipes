@@ -89,6 +89,12 @@ export class GameEngine {
   
   // Powerups timers
   private activePowerupsList: Record<string, ActivePowerup> = {};
+
+  // Skin-specific passive & active ability timers
+  public whiteDragonShieldTimer = 35;
+  public dreadOwlGhostTimer = 18;
+  public dreadFalconTurboTimer = 22;
+  public angryBirdDemolitionTimer = 0;
   
   // Auto-Pilot Spectator mode
   public isSpectatorMode = false;
@@ -205,6 +211,23 @@ export class GameEngine {
     this.playerBossHP = 0;
     this.maxPlayerBossHP = 0;
     this.bossManager.reset();
+
+    // Reset skin passive/active ability timers
+    this.whiteDragonShieldTimer = 35;
+    this.dreadOwlGhostTimer = 18;
+    this.dreadFalconTurboTimer = 22;
+    this.angryBirdDemolitionTimer = 0;
+
+    // Apply shield passive for Seto Drake (white_dragon) and Legendary Eagle King at start
+    const startSkinId = currentSkin.id;
+    if (startSkinId === 'white_dragon' || startSkinId === 'legendary_eagle_king') {
+      this.bird.hasShield = true;
+      this.activePowerupsList['shield'] = {
+        type: 'shield',
+        durationLeft: 99999,
+        maxDuration: 99999
+      };
+    }
 
     if (this.gameMode === 'flock') {
       const width = this.renderer.canvas.width / this.renderer.dpr;
@@ -323,8 +346,7 @@ export class GameEngine {
     // 2. Update state machine
     if (this.state === 'PLAYING' || this.state === 'BOSS_FIGHT') {
 
-      const activeTimeScale = this.timeScale;
-
+      let activeTimeScale = this.timeScale;
       this.bird.update(dt, this.particleEngine, true, activeTimeScale, this.score);
 
       // Follower birds only come from cage rescues in flock mode
@@ -397,7 +419,7 @@ export class GameEngine {
             b.y = 5 + b.radius;
             if (b.vy < 0) b.vy = 0;
           }
-          if (this.state !== 'PLAYING' || b.isInvincible || b.isGhost || this.boosterActive || this.boosterDeactivating) {
+          if (this.state !== 'PLAYING' || b.isInvincible || b.isGhost || this.boosterActive || this.boosterDeactivating || this.ultimateActive) {
             if (b.y + b.radius > height - 35) {
               b.y = height - 35 - b.radius;
               if (b.vy > 0) b.vy = 0;
@@ -409,7 +431,7 @@ export class GameEngine {
           this.bird.y = 5 + this.bird.radius;
           if (this.bird.vy < 0) this.bird.vy = 0;
         }
-        if (this.state !== 'PLAYING' || this.bird.isInvincible || this.bird.isGhost || this.boosterActive || this.boosterDeactivating) {
+        if (this.state !== 'PLAYING' || this.bird.isInvincible || this.bird.isGhost || this.boosterActive || this.boosterDeactivating || this.ultimateActive) {
           if (this.bird.y + this.bird.radius > height - 35) {
             this.bird.y = height - 35 - this.bird.radius;
             if (this.bird.vy > 0) this.bird.vy = 0;
@@ -425,7 +447,9 @@ export class GameEngine {
       // Calculate and set unified progressive scroll speed before updating visual backgrounds or physics managers
       if (this.state === 'PLAYING') {
         if (this.gameMode === 'level' && this.activeLevelConfig) {
-          if (this.activePowerupsList['turbo']) {
+          if (this.ultimateActive && this.bird.getSkin().id === 'dread_falcon') {
+            this.scrollSpeed = this.activeLevelConfig.scrollSpeed * 2.8;
+          } else if (this.activePowerupsList['turbo']) {
             this.scrollSpeed = this.activeLevelConfig.scrollSpeed * 2.3;
           } else {
             const progressiveFactor = 1.0 + Math.floor(this.score / 5) * 0.02;
@@ -504,7 +528,9 @@ export class GameEngine {
             }
           }
 
-          if (this.activePowerupsList['turbo']) {
+          if (this.ultimateActive && this.bird.getSkin().id === 'dread_falcon') {
+            this.scrollSpeed = this.baseScrollSpeed * 2.8;
+          } else if (this.activePowerupsList['turbo']) {
             this.scrollSpeed = this.baseScrollSpeed * 2.3;
           } else {
             this.scrollSpeed = this.baseScrollSpeed * startSpeed * speedMultiplier;
@@ -522,6 +548,11 @@ export class GameEngine {
               }
             }
           }
+        }
+        
+        // Ice Phoenix passive Blizzard Chill 20% slow-down
+        if (this.bird.getSkin().id === 'articuno') {
+          this.scrollSpeed *= 0.80;
         }
       }
 
@@ -752,7 +783,6 @@ export class GameEngine {
             );
 
             if (collidedObs) {
-              // Collided. Check Shield safety
               if (this.bird.hasShield) {
                 this.bird.hasShield = false;
                 this.shieldBrokenThisRun = true;
@@ -1240,7 +1270,11 @@ export class GameEngine {
   // }
 
   private incrementScore(amt = 1) {
-    this.score += amt * this.scoreMultiplier;
+    let multiplier = this.scoreMultiplier;
+    if (this.bird.getSkin().id === 'legendary_eagle_king') {
+      multiplier *= 2; // Legendary Eagle King gets 2x score passively!
+    }
+    this.score += amt * multiplier;
     this.progressManager.incrementAchievement('first_flight', this.score);
 
     // Quest progression for high score pass
@@ -1316,6 +1350,9 @@ export class GameEngine {
       } else if (this.score >= 500) {
         coinVal = 3;
       }
+      if (this.bird.getSkin().id === 'legendary_eagle_king') {
+        coinVal *= 2; // Legendary Eagle King gets 2x coins passively!
+      }
       this.coinsCollectedThisRun += coinVal;
       this.progressManager.addCoins(coinVal);
       this.progressManager.updateQuestProgress('coin_grab', coinVal);
@@ -1327,8 +1364,12 @@ export class GameEngine {
     }
 
     if (type === 'gem') {
-      this.gemsCollectedThisRun += 1;
-      this.progressManager.addGems(1);
+      let gemVal = 1;
+      if (this.bird.getSkin().id === 'legendary_eagle_king') {
+        gemVal *= 2; // Legendary Eagle King gets 2x gems passively!
+      }
+      this.gemsCollectedThisRun += gemVal;
+      this.progressManager.addGems(gemVal);
       // Reward Ultimate energy (Option 2)
       if (!this.ultimateActive) {
         this.ultimateEnergy = Math.min(100, this.ultimateEnergy + 15);
@@ -1442,7 +1483,8 @@ export class GameEngine {
     this.ultimateEnergy = 0;
 
     const skin = this.bird.getSkin();
-    let duration = 4.0; // Default duration in seconds
+    let duration = 5.0; // Default duration in seconds
+    let subtext = 'SPECIAL ACTIVE ABILITY RELEASED!';
 
     // Play a cool ultimate trigger sound & tremors shake
     this.soundManager.playLevelUp();
@@ -1453,10 +1495,60 @@ export class GameEngine {
     this.particleEngine.emitRing(this.bird.x, this.bird.y, skinColor, 32);
     this.particleEngine.emitExplosion(this.bird.x, this.bird.y, '#ffffff', 20);
 
-    // All active skins now use the Golden Wing Dash ultimate: Golden invincibility speedup
-    duration = 3.5;
-    this.bird.isInvincible = true;
-    this.scrollSpeed = this.baseScrollSpeed * 1.8;
+    const id = skin.id;
+    if (id === 'default') {
+      // Sky Sovereign: Micro Glider
+      duration = 6.0;
+      this.bird.sizeMultiplier = 0.35;
+      subtext = 'MICRO SIZE & LOW GRAVITY ACTIVE!';
+    } else if (id === 'neon_crow') {
+      // Neon Raven: Cyber Singularity
+      duration = 8.0;
+      subtext = 'SCREEN-WIDE COIN HARVESTER ACTIVE!';
+    } else if (id === 'white_dragon') {
+      // Seto Drake: Lunar Sanctuary
+      duration = 5.0;
+      this.bird.hasShield = true;
+      this.bird.isInvincible = true;
+      subtext = 'FULL INVINCIBILITY & PROTECTIVE SHIELD!';
+    } else if (id === 'kingfisher') {
+      // Azure Kingfisher: Temporal Distortion
+      duration = 7.0;
+      this.timeScale = 0.40; // 60% slowmo
+      subtext = 'WORLD TIME DILATED BY 60%!';
+    } else if (id === 'dread_owl') {
+      // Great Horned Owl: Ghost Walk
+      duration = 5.5;
+      this.bird.isGhost = true;
+      subtext = 'PHASE THROUGH ALL SOLID PIPES!';
+    } else if (id === 'dread_falcon') {
+      // Charan Falcon: Sonic Supercharge
+      duration = 4.0;
+      this.bird.isInvincible = true;
+      this.scrollSpeed = this.baseScrollSpeed * 2.8;
+      subtext = 'SUPERSONIC SPEED BLAST ACTIVE!';
+    } else if (id === 'legendary_eagle_king') {
+      // Legendary Eagle King: Aurum Gilded Age
+      duration = 7.0;
+      this.bird.hasShield = true;
+      this.scoreMultiplier = 3;
+      subtext = '3X SCORE & COINS + COIN MAGNET!';
+    } else if (id === 'angry_red') {
+      // Angry Bird: Furious Rampage
+      duration = 5.0;
+      this.bird.isInvincible = true;
+      subtext = 'DEMOLISH ALL OBSTACLES ON TOUCH!';
+    } else if (id === 'articuno') {
+      // Ice Phoenix: Glacial Freeze
+      duration = 6.0;
+      this.scrollSpeed = this.baseScrollSpeed * 0.4; // 60% scroll speed reduction
+      subtext = 'WORLD SCROLL AND PIPE MOTION FROZEN!';
+    } else if (id === 'jade_lotus') {
+      // Lotus Hummingbird: Nectar Hover
+      duration = 6.0;
+      this.bird.hasShield = true;
+      subtext = 'ZERO GRAVITY HOVER MODE ACTIVE!';
+    }
 
     this.ultimateDurationLeft = duration;
 
@@ -1464,7 +1556,7 @@ export class GameEngine {
     window.dispatchEvent(new CustomEvent('hud_alert', { 
       detail: { 
         text: `${skin.name.toUpperCase()} ULTIMATE!`, 
-        sub: 'SPECIAL ACTIVE ABILITY RELEASED!' 
+        sub: subtext 
       } 
     }));
   }
@@ -1473,8 +1565,19 @@ export class GameEngine {
   private deactivateUltimate() {
     this.ultimateActive = false;
 
-    this.bird.isInvincible = false;
+    // Reset variables modified by ultimate abilities
+    this.timeScale = 1.0;
     this.scrollSpeed = this.baseScrollSpeed;
+    this.scoreMultiplier = 1;
+    this.bird.isInvincible = false;
+    this.bird.isGhost = false;
+
+    // Reset default size multiplier (since Sky Sovereign might need 0.8)
+    let baseSizeMult = 1.0;
+    if (this.bird.getSkin().id === 'default') {
+      baseSizeMult = 0.80;
+    }
+    this.bird.sizeMultiplier = baseSizeMult;
 
     window.dispatchEvent(new CustomEvent('hud_alert', { 
       detail: { 

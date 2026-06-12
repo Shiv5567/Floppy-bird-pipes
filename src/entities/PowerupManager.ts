@@ -239,7 +239,23 @@ export class PowerupManager {
         }
       }
       
-      if (hasMagnet && (item.type === 'coin' || item.type === 'gem' || Math.random() < 0.2)) {
+      const gameEngine = (window as any).gameEngine;
+      const isNeonCrow = gameEngine && gameEngine.bird && gameEngine.bird.getSkin().id === 'neon_crow';
+      const isEagleKing = gameEngine && gameEngine.bird && gameEngine.bird.getSkin().id === 'legendary_eagle_king';
+      const isUltimateActive = gameEngine && gameEngine.ultimateActive;
+      
+      const isAttracted = hasMagnet || 
+                          (isNeonCrow && (item.type === 'coin' || item.type === 'gem')) ||
+                          (isEagleKing && isUltimateActive && (item.type === 'coin' || item.type === 'gem'));
+
+      let activeRange = 160;
+      if (isUltimateActive && isNeonCrow) {
+        activeRange = 800; // Screen-wide
+      } else if (hasMagnet || (isUltimateActive && isEagleKing)) {
+        activeRange = 280;
+      }
+
+      if (isAttracted) {
         // Pull items towards the closest bird in the squad (or leader)!
         let targetX = birdX;
         let targetY = birdY;
@@ -264,7 +280,7 @@ export class PowerupManager {
         const dy = targetY - item.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        if (distance < 280) {
+        if (distance < activeRange) {
           const pullForce = 8 * dtCoeff;
           item.x += (dx / distance) * pullForce;
           item.y += (dy / distance) * pullForce;

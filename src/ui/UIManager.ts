@@ -839,6 +839,8 @@ export class UIManager {
               </div>
               <div class="grid-card-name">${s.name}</div>
               <span class="tag tag-${s.rarity.toLowerCase()}" style="color:${rc};border-color:${rc}33">${s.rarity}</span>
+              ${s.abilityName ? `<div style="font-size:9px;color:${rc};font-weight:800;margin-top:5px;letter-spacing:0.5px;">⚡ ${s.abilityName.toUpperCase()}</div>` : ''}
+              ${s.abilityDesc ? `<div style="font-size:8px;color:rgba(255,255,255,0.6);margin-top:2px;line-height:1.2;min-height:20px;padding:0 4px;text-align:center;">${s.abilityDesc}</div>` : ''}
               ${isSelected ? `<div style="font-size:9px;color:#00ff88;font-weight:800;margin-top:4px">✓ SELECTED</div>` : ''}
               <div class="upgrade-row">
                 <span class="level-indicator">Lvl ${s.upgradeLevel}/5</span>

@@ -96,6 +96,11 @@ export class Bird {
     
     let impulse = this.jumpLift * (1 + levelBonus) * jumpScale * jumpReduction;
     
+    // Lotus Hummingbird extra wing lift
+    if (this.activeSkin.id === 'jade_lotus') {
+      impulse *= 1.08;
+    }
+    
     // Scale velocity impulse in squad/flock mode:
     // - Score >= 500: increase by 8% (1.08)
     // - Score >= 50: increase by 7% (1.07) (covers score 50 to 500, including 300 to 500)
@@ -132,6 +137,22 @@ export class Bird {
     let currentGravity = this.gravity * speedMultiplier * speedReduction;
     let currentMaxFallSpeed = this.maxFallSpeed * speedMultiplier * speedReduction;
     
+    // Apply skin-specific passive & active ultimate physics modifications
+    if (this.activeSkin.id === 'default') {
+      if (engine && engine.ultimateActive) {
+        currentGravity *= 0.50; // 50% gravity during Sky Sovereign ultimate!
+      } else {
+        currentGravity *= 0.85; // Sky Sovereign falls 15% slower
+      }
+    } else if (this.activeSkin.id === 'jade_lotus') {
+      if (engine && engine.ultimateActive) {
+        currentGravity *= 0.0; // 0% gravity during Lotus Hummingbird ultimate!
+      } else {
+        currentGravity *= 0.70; // Lotus Hummingbird falls 30% slower
+        currentMaxFallSpeed *= 0.75;
+      }
+    }
+    
     // Custom progressive score-based jump scaling:
     const jumpScale = this.getJumpScale(effectiveScore);
     
@@ -154,8 +175,12 @@ export class Bird {
     }
     
     if (isPlaying) {
-      // Apply gravity
-      this.vy += currentGravity * dtCoeff;
+      // Apply gravity (dampened to 0 during Lotus Hummingbird hover ultimate)
+      if (engine && engine.ultimateActive && this.activeSkin.id === 'jade_lotus') {
+        this.vy += (0 - this.vy) * 0.12 * dtCoeff; // Smoothly damp vertical movement to hover
+      } else {
+        this.vy += currentGravity * dtCoeff;
+      }
       if (this.vy > currentMaxFallSpeed) this.vy = currentMaxFallSpeed;
       if (this.vy < currentMaxRiseSpeed) this.vy = currentMaxRiseSpeed; // Synced upward rise cap
 
@@ -184,7 +209,22 @@ export class Bird {
       this.auraPulse = (this.auraPulse + 0.04 * dtCoeff) % (Math.PI * 2);
     }
 
-    // Size scaling
+    // Size scaling - Apply skin passive & active ultimate size overrides
+    let baseSizeMult = 1.0;
+    if (this.activeSkin.id === 'default') {
+      baseSizeMult = 0.80; // Sky Sovereign is 20% smaller
+    }
+
+    if (engine && engine.activePowerupsList['mini']) {
+      this.sizeMultiplier = 0.55;
+    } else if (engine && engine.ultimateActive && this.activeSkin.id === 'default') {
+      this.sizeMultiplier = 0.35; // Ultimate Micro Size!
+    } else if (engine && engine.gameMode === 'flock' && engine.playerBossHP > 0) {
+      this.sizeMultiplier = baseSizeMult + engine.playerBossHP * 0.03;
+    } else {
+      this.sizeMultiplier = baseSizeMult;
+    }
+
     this.radius = this.baseRadius * this.sizeMultiplier;
 
     // Emit skin-specific trails
@@ -333,9 +373,7 @@ export class Bird {
       case 'dread_owl':
         this.drawOwl(ctx);
         break;
-      case 'aviator_chick':
-        this.drawAviatorChick(ctx);
-        break;
+
       case 'dread_falcon':
         this.drawFalcon(ctx);
         break;
@@ -423,9 +461,7 @@ export class Bird {
       case 'dread_owl':
         this.drawOwl(ctx);
         break;
-      case 'aviator_chick':
-        this.drawAviatorChick(ctx);
-        break;
+
       case 'dread_falcon':
         this.drawFalcon(ctx);
         break;
@@ -474,123 +510,7 @@ export class Bird {
 
     switch (skinId) {
 
-      case 'neon_crow': {
-        ctx.strokeStyle = '#ff007f';
-        ctx.save();
-        ctx.rotate(-this.auraAngle * 1.4);
-        ctx.setLineDash([10, 6]);
-        ctx.beginPath();
-        ctx.arc(0, 0, baseRadius * 1.25, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-        break;
-      }
 
-      case 'white_dragon': {
-        ctx.strokeStyle = '#e0b4ff';
-        ctx.save();
-        ctx.rotate(-this.auraAngle * 0.8);
-        ctx.setLineDash([5, 5]);
-        ctx.arc(0, 0, baseRadius * 1.3, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-        break;
-      }
-      case 'kingfisher': {
-        // Rotating fiery runic boss circle with plasma energy spikes
-        ctx.strokeStyle = '#ff3d00'; // Neon Red-Orange
-        ctx.save();
-        ctx.rotate(this.auraAngle * 1.8);
-        
-        // Draw outer spiked ring
-        ctx.beginPath();
-        for (let i = 0; i < 5; i++) {
-          const angle = (i * Math.PI * 2) / 5;
-          const outerRad = baseRadius * 1.5;
-          const innerRad = baseRadius * 1.1;
-          ctx.lineTo(Math.cos(angle) * outerRad, Math.sin(angle) * outerRad);
-          ctx.lineTo(Math.cos(angle + Math.PI / 5) * innerRad, Math.sin(angle + Math.PI / 5) * innerRad);
-        }
-        ctx.closePath();
-        ctx.stroke();
-
-        // Inner glowing dash ring
-        ctx.strokeStyle = '#e040fb'; // Neon Violet/Magenta
-        ctx.setLineDash([6, 6]);
-        ctx.beginPath();
-        ctx.arc(0, 0, baseRadius * 1.2, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-        break;
-      }
-      case 'dread_owl': {
-        // Double rotating runic owl circle with ancient crescent symbols
-        ctx.strokeStyle = '#00e676'; // Menacing electric green
-        ctx.save();
-        ctx.rotate(this.auraAngle * 1.2);
-        
-        // Outer glowing crescent circles
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        for (let i = 0; i < 4; i++) {
-          const angle = (i * Math.PI) / 2;
-          ctx.arc(Math.cos(angle) * baseRadius * 1.4, Math.sin(angle) * baseRadius * 1.4, 4, 0, Math.PI * 2);
-        }
-        ctx.stroke();
-
-        // Inner runic ring
-        ctx.strokeStyle = 'rgba(0, 230, 118, 0.5)';
-        ctx.setLineDash([4, 8]);
-        ctx.beginPath();
-        ctx.arc(0, 0, baseRadius * 1.25, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-        break;
-      }
-      case 'aviator_chick': {
-        // Rotating golden aeronautical compass-themed aura
-        ctx.strokeStyle = '#ffd700'; // Gold compass
-        ctx.save();
-        ctx.rotate(this.auraAngle * 0.8);
-        
-        // Outer compass circle
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.arc(0, 0, baseRadius * 1.3, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // 4 cardinal direction ticks (North, South, East, West)
-        ctx.strokeStyle = '#ff9100'; // Orange ticks
-        ctx.lineWidth = 2.0;
-        for (let i = 0; i < 4; i++) {
-          const angle = (i * Math.PI) / 2;
-          ctx.beginPath();
-          ctx.moveTo(Math.cos(angle) * baseRadius * 1.2, Math.sin(angle) * baseRadius * 1.2);
-          ctx.lineTo(Math.cos(angle) * baseRadius * 1.4, Math.sin(angle) * baseRadius * 1.4);
-          ctx.stroke();
-        }
-
-        // Inner rotating double needle (North/South indicator)
-        ctx.rotate(this.auraAngle * 1.5); // Fast counter-needle
-        ctx.fillStyle = '#ff3d00'; // Red pointer
-        ctx.beginPath();
-        ctx.moveTo(0, -baseRadius * 1.1);
-        ctx.lineTo(3.5, 0);
-        ctx.lineTo(-3.5, 0);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.fillStyle = '#cfd8dc'; // Silver pointer
-        ctx.beginPath();
-        ctx.moveTo(0, baseRadius * 1.1);
-        ctx.lineTo(3.5, 0);
-        ctx.lineTo(-3.5, 0);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.restore();
-        break;
-      }
       case 'dread_falcon': {
         // Rotating golden high-speed targeting reticle aura
         ctx.strokeStyle = '#ffd700'; // Gold reticle
@@ -636,114 +556,7 @@ export class Bird {
         ctx.restore();
         break;
       }
-      case 'angry_red': {
-        // Pulsating fiery rage aura with spinning fury embers
-        ctx.strokeStyle = '#ff1a00';
-        ctx.save();
-        ctx.rotate(this.auraAngle * 1.6);
-        
-        // Outer fury ring
-        ctx.lineWidth = 2.0;
-        ctx.setLineDash([6, 10]);
-        ctx.beginPath();
-        ctx.arc(0, 0, baseRadius * 1.3, 0, Math.PI * 2);
-        ctx.stroke();
 
-        // Inner rage pulse ring
-        ctx.strokeStyle = '#ff6600';
-        ctx.setLineDash([4, 8]);
-        ctx.beginPath();
-        ctx.arc(0, 0, baseRadius * 1.15, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // Spinning fury embers (6 embers around the bird)
-        ctx.fillStyle = '#ff4400';
-        for (let i = 0; i < 6; i++) {
-          const angle = this.auraAngle * 2.0 + (i * Math.PI) / 3;
-          const dist = baseRadius * 1.22;
-          ctx.beginPath();
-          ctx.arc(Math.cos(angle) * dist, Math.sin(angle) * dist, 2.5, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.restore();
-        break;
-      }
-      case 'articuno': {
-        // Rotating glacial aurora aura with ice crystal orbits
-        ctx.strokeStyle = '#50b4ff';
-        ctx.save();
-        ctx.rotate(-this.auraAngle * 1.2);
-        
-        // Outer frost aurora ring
-        ctx.lineWidth = 1.8;
-        ctx.setLineDash([8, 10]);
-        ctx.beginPath();
-        ctx.arc(0, 0, baseRadius * 1.35, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // Inner shimmering ice ring
-        ctx.strokeStyle = '#a0dcff';
-        ctx.setLineDash([3, 7]);
-        ctx.beginPath();
-        ctx.arc(0, 0, baseRadius * 1.12, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // 5 orbiting ice crystals
-        ctx.fillStyle = '#c8eaff';
-        for (let i = 0; i < 5; i++) {
-          const angle = this.auraAngle * 1.8 + (i * Math.PI * 2) / 5;
-          const dist = baseRadius * 1.28;
-          ctx.save();
-          ctx.translate(Math.cos(angle) * dist, Math.sin(angle) * dist);
-          ctx.rotate(angle * 2);
-          // Diamond shape crystal
-          ctx.beginPath();
-          ctx.moveTo(0, -3);
-          ctx.lineTo(2, 0);
-          ctx.lineTo(0, 3);
-          ctx.lineTo(-2, 0);
-          ctx.closePath();
-          ctx.fill();
-          ctx.restore();
-        }
-        ctx.restore();
-        break;
-      }
-
-      case 'jade_lotus': {
-        // Swirling jade petal ring with blossom orbits
-        ctx.strokeStyle = '#00e676';
-        ctx.save();
-        ctx.rotate(this.auraAngle * 0.9);
-        ctx.setLineDash([6, 8]);
-        ctx.lineWidth = 1.6;
-        ctx.beginPath();
-        ctx.arc(0, 0, baseRadius * 1.3, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // Inner pink petal ring
-        ctx.strokeStyle = '#f48fb1';
-        ctx.setLineDash([4, 10]);
-        ctx.beginPath();
-        ctx.arc(0, 0, baseRadius * 1.1, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // 6 orbiting petals
-        for (let i = 0; i < 6; i++) {
-          const angle = this.auraAngle * 1.5 + (i * Math.PI * 2) / 6;
-          const dist = baseRadius * 1.25;
-          ctx.save();
-          ctx.translate(Math.cos(angle) * dist, Math.sin(angle) * dist);
-          ctx.rotate(angle * 3);
-          ctx.fillStyle = i % 2 === 0 ? '#f48fb1' : '#a5d6a7';
-          ctx.beginPath();
-          ctx.ellipse(0, 0, 3, 1.5, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
-        }
-        ctx.restore();
-        break;
-      }
 
 
 
@@ -1002,36 +815,6 @@ export class Bird {
     ctx.moveTo(-1, -9);
     ctx.quadraticCurveTo(-4, -14, -7, -16);
     ctx.stroke();
-
-    ctx.restore();
-  }
-
-  // Utility flapping wing math
-  private drawFlappingWing(ctx: CanvasRenderingContext2D, color1: string, color2: string, glow = false) {
-    ctx.save();
-    // Offset slightly back from center
-    ctx.translate(-4, 2);
-
-    // Oscillation based on flapCycle
-    const flapAngle = Math.sin(this.flapCycle) * 0.7; // Angle of wing pivot
-    ctx.rotate(flapAngle);
-
-    const wingGrad = ctx.createLinearGradient(0, 0, -25, 0);
-    wingGrad.addColorStop(0, color1);
-    wingGrad.addColorStop(1, color2);
-    ctx.fillStyle = wingGrad;
-
-    if (glow && !(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = color2;
-    }
-
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.bezierCurveTo(-15, -12, -25, -2, -28, 6);
-    ctx.bezierCurveTo(-20, 12, -10, 4, 0, 0);
-    ctx.closePath();
-    ctx.fill();
 
     ctx.restore();
   }
@@ -2269,300 +2052,6 @@ export class Bird {
     ctx.restore();
   }
 
-  private drawAviatorChick(ctx: CanvasRenderingContext2D) {
-    if (!(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = 'rgba(255, 112, 67, 0.4)'; // Soft warm orange glow
-    }
-
-    // 2.5D Face shift offset based on bird movement angle
-    const faceX = Math.cos(this.angle) * 1.5;
-    const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.1;
-
-    // --- 1. Pinkish-Grey Bird Feet ---
-    ctx.fillStyle = '#ffab91'; // Pinkish-grey
-    ctx.strokeStyle = '#d84315';
-    ctx.lineWidth = 1;
-    // Left foot
-    ctx.beginPath();
-    ctx.ellipse(-4, 15, 2.5, 4, 0.2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    // Right foot
-    ctx.beginPath();
-    ctx.ellipse(3, 14, 2.5, 4, -0.2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    // --- 2. Waving White Scarf Tail (Flows backwards to the left) ---
-    ctx.save();
-    ctx.translate(-10, 4);
-    // Waving animation based on flapCycle
-    const wave = Math.sin(this.flapCycle * 2) * 1.5;
-    ctx.fillStyle = '#f5f5f5';
-    ctx.strokeStyle = '#e0e0e0';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.bezierCurveTo(-12, -4 + wave, -24, 4 + wave, -32, -2 + wave);
-    ctx.lineTo(-30, 4 + wave);
-    ctx.bezierCurveTo(-22, 10 + wave, -10, 2 + wave, 0, 5);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
-
-    // --- 3. Body Torso (Orange Flight Jacket) ---
-    // Jacket main base
-    ctx.fillStyle = '#e65100'; // Orange leather jacket
-    ctx.strokeStyle = '#3e2723'; // Dark brown trim
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.arc(0, 3, 15, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    // Golden zipper details
-    ctx.strokeStyle = '#ffd700';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(0, -9);
-    ctx.lineTo(0, 15);
-    ctx.stroke();
-
-    // Tiny round pilot badge on right chest
-    ctx.fillStyle = '#8d6e63'; // Brown badge background
-    ctx.strokeStyle = '#ffd700';
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.arc(6, 4, 2.8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    // Tiny star inside badge
-    ctx.fillStyle = '#ffd700';
-    ctx.beginPath();
-    ctx.arc(6, 4, 1.0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // --- 4. Rolled Map Scroll (Beige paper scroll tucked under wing) ---
-    ctx.save();
-    ctx.translate(-11, 6);
-    ctx.rotate(0.25);
-    // Draw cylindrical rolled scroll
-    const scrollGrad = ctx.createLinearGradient(0, -4, 0, 4);
-    scrollGrad.addColorStop(0, '#f5f5dc'); // Beige
-    scrollGrad.addColorStop(0.5, '#eef0d5');
-    scrollGrad.addColorStop(1, '#d8d9b5'); // Shadowed bottom
-    ctx.fillStyle = scrollGrad;
-    ctx.strokeStyle = '#795548';
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.rect(-10, -3.5, 20, 7);
-    ctx.fill();
-    ctx.stroke();
-    // End circle of rolled paper
-    ctx.fillStyle = '#795548';
-    ctx.beginPath();
-    ctx.ellipse(-10, 0, 1.2, 3.5, 0, 0, Math.PI * 2);
-    ctx.fill();
-    // Tiny red ribbon tied around center of scroll
-    ctx.fillStyle = '#ff1744';
-    ctx.beginPath();
-    ctx.rect(-1, -4, 2.5, 8);
-    ctx.fill();
-    ctx.restore();
-
-    // --- 5. Fluffy Feathered Head & Face ---
-    // Base head gradient (lighter on top, darker on neck/throat)
-    const headGrad = ctx.createLinearGradient(faceX, -16 + faceY, faceX, 4 + faceY);
-    headGrad.addColorStop(0, '#eceff1'); // Light grey forehead
-    headGrad.addColorStop(0.5, '#b0bec5'); // Mid grey
-    headGrad.addColorStop(0.9, '#546e7a'); // Dark slate-grey neck
-    headGrad.addColorStop(1, '#37474f'); // Dark throat base
-
-    ctx.fillStyle = headGrad;
-    ctx.beginPath();
-    ctx.arc(faceX, -6 + faceY, 13.0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Add fluffy feather tufts around the cheeks
-    ctx.fillStyle = '#b0bec5';
-    ctx.beginPath();
-    // Left cheek fluffy tufts
-    ctx.moveTo(-11 + faceX, -3 + faceY);
-    ctx.lineTo(-16 + faceX, -1 + faceY);
-    ctx.lineTo(-10 + faceX, 3 + faceY);
-    ctx.lineTo(-14 + faceX, 6 + faceY);
-    ctx.lineTo(-8 + faceX, 6 + faceY);
-    // Right cheek fluffy tufts
-    ctx.moveTo(11 + faceX, -3 + faceY);
-    ctx.lineTo(16 + faceX, -1 + faceY);
-    ctx.lineTo(10 + faceX, 3 + faceY);
-    ctx.lineTo(14 + faceX, 6 + faceY);
-    ctx.lineTo(8 + faceX, 6 + faceY);
-    ctx.fill();
-
-    // --- 6. Orange Leather Flight Cap (Helmet) ---
-    // Cap dome
-    ctx.fillStyle = '#e65100'; // Warm orange leather
-    ctx.strokeStyle = '#3e2723';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.arc(faceX, -7.5 + faceY, 13.0, Math.PI, 0); // Cap covering top half of head
-    ctx.lineTo(faceX + 13, -7.5 + faceY);
-    ctx.bezierCurveTo(faceX + 12, -18 + faceY, faceX - 12, -18 + faceY, faceX - 13, -7.5 + faceY);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Side leather ear flap loop (Left side)
-    ctx.beginPath();
-    ctx.ellipse(-12 + faceX, -5 + faceY, 3, 5, 0.2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    // Side leather ear flap loop (Right side)
-    ctx.beginPath();
-    ctx.ellipse(12 + faceX, -5 + faceY, 3, 5, -0.2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    // --- 7. Large Glassy Aviator Goggles ---
-    ctx.fillStyle = '#1e1e1e'; // Dark goggle frames
-    ctx.strokeStyle = '#3e2723';
-    ctx.lineWidth = 1;
-    // Left Frame
-    ctx.beginPath();
-    ctx.roundRect(-8 + faceX, -16 + faceY, 7.5, 5.5, 2);
-    ctx.fill();
-    ctx.stroke();
-    // Right Frame
-    ctx.beginPath();
-    ctx.roundRect(1.5 + faceX, -16 + faceY, 7.5, 5.5, 2);
-    ctx.fill();
-    ctx.stroke();
-
-    // Glassy lens gradient
-    const lensGrad = ctx.createLinearGradient(0, -16 + faceY, 0, -10 + faceY);
-    lensGrad.addColorStop(0, '#b3e5fc'); // Light sky blue
-    lensGrad.addColorStop(0.6, '#0288d1'); // Deep blue glass
-    lensGrad.addColorStop(1, '#01579b'); // Dark blue bottom shadow
-    
-    ctx.fillStyle = lensGrad;
-    // Left Lens
-    ctx.beginPath();
-    ctx.rect(-7 + faceX, -15 + faceY, 5.5, 3.5);
-    ctx.fill();
-    // Right Lens
-    ctx.beginPath();
-    ctx.rect(2.5 + faceX, -15 + faceY, 5.5, 3.5);
-    ctx.fill();
-
-    // Glass glare highlights (White slash lines)
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.moveTo(-6 + faceX, -14.5 + faceY);
-    ctx.lineTo(-4 + faceX, -12 + faceY);
-    ctx.moveTo(3.5 + faceX, -14.5 + faceY);
-    ctx.lineTo(5.5 + faceX, -12 + faceY);
-    ctx.stroke();
-
-    // Goggles strap (wraps around side of helmet)
-    ctx.strokeStyle = '#1e1e1e';
-    ctx.lineWidth = 2.0;
-    ctx.beginPath();
-    ctx.moveTo(-13 + faceX, -12 + faceY);
-    ctx.lineTo(-8 + faceX, -13 + faceY);
-    ctx.moveTo(9 + faceX, -13 + faceY);
-    ctx.lineTo(13 + faceX, -12 + faceY);
-    ctx.stroke();
-
-    // --- 8. Wide Expressive Brown Eyes ---
-    // White eyeball
-    ctx.fillStyle = '#ffffff';
-    // Left eye ball
-    ctx.beginPath();
-    ctx.ellipse(-4.5 + faceX, -5.5 + faceY, 5.5, 4.5, -0.1, 0, Math.PI * 2);
-    ctx.fill();
-    // Right eye ball
-    ctx.beginPath();
-    ctx.ellipse(5.5 + faceX, -5.5 + faceY, 5.5, 4.5, 0.1, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Brown iris
-    ctx.fillStyle = '#8d6e63'; // Warm brown iris
-    // Left iris
-    ctx.beginPath();
-    ctx.arc(-3.5 + faceX, -5.2 + faceY, 2.8, 0, Math.PI * 2);
-    ctx.fill();
-    // Right iris
-    ctx.beginPath();
-    ctx.arc(4.5 + faceX, -5.2 + faceY, 2.8, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Black pupil
-    ctx.fillStyle = '#000000';
-    // Left pupil
-    ctx.beginPath();
-    ctx.arc(-3.5 + faceX, -5.2 + faceY, 1.5, 0, Math.PI * 2);
-    ctx.fill();
-    // Right pupil
-    ctx.beginPath();
-    ctx.arc(4.5 + faceX, -5.2 + faceY, 1.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    // White shininess reflections (calm, shiny highlights)
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(-2.8 + faceX, -6.0 + faceY, 0.8, 0, Math.PI * 2);
-    ctx.arc(5.2 + faceX, -6.0 + faceY, 0.8, 0, Math.PI * 2);
-    ctx.fill();
-
-    // --- 9. Curved Dark Grey Beak (Open with Pink Tongue inside) ---
-    // Draw open mouth base
-    ctx.fillStyle = '#37474f'; // Dark beak charcoal
-    ctx.strokeStyle = '#212121';
-    ctx.lineWidth = 1.0;
-
-    // Upper beak (Hooking down)
-    ctx.beginPath();
-    ctx.moveTo(-1.5 + faceX, -7.5 + faceY);
-    ctx.quadraticCurveTo(11 + faceX, -7.5 + faceY, 12 + faceX, -1.5 + faceY); // Sharp tip
-    ctx.quadraticCurveTo(4 + faceX, -2.5 + faceY, 0 + faceX, -4.5 + faceY);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Lower beak (Opened mouth cavity)
-    ctx.fillStyle = '#546e7a';
-    ctx.beginPath();
-    ctx.moveTo(0 + faceX, -4.5 + faceY);
-    ctx.quadraticCurveTo(5 + faceX, -2.5 + faceY, 9 + faceX, -0.5 + faceY);
-    ctx.lineTo(4 + faceX, 3.5 + faceY); // Bottom of open beak
-    ctx.quadraticCurveTo(-1 + faceX, 0 + faceY, -1 + faceX, -4.5 + faceY);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Pink tongue inside open mouth gap
-    ctx.fillStyle = '#ff8a80'; // Pink tongue
-    ctx.beginPath();
-    ctx.ellipse(3 + faceX, -0.5 + faceY, 2.0, 1.5, 0.2, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Scarf wrap around neck (White cloth wrap)
-    ctx.fillStyle = '#f5f5f5';
-    ctx.strokeStyle = '#cfd8dc';
-    ctx.lineWidth = 1.0;
-    ctx.beginPath();
-    ctx.ellipse(faceX, 4 + faceY, 9, 3, 0.05, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    // --- 10. Flapping Wings (Ash-grey feathers) ---
-    this.drawFlappingWing(ctx, '#78909c', '#cfd8dc');
-  }
-
   private drawFalcon(ctx: CanvasRenderingContext2D) {
     if (!(window as any).gameDisableShadows) {
       ctx.shadowBlur = 12;
@@ -3341,9 +2830,88 @@ export class Bird {
     ctx.stroke();
 
     ctx.restore();
+
+    // --- ROYAL ORBITAL RING (Spinning golden halo with ruby gem nodes) ---
+    ctx.save();
+    ctx.globalAlpha = 0.85;
+
+    const ringRadius = 28;
+
+    // Outer spinning golden dashed ring
+    ctx.save();
+    ctx.rotate(this.auraAngle * 0.9);
+    const ringGrad = ctx.createLinearGradient(-ringRadius, 0, ringRadius, 0);
+    ringGrad.addColorStop(0, '#fff9c4');
+    ringGrad.addColorStop(0.5, '#ffd700');
+    ringGrad.addColorStop(1, '#ff8f00');
+    ctx.strokeStyle = ringGrad;
+    ctx.lineWidth = 2.2;
+    ctx.setLineDash([8, 5]);
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#ffd700';
+    }
+    ctx.beginPath();
+    ctx.arc(0, 0, ringRadius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    // Inner counter-spinning thin ring
+    ctx.save();
+    ctx.rotate(-this.auraAngle * 1.4);
+    ctx.strokeStyle = 'rgba(255, 213, 79, 0.5)';
+    ctx.lineWidth = 1.0;
+    ctx.setLineDash([4, 8]);
+    ctx.beginPath();
+    ctx.arc(0, 0, ringRadius * 0.78, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    // 4 orbiting gem nodes (alternating ruby and gold diamonds)
+    ctx.setLineDash([]);
+    for (let i = 0; i < 4; i++) {
+      const nodeAngle = this.auraAngle * 0.9 + (i * Math.PI) / 2;
+      const nx = Math.cos(nodeAngle) * ringRadius;
+      const ny = Math.sin(nodeAngle) * ringRadius;
+      const isRuby = i % 2 === 0;
+      const gemSize = isRuby ? 4.0 : 3.0;
+
+      ctx.save();
+      if (!(window as any).gameDisableShadows) {
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = isRuby ? '#ff1744' : '#ffd700';
+      }
+      const gemGrad = ctx.createRadialGradient(nx, ny, 0.5, nx, ny, gemSize);
+      if (isRuby) {
+        gemGrad.addColorStop(0, '#ff8a80');
+        gemGrad.addColorStop(1, '#c62828');
+      } else {
+        gemGrad.addColorStop(0, '#fff9c4');
+        gemGrad.addColorStop(1, '#f9a825');
+      }
+      ctx.fillStyle = gemGrad;
+      ctx.strokeStyle = isRuby ? '#7f0000' : '#3d2503';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(nx, ny - gemSize);
+      ctx.lineTo(nx + gemSize * 0.7, ny);
+      ctx.lineTo(nx, ny + gemSize);
+      ctx.lineTo(nx - gemSize * 0.7, ny);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      // Sparkle highlight
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.beginPath();
+      ctx.arc(nx - gemSize * 0.2, ny - gemSize * 0.3, gemSize * 0.22, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    ctx.globalAlpha = 1.0;
+    ctx.restore();
   }
 
-  // ===== FURIOUS RED (Angry Bird-style) =====
   private drawAngryBird(ctx: CanvasRenderingContext2D) {
     if (!(window as any).gameDisableShadows) {
       ctx.shadowBlur = 14;
