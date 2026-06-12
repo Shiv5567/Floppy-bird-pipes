@@ -1512,17 +1512,22 @@ export class ObstacleManager {
               verticalShift = Math.sin(this.waveTime * 2.2 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 50 * motionAmpMult;
             } else if (effectiveScore >= 300 && effectiveScore < 500) {
               if (gameMode === 'flock') {
-                // Interactive Proximity-Damped Breathing Gate:
-                // Obstacle sways and breathes (pulses gap) dynamically when far away, 
-                // but smoothly stabilizes and stops as the bird approaches within 350px.
-                const dx = _birdX !== undefined ? obs.x - _birdX : 500;
-                const proximity = Math.max(0.0, Math.min(1.0, (dx - 80) / 270)); // Lerps from 1.0 (far) to 0.0 (near)
+                // Smooth up-down and zigzag animations with dynamic difficulty scaling (up to 30% increase at score 500)
+                const progress = Math.max(0, Math.min(1, (effectiveScore - 300) / 200));
+                const diffScale = 1.0 + progress * 0.30; // 30% difficulty increase at score 500
                 
-                const baseSway = Math.sin(this.waveTime * 2.0 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 60 * motionAmpMult;
-                const baseGapDelta = Math.sin(this.waveTime * 3.0 * motionSpeedMult) * 35;
+                const speed = 2.0 * motionSpeedMult * diffScale;
+                const amp = 50 * motionAmpMult * diffScale;
                 
-                verticalShift = baseSway * proximity;
-                currentGap = currentGap + (baseGapDelta * proximity);
+                const style = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0) % 2;
+                if (style === 0) {
+                  // Style 0: Smooth up-down animation (keeping gap constant)
+                  verticalShift = Math.sin(this.waveTime * speed + (obs.obstacleIdx || 0) * 0.5) * amp;
+                } else {
+                  // Style 1: Zigzag animation (opposing vertical directions, keeping gap constant)
+                  const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
+                  verticalShift = Math.sin(this.waveTime * speed) * amp * elevatorDir;
+                }
               } else {
                 // Score 300-500: full high difficulty smooth up-down sways up to 60px
                 verticalShift = Math.sin(this.waveTime * 2.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 60 * motionAmpMult;
