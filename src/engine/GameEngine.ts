@@ -337,8 +337,7 @@ export class GameEngine {
       // - Formation mode: auto-add via score threshold
       // - Rescue and Squad Survival (flock) modes: birds ONLY come from cage rescues, NOT score thresholds
       if (this.gameMode === 'formation' && this.score >= this.scoreThreshold) {
-        const skins = this.progressManager.getSkins().filter(s => s.unlocked);
-        const skin = skins[Math.floor(Math.random() * skins.length)] || this.bird.getSkin();
+        const skin = this.bird.getSkin();
         const newBird = new Bird(skin);
         newBird.x = this.bird.x - 100; // spawn slightly behind
         newBird.y = this.bird.y;
@@ -1288,8 +1287,7 @@ export class GameEngine {
 
     if (type === 'rescue') {
       if (this.gameMode === 'rescue' || this.gameMode === 'flock') {
-        const skins = this.progressManager.getSkins().filter(s => s.unlocked);
-        const skin = skins[Math.floor(Math.random() * skins.length)] || this.bird.getSkin();
+        const skin = this.bird.getSkin();
         const newBird = new Bird(skin);
         newBird.x = this.bird.x - 100;
         newBird.y = this.bird.y;
