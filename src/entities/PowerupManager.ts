@@ -23,7 +23,7 @@ export class PowerupManager {
   private gemDistances: number[] = [];
   private nextGemIndex = 0;
   private lastSpawnedObstacleCenterY = 300;
-  private nextRescueSpawnTarget = 15 + Math.floor(Math.random() * 11); // random between 15 and 25
+  private nextRescueSpawnTarget = 10 + Math.floor(Math.random() * 6); // random between 10 and 15
 
   constructor() {}
 
@@ -100,7 +100,7 @@ export class PowerupManager {
     this.gemDistances = [];
     this.nextGemIndex = 0;
     this.lastSpawnedObstacleCenterY = 300;
-    this.nextRescueSpawnTarget = 15 + Math.floor(Math.random() * 11);
+    this.nextRescueSpawnTarget = 10 + Math.floor(Math.random() * 6);
   }
 
   public initLevelCollectibles(levelNum: number, targetScore: number) {
@@ -352,7 +352,7 @@ export class PowerupManager {
         if (obsIdx === this.nextRescueSpawnTarget) {
           // Spawn a cage in the gap center
           this.spawnItem('rescue', width, height, targetX, gapCenterY);
-          this.nextRescueSpawnTarget = obsIdx + 15 + Math.floor(Math.random() * 11); // Set next spawn between 15 and 25 obstacles
+          this.nextRescueSpawnTarget = obsIdx + 10 + Math.floor(Math.random() * 6); // Set next spawn between 10 and 15 obstacles
         } else if (obsIdx % 3 === 0) {
           // Spawn 3 coins group
           this.spawnItem('coin', width, height, targetX - 45, gapCenterY);
@@ -373,15 +373,15 @@ export class PowerupManager {
       if (gameMode === 'flock') {
         const obsIdx = unrewardedObstacle.obstacleIdx !== undefined ? unrewardedObstacle.obstacleIdx : 0;
 
-        // Initialize target for flock mode on first obstacle to ensure it is in the 10-20 range
+        // Initialize target for flock mode on first obstacle to ensure it is in the 10-15 range
         if (obsIdx === 0) {
-          this.nextRescueSpawnTarget = 10 + Math.floor(Math.random() * 11); // 10 to 20
+          this.nextRescueSpawnTarget = 10 + Math.floor(Math.random() * 6); // 10 to 15
         }
 
         if (obsIdx === this.nextRescueSpawnTarget) {
           // Spawn a cage in the gap center
           this.spawnItem('rescue', width, height, targetX, gapCenterY);
-          this.nextRescueSpawnTarget = obsIdx + 10 + Math.floor(Math.random() * 11); // Set next spawn between 10 and 20 obstacles
+          this.nextRescueSpawnTarget = obsIdx + 10 + Math.floor(Math.random() * 6); // Set next spawn between 10 and 15 obstacles
         } else if (obsIdx % 3 === 0) {
           // Spawn 3 coins group
           this.spawnItem('coin', width, height, targetX - 45, gapCenterY);
