@@ -511,7 +511,7 @@ export class Bird {
     ctx.globalAlpha = 0.45 + (Math.sin(this.auraPulse * 1.5) * 0.15); // Breathing opacity
     
     const disableShadows = (window as any).gameDisableShadows;
-    if (!disableShadows && this.activeSkin.glowColor) {
+    if (!disableShadows && this.activeSkin.glowColor && skinId !== 'dapper_blue') {
       ctx.shadowBlur = 10 + Math.sin(this.auraPulse) * 4;
       ctx.shadowColor = this.activeSkin.glowColor;
     }
@@ -907,26 +907,7 @@ export class Bird {
       }
 
       case 'dapper_blue': {
-        // Classy swirling blue orbits with deep blue accent sparks!
-        ctx.strokeStyle = '#00b0ff';
-        ctx.save();
-        ctx.rotate(this.auraAngle * 0.8);
-        ctx.setLineDash([8, 12]);
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.arc(0, 0, baseRadius * 1.25, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // Orbiting deep blue sparks
-        ctx.fillStyle = '#1565c0'; // Deep Blue
-        for (let i = 0; i < 4; i++) {
-          const angle = this.auraAngle * 1.2 + (i * Math.PI) / 2;
-          const dist = baseRadius * 1.25;
-          ctx.beginPath();
-          ctx.arc(Math.cos(angle) * dist, Math.sin(angle) * dist, 3, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.restore();
+        // No magic aura — clean flat style
         break;
       }
 
