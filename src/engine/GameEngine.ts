@@ -486,25 +486,25 @@ export class GameEngine {
           }
           
           // Custom speed multiplier intervals:
-          // 1-100: Constant starting speed.
+          // 1-100: Starting speed is increased by 8% (1.08).
           // 100-200: +5% speed (smoothly interpolated).
           // 200-300: +3% speed (smoothly interpolated on top of previous).
           // 300-400: +2% speed (smoothly interpolated on top of previous).
           // 400+: Fixed speed, no further speed additions.
-          let speedMultiplier = 1.0;
+          let speedMultiplier = 1.08;
           if (this.score <= 100) {
-            speedMultiplier = 1.0;
+            speedMultiplier = 1.08;
           } else if (this.score <= 200) {
             const progress = (this.score - 100) / 100;
-            speedMultiplier = 1.0 + progress * 0.05;
+            speedMultiplier = 1.08 * (1.0 + progress * 0.05);
           } else if (this.score <= 300) {
             const progress = (this.score - 200) / 100;
-            speedMultiplier = 1.05 * (1.0 + progress * 0.03);
+            speedMultiplier = 1.08 * 1.05 * (1.0 + progress * 0.03);
           } else if (this.score <= 400) {
             const progress = (this.score - 300) / 100;
-            speedMultiplier = 1.0815 * (1.0 + progress * 0.02);
+            speedMultiplier = 1.08 * 1.0815 * (1.0 + progress * 0.02);
           } else {
-            speedMultiplier = 1.05 * 1.03 * 1.02; // Fixed maximum multiplier: 1.10313
+            speedMultiplier = 1.08 * 1.05 * 1.03 * 1.02; // Fixed maximum multiplier: 1.19138
             // Scale horizontal scroll speed progressively: 5% increase every 100 obstacles passed from score 500
             if (this.score >= 500) {
               const over500Factor = Math.floor((this.score - 500) / 100);
