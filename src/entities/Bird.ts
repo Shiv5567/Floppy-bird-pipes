@@ -1146,32 +1146,32 @@ export class Bird {
     ctx.stroke();
     ctx.restore();
 
-    // --- 5. THICK MAJESTIC GOLDEN EAGLE BEAK (Hooked gold beak with lavender tip) ---
+    // --- 5. THICK MAJESTIC GOLDEN EAGLE BEAK (Hooked gold beak with lavender tip - 70% smaller) ---
     ctx.save();
-    const beakGrad = ctx.createLinearGradient(faceX + 8.8, faceY - 3.5, faceX + 19.7, faceY + 9.9);
+    const beakGrad = ctx.createLinearGradient(faceX + 6.2, faceY - 2.5, faceX + 13.8, faceY + 6.9);
     beakGrad.addColorStop(0, '#ffd54f'); // Golden yellow base
     beakGrad.addColorStop(0.6, '#ff8f00'); // Deep gold
     beakGrad.addColorStop(1, '#c084fc'); // Lavender tip
     
     ctx.fillStyle = beakGrad;
     ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 2.1;
+    ctx.lineWidth = 1.5;
 
     ctx.beginPath();
-    ctx.moveTo(faceX + 8.8, faceY - 3.5);
-    ctx.quadraticCurveTo(faceX + 26.4, faceY - 1.8, faceX + 21.1, faceY + 12.3); // hooked down tip
-    ctx.lineTo(faceX + 15.8, faceY + 9.7);
-    ctx.quadraticCurveTo(faceX + 12.3, faceY + 6.7, faceX + 7.9, faceY + 4.4);
+    ctx.moveTo(faceX + 6.2, faceY - 2.5);
+    ctx.quadraticCurveTo(faceX + 18.5, faceY - 1.3, faceX + 14.8, faceY + 8.6); // hooked down tip
+    ctx.lineTo(faceX + 11.1, faceY + 6.8);
+    ctx.quadraticCurveTo(faceX + 8.6, faceY + 4.7, faceX + 5.5, faceY + 3.1);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
     // Beak mouth line
     ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 1.8;
+    ctx.lineWidth = 1.3;
     ctx.beginPath();
-    ctx.moveTo(faceX + 8.8, faceY + 5.6);
-    ctx.quadraticCurveTo(faceX + 15.0, faceY + 8.4, faceX + 19.7, faceY + 9.9);
+    ctx.moveTo(faceX + 6.2, faceY + 3.9);
+    ctx.quadraticCurveTo(faceX + 10.5, faceY + 5.9, faceX + 13.8, faceY + 6.9);
     ctx.stroke();
     ctx.restore();
 
@@ -3921,32 +3921,32 @@ export class Bird {
     ctx.stroke();
     ctx.restore();
 
-    // --- 5. HOOKED GOLDEN PREDATOR BEAK WITH FIRE CRACK (Eagle detail) ---
+    // --- 5. HOOKED GOLDEN PREDATOR BEAK WITH FIRE CRACK (Eagle detail - 70% smaller) ---
     ctx.save();
-    const beakGrad = ctx.createLinearGradient(faceX + 8.8, faceY - 3.5, faceX + 19.7, faceY + 9.9);
+    const beakGrad = ctx.createLinearGradient(faceX + 6.2, faceY - 2.5, faceX + 13.8, faceY + 6.9);
     beakGrad.addColorStop(0, '#fef08a'); // Bright gold shine
     beakGrad.addColorStop(0.5, '#fbbf24'); // Gold
     beakGrad.addColorStop(1, '#f59e0b'); // Warm amber
     
     ctx.fillStyle = beakGrad;
     ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 2.1;
+    ctx.lineWidth = 1.5;
 
     ctx.beginPath();
-    ctx.moveTo(faceX + 8.8, faceY - 3.5);
-    ctx.quadraticCurveTo(faceX + 26.4, faceY - 1.8, faceX + 21.1, faceY + 12.3); // hooked down tip
-    ctx.lineTo(faceX + 15.8, faceY + 9.7);
-    ctx.quadraticCurveTo(faceX + 12.3, faceY + 6.7, faceX + 7.9, faceY + 4.4);
+    ctx.moveTo(faceX + 6.2, faceY - 2.5);
+    ctx.quadraticCurveTo(faceX + 18.5, faceY - 1.3, faceX + 14.8, faceY + 8.6); // hooked down tip
+    ctx.lineTo(faceX + 11.1, faceY + 6.8);
+    ctx.quadraticCurveTo(faceX + 8.6, faceY + 4.7, faceX + 5.5, faceY + 3.1);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
     // Glowing fiery red line crack running along beak mouth
     ctx.strokeStyle = '#ef4444';
-    ctx.lineWidth = 1.6;
+    ctx.lineWidth = 1.3;
     ctx.beginPath();
-    ctx.moveTo(faceX + 8.8, faceY + 5.6);
-    ctx.quadraticCurveTo(faceX + 15.0, faceY + 8.4, faceX + 19.7, faceY + 9.9);
+    ctx.moveTo(faceX + 6.2, faceY + 3.9);
+    ctx.quadraticCurveTo(faceX + 10.5, faceY + 5.9, faceX + 13.8, faceY + 6.9);
     ctx.stroke();
     ctx.restore();
 
