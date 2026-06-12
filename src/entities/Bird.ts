@@ -1926,95 +1926,63 @@ export class Bird {
       ctx.stroke();
     });
 
-    // --- 6. MAJESTIC DRAGON HEAD STRUCTURE (Sleek eastern dragon snout, jaws, whiskers, and horns) ---
-    ctx.save();
-    
-    // Gradient for the head plumage/scales
-    const headGrad = ctx.createLinearGradient(headX - 8, headY - 8, headX + 15, headY + 8);
-    headGrad.addColorStop(0, '#f8fafc'); // Pure white
-    headGrad.addColorStop(0.5, '#f1f5f9'); // Slate white
-    headGrad.addColorStop(1, '#e2e8f0'); // Cool silver shadow
-
-    ctx.fillStyle = headGrad;
-    ctx.strokeStyle = '#c084fc'; // Purple theme border
-    ctx.lineWidth = 1.4;
-
-    // Draw the main dragon head with a snout, upper jaw, and throat line
-    ctx.beginPath();
-    ctx.moveTo(headX - 7, headY - 5);
-    
-    // Top of head curving down to snout bridge
-    ctx.quadraticCurveTo(headX + 2, headY - 7, headX + 7, headY - 3);
-    // Snout extending forward
-    ctx.lineTo(headX + 18, headY - 1);
-    // Tip of the snout/upper lip
-    ctx.quadraticCurveTo(headX + 20, headY + 1, headX + 17, headY + 2.5);
-    // Upper jaw mouth line going back
-    ctx.lineTo(headX + 6, headY + 2.5);
-    // Curve into the throat/lower jaw connection
-    ctx.quadraticCurveTo(headX + 2, headY + 7, headX - 5, headY + 6);
-    // Lower throat connecting to neck
-    ctx.lineTo(headX - 8, headY + 3);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Draw lower jaw separately to create depth (slightly open mouth look!)
-    ctx.fillStyle = '#f1f5f9';
-    ctx.beginPath();
-    ctx.moveTo(headX + 6, headY + 3);
-    ctx.lineTo(headX + 15, headY + 4.5); // lower jaw tip
-    ctx.quadraticCurveTo(headX + 17, headY + 6, headX + 13, headY + 7);
-    ctx.lineTo(headX + 4, headY + 5);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Golden snout detail plate (upper ridge)
-    ctx.fillStyle = '#ffd54f';
+    // --- 6. DRAGON-BIRD HYBRID HEAD (Rounded bird head with small sharp golden-lavender beak) ---
+    ctx.fillStyle = '#f8fafc';
     ctx.strokeStyle = '#c084fc';
-    ctx.lineWidth = 1.0;
+    ctx.lineWidth = 1.3;
+
+    // Draw rounded bird head shape
     ctx.beginPath();
-    ctx.moveTo(headX + 7, headY - 3);
-    ctx.lineTo(headX + 15, headY - 1.5);
-    ctx.lineTo(headX + 14, headY + 1.2);
-    ctx.lineTo(headX + 6, headY + 1.2);
+    ctx.arc(headX, headY, 8.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Small sharp golden bird beak (falcon-like curved hook, scaled down to look smaller & elegant)
+    const beakGrad = ctx.createLinearGradient(headX + 3, headY - 3, headX + 11, headY + 3);
+    beakGrad.addColorStop(0, '#ffd54f'); // Golden yellow base
+    beakGrad.addColorStop(0.6, '#ff8f00'); // Deep gold
+    beakGrad.addColorStop(1, '#c084fc'); // Lavender tip (blends with white dragon theme!)
+    ctx.fillStyle = beakGrad;
+    ctx.strokeStyle = '#3d2503';
+    ctx.lineWidth = 0.9;
+
+    ctx.beginPath();
+    ctx.moveTo(headX + 4.2, headY - 2.4); // top base of beak
+    ctx.quadraticCurveTo(headX + 10.8, headY - 1.8, headX + 9.6, headY + 2.4); // curved hook tip pointing down
+    ctx.lineTo(headX + 7.2, headY + 1.2); // lower cut
+    ctx.quadraticCurveTo(headX + 5.5, headY + 0.3, headX + 3, headY + 0.5); // mouth line connection
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Whisker / Barbel (Flowing golden/purple dragon thread)
-    ctx.strokeStyle = '#ffd54f';
-    ctx.lineWidth = 1.2;
+    // Subtle beak highlight reflection line
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 0.6;
     ctx.beginPath();
-    ctx.moveTo(headX + 5, headY + 2.5);
-    ctx.quadraticCurveTo(headX - 2, headY + 12, headX - 16, headY + 15);
+    ctx.moveTo(headX + 4.8, headY - 1.8);
+    ctx.quadraticCurveTo(headX + 8.4, headY - 1.2, headX + 7.8, headY + 0.6);
     ctx.stroke();
 
-    // Majestic horns sweeping backward (Lilac/Purple)
+    // Majestic horns (Lilac/Purple)
     ctx.fillStyle = '#c084fc';
     ctx.strokeStyle = '#a855f7';
     ctx.lineWidth = 1.0;
-    
     // Horn 1 (Top horn)
     ctx.beginPath();
-    ctx.moveTo(headX - 4, headY - 5);
-    ctx.quadraticCurveTo(headX - 15, headY - 18, headX - 22, headY - 14);
-    ctx.quadraticCurveTo(headX - 12, headY - 6, headX - 2, headY - 3);
+    ctx.moveTo(headX - 5, headY - 5);
+    ctx.quadraticCurveTo(headX - 14, headY - 16, headX - 20, headY - 12);
+    ctx.quadraticCurveTo(headX - 10, headY - 6, headX - 3, headY - 3);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-    
     // Horn 2 (Lower horn)
     ctx.beginPath();
-    ctx.moveTo(headX - 5, headY + 1);
-    ctx.quadraticCurveTo(headX - 14, headY - 8, headX - 19, headY - 5);
-    ctx.quadraticCurveTo(headX - 10, headY + 1, headX - 3, headY + 2);
+    ctx.moveTo(headX - 6, headY + 1);
+    ctx.quadraticCurveTo(headX - 12, headY - 6, headX - 16, headY - 4);
+    ctx.quadraticCurveTo(headX - 9, headY + 2, headX - 4, headY + 3);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-
-    ctx.restore();
 
     // --- 7. INTENSE MINIATURIZED DRAGON EYE (Reduced size from 4.5 to 2.2 for realistic proportions) ---
     // Outer iris
