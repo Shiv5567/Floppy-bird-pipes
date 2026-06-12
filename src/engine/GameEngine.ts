@@ -204,6 +204,7 @@ export class GameEngine {
     this.nextBossScore = 100;
     this.playerBossHP = 0;
     this.maxPlayerBossHP = 0;
+    this.bossManager.reset();
 
     if (this.gameMode === 'flock') {
       const width = this.renderer.canvas.width / this.renderer.dpr;
@@ -1251,16 +1252,13 @@ export class GameEngine {
     // Spawn point sparkles
     this.particleEngine.emitCoinSparkle(this.bird.x + 30, this.bird.y, '#00ffcc');
 
-    // Demo completion checks were removed
+    // Demo completion checks were removed  
   }
 
   private triggerBossWarning() {
     this.state = 'BOSS_WARNING';
     this.bossWarningTimer = 0;
     this.obstacleManager.clear();
-    
-    // Dispatch HUD alert custom event
-    window.dispatchEvent(new CustomEvent('hud_alert', { detail: { text: 'TITAN BOSS APPROACHING!', sub: 'COLLECT PLASMA CHARGES TO DEFEND!' } }));
   }
 
   // Activate game changing powerup mechanics
@@ -1280,14 +1278,6 @@ export class GameEngine {
         
         this.birdsJoinedThisRun++;
         this.mergeReadyCount = this.flock.length;
-
-        const flockSize = this.flock.length;
-        window.dispatchEvent(new CustomEvent('hud_alert', {
-          detail: {
-            text: `RESCUED! 🕊️ (Squad Size: ${flockSize})`,
-            sub: 'Tap MERGE to fuse your flock into Boss HP!'
-          }
-        }));
       }
       return;
     }

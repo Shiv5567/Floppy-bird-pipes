@@ -44,6 +44,21 @@ export class BossManager {
 
   constructor() {}
 
+  public reset() {
+    this.active = false;
+    this.bossX = 800;
+    this.bossY = 250;
+    this.targetBossY = 250;
+    this.health = 25;
+    this.maxHealth = 25;
+    this.state = 'entering';
+    this.timer = 0;
+    this.projectiles = [];
+    this.playerMissiles = [];
+    this.fireCooldown = 0;
+    this.chargePulseActive = false;
+  }
+
   public isBossActive(): boolean {
     return this.active;
   }

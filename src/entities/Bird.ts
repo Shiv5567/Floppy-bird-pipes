@@ -399,6 +399,20 @@ export class Bird {
 
     // Draw the corresponding character skin geometry
     const skinId = skin.id;
+    this.renderSkinGeometry(ctx, skinId);
+
+    // Restore original gameplay parameters
+    this.activeSkin = origSkin;
+    this.flapCycle = origFlap;
+    this.angle = origAngle;
+    this.auraPulse = origAuraPulse;
+    this.auraAngle = origAuraAngle;
+    this.vy = origVy;
+
+    ctx.restore();
+  }
+
+  public renderSkinGeometry(ctx: CanvasRenderingContext2D, skinId: string) {
     switch (skinId) {
       case 'phoenix':
         this.drawPhoenix(ctx);
@@ -442,16 +456,6 @@ export class Bird {
       default:
         this.drawEagle(ctx);
     }
-
-    // Restore original gameplay parameters
-    this.activeSkin = origSkin;
-    this.flapCycle = origFlap;
-    this.angle = origAngle;
-    this.auraPulse = origAuraPulse;
-    this.auraAngle = origAuraAngle;
-    this.vy = origVy;
-
-    ctx.restore();
   }
 
 

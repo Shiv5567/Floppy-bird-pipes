@@ -188,7 +188,7 @@ function loop(time: number) {
 
   gameEngine.renderer.beginCamera();
   gameEngine.obstacleManager.render(ctx, height);
-  gameEngine.powerupManager.render(ctx);
+  gameEngine.powerupManager.render(ctx, gameEngine);
   gameEngine.bossManager.render(ctx, gameEngine.bird.isCrashing);
   if (gameEngine.gameMode === 'flock' && gameEngine.flock && gameEngine.flock.length > 0) {
     const len = gameEngine.flock.length;

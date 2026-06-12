@@ -1730,12 +1730,7 @@ export class UIManager {
              title="Merge Squad for Boss HP!">
           <div style="position: absolute; inset: 2px; border-radius: 50%; background: rgba(255, 0, 127, 0.15); pointer-events: none;"></div>
           
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ff007f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="z-index: 2; filter: drop-shadow(0 0 4px #ff007f); margin-bottom: 2px;">
-            <circle cx="12" cy="12" r="9" stroke-opacity="0.25" stroke-width="1.5"></circle>
-            <path d="M12 3v5M12 21v-5M3 12h5M21 12h-5" stroke-linecap="round"></path>
-            <circle cx="12" cy="12" r="3.5" fill="#ff007f" fill-opacity="0.3"></circle>
-            <circle cx="12" cy="12" r="1.5" fill="#ffffff"></circle>
-          </svg>
+          <img src="/merge_icon.png" width="32" height="32" style="z-index: 2; object-fit: contain; margin-bottom: 2px; border-radius: 50%; box-shadow: 0 0 8px rgba(255, 0, 127, 0.8);" />
 
           <span class="flock-merge-label" style="font-size: 7px; font-weight: 900; color: #ff007f; z-index: 2; text-shadow: 0 0 6px #ff007f; letter-spacing: 0.2px; text-align: center;">MERGE (+${flockLen})</span>
         </div>

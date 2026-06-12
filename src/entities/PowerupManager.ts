@@ -556,7 +556,7 @@ export class PowerupManager {
   }
 
   // Draw glowing powerup vector boxes
-  public render(ctx: CanvasRenderingContext2D) {
+  public render(ctx: CanvasRenderingContext2D, gameEngine?: any) {
     for (let i = 0; i < this.list.length; i++) {
       const item = this.list[i];
       
@@ -607,40 +607,59 @@ export class PowerupManager {
         ctx.arc(0, -8.5, 2, 0, Math.PI * 2);
         ctx.fill();
 
-        // Flapping bird body inside cage
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.ellipse(0, 1.5, 2.5, 1.8, 0, 0, Math.PI * 2);
-        ctx.fill();
+        if (gameEngine && gameEngine.bird && gameEngine.progressManager) {
+          const skin = gameEngine.progressManager.getActiveSkinInfo();
+          ctx.save();
+          
+          // Position inside the cage and scale it down to fit
+          ctx.translate(0, 1.5);
+          ctx.scale(0.12, 0.12);
+          
+          // Animate flap
+          const origFlap = gameEngine.bird.flapCycle;
+          gameEngine.bird.flapCycle = flapAngle * 4; // Use flapAngle for syncing
+          
+          // Render the active character geometry
+          gameEngine.bird.renderSkinGeometry(ctx, skin.id);
+          
+          gameEngine.bird.flapCycle = origFlap;
+          ctx.restore();
+        } else {
+          // Fallback: Flapping white bird body inside cage
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.ellipse(0, 1.5, 2.5, 1.8, 0, 0, Math.PI * 2);
+          ctx.fill();
 
-        // Left wing (flapping)
-        ctx.strokeStyle = '#aaccff';
-        ctx.lineWidth = 1.1;
-        ctx.beginPath();
-        ctx.moveTo(-2.5, 1.5);
-        ctx.quadraticCurveTo(-5, 1.5 + Math.sin(flapAngle) * 3, -3.5, 1.5 + Math.sin(flapAngle) * 5);
-        ctx.stroke();
+          // Left wing (flapping)
+          ctx.strokeStyle = '#aaccff';
+          ctx.lineWidth = 1.1;
+          ctx.beginPath();
+          ctx.moveTo(-2.5, 1.5);
+          ctx.quadraticCurveTo(-5, 1.5 + Math.sin(flapAngle) * 3, -3.5, 1.5 + Math.sin(flapAngle) * 5);
+          ctx.stroke();
 
-        // Right wing (flapping)
-        ctx.beginPath();
-        ctx.moveTo(2.5, 1.5);
-        ctx.quadraticCurveTo(5, 1.5 - Math.sin(flapAngle) * 3, 3.5, 1.5 - Math.sin(flapAngle) * 5);
-        ctx.stroke();
+          // Right wing (flapping)
+          ctx.beginPath();
+          ctx.moveTo(2.5, 1.5);
+          ctx.quadraticCurveTo(5, 1.5 - Math.sin(flapAngle) * 3, 3.5, 1.5 - Math.sin(flapAngle) * 5);
+          ctx.stroke();
 
-        // Bird beak
-        ctx.fillStyle = '#ffaa00';
-        ctx.beginPath();
-        ctx.moveTo(-2.5, 0.8);
-        ctx.lineTo(-4.5, 1.5);
-        ctx.lineTo(-2.5, 2.2);
-        ctx.closePath();
-        ctx.fill();
+          // Bird beak
+          ctx.fillStyle = '#ffaa00';
+          ctx.beginPath();
+          ctx.moveTo(-2.5, 0.8);
+          ctx.lineTo(-4.5, 1.5);
+          ctx.lineTo(-2.5, 2.2);
+          ctx.closePath();
+          ctx.fill();
 
-        // Bird eye
-        ctx.fillStyle = '#000000';
-        ctx.beginPath();
-        ctx.arc(-0.8, 0.8, 0.7, 0, Math.PI * 2);
-        ctx.fill();
+          // Bird eye
+          ctx.fillStyle = '#000000';
+          ctx.beginPath();
+          ctx.arc(-0.8, 0.8, 0.7, 0, Math.PI * 2);
+          ctx.fill();
+        }
       } else {
         this.drawPowerupBox(ctx, item);
       }
