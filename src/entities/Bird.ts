@@ -265,6 +265,12 @@ export class Bird {
         particleEngine.spawn(offsetBackX, offsetBackY, -0.8 - Math.random() * 1.2, (Math.random() - 0.5) * 1.0, '#d1c4e9', 3.0 + Math.random() * 3.0, 0.9, 0.02, 'star', true, 'rgba(124, 77, 255, 0.8)');
         break;
 
+      case 'dapper_blue':
+        // Shiny cyan sparkles + navy outline sparks!
+        particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -1 - Math.random() * 1.5, (Math.random() - 0.5) * 1.2, '#00b0ff', 3 + Math.random() * 2, 0.9, 0.02, 'circle', true, '#00e5ff');
+        particleEngine.spawn(offsetBackX + rx * 0.8, offsetBackY + ry * 0.8, -0.6 - Math.random() * 1.0, (Math.random() - 0.5) * 0.8, '#0a1d37', 2 + Math.random() * 1.5, 0.85, 0.03, 'spark', true, 'rgba(10, 29, 55, 0.5)');
+        break;
+
       default:
         particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -1 - Math.random() * 1, (Math.random() - 0.5) * 0.5, 'rgba(255, 255, 255, 0.4)', 2, 0.8, 0.03, 'circle');
     }
@@ -377,6 +383,9 @@ export class Bird {
       case 'cosmic_nova':
         this.drawCosmicNova(ctx);
         break;
+      case 'dapper_blue':
+        this.drawDapperBlue(ctx);
+        break;
       default:
         this.drawEagle(ctx); // Default Eagle
     }
@@ -476,6 +485,9 @@ export class Bird {
         break;
       case 'cosmic_nova':
         this.drawCosmicNova(ctx);
+        break;
+      case 'dapper_blue':
+        this.drawDapperBlue(ctx);
         break;
       default:
         this.drawEagle(ctx);
@@ -894,6 +906,30 @@ export class Bird {
         break;
       }
 
+      case 'dapper_blue': {
+        // Classy swirling blue orbits with dark navy accent sparks!
+        ctx.strokeStyle = '#00b0ff';
+        ctx.save();
+        ctx.rotate(this.auraAngle * 0.8);
+        ctx.setLineDash([8, 12]);
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(0, 0, baseRadius * 1.25, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Orbiting navy sparks
+        ctx.fillStyle = '#0a1d37'; // Dark Navy
+        for (let i = 0; i < 4; i++) {
+          const angle = this.auraAngle * 1.2 + (i * Math.PI) / 2;
+          const dist = baseRadius * 1.25;
+          ctx.beginPath();
+          ctx.arc(Math.cos(angle) * dist, Math.sin(angle) * dist, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+        break;
+      }
+
       default: {
         // Gold celestial wing shield (Default Eagle)
         if (upgradeLvl > 1) {
@@ -1019,6 +1055,240 @@ export class Bird {
 
     // Animated Wings
     this.drawFlappingWing(ctx, '#8b5a2b', '#4a2f1b');
+  }
+
+  // ===== DAPPER BLUE (No hat, spiky head crest, navy outlines) =====
+  private drawDapperBlue(ctx: CanvasRenderingContext2D) {
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = 'rgba(0, 191, 255, 0.4)';
+    }
+
+    // 2.5D Face shift offset
+    const faceX = Math.cos(this.angle) * 1.8;
+    const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.18;
+
+    // --- 1. FAR WING (Drawn behind the body) ---
+    ctx.save();
+    ctx.translate(-6, -4);
+    const farFlapAngle = Math.sin(this.flapCycle + 0.35) * 0.5;
+    ctx.rotate(farFlapAngle - 0.2); // Pointing up/back
+
+    ctx.fillStyle = '#4fc3f7';
+    ctx.strokeStyle = '#0a1d37';
+    ctx.lineWidth = 1.8;
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(-6, -15, -10, -22); // Spike 1
+    ctx.quadraticCurveTo(-14, -14, -8, -10);
+    ctx.quadraticCurveTo(-14, -10, -14, -16); // Spike 2
+    ctx.quadraticCurveTo(-16, -8, -8, -4);
+    ctx.quadraticCurveTo(-14, -4, -14, -8); // Spike 3
+    ctx.quadraticCurveTo(-12, 2, 0, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // --- 2. DARK NAVY TAIL FEATHERS (Three spiky feathers pointing back) ---
+    ctx.save();
+    ctx.translate(-14, 2);
+    const tailFlap = Math.sin(this.flapCycle * 0.8) * 0.1;
+    ctx.rotate(tailFlap);
+    ctx.fillStyle = '#0a1d37';
+    ctx.strokeStyle = '#0a1d37';
+    ctx.lineWidth = 1.5;
+
+    const tailAngles = [-0.2, 0, 0.2];
+    tailAngles.forEach(ang => {
+      ctx.save();
+      ctx.rotate(ang);
+      ctx.beginPath();
+      ctx.moveTo(0, -2);
+      ctx.lineTo(-12, -3);
+      ctx.lineTo(-12, 3);
+      ctx.lineTo(0, 2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    });
+    ctx.restore();
+
+    // --- 3. MAIN ROUND CYAN BODY ---
+    ctx.fillStyle = '#4fc3f7'; // Cyan
+    ctx.strokeStyle = '#0a1d37';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.arc(0, 0, 16, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // --- 4. DARKER BLUE WAVY UNDERBELLY ---
+    ctx.save();
+    // Clip to body circle so waves don't overflow
+    ctx.beginPath();
+    ctx.arc(0, 0, 16, 0, Math.PI * 2);
+    ctx.clip();
+
+    ctx.fillStyle = '#0288d1'; // Darker blue
+    ctx.strokeStyle = '#0a1d37';
+    ctx.lineWidth = 1.8;
+
+    ctx.beginPath();
+    ctx.moveTo(-17, 8);
+    ctx.quadraticCurveTo(-12, 4, -8, 8);
+    ctx.quadraticCurveTo(-4, 12, 0, 8);
+    ctx.quadraticCurveTo(4, 4, 8, 8);
+    ctx.quadraticCurveTo(12, 12, 17, 8);
+    ctx.lineTo(17, 17);
+    ctx.lineTo(-17, 17);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // --- 5. HEAD CREST (Two spiky cyan feathers on top, replacing the hat) ---
+    ctx.save();
+    ctx.translate(faceX * 0.5, faceY * 0.5);
+
+    // Crest feather 1 (right spike, taller)
+    ctx.fillStyle = '#4fc3f7';
+    ctx.strokeStyle = '#0a1d37';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(4, -14);
+    ctx.quadraticCurveTo(6, -24, 8, -26);
+    ctx.quadraticCurveTo(10, -24, 9, -14);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Crest feather 2 (left spike, shorter & angled)
+    ctx.fillStyle = '#29b6f6';
+    ctx.beginPath();
+    ctx.moveTo(1, -13);
+    ctx.quadraticCurveTo(1, -21, 3, -22);
+    ctx.quadraticCurveTo(5, -20, 4, -13);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Small highlight on crest
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+    ctx.lineWidth = 0.9;
+    ctx.beginPath();
+    ctx.moveTo(6, -16);
+    ctx.quadraticCurveTo(7, -22, 8, -24);
+    ctx.stroke();
+
+    ctx.restore();
+
+    // --- 6. BORED RECTANGULAR EYES ---
+    ctx.save();
+    ctx.translate(faceX, faceY);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#0a1d37';
+    ctx.lineWidth = 1.8;
+
+    // Left Eye
+    ctx.beginPath();
+    ctx.rect(3, -5, 5, 4);
+    ctx.fill();
+    ctx.stroke();
+
+    // Right Eye
+    ctx.beginPath();
+    ctx.rect(10, -5, 5, 4);
+    ctx.fill();
+    ctx.stroke();
+
+    // Pupils (Dark navy squares on the right side)
+    ctx.fillStyle = '#0a1d37';
+    ctx.fillRect(6, -4, 2, 3);
+    ctx.fillRect(13, -4, 2, 3);
+
+    // Eyebrows/Lids (Dark navy lids covering top half)
+    ctx.fillRect(2, -6, 7, 2);
+    ctx.fillRect(9, -6, 7, 2);
+
+    ctx.restore();
+
+    // --- 7. ORANGE ROUND BEAK & CORNER LINES ---
+    ctx.save();
+    ctx.translate(faceX, faceY);
+
+    ctx.fillStyle = '#ff7043'; // Vibrant orange
+    ctx.strokeStyle = '#0a1d37';
+    ctx.lineWidth = 1.8;
+
+    // Upper beak
+    ctx.beginPath();
+    ctx.moveTo(9, -2);
+    ctx.bezierCurveTo(18, -4, 23, 1, 21, 3);
+    ctx.bezierCurveTo(17, 4, 12, 2, 9, 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Lower beak
+    ctx.fillStyle = '#ff5722'; // Darker orange
+    ctx.beginPath();
+    ctx.moveTo(9, 2);
+    ctx.bezierCurveTo(12, 2, 17, 5, 20, 3);
+    ctx.bezierCurveTo(17, 6, 12, 6, 9, 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Beak crease line
+    ctx.strokeStyle = '#0a1d37';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(9, 1);
+    ctx.lineTo(20.5, 2);
+    ctx.stroke();
+
+    // Smile corner cheek line
+    ctx.beginPath();
+    ctx.arc(8, 0, 3, -Math.PI / 2, Math.PI / 2, true);
+    ctx.stroke();
+
+    ctx.restore();
+
+    // --- 8. NEAR WING (Drawn on top of body) ---
+    ctx.save();
+    ctx.translate(-2, -2);
+    const nearFlapAngle = Math.sin(this.flapCycle) * 0.65;
+    ctx.rotate(nearFlapAngle - 0.2);
+
+    ctx.fillStyle = '#4fc3f7';
+    ctx.strokeStyle = '#0a1d37';
+    ctx.lineWidth = 1.8;
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(-6, -15, -10, -22); // Spike 1
+    ctx.quadraticCurveTo(-14, -14, -8, -10);
+    ctx.quadraticCurveTo(-14, -10, -14, -16); // Spike 2
+    ctx.quadraticCurveTo(-16, -8, -8, -4);
+    ctx.quadraticCurveTo(-14, -4, -14, -8); // Spike 3
+    ctx.quadraticCurveTo(-12, 2, 0, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // White wing highlight
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(-1, -4);
+    ctx.quadraticCurveTo(-5, -14, -8, -19);
+    ctx.stroke();
+
+    ctx.restore();
   }
 
   private drawPhoenix(ctx: CanvasRenderingContext2D) {
