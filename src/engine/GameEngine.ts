@@ -857,7 +857,7 @@ export class GameEngine {
             this.state = 'PLAYING';
             this.incrementScore(10); // Massive points
             if (this.gameMode === 'flock') {
-              this.nextBossScore = this.score + 100;
+              this.nextBossScore = Math.ceil((this.score + 1) / 100) * 100;
             }
           }
         }

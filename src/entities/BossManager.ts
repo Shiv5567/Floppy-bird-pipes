@@ -243,7 +243,7 @@ export class BossManager {
     let projectileCount = 2;
     if (score < 300) {
       projectileCount = 2;
-    } else if (score < 600) {
+    } else if (score <= 500) {
       projectileCount = 3;
     } else {
       projectileCount = 4;
