@@ -265,6 +265,12 @@ export class Bird {
         particleEngine.spawn(offsetBackX, offsetBackY, -0.8 - Math.random() * 1.2, (Math.random() - 0.5) * 1.0, '#d1c4e9', 3.0 + Math.random() * 3.0, 0.9, 0.02, 'star', true, 'rgba(124, 77, 255, 0.8)');
         break;
 
+      case 'storm_thunder':
+        // Neon-cyan sparks/lightning fragments + white speed flashes
+        particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -1.8 - Math.random() * 2.0, (Math.random() - 0.5) * 1.5, '#00f3ff', 3.5 + Math.random() * 2.5, 1.0, 0.025, 'spark', true, 'rgba(0, 243, 255, 0.8)');
+        particleEngine.spawn(offsetBackX, offsetBackY, -1.0 - Math.random() * 1.5, (Math.random() - 0.5) * 1.0, '#ffffff', 2.0 + Math.random() * 2.0, 0.9, 0.03, 'circle', true, 'rgba(255, 255, 255, 0.7)');
+        break;
+
 
 
 
@@ -381,6 +387,9 @@ export class Bird {
       case 'cosmic_nova':
         this.drawCosmicNova(ctx);
         break;
+      case 'storm_tempest_eagle':
+        this.drawStormTempestEagle(ctx);
+        break;
 
 
 
@@ -483,6 +492,9 @@ export class Bird {
         break;
       case 'cosmic_nova':
         this.drawCosmicNova(ctx);
+        break;
+      case 'storm_tempest_eagle':
+        this.drawStormTempestEagle(ctx);
         break;
 
 
@@ -900,6 +912,65 @@ export class Bird {
           ctx.arc(Math.cos(angle) * dist, Math.sin(angle) * dist, 2.5, 0, Math.PI * 2);
           ctx.fill();
         }
+        ctx.restore();
+        break;
+      }
+
+      case 'storm_tempest_eagle': {
+        // Double rotating electric circles + jagged lightning discharge arcs
+        ctx.save();
+        
+        // Outer rotating cyan ring
+        ctx.strokeStyle = '#00f3ff';
+        ctx.lineWidth = 1.8;
+        ctx.setLineDash([8, 12]);
+        ctx.save();
+        ctx.rotate(this.auraAngle * 1.5);
+        ctx.beginPath();
+        ctx.arc(0, 0, baseRadius * 1.35, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+
+        // Inner rotating dark blue-cyan ring
+        ctx.strokeStyle = '#00b0ff';
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([5, 8]);
+        ctx.save();
+        ctx.rotate(-this.auraAngle * 2.2);
+        ctx.beginPath();
+        ctx.arc(0, 0, baseRadius * 1.1, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+
+        // Jagged electric discharges (3 lightning bolts)
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        for (let i = 0; i < 3; i++) {
+          const baseAngle = this.auraAngle + (i * Math.PI * 2) / 3;
+          ctx.save();
+          ctx.rotate(baseAngle);
+          
+          ctx.beginPath();
+          ctx.moveTo(baseRadius * 0.8, 0);
+          // Jagged step 1
+          const midX = baseRadius * 1.1;
+          const midY = (Math.random() - 0.5) * 6;
+          ctx.lineTo(midX, midY);
+          // Jagged step 2 (tip)
+          const tipX = baseRadius * 1.45;
+          const tipY = midY + (Math.random() - 0.5) * 8;
+          ctx.lineTo(tipX, tipY);
+          ctx.stroke();
+          
+          // Tiny energy particle at tip
+          ctx.fillStyle = '#00f3ff';
+          ctx.beginPath();
+          ctx.arc(tipX, tipY, 2, 0, Math.PI * 2);
+          ctx.fill();
+          
+          ctx.restore();
+        }
+        
         ctx.restore();
         break;
       }
@@ -3554,6 +3625,395 @@ export class Bird {
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
+
+    ctx.restore();
+  }
+
+  // ===== STORM TEMPEST EAGLE (Predatory Eagle Head with Storm/Lightning Theme) =====
+  private drawStormTempestEagle(ctx: CanvasRenderingContext2D) {
+    const outlineColor = '#0a0f1d';
+    
+    // Parallax face shifting
+    const faceX = Math.cos(this.angle) * 2.2;
+    const faceY = Math.sin(this.angle) * 1.5 - this.vy * 0.12;
+
+    // --- 1. LEG ARMOR & CLAWS ---
+    ctx.save();
+    // Thighs (slate blue feathers)
+    ctx.fillStyle = '#1e293b';
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = 1.2;
+    
+    // Rear thigh
+    ctx.beginPath();
+    ctx.moveTo(-6, 8);
+    ctx.quadraticCurveTo(-10, 14, -5, 18);
+    ctx.lineTo(-2, 17);
+    ctx.quadraticCurveTo(-7, 11, -2, 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Front thigh
+    ctx.beginPath();
+    ctx.moveTo(2, 8);
+    ctx.quadraticCurveTo(7, 16, 11, 17);
+    ctx.quadraticCurveTo(8, 11, 5, 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Gilded storm greaves (Leg armor)
+    const legArmorGrad = ctx.createLinearGradient(-5, 8, 10, 18);
+    legArmorGrad.addColorStop(0, '#475569'); // Silver grey
+    legArmorGrad.addColorStop(0.5, '#64748b');
+    legArmorGrad.addColorStop(1, '#00e5ff'); // Electric cyan trim
+    
+    ctx.fillStyle = legArmorGrad;
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = 1.0;
+    
+    // Rear greave
+    ctx.beginPath();
+    ctx.moveTo(-8, 10);
+    ctx.lineTo(-5, 17);
+    ctx.lineTo(-2, 16);
+    ctx.lineTo(-5, 9);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Front greave
+    ctx.beginPath();
+    ctx.moveTo(3, 9);
+    ctx.lineTo(7, 16);
+    ctx.lineTo(10, 15);
+    ctx.lineTo(6, 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Black talons
+    ctx.strokeStyle = '#090d16';
+    ctx.lineWidth = 1.8;
+    // Rear claws
+    ctx.beginPath();
+    ctx.moveTo(-5, 17);
+    ctx.quadraticCurveTo(-9, 21, -11, 20);
+    ctx.moveTo(-5, 17);
+    ctx.quadraticCurveTo(-4, 22, -4, 23);
+    ctx.stroke();
+
+    // Front claws
+    ctx.beginPath();
+    ctx.moveTo(11, 17);
+    ctx.quadraticCurveTo(15, 20, 19, 18);
+    ctx.moveTo(11, 17);
+    ctx.quadraticCurveTo(13, 22, 14, 23);
+    ctx.stroke();
+    
+    ctx.restore();
+
+    // --- 2. STORM COATED TORSO & BREASTPLATE ---
+    // Body gradient (deep storm clouds)
+    const bodyGrad = ctx.createLinearGradient(-30, -15, 20, 15);
+    bodyGrad.addColorStop(0, '#0f172a'); // darkest indigo-black
+    bodyGrad.addColorStop(0.5, '#1e293b'); // dark slate grey
+    bodyGrad.addColorStop(1, '#334155'); // lighter slate
+    
+    ctx.fillStyle = bodyGrad;
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-32, 3);
+    ctx.bezierCurveTo(-24, -16, 12, -16, 20, -3);
+    ctx.bezierCurveTo(25, 3, 18, 15, 8, 16);
+    ctx.bezierCurveTo(-4, 16, -20, 12, -32, 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Stylized feather layers (subtle cyan accents)
+    ctx.strokeStyle = 'rgba(0, 243, 255, 0.08)';
+    ctx.lineWidth = 1.0;
+    for (let r = 0; r < 3; r++) {
+      const fx = -20 + r * 6;
+      ctx.beginPath();
+      ctx.arc(fx, 1, 4, 0, Math.PI);
+      ctx.stroke();
+    }
+
+    // Chrome Breastplate
+    const plateGrad = ctx.createLinearGradient(-3, -10, 15, 10);
+    plateGrad.addColorStop(0, '#94a3b8'); // Chrome highlight
+    plateGrad.addColorStop(0.5, '#475569');
+    plateGrad.addColorStop(1, '#1e293b');
+    
+    ctx.fillStyle = plateGrad;
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.moveTo(1, -10);
+    ctx.bezierCurveTo(13, -5, 16, 5, 12, 11);
+    ctx.bezierCurveTo(5, 13, -2, 9, -5, 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Pulsating Lightning Ruby Gem in breastplate
+    const gemPulse = 1.0 + Math.sin(this.flapCycle * 2) * 0.15;
+    ctx.save();
+    ctx.translate(4, 1);
+    ctx.scale(gemPulse, gemPulse);
+    
+    const gemGrad2 = ctx.createRadialGradient(0, 0, 0.5, 0, 0, 3.5);
+    gemGrad2.addColorStop(0, '#e0f7fa'); // Electric cyan core
+    gemGrad2.addColorStop(0.5, '#00e5ff');
+    gemGrad2.addColorStop(1, '#006064'); // Dark teal border
+    
+    ctx.fillStyle = gemGrad2;
+    ctx.strokeStyle = '#006064';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(0, -3.5);
+    ctx.lineTo(3.5, 0);
+    ctx.lineTo(0, 3.5);
+    ctx.lineTo(-3.5, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // --- 3. DYNAMIC STORM FAN TAIL ---
+    ctx.save();
+    ctx.translate(-28, 2);
+    const tailTilt = -this.vy * 0.05 + Math.sin(this.flapCycle) * 0.06;
+    ctx.rotate(tailTilt);
+
+    for (let i = 0; i < 4; i++) {
+      const angleOffset = (i - 1.5) * 0.13;
+      ctx.save();
+      ctx.rotate(angleOffset);
+      
+      const isEven = i % 2 === 0;
+      ctx.fillStyle = isEven ? '#1e293b' : '#0f172a';
+      ctx.strokeStyle = outlineColor;
+      ctx.lineWidth = 1.0;
+      ctx.beginPath();
+      ctx.moveTo(0, -2);
+      ctx.lineTo(-24, -3);
+      ctx.lineTo(-28, 0);
+      ctx.lineTo(-24, 3);
+      ctx.lineTo(0, 2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Glowing electric tips
+      ctx.fillStyle = '#00f3ff';
+      ctx.globalAlpha = 0.6;
+      ctx.beginPath();
+      ctx.moveTo(-16, -2);
+      ctx.lineTo(-24, -3);
+      ctx.lineTo(-28, 0);
+      ctx.lineTo(-24, 3);
+      ctx.lineTo(-16, 2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.restore();
+
+    // --- 4. SHOULDERS & SPAULDER ---
+    ctx.save();
+    const spaulderGrad = ctx.createLinearGradient(-12, -8, -4, 0);
+    spaulderGrad.addColorStop(0, '#64748b');
+    spaulderGrad.addColorStop(1, '#0f172a');
+    ctx.fillStyle = spaulderGrad;
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.arc(-8, -4, 7.0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Glowing cyan line in spaulder
+    ctx.strokeStyle = '#00f3ff';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.arc(-8, -4, 5.0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    // --- 5. EAGLE HEAD STRUCTURE & CREST ---
+    ctx.save();
+    
+    // Backward spiked crest feathers
+    ctx.fillStyle = '#1e293b';
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = 1.2;
+    for (let k = 0; k < 3; k++) {
+      ctx.beginPath();
+      ctx.moveTo(faceX - 7, faceY - 11 + k * 4);
+      ctx.lineTo(faceX - 18, faceY - 7 + k * 4);
+      ctx.lineTo(faceX - 9, faceY - 3 + k * 4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Spiked neon tips
+      ctx.fillStyle = '#00f3ff';
+      ctx.beginPath();
+      ctx.moveTo(faceX - 13, faceY - 9 + k * 4);
+      ctx.lineTo(faceX - 18, faceY - 7 + k * 4);
+      ctx.lineTo(faceX - 14, faceY - 5 + k * 4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#1e293b'; // restore
+    }
+
+    // Main head base
+    ctx.fillStyle = '#1e293b'; // Dark blue-grey head
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(faceX, -6 + faceY, 11.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // White feathered collar base (feathers at throat)
+    ctx.fillStyle = '#f1f5f9';
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    ctx.moveTo(faceX - 10, faceY + 1);
+    ctx.quadraticCurveTo(faceX - 6, faceY + 5, faceX - 2, faceY + 3);
+    ctx.quadraticCurveTo(faceX + 2, faceY + 5, faceX + 6, faceY + 2);
+    ctx.lineTo(faceX - 2, faceY - 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // --- 6. INTENSE NEON ELECTRIC EYE & BROW ---
+    // Cyan iris
+    ctx.fillStyle = '#00f3ff';
+    ctx.beginPath();
+    ctx.arc(3.5 + faceX, -6.5 + faceY, 3.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Pupil
+    ctx.fillStyle = '#090d16';
+    ctx.beginPath();
+    ctx.arc(3.5 + faceX, -6.5 + faceY, 1.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Catchlight
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(4.2 + faceX, -7.2 + faceY, 0.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Menacing Brow
+    ctx.strokeStyle = '#090d16';
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    ctx.moveTo(-1 + faceX, -10 + faceY);
+    ctx.lineTo(8 + faceX, -8 + faceY);
+    ctx.stroke();
+
+    // --- 7. BLACK OBSIDIAN BEAK WITH ELECTRIC CRACK ---
+    const beakGrad = ctx.createLinearGradient(8 + faceX, -8 + faceY, 20 + faceX, 3 + faceY);
+    beakGrad.addColorStop(0, '#1e293b'); // Charcoal top
+    beakGrad.addColorStop(0.5, '#0f172a'); // Deep black
+    beakGrad.addColorStop(1, '#090d16');
+    ctx.fillStyle = beakGrad;
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = 1.3;
+
+    ctx.beginPath();
+    ctx.moveTo(9 + faceX, -8.5 + faceY);
+    ctx.quadraticCurveTo(21.5 + faceX, -7.0 + faceY, 17.5 + faceX, 3 + faceY); // Hook tip
+    ctx.lineTo(13.8 + faceX, 1.0 + faceY);
+    ctx.quadraticCurveTo(11 + faceX, -1.0 + faceY, 8.0 + faceX, -3.0 + faceY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Electric cyan crack line down beak mouth
+    ctx.strokeStyle = '#00f3ff';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(8.5 + faceX, -1.5 + faceY);
+    ctx.quadraticCurveTo(12 + faceX, 0.5 + faceY, 16 + faceX, 1.5 + faceY);
+    ctx.stroke();
+
+    ctx.restore();
+
+    // --- 8. WINGS ---
+    ctx.save();
+    ctx.translate(-8, 0);
+    const baseFlapAngle2 = Math.sin(this.flapCycle) * 0.55;
+    ctx.rotate(baseFlapAngle2);
+
+    // Inner Wing Base
+    const innerWingGrad2 = ctx.createLinearGradient(10, -5, -30, 10);
+    innerWingGrad2.addColorStop(0, '#334155');
+    innerWingGrad2.addColorStop(1, '#0f172a');
+    ctx.fillStyle = innerWingGrad2;
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.moveTo(10, -4);
+    ctx.bezierCurveTo(-5, -23, -25, -18, -32, 2);
+    ctx.bezierCurveTo(-26, 12, -10, 10, 10, -4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // 5 primary feathers flapping
+    const wingFeatherColors = [
+      '#475569', // Slate
+      '#334155', // Slate dark
+      '#1e293b', // Navy
+      '#0f172a', // Indigo black
+      '#00f3ff'  // Glowing electric cyan tip feather
+    ];
+
+    for (let j = 0; j < 5; j++) {
+      ctx.save();
+      ctx.translate(-20, -7);
+      
+      const primaryFlapAngle = Math.sin(this.flapCycle - j * 0.12) * 0.24; 
+      ctx.rotate(primaryFlapAngle);
+
+      const length = 32 + (4 - j) * 4;
+      const width = 6.0;
+
+      const fGrad = ctx.createLinearGradient(0, 0, -length, 10);
+      fGrad.addColorStop(0, wingFeatherColors[j]);
+      fGrad.addColorStop(1, j === 4 ? '#00e5ff' : '#0f172a'); // Cyan gradient tip
+      ctx.fillStyle = fGrad;
+      ctx.strokeStyle = outlineColor;
+      ctx.lineWidth = 1.0;
+
+      ctx.beginPath();
+      ctx.moveTo(0, -width/2);
+      ctx.quadraticCurveTo(-length * 0.4, -width * 1.5, -length, 0);
+      ctx.quadraticCurveTo(-length * 0.4, width * 1.5, 0, width/2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Glowing shaft
+      ctx.strokeStyle = j === 4 ? '#ffffff' : 'rgba(0, 243, 255, 0.4)';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-length * 0.8, 0);
+      ctx.stroke();
+
+      ctx.restore();
+    }
 
     ctx.restore();
   }

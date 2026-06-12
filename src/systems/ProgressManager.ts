@@ -262,6 +262,18 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5
+      },
+      {
+        id: 'storm_tempest_eagle',
+        name: 'Storm Tempest Eagle',
+        rarity: 'Legendary',
+        glowColor: 'rgba(0, 229, 255, 0.85)',
+        particleType: 'storm_thunder',
+        costCoins: 8500,
+        costGems: 0,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5
       }
     ];
   }
