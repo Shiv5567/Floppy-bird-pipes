@@ -266,9 +266,9 @@ export class Bird {
         break;
 
       case 'dapper_blue':
-        // Shiny cyan sparkles + navy outline sparks!
+        // Shiny cyan sparkles + deep blue accent sparks!
         particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -1 - Math.random() * 1.5, (Math.random() - 0.5) * 1.2, '#00b0ff', 3 + Math.random() * 2, 0.9, 0.02, 'circle', true, '#00e5ff');
-        particleEngine.spawn(offsetBackX + rx * 0.8, offsetBackY + ry * 0.8, -0.6 - Math.random() * 1.0, (Math.random() - 0.5) * 0.8, '#0a1d37', 2 + Math.random() * 1.5, 0.85, 0.03, 'spark', true, 'rgba(10, 29, 55, 0.5)');
+        particleEngine.spawn(offsetBackX + rx * 0.8, offsetBackY + ry * 0.8, -0.6 - Math.random() * 1.0, (Math.random() - 0.5) * 0.8, '#1565c0', 2 + Math.random() * 1.5, 0.85, 0.03, 'spark', true, 'rgba(21, 101, 192, 0.6)');
         break;
 
       default:
@@ -907,7 +907,7 @@ export class Bird {
       }
 
       case 'dapper_blue': {
-        // Classy swirling blue orbits with dark navy accent sparks!
+        // Classy swirling blue orbits with deep blue accent sparks!
         ctx.strokeStyle = '#00b0ff';
         ctx.save();
         ctx.rotate(this.auraAngle * 0.8);
@@ -917,8 +917,8 @@ export class Bird {
         ctx.arc(0, 0, baseRadius * 1.25, 0, Math.PI * 2);
         ctx.stroke();
 
-        // Orbiting navy sparks
-        ctx.fillStyle = '#0a1d37'; // Dark Navy
+        // Orbiting deep blue sparks
+        ctx.fillStyle = '#1565c0'; // Deep Blue
         for (let i = 0; i < 4; i++) {
           const angle = this.auraAngle * 1.2 + (i * Math.PI) / 2;
           const dist = baseRadius * 1.25;
@@ -1075,7 +1075,7 @@ export class Bird {
     ctx.rotate(farFlapAngle - 0.2); // Pointing up/back
 
     ctx.fillStyle = '#4fc3f7';
-    ctx.strokeStyle = '#0a1d37';
+    ctx.strokeStyle = '#1565c0';
     ctx.lineWidth = 1.8;
 
     ctx.beginPath();
@@ -1096,8 +1096,8 @@ export class Bird {
     ctx.translate(-14, 2);
     const tailFlap = Math.sin(this.flapCycle * 0.8) * 0.1;
     ctx.rotate(tailFlap);
-    ctx.fillStyle = '#0a1d37';
-    ctx.strokeStyle = '#0a1d37';
+    ctx.fillStyle = '#006064'; // Dark teal tail feathers
+    ctx.strokeStyle = '#006064';
     ctx.lineWidth = 1.5;
 
     const tailAngles = [-0.2, 0, 0.2];
@@ -1118,7 +1118,7 @@ export class Bird {
 
     // --- 3. MAIN ROUND CYAN BODY ---
     ctx.fillStyle = '#4fc3f7'; // Cyan
-    ctx.strokeStyle = '#0a1d37';
+    ctx.strokeStyle = '#1565c0';
     ctx.lineWidth = 1.8;
     ctx.beginPath();
     ctx.arc(0, 0, 16, 0, Math.PI * 2);
@@ -1133,7 +1133,7 @@ export class Bird {
     ctx.clip();
 
     ctx.fillStyle = '#0288d1'; // Darker blue
-    ctx.strokeStyle = '#0a1d37';
+    ctx.strokeStyle = '#1565c0';
     ctx.lineWidth = 1.8;
 
     ctx.beginPath();
@@ -1155,7 +1155,7 @@ export class Bird {
 
     // Crest feather 1 (right spike, taller)
     ctx.fillStyle = '#4fc3f7';
-    ctx.strokeStyle = '#0a1d37';
+    ctx.strokeStyle = '#1565c0';
     ctx.lineWidth = 1.4;
     ctx.beginPath();
     ctx.moveTo(4, -14);
@@ -1190,7 +1190,7 @@ export class Bird {
     ctx.translate(faceX, faceY);
 
     ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#0a1d37';
+    ctx.strokeStyle = '#1565c0';
     ctx.lineWidth = 1.8;
 
     // Left Eye
@@ -1205,12 +1205,12 @@ export class Bird {
     ctx.fill();
     ctx.stroke();
 
-    // Pupils (Dark navy squares on the right side)
-    ctx.fillStyle = '#0a1d37';
+    // Pupils (Deep blue squares on the right side)
+    ctx.fillStyle = '#0d47a1';
     ctx.fillRect(6, -4, 2, 3);
     ctx.fillRect(13, -4, 2, 3);
 
-    // Eyebrows/Lids (Dark navy lids covering top half)
+    // Eyebrows/Lids (Deep blue lids covering top half)
     ctx.fillRect(2, -6, 7, 2);
     ctx.fillRect(9, -6, 7, 2);
 
@@ -1221,7 +1221,7 @@ export class Bird {
     ctx.translate(faceX, faceY);
 
     ctx.fillStyle = '#ff7043'; // Vibrant orange
-    ctx.strokeStyle = '#0a1d37';
+    ctx.strokeStyle = '#1565c0';
     ctx.lineWidth = 1.8;
 
     // Upper beak
@@ -1244,7 +1244,7 @@ export class Bird {
     ctx.stroke();
 
     // Beak crease line
-    ctx.strokeStyle = '#0a1d37';
+    ctx.strokeStyle = '#1565c0';
     ctx.lineWidth = 1.8;
     ctx.beginPath();
     ctx.moveTo(9, 1);
@@ -1265,7 +1265,7 @@ export class Bird {
     ctx.rotate(nearFlapAngle - 0.2);
 
     ctx.fillStyle = '#4fc3f7';
-    ctx.strokeStyle = '#0a1d37';
+    ctx.strokeStyle = '#1565c0';
     ctx.lineWidth = 1.8;
 
     ctx.beginPath();
