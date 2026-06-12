@@ -1065,21 +1065,20 @@ export class Bird {
     ctx.quadraticCurveTo(headX + 1.5, headY - 3.8, headX + 4, headY - 2.8);
     ctx.stroke();
 
-    // --- WHITE DRAGON BEAK EXACT REPLICA ---
-    // Sharp golden bird beak (falcon-like curved hook with lavender tip, aligned under the brow ridge)
-    const beakGrad = ctx.createLinearGradient(headX + 2.5, headY - 2.5, headX + 16, headY + 5.0);
+    // --- THICK MAJESTIC GOLDEN EAGLE BEAK ---
+    const beakGrad = ctx.createLinearGradient(headX + 2.0, headY - 4.5, headX + 18, headY + 7.5);
     beakGrad.addColorStop(0, '#ffd54f'); // Golden yellow base
     beakGrad.addColorStop(0.6, '#ff8f00'); // Deep gold
     beakGrad.addColorStop(1, '#c084fc'); // Lavender tip
     ctx.fillStyle = beakGrad;
     ctx.strokeStyle = '#3d2503';
-    ctx.lineWidth = 1.1;
+    ctx.lineWidth = 1.2;
 
     ctx.beginPath();
-    ctx.moveTo(headX + 2.5, headY - 2.5); // Starts right under the front brow ridge for a seamless look
-    ctx.quadraticCurveTo(headX + 15, headY - 3.5, headX + 16, headY + 5.0); // Majestic thick curve down to hook tip
-    ctx.lineTo(headX + 10, headY + 3.5); // Lower beak cut
-    ctx.quadraticCurveTo(headX + 6, headY + 2.2, headX + 2.0, headY + 2.5); // Throat connection
+    ctx.moveTo(headX + 2.0, headY - 4.5); // Starts higher up the forehead for a thick, solid base
+    ctx.quadraticCurveTo(headX + 16, headY - 4.5, headX + 18, headY + 7.5); // Heavy predatory curve down to hook tip
+    ctx.lineTo(headX + 10, headY + 5.0); // Lower beak edge dropped down
+    ctx.quadraticCurveTo(headX + 5, headY + 3.2, headX + 1.5, headY + 3.5); // Thicker throat connection
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
@@ -1088,22 +1087,101 @@ export class Bird {
     ctx.strokeStyle = '#3d2503';
     ctx.lineWidth = 1.0;
     ctx.beginPath();
-    ctx.moveTo(headX + 2.0, headY + 0.5);
-    ctx.quadraticCurveTo(headX + 10, headY + 1.0, headX + 14, headY + 3.0);
+    ctx.moveTo(headX + 1.5, headY + 0.5);
+    ctx.quadraticCurveTo(headX + 10, headY + 1.5, headX + 15, headY + 4.5);
     ctx.stroke();
 
     // Subtle beak highlight reflection line (gives 3D shiny metallic feel)
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 0.9;
     ctx.beginPath();
-    ctx.moveTo(headX + 4.0, headY - 2.0);
-    ctx.quadraticCurveTo(headX + 12, headY - 1.5, headX + 13, headY + 2.5);
+    ctx.moveTo(headX + 3.5, headY - 3.5);
+    ctx.quadraticCurveTo(headX + 13, headY - 2.5, headX + 14, headY + 4.0);
     ctx.stroke();
 
     ctx.restore();
 
-    // Animated Wings
-    this.drawFlappingWing(ctx, '#8b5a2b', '#4a2f1b');
+    // --- NEW MAJESTIC FEATHERED GOLDEN EAGLE WINGS ---
+    ctx.save();
+    ctx.translate(-4, 1);
+    
+    // Wing pivot oscillation
+    const baseFlap = Math.sin(this.flapCycle) * 0.55;
+    ctx.rotate(baseFlap);
+
+    // Inner wing coverts base (gold to dark brown)
+    const innerWingGrad = ctx.createLinearGradient(10, -5, -25, 5);
+    innerWingGrad.addColorStop(0, '#ffd700'); // Gold
+    innerWingGrad.addColorStop(0.5, '#8b5a2b'); // Brown
+    innerWingGrad.addColorStop(1, '#4a2f1b'); // Dark brown
+    ctx.fillStyle = innerWingGrad;
+    ctx.strokeStyle = '#3d2503';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(8, -3);
+    ctx.bezierCurveTo(-4, -18, -20, -14, -26, 2);
+    ctx.bezierCurveTo(-20, 10, -8, 8, 8, -3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // 4 layered primary feathers that spread as they flap
+    const eagleFeatherColors = [
+      '#ffe082', // Yellow-gold
+      '#ffd54f', // Gold base
+      '#d4af37', // Golden brown
+      '#8b5a2b'  // Brown tip
+    ];
+
+    for (let j = 0; j < 4; j++) {
+      ctx.save();
+      ctx.translate(-18, -6);
+      
+      const featherAngle = Math.sin(this.flapCycle - j * 0.1) * 0.22;
+      ctx.rotate(featherAngle);
+
+      const length = 26 + (3 - j) * 3;
+      const width = 5.5;
+
+      const fGrad = ctx.createLinearGradient(0, 0, -length, 8);
+      fGrad.addColorStop(0, eagleFeatherColors[j]);
+      fGrad.addColorStop(1, '#4a2f1b'); // Dark tip
+      ctx.fillStyle = fGrad;
+      ctx.strokeStyle = '#3d2503';
+      ctx.lineWidth = 1.0;
+
+      ctx.beginPath();
+      ctx.moveTo(0, -width/2);
+      ctx.quadraticCurveTo(-length * 0.4, -width * 1.4, -length, 0); // Pointy tip
+      ctx.quadraticCurveTo(-length * 0.4, width * 1.4, 0, width/2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Shaft line
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 0.7;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-length * 0.8, 0);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    // Gilded shoulder plate
+    ctx.fillStyle = '#ffd700';
+    ctx.strokeStyle = '#3d2503';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(10, -3);
+    ctx.bezierCurveTo(4, -14, -8, -10, -10, 1);
+    ctx.bezierCurveTo(-5, 6, 2, 4, 10, -3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore();
   }
 
 
