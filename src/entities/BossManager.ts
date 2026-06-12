@@ -110,7 +110,7 @@ export class BossManager {
     } else if (this.state === 'fighting') {
       // Hover vertically following bird with delay
       this.targetBossY = birdY;
-      this.bossY += (this.targetBossY - this.bossY) * 0.03 * dtCoeff;
+      this.bossY += (this.targetBossY - this.bossY) * 0.036 * dtCoeff;
 
       // Keep inside bounds
       this.bossY = Math.max(100, Math.min(height - 150, this.bossY));
