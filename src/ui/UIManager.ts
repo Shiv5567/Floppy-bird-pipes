@@ -336,9 +336,22 @@ export class UIManager {
           const maxHp = this.engine.maxPlayerBossHP || hp;
           const lostHp = Math.max(0, maxHp - hp);
           const hearts = '❤️'.repeat(hp) + '💔'.repeat(lostHp);
+          
+          const fontSize = Math.max(10, 16 - Math.max(0, maxHp - 5) * 0.4);
+          const letterSpacing = Math.max(0.5, 2.5 - Math.max(0, maxHp - 5) * 0.15);
+          const paddingX = Math.max(10, 18 - Math.max(0, maxHp - 5) * 0.6);
+          
           if (heartsSpan.innerText !== hearts) {
             heartsSpan.innerText = hearts;
           }
+          heartsSpan.style.fontSize = `${fontSize}px`;
+          heartsSpan.style.letterSpacing = `${letterSpacing}px`;
+          this.playerHPContainer.style.padding = `6px ${paddingX}px`;
+        }
+        const hasBossBar = isBossFight && isBossActive;
+        const targetTop = hasBossBar ? '190px' : '130px';
+        if (this.playerHPContainer.style.top !== targetTop) {
+          this.playerHPContainer.style.top = targetTop;
         }
       } else {
         this.renderHUD();
@@ -1736,30 +1749,37 @@ export class UIManager {
       const maxHp = this.engine.maxPlayerBossHP || hp;
       const lostHp = Math.max(0, maxHp - hp);
       const hearts = '❤️'.repeat(hp) + '💔'.repeat(lostHp);
+      
+      const hasBossBar = isBossFight && isBossActive;
+      const topOffset = hasBossBar ? '190px' : '130px';
+      
+      const fontSize = Math.max(10, 16 - Math.max(0, maxHp - 5) * 0.4);
+      const letterSpacing = Math.max(0.5, 2.5 - Math.max(0, maxHp - 5) * 0.15);
+      const paddingX = Math.max(10, 18 - Math.max(0, maxHp - 5) * 0.6);
+
       playerHPBarHTML = `
         <div class="player-hud-hp-container fade-in" style="
           position: absolute;
-          top: 130px;
+          top: ${topOffset};
           left: 50%;
           transform: translateX(-50%);
-          background: rgba(0, 0, 0, 0.65);
-          border: 2px solid #ff007f;
-          border-radius: 20px;
-          padding: 6px 18px;
-          font-size: 15px;
-          font-weight: 900;
+          background: rgba(13, 10, 28, 0.85);
+          border: 1px solid rgba(255, 0, 127, 0.45);
+          border-radius: 12px;
+          padding: 6px ${paddingX}px;
+          font-weight: 800;
           color: #fff;
           text-shadow: 0 0 8px #ff007f;
-          box-shadow: 0 0 15px rgba(255, 0, 127, 0.45);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 15px rgba(255, 0, 127, 0.15);
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 8px;
           pointer-events: none;
           z-index: 100;
-          letter-spacing: 0.5px;
         ">
-          <span style="font-size: 11px; color: #ff007f;">SQUAD HP:</span>
-          <span class="player-hud-hp-hearts" style="letter-spacing: 2px;">${hearts}</span>
+          <span style="font-size: 11px; color: #ff007f; letter-spacing: 0.5px; font-weight: 900;">SQUAD HP:</span>
+          <span class="player-hud-hp-hearts" style="font-size: ${fontSize}px; letter-spacing: ${letterSpacing}px; display: flex; flex-direction: row; align-items: center; justify-content: center;">${hearts}</span>
         </div>
       `;
     }
