@@ -1101,84 +1101,60 @@ export class Bird {
 
     ctx.restore();
 
-    // --- NEW MAJESTIC FEATHERED GOLDEN EAGLE WINGS ---
+    // --- FLAPPY BIRD STYLE GOLDEN EAGLE WINGS ---
     ctx.save();
-    ctx.translate(-4, 1);
-    
-    // Wing pivot oscillation
-    const baseFlap = Math.sin(this.flapCycle) * 0.55;
-    ctx.rotate(baseFlap);
+    ctx.translate(-2, 1);
+    const wingFlap = Math.sin(this.flapCycle) * 0.65;
+    ctx.rotate(wingFlap);
 
-    // Inner wing coverts base (gold to dark brown)
-    const innerWingGrad = ctx.createLinearGradient(10, -5, -25, 5);
-    innerWingGrad.addColorStop(0, '#ffd700'); // Gold
-    innerWingGrad.addColorStop(0.5, '#8b5a2b'); // Brown
-    innerWingGrad.addColorStop(1, '#4a2f1b'); // Dark brown
-    ctx.fillStyle = innerWingGrad;
     ctx.strokeStyle = '#3d2503';
-    ctx.lineWidth = 1.2;
+    ctx.lineWidth = 1.8;
+    ctx.lineJoin = 'round';
+
+    const makeFeatherGrad = (x1: number, y1: number, x2: number, y2: number, startCol: string, endCol: string) => {
+      const grad = ctx.createLinearGradient(x1, y1, x2, y2);
+      grad.addColorStop(0, startCol);
+      grad.addColorStop(1, endCol);
+      return grad;
+    };
+
+    // Bottom rounded feather
+    ctx.fillStyle = makeFeatherGrad(-10, 5, -5, -1, '#8b5a2b', '#4a2f1b');
     ctx.beginPath();
-    ctx.moveTo(8, -3);
-    ctx.bezierCurveTo(-4, -18, -20, -14, -26, 2);
-    ctx.bezierCurveTo(-20, 10, -8, 8, 8, -3);
+    ctx.moveTo(2, 2);
+    ctx.quadraticCurveTo(-5, 9, -10, 5);
+    ctx.quadraticCurveTo(-12, 1, -5, -1);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // 4 layered primary feathers that spread as they flap
-    const eagleFeatherColors = [
-      '#ffe082', // Yellow-gold
-      '#ffd54f', // Gold base
-      '#d4af37', // Golden brown
-      '#8b5a2b'  // Brown tip
-    ];
-
-    for (let j = 0; j < 4; j++) {
-      ctx.save();
-      ctx.translate(-18, -6);
-      
-      const featherAngle = Math.sin(this.flapCycle - j * 0.1) * 0.22;
-      ctx.rotate(featherAngle);
-
-      const length = 26 + (3 - j) * 3;
-      const width = 5.5;
-
-      const fGrad = ctx.createLinearGradient(0, 0, -length, 8);
-      fGrad.addColorStop(0, eagleFeatherColors[j]);
-      fGrad.addColorStop(1, '#4a2f1b'); // Dark tip
-      ctx.fillStyle = fGrad;
-      ctx.strokeStyle = '#3d2503';
-      ctx.lineWidth = 1.0;
-
-      ctx.beginPath();
-      ctx.moveTo(0, -width/2);
-      ctx.quadraticCurveTo(-length * 0.4, -width * 1.4, -length, 0); // Pointy tip
-      ctx.quadraticCurveTo(-length * 0.4, width * 1.4, 0, width/2);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-
-      // Shaft line
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-      ctx.lineWidth = 0.7;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(-length * 0.8, 0);
-      ctx.stroke();
-
-      ctx.restore();
-    }
-
-    // Gilded shoulder plate
-    ctx.fillStyle = '#ffd700';
-    ctx.strokeStyle = '#3d2503';
-    ctx.lineWidth = 1.2;
+    // Middle rounded feather
+    ctx.fillStyle = makeFeatherGrad(-15, -5, -4, -5, '#d4af37', '#8b5a2b');
     ctx.beginPath();
-    ctx.moveTo(10, -3);
-    ctx.bezierCurveTo(4, -14, -8, -10, -10, 1);
-    ctx.bezierCurveTo(-5, 6, 2, 4, 10, -3);
+    ctx.moveTo(1, -2);
+    ctx.quadraticCurveTo(-13, 1, -15, -5);
+    ctx.quadraticCurveTo(-15, -9, -4, -5);
     ctx.closePath();
     ctx.fill();
+    ctx.stroke();
+
+    // Top rounded feather (overlapping others, with golden shine)
+    ctx.fillStyle = makeFeatherGrad(-9, -18, 2, -9, '#ffd54f', '#d4af37');
+    ctx.beginPath();
+    ctx.moveTo(1, -6);
+    ctx.quadraticCurveTo(-11, -11, -9, -18);
+    ctx.quadraticCurveTo(-5, -18, 2, -9);
+    ctx.quadraticCurveTo(4, -4, 2, 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Glossy wing highlight
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(-1, -9);
+    ctx.quadraticCurveTo(-4, -14, -7, -16);
     ctx.stroke();
 
     ctx.restore();
