@@ -870,6 +870,7 @@ export class GameEngine {
               const bossHit = this.bossManager.checkCollisions(this.bird.x, this.bird.y, this.bird.radius);
               if (bossHit) {
                 this.playerBossHP--;
+                window.dispatchEvent(new CustomEvent('bird_damaged'));
                 
                 this.bird.isInvincible = true;
                 this.particleEngine.emitRing(this.bird.x, this.bird.y, '#ff007f', 24);

@@ -76,7 +76,9 @@ export class UIManager {
       this.showFloatingGrazeText(e.detail.x, e.detail.y);
     });
 
-
+    window.addEventListener('bird_damaged', () => {
+      this.render();
+    });
   }
 
   private showFloatingGrazeText(x: number, y: number) {
