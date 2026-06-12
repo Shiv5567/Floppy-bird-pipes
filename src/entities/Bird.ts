@@ -1011,12 +1011,9 @@ export class Bird {
     const faceX = Math.cos(this.angle) * 1.8;
     const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.18;
 
-    const headX = 8 + faceX;
-    const headY = -4 + faceY;
-
     // --- 1. TAIL FEATHERS (Classic Flappy shape, Golden Eagle theme) ---
     ctx.save();
-    const tailGrad = ctx.createLinearGradient(-24, -2, -10, 10);
+    const tailGrad = ctx.createLinearGradient(faceX - 24, faceY - 2, faceX - 10, faceY + 10);
     tailGrad.addColorStop(0, '#4a2f1b'); // Dark brown
     tailGrad.addColorStop(1, '#8b5a2b'); // Golden brown
     
@@ -1027,88 +1024,45 @@ export class Bird {
 
     // Tail feather 1 (top)
     ctx.beginPath();
-    ctx.moveTo(-13, -2);
-    ctx.lineTo(-24, -2);
-    ctx.lineTo(-24, 3);
-    ctx.lineTo(-13, 3);
+    ctx.moveTo(faceX - 13, faceY - 2);
+    ctx.lineTo(faceX - 24, faceY - 2);
+    ctx.lineTo(faceX - 24, faceY + 3);
+    ctx.lineTo(faceX - 13, faceY + 3);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
     // Tail feather 2 (middle)
     ctx.beginPath();
-    ctx.moveTo(-12, 1);
-    ctx.lineTo(-21, 4);
-    ctx.lineTo(-20, 8);
-    ctx.lineTo(-11, 5);
+    ctx.moveTo(faceX - 12, faceY + 1);
+    ctx.lineTo(faceX - 21, faceY + 4);
+    ctx.lineTo(faceX - 20, faceY + 8);
+    ctx.lineTo(faceX - 11, faceY + 5);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
     // Tail feather 3 (bottom)
     ctx.beginPath();
-    ctx.moveTo(-10, 4);
-    ctx.lineTo(-17, 10);
-    ctx.lineTo(-15, 14);
-    ctx.lineTo(-8, 8);
+    ctx.moveTo(faceX - 10, faceY + 4);
+    ctx.lineTo(faceX - 17, faceY + 10);
+    ctx.lineTo(faceX - 15, faceY + 14);
+    ctx.lineTo(faceX - 8, faceY + 8);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
     ctx.restore();
 
-    // --- 2. MAIN ROUND BODY (Flappy structure: radius 15) ---
-    const bodyGrad = ctx.createRadialGradient(-3, -3, 2, 0, 0, 15);
-    bodyGrad.addColorStop(0, '#ffd700'); // Pure gold highlight
-    bodyGrad.addColorStop(0.6, '#8b5a2b'); // Golden brown base
-    bodyGrad.addColorStop(1, '#4a2f1b'); // Dark brown shadow
-    
-    ctx.fillStyle = bodyGrad;
-    ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 2.0;
-    ctx.beginPath();
-    ctx.arc(0, 0, 15, 0, Math.PI * 2);
-    ctx.fill();
-
-    // --- 3. UNDERBELLY (Clipped inside body, gold-white gradient) ---
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(0, 0, 15, 0, Math.PI * 2);
-    ctx.clip();
-    
-    const bellyGrad = ctx.createLinearGradient(-8, 4, 4, 15);
-    bellyGrad.addColorStop(0, '#ffffff'); // Pure white top
-    bellyGrad.addColorStop(0.7, '#f5f5f7'); // Silver grey
-    bellyGrad.addColorStop(1, '#ffe082'); // Golden yellow glow at bottom
-    
-    ctx.fillStyle = bellyGrad;
-    ctx.beginPath();
-    ctx.ellipse(-4, 7, 12, 8, 0.2, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Glossy body highlight
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.beginPath();
-    ctx.ellipse(-3, -7, 11, 5, -Math.PI / 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-    
-    // Redraw body outline
-    ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 2.0;
-    ctx.beginPath();
-    ctx.arc(0, 0, 15, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // --- 4. BACKWARDS CREST FEATHERS (White with Gold tips) ---
+    // --- 2. BACKWARDS CREST FEATHERS (White with Gold tips) ---
     ctx.save();
     ctx.fillStyle = '#ffffff';
     ctx.strokeStyle = outlineColor;
     ctx.lineWidth = 1.0;
     for (let k = 0; k < 2; k++) {
       ctx.beginPath();
-      ctx.moveTo(headX - 6, headY - 12 + k * 4);
-      ctx.lineTo(headX - 14, headY - 9 + k * 4);
-      ctx.lineTo(headX - 8, headY - 6 + k * 4);
+      ctx.moveTo(faceX - 16, faceY - 12 + k * 7);
+      ctx.lineTo(faceX - 30, faceY - 7 + k * 7);
+      ctx.lineTo(faceX - 19, faceY - 2 + k * 7);
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
@@ -1116,22 +1070,27 @@ export class Bird {
       // Gold tips
       ctx.fillStyle = '#ffd700';
       ctx.beginPath();
-      ctx.moveTo(headX - 11, headY - 10 + k * 4);
-      ctx.lineTo(headX - 14, headY - 9 + k * 4);
-      ctx.lineTo(headX - 12, headY - 7 + k * 4);
+      ctx.moveTo(faceX - 25, faceY - 9 + k * 7);
+      ctx.lineTo(faceX - 30, faceY - 7 + k * 7);
+      ctx.lineTo(faceX - 26, faceY - 4 + k * 7);
       ctx.closePath();
       ctx.fill();
       ctx.fillStyle = '#ffffff';
     }
     ctx.restore();
 
-    // --- 5. EAGLE HEAD PLUMAGE (White Eagle Crown, overlapping upper body) ---
+    // --- 3. EAGLE HEAD PLUMAGE (White Eagle Crown, now the main body: radius 15) ---
     ctx.save();
-    ctx.fillStyle = '#ffffff'; // Pure white plumage
+    const headGrad = ctx.createRadialGradient(faceX - 3, faceY - 3, 2, faceX, faceY, 15);
+    headGrad.addColorStop(0, '#ffffff'); // Pure white center
+    headGrad.addColorStop(0.7, '#f9fafb'); // Off-white
+    headGrad.addColorStop(1, '#e5e7eb'); // Light grey shading at edges
+    
+    ctx.fillStyle = headGrad;
     ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 2.0;
     ctx.beginPath();
-    ctx.arc(headX + 3, headY - 5, 8.5, 0, Math.PI * 2);
+    ctx.arc(faceX, faceY, 15, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     
@@ -1139,7 +1098,7 @@ export class Bird {
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.06)';
     ctx.lineWidth = 0.8;
     ctx.beginPath();
-    ctx.arc(headX + 1, headY - 6, 6, 0.3 * Math.PI, 0.8 * Math.PI);
+    ctx.arc(faceX - 3.5, faceY - 1.8, 10.6, 0.3 * Math.PI, 0.8 * Math.PI);
     ctx.stroke();
     ctx.restore();
 
@@ -1147,78 +1106,78 @@ export class Bird {
     ctx.save();
     ctx.fillStyle = '#ffffff';
     ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 1.1;
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(headX - 10, headY + 1);
-    ctx.quadraticCurveTo(headX - 6, headY + 5, headX - 2, headY + 3);
-    ctx.quadraticCurveTo(headX + 2, headY + 5, headX + 6, headY + 2);
-    ctx.lineTo(headX - 2, headY - 3);
+    ctx.moveTo(faceX - 23, faceY + 11);
+    ctx.quadraticCurveTo(faceX - 16, faceY + 18, faceX - 9, faceY + 14);
+    ctx.quadraticCurveTo(faceX - 2, faceY + 18, faceX + 5, faceY + 12);
+    ctx.lineTo(faceX - 9, faceY + 4);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
     ctx.restore();
 
-    // --- 6. INTENSE WARRIOR EYE & BROW (Purple/Violet theme matching original) ---
+    // --- 4. INTENSE WARRIOR EYE & BROW (Purple/Violet theme) ---
     ctx.save();
     // Outer iris (Vibrant Purple/Violet `#7c3aed`)
     ctx.fillStyle = '#7c3aed';
     ctx.beginPath();
-    ctx.arc(headX + 5, headY - 5.5, 2.8, 0, Math.PI * 2);
+    ctx.arc(faceX + 3.5, faceY - 0.9, 5.0, 0, Math.PI * 2);
     ctx.fill();
     
     // Slit pupil (Dark `#1e1b29`)
     ctx.fillStyle = '#1e1b29';
     ctx.beginPath();
-    ctx.arc(headX + 5, headY - 5.5, 1.2, 0, Math.PI * 2);
+    ctx.arc(faceX + 3.5, faceY - 0.9, 2.1, 0, Math.PI * 2);
     ctx.fill();
     
     // Tiny reflection highlight
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(headX + 5.5, headY - 6.0, 0.6, 0, Math.PI * 2);
+    ctx.arc(faceX + 4.4, faceY - 1.8, 1.0, 0, Math.PI * 2);
     ctx.fill();
 
     // Defined shadow brow line over the eye (Vivid violet `#5b21b6`)
     ctx.strokeStyle = '#5b21b6';
-    ctx.lineWidth = 1.8;
+    ctx.lineWidth = 3.2;
     ctx.beginPath();
-    ctx.moveTo(headX + 1.5, headY - 8.2);
-    ctx.lineTo(headX + 8.5, headY - 6.8);
+    ctx.moveTo(faceX - 2.6, faceY - 5.6);
+    ctx.lineTo(faceX + 9.7, faceY - 3.2);
     ctx.stroke();
     ctx.restore();
 
-    // --- 7. THICK MAJESTIC GOLDEN EAGLE BEAK (Hooked gold beak with lavender tip) ---
+    // --- 5. THICK MAJESTIC GOLDEN EAGLE BEAK (Hooked gold beak with lavender tip) ---
     ctx.save();
-    const beakGrad = ctx.createLinearGradient(headX + 8, headY - 7, headX + 17, headY + 1);
+    const beakGrad = ctx.createLinearGradient(faceX + 8.8, faceY - 3.5, faceX + 19.7, faceY + 9.9);
     beakGrad.addColorStop(0, '#ffd54f'); // Golden yellow base
     beakGrad.addColorStop(0.6, '#ff8f00'); // Deep gold
     beakGrad.addColorStop(1, '#c084fc'); // Lavender tip
     
     ctx.fillStyle = beakGrad;
     ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 1.2;
+    ctx.lineWidth = 2.1;
 
     ctx.beginPath();
-    ctx.moveTo(headX + 8, headY - 7);
-    ctx.quadraticCurveTo(headX + 18, headY - 6, headX + 15, headY + 2); // hooked down tip
-    ctx.lineTo(headX + 12, headY + 0.5);
-    ctx.quadraticCurveTo(headX + 10, headY - 1.2, headX + 7.5, headY - 2.5);
+    ctx.moveTo(faceX + 8.8, faceY - 3.5);
+    ctx.quadraticCurveTo(faceX + 26.4, faceY - 1.8, faceX + 21.1, faceY + 12.3); // hooked down tip
+    ctx.lineTo(faceX + 15.8, faceY + 9.7);
+    ctx.quadraticCurveTo(faceX + 12.3, faceY + 6.7, faceX + 7.9, faceY + 4.4);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
     // Beak mouth line
     ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 1.0;
+    ctx.lineWidth = 1.8;
     ctx.beginPath();
-    ctx.moveTo(headX + 8.0, headY - 1.8);
-    ctx.quadraticCurveTo(headX + 11.5, headY - 0.2, headX + 14.2, headY + 0.6);
+    ctx.moveTo(faceX + 8.8, faceY + 5.6);
+    ctx.quadraticCurveTo(faceX + 15.0, faceY + 8.4, faceX + 19.7, faceY + 9.9);
     ctx.stroke();
     ctx.restore();
 
-    // --- 8. FLAPPING WINGS (Classic flappy wings shape, gold-brown color scheme) ---
+    // --- 6. FLAPPING WINGS (Classic flappy wings shape, gold-brown color scheme) ---
     ctx.save();
-    ctx.translate(-2, 1);
+    ctx.translate(faceX - 2, faceY + 1);
     const wingFlap = Math.sin(this.flapCycle) * 0.65;
     ctx.rotate(wingFlap);
 
@@ -3808,7 +3767,7 @@ export class Bird {
 
     // --- 1. TAIL FEATHERS (Classic Flappy shape, Crimson Red & Gold theme) ---
     ctx.save();
-    const tailGrad = ctx.createLinearGradient(-24, -2, -10, 10);
+    const tailGrad = ctx.createLinearGradient(faceX - 24, faceY - 2, faceX - 10, faceY + 10);
     tailGrad.addColorStop(0, '#450a0a'); // Dark maroon
     tailGrad.addColorStop(1, '#991b1b'); // Crimson
     
@@ -3819,88 +3778,45 @@ export class Bird {
 
     // Tail feather 1 (top)
     ctx.beginPath();
-    ctx.moveTo(-13, -2);
-    ctx.lineTo(-24, -2);
-    ctx.lineTo(-24, 3);
-    ctx.lineTo(-13, 3);
+    ctx.moveTo(faceX - 13, faceY - 2);
+    ctx.lineTo(faceX - 24, faceY - 2);
+    ctx.lineTo(faceX - 24, faceY + 3);
+    ctx.lineTo(faceX - 13, faceY + 3);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
     // Tail feather 2 (middle)
     ctx.beginPath();
-    ctx.moveTo(-12, 1);
-    ctx.lineTo(-21, 4);
-    ctx.lineTo(-20, 8);
-    ctx.lineTo(-11, 5);
+    ctx.moveTo(faceX - 12, faceY + 1);
+    ctx.lineTo(faceX - 21, faceY + 4);
+    ctx.lineTo(faceX - 20, faceY + 8);
+    ctx.lineTo(faceX - 11, faceY + 5);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
     // Tail feather 3 (bottom)
     ctx.beginPath();
-    ctx.moveTo(-10, 4);
-    ctx.lineTo(-17, 10);
-    ctx.lineTo(-15, 14);
-    ctx.lineTo(-8, 8);
+    ctx.moveTo(faceX - 10, faceY + 4);
+    ctx.lineTo(faceX - 17, faceY + 10);
+    ctx.lineTo(faceX - 15, faceY + 14);
+    ctx.lineTo(faceX - 8, faceY + 8);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
     ctx.restore();
 
-    // --- 2. MAIN ROUND BODY (Flappy structure: radius 15, Crimson Red) ---
-    const bodyGrad = ctx.createRadialGradient(-3, -3, 2, 0, 0, 15);
-    bodyGrad.addColorStop(0, '#f87171'); // Bright red highlight
-    bodyGrad.addColorStop(0.6, '#dc2626'); // Vibrant crimson base
-    bodyGrad.addColorStop(1, '#7f1d1d'); // Rich dark maroon shadow
-    
-    ctx.fillStyle = bodyGrad;
-    ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 2.0;
-    ctx.beginPath();
-    ctx.arc(0, 0, 15, 0, Math.PI * 2);
-    ctx.fill();
-
-    // --- 3. UNDERBELLY (Clipped inside body, Rich Gold gradient) ---
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(0, 0, 15, 0, Math.PI * 2);
-    ctx.clip();
-    
-    const bellyGrad = ctx.createLinearGradient(-8, 4, 4, 15);
-    bellyGrad.addColorStop(0, '#fef08a'); // Warm yellow light highlight
-    bellyGrad.addColorStop(0.6, '#fbbf24'); // Bright gold
-    bellyGrad.addColorStop(1, '#d97706'); // Warm orange-amber shadow
-    
-    ctx.fillStyle = bellyGrad;
-    ctx.beginPath();
-    ctx.ellipse(-4, 7, 12, 8, 0.2, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Glossy body highlight
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
-    ctx.beginPath();
-    ctx.ellipse(-3, -7, 11, 5, -Math.PI / 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-    
-    // Redraw body outline
-    ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 2.0;
-    ctx.beginPath();
-    ctx.arc(0, 0, 15, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // --- 4. BACKWARDS CREST FEATHERS (Eagle detail, White with Crimson tips) ---
+    // --- 2. BACKWARDS CREST FEATHERS (Eagle detail, White with Crimson tips) ---
     ctx.save();
     ctx.fillStyle = '#ffffff'; // White base
     ctx.strokeStyle = outlineColor;
     ctx.lineWidth = 1.0;
     for (let k = 0; k < 2; k++) {
       ctx.beginPath();
-      ctx.moveTo(faceX - 6, faceY - 12 + k * 4);
-      ctx.lineTo(faceX - 14, faceY - 9 + k * 4);
-      ctx.lineTo(faceX - 8, faceY - 6 + k * 4);
+      ctx.moveTo(faceX - 16, faceY - 12 + k * 7);
+      ctx.lineTo(faceX - 30, faceY - 7 + k * 7);
+      ctx.lineTo(faceX - 19, faceY - 2 + k * 7);
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
@@ -3908,23 +3824,27 @@ export class Bird {
       // Crimson/Gold tips
       ctx.fillStyle = '#ef4444';
       ctx.beginPath();
-      ctx.moveTo(faceX - 11, faceY - 10 + k * 4);
-      ctx.lineTo(faceX - 14, faceY - 9 + k * 4);
-      ctx.lineTo(faceX - 12, faceY - 7 + k * 4);
+      ctx.moveTo(faceX - 25, faceY - 9 + k * 7);
+      ctx.lineTo(faceX - 30, faceY - 7 + k * 7);
+      ctx.lineTo(faceX - 26, faceY - 4 + k * 7);
       ctx.closePath();
       ctx.fill();
       ctx.fillStyle = '#ffffff';
     }
     ctx.restore();
 
-    // --- 5. EAGLE HEAD PLUMAGE (White Eagle Crown, overlapping upper body) ---
+    // --- 3. EAGLE HEAD PLUMAGE (White Eagle Crown, now the main body: radius 15) ---
     ctx.save();
-    ctx.fillStyle = '#ffffff'; // Pure white plumage
+    const headGrad = ctx.createRadialGradient(faceX - 3, faceY - 3, 2, faceX, faceY, 15);
+    headGrad.addColorStop(0, '#ffffff'); // Pure white center
+    headGrad.addColorStop(0.7, '#f9fafb'); // Off-white
+    headGrad.addColorStop(1, '#e5e7eb'); // Light grey shading at edges
+    
+    ctx.fillStyle = headGrad;
     ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 2.0;
     ctx.beginPath();
-    // Round crown shape sitting on top-right of flappy sphere
-    ctx.arc(faceX + 3, faceY - 5, 8.5, 0, Math.PI * 2);
+    ctx.arc(faceX, faceY, 15, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     
@@ -3932,71 +3852,71 @@ export class Bird {
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.06)';
     ctx.lineWidth = 0.8;
     ctx.beginPath();
-    ctx.arc(faceX + 1, faceY - 6, 6, 0.3 * Math.PI, 0.8 * Math.PI);
+    ctx.arc(faceX - 3.5, faceY - 1.8, 10.6, 0.3 * Math.PI, 0.8 * Math.PI);
     ctx.stroke();
     ctx.restore();
 
-    // --- 6. INTENSE WARRIOR EYE & BROW (Eagle detail, Gold/Amber theme) ---
+    // --- 4. INTENSE WARRIOR EYE & BROW (Eagle detail, Gold/Amber theme) ---
     ctx.save();
     // Glowing Gold Iris
     ctx.fillStyle = '#fbbf24';
     ctx.beginPath();
-    ctx.arc(faceX + 5, faceY - 5.5, 2.8, 0, Math.PI * 2);
+    ctx.arc(faceX + 3.5, faceY - 0.9, 5.0, 0, Math.PI * 2);
     ctx.fill();
 
     // Black Pupil
     ctx.fillStyle = '#1e1b29';
     ctx.beginPath();
-    ctx.arc(faceX + 5, faceY - 5.5, 1.2, 0, Math.PI * 2);
+    ctx.arc(faceX + 3.5, faceY - 0.9, 2.1, 0, Math.PI * 2);
     ctx.fill();
 
     // Eye Shine
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(faceX + 5.5, faceY - 6.0, 0.6, 0, Math.PI * 2);
+    ctx.arc(faceX + 4.4, faceY - 1.8, 1.0, 0, Math.PI * 2);
     ctx.fill();
 
     // Menacing Brow
     ctx.strokeStyle = '#450a0a';
-    ctx.lineWidth = 1.8;
+    ctx.lineWidth = 3.2;
     ctx.beginPath();
-    ctx.moveTo(faceX + 1.5, faceY - 8.2);
-    ctx.lineTo(faceX + 8.5, faceY - 6.8);
+    ctx.moveTo(faceX - 2.6, faceY - 5.6);
+    ctx.lineTo(faceX + 9.7, faceY - 3.2);
     ctx.stroke();
     ctx.restore();
 
-    // --- 7. HOOKED GOLDEN PREDATOR BEAK WITH FIRE CRACK (Eagle detail) ---
+    // --- 5. HOOKED GOLDEN PREDATOR BEAK WITH FIRE CRACK (Eagle detail) ---
     ctx.save();
-    const beakGrad = ctx.createLinearGradient(faceX + 8, faceY - 7, faceX + 17, faceY + 1);
+    const beakGrad = ctx.createLinearGradient(faceX + 8.8, faceY - 3.5, faceX + 19.7, faceY + 9.9);
     beakGrad.addColorStop(0, '#fef08a'); // Bright gold shine
     beakGrad.addColorStop(0.5, '#fbbf24'); // Gold
     beakGrad.addColorStop(1, '#f59e0b'); // Warm amber
     
     ctx.fillStyle = beakGrad;
     ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 1.2;
+    ctx.lineWidth = 2.1;
 
     ctx.beginPath();
-    ctx.moveTo(faceX + 8, faceY - 7);
-    ctx.quadraticCurveTo(faceX + 18, faceY - 6, faceX + 15, faceY + 2); // hooked down tip
-    ctx.lineTo(faceX + 12, faceY + 0.5);
-    ctx.quadraticCurveTo(faceX + 10, faceY - 1.2, faceX + 7.5, faceY - 2.5);
+    ctx.moveTo(faceX + 8.8, faceY - 3.5);
+    ctx.quadraticCurveTo(faceX + 26.4, faceY - 1.8, faceX + 21.1, faceY + 12.3); // hooked down tip
+    ctx.lineTo(faceX + 15.8, faceY + 9.7);
+    ctx.quadraticCurveTo(faceX + 12.3, faceY + 6.7, faceX + 7.9, faceY + 4.4);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
     // Glowing fiery red line crack running along beak mouth
     ctx.strokeStyle = '#ef4444';
-    ctx.lineWidth = 0.9;
+    ctx.lineWidth = 1.6;
     ctx.beginPath();
-    ctx.moveTo(faceX + 8.0, faceY - 1.8);
-    ctx.quadraticCurveTo(faceX + 11.5, faceY - 0.2, faceX + 14.2, faceY + 0.6);
+    ctx.moveTo(faceX + 8.8, faceY + 5.6);
+    ctx.quadraticCurveTo(faceX + 15.0, faceY + 8.4, faceX + 19.7, faceY + 9.9);
     ctx.stroke();
     ctx.restore();
 
-    // --- 8. FLAPPING WING (Classic rounded shape upgraded with layered flame-trail outlines) ---
+    // --- 6. FLAPPING WING (Classic rounded shape upgraded with layered flame-trail outlines) ---
     ctx.save();
-    ctx.translate(-2, 1);
+    ctx.translate(faceX - 2, faceY + 1);
     const wingFlap = Math.sin(this.flapCycle) * 0.65;
     ctx.rotate(wingFlap);
 
