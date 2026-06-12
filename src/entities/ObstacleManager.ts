@@ -1502,8 +1502,8 @@ export class ObstacleManager {
               const ampIncrease = effectiveScore < 150 ? 1.15 : 1.25; // 15% increase for score 100-150, 25% increase for score 150-200
               verticalShift = Math.sin(this.waveTime * 1.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.4) * (32 * ampIncrease) * motionAmpMult;
             } else if (effectiveScore >= 200 && effectiveScore < 300) {
-              // 10% + 15% = 25% difficulty: shift centerY up and down by 50px using smooth up-down animation
-              verticalShift = Math.sin(this.waveTime * 2.2 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 50 * motionAmpMult;
+              // Added 8% difficulty: increase base amplitude from 50px to 54px
+              verticalShift = Math.sin(this.waveTime * 2.2 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 54 * motionAmpMult;
             } else if (effectiveScore >= 300) {
               if (gameMode === 'flock') {
                 // Smooth up-down and zigzag animations with dynamic difficulty scaling (up to 20% increase at score 500, and additional 60% increase from 500 to 1000)
@@ -2887,7 +2887,7 @@ export class ObstacleManager {
       endlessShiftScale = 1.0;
       isMoving = !!nextPattern.isMoving;
     } else if (effectiveScore >= 200 && effectiveScore < 300) {
-      endlessShiftScale = 1.25; // 25% more extreme vertical sways
+      endlessShiftScale = 1.35; // Added 8% difficulty (increased from 1.25 to 1.35)
       isMoving = !!nextPattern.isMoving;
     } else if (effectiveScore >= 300) {
       endlessShiftScale = 1.30;
