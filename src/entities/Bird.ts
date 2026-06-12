@@ -1075,7 +1075,7 @@ export class Bird {
     ctx.rotate(farFlapAngle - 0.2); // Pointing up/back
 
     ctx.fillStyle = '#4fc3f7';
-    ctx.strokeStyle = '#1565c0';
+    ctx.strokeStyle = '#29b6f6';
     ctx.lineWidth = 1.8;
 
     ctx.beginPath();
@@ -1096,8 +1096,8 @@ export class Bird {
     ctx.translate(-14, 2);
     const tailFlap = Math.sin(this.flapCycle * 0.8) * 0.1;
     ctx.rotate(tailFlap);
-    ctx.fillStyle = '#006064'; // Dark teal tail feathers
-    ctx.strokeStyle = '#006064';
+    ctx.fillStyle = '#00bcd4'; // Bright teal tail feathers
+    ctx.strokeStyle = '#00bcd4';
     ctx.lineWidth = 1.5;
 
     const tailAngles = [-0.2, 0, 0.2];
@@ -1118,7 +1118,7 @@ export class Bird {
 
     // --- 3. MAIN ROUND CYAN BODY ---
     ctx.fillStyle = '#4fc3f7'; // Cyan
-    ctx.strokeStyle = '#1565c0';
+    ctx.strokeStyle = '#29b6f6';
     ctx.lineWidth = 1.8;
     ctx.beginPath();
     ctx.arc(0, 0, 16, 0, Math.PI * 2);
@@ -1132,8 +1132,8 @@ export class Bird {
     ctx.arc(0, 0, 16, 0, Math.PI * 2);
     ctx.clip();
 
-    ctx.fillStyle = '#0288d1'; // Darker blue
-    ctx.strokeStyle = '#1565c0';
+    ctx.fillStyle = '#4dd0e1'; // Aqua blue underbelly
+    ctx.strokeStyle = '#29b6f6';
     ctx.lineWidth = 1.8;
 
     ctx.beginPath();
@@ -1155,7 +1155,7 @@ export class Bird {
 
     // Crest feather 1 (right spike, taller)
     ctx.fillStyle = '#4fc3f7';
-    ctx.strokeStyle = '#1565c0';
+    ctx.strokeStyle = '#29b6f6';
     ctx.lineWidth = 1.4;
     ctx.beginPath();
     ctx.moveTo(4, -14);
@@ -1190,7 +1190,7 @@ export class Bird {
     ctx.translate(faceX, faceY);
 
     ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#1565c0';
+    ctx.strokeStyle = '#29b6f6';
     ctx.lineWidth = 1.8;
 
     // Left Eye
@@ -1205,12 +1205,13 @@ export class Bird {
     ctx.fill();
     ctx.stroke();
 
-    // Pupils (Deep blue squares on the right side)
-    ctx.fillStyle = '#0d47a1';
+    // Pupils (Bright blue squares on the right side)
+    ctx.fillStyle = '#1e88e5';
     ctx.fillRect(6, -4, 2, 3);
     ctx.fillRect(13, -4, 2, 3);
 
-    // Eyebrows/Lids (Deep blue lids covering top half)
+    // Eyebrows/Lids (Bright blue lids covering top half)
+    ctx.fillStyle = '#1e88e5';
     ctx.fillRect(2, -6, 7, 2);
     ctx.fillRect(9, -6, 7, 2);
 
@@ -1221,7 +1222,7 @@ export class Bird {
     ctx.translate(faceX, faceY);
 
     ctx.fillStyle = '#ff7043'; // Vibrant orange
-    ctx.strokeStyle = '#1565c0';
+    ctx.strokeStyle = '#29b6f6';
     ctx.lineWidth = 1.8;
 
     // Upper beak
@@ -1244,7 +1245,7 @@ export class Bird {
     ctx.stroke();
 
     // Beak crease line
-    ctx.strokeStyle = '#1565c0';
+    ctx.strokeStyle = '#29b6f6';
     ctx.lineWidth = 1.8;
     ctx.beginPath();
     ctx.moveTo(9, 1);
@@ -1265,7 +1266,7 @@ export class Bird {
     ctx.rotate(nearFlapAngle - 0.2);
 
     ctx.fillStyle = '#4fc3f7';
-    ctx.strokeStyle = '#1565c0';
+    ctx.strokeStyle = '#29b6f6';
     ctx.lineWidth = 1.8;
 
     ctx.beginPath();
