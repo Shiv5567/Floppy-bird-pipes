@@ -3793,19 +3793,27 @@ export class Bird {
     ctx.restore();
   }
 
-  // ===== CLASSIC FLAPPY BIRD =====
+  // ===== CLASSIC FLAPPY BIRD (Upgraded 3D gloss look) =====
   private drawFlappyBird(ctx: CanvasRenderingContext2D) {
+    const outlineColor = '#000000'; // Thick black outlines
+
     // 2.5D Face shift offset
     const faceX = Math.cos(this.angle) * 1.8;
     const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.18;
 
-    // --- 1. BLACK TAIL FEATHERS ---
+    // --- 1. BLACK TAIL FEATHERS (Upgraded dark sleek carbon look) ---
     ctx.save();
-    ctx.fillStyle = '#000000';
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 2.0;
     
-    // Top tail feather
+    const tailGrad = ctx.createLinearGradient(-24, -2, -10, 10);
+    tailGrad.addColorStop(0, '#111111');
+    tailGrad.addColorStop(1, '#3a3a3a');
+    
+    ctx.fillStyle = tailGrad;
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = 2.0;
+    ctx.lineJoin = 'miter';
+
+    // Tail feather 1 (top)
     ctx.beginPath();
     ctx.moveTo(-13, -2);
     ctx.lineTo(-24, -2);
@@ -3815,7 +3823,7 @@ export class Bird {
     ctx.fill();
     ctx.stroke();
 
-    // Middle tail feather
+    // Tail feather 2 (middle)
     ctx.beginPath();
     ctx.moveTo(-12, 1);
     ctx.lineTo(-21, 4);
@@ -3825,7 +3833,7 @@ export class Bird {
     ctx.fill();
     ctx.stroke();
 
-    // Bottom tail feather
+    // Tail feather 3 (bottom)
     ctx.beginPath();
     ctx.moveTo(-10, 4);
     ctx.lineTo(-17, 10);
@@ -3837,56 +3845,88 @@ export class Bird {
 
     ctx.restore();
 
-    // --- 2. MAIN ROUND YELLOW BODY ---
-    ctx.fillStyle = '#fcd01c'; // Classic Flappy Bird yellow
-    ctx.strokeStyle = '#000000';
+    // --- 2. MAIN ROUND YELLOW BODY (Upgraded with 3D radial shading) ---
+    const bodyGrad = ctx.createRadialGradient(-3, -3, 2, 0, 0, 15);
+    bodyGrad.addColorStop(0, '#fff677');  // Bright golden highlight
+    bodyGrad.addColorStop(0.5, '#fcd01c'); // Classic yellow base
+    bodyGrad.addColorStop(1, '#d89b00');   // Rich golden-orange shadow
+
+    ctx.fillStyle = bodyGrad;
+    ctx.strokeStyle = outlineColor;
     ctx.lineWidth = 2.0;
     ctx.beginPath();
     ctx.arc(0, 0, 15, 0, Math.PI * 2);
     ctx.fill();
 
-    // --- 3. WHITE UNDERBELLY (Clipped inside body) ---
+    // --- 3. WHITE UNDERBELLY (Clipped inside body, with 3D gradient) ---
     ctx.save();
     ctx.beginPath();
     ctx.arc(0, 0, 15, 0, Math.PI * 2);
     ctx.clip();
-    ctx.fillStyle = '#ffffff'; // White underbelly
+    
+    const bellyGrad = ctx.createLinearGradient(-8, 4, 4, 15);
+    bellyGrad.addColorStop(0, '#ffffff'); // Pure white
+    bellyGrad.addColorStop(1, '#e0e0e0'); // Subtle shadow underbelly
+    
+    ctx.fillStyle = bellyGrad;
     ctx.beginPath();
     ctx.ellipse(-4, 7, 12, 8, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // --- 4. BODY GLOSSY HIGHLIGHT (Clipped inside body for shiny sphere effect) ---
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+    ctx.beginPath();
+    ctx.ellipse(-3, -7, 11, 5, -Math.PI / 4, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
     
     // Redraw body outline to cover clip edge
-    ctx.strokeStyle = '#000000';
+    ctx.strokeStyle = outlineColor;
     ctx.lineWidth = 2.0;
     ctx.beginPath();
     ctx.arc(0, 0, 15, 0, Math.PI * 2);
     ctx.stroke();
 
-    // --- 4. LARGE ROUND EYE ---
+    // --- 5. LARGE ROUND EYE (Upgraded with 2D shading and glints) ---
     ctx.save();
-    ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#000000';
+    const eyeGrad = ctx.createLinearGradient(1, -9, 8, -1);
+    eyeGrad.addColorStop(0, '#ffffff');
+    eyeGrad.addColorStop(1, '#e8e8e8');
+    ctx.fillStyle = eyeGrad;
+    ctx.strokeStyle = outlineColor;
     ctx.lineWidth = 2.0;
     ctx.beginPath();
     ctx.arc(4, -5, 6, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
-    // Pupil
+    // Pupil (Black circle looking right)
     ctx.fillStyle = '#000000';
     ctx.beginPath();
     ctx.arc(5, -5, 2.2, 0, Math.PI * 2);
     ctx.fill();
+    
+    // Double shine glint in pupil
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(4.2, -5.8, 0.7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(5.8, -4.2, 0.4, 0, Math.PI * 2);
+    ctx.fill();
+    
     ctx.restore();
 
-    // --- 5. ORANGE/RED DUCK BEAK ---
+    // --- 6. ORANGE/RED DUCK BEAK (Upgraded with vibrant gradients and gloss) ---
     ctx.save();
     ctx.translate(faceX, faceY);
     
-    // Lower beak
-    ctx.fillStyle = '#e04800'; // Darker orange-red
-    ctx.strokeStyle = '#000000';
+    // Lower beak gradient
+    const lowerBeakGrad = ctx.createLinearGradient(8, 3, 17, 6);
+    lowerBeakGrad.addColorStop(0, '#ff4b00');
+    lowerBeakGrad.addColorStop(1, '#b71c00');
+    ctx.fillStyle = lowerBeakGrad;
+    ctx.strokeStyle = outlineColor;
     ctx.lineWidth = 2.0;
     ctx.beginPath();
     ctx.moveTo(8, 3);
@@ -3896,8 +3936,12 @@ export class Bird {
     ctx.fill();
     ctx.stroke();
 
-    // Upper beak
-    ctx.fillStyle = '#f85800'; // Vibrant orange-red
+    // Upper beak gradient
+    const upperBeakGrad = ctx.createLinearGradient(8, -1, 20, 4);
+    upperBeakGrad.addColorStop(0, '#ff9100'); // Orange-yellow
+    upperBeakGrad.addColorStop(0.5, '#f85800'); // Vibrant red-orange
+    upperBeakGrad.addColorStop(1, '#d50000'); // Crimson tip
+    ctx.fillStyle = upperBeakGrad;
     ctx.beginPath();
     ctx.moveTo(8, -1);
     ctx.bezierCurveTo(16, -3, 22, 1, 20, 4);
@@ -3906,38 +3950,69 @@ export class Bird {
     ctx.fill();
     ctx.stroke();
     
+    // Glossy beak highlight
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.ellipse(13, 0.5, 3, 1, Math.PI / 12, 0, Math.PI * 2);
+    ctx.fill();
+    
     ctx.restore();
 
-    // --- 6. FLAPPING WHITE WING (Drawn in front of the body) ---
+    // --- 7. FLAPPING WING (Upgraded layered rounded feathers) ---
     ctx.save();
     ctx.translate(-3, 1);
     const wingFlap = Math.sin(this.flapCycle) * 0.65;
     ctx.rotate(wingFlap);
 
-    ctx.fillStyle = '#ffffff'; // White wing
-    ctx.strokeStyle = '#000000'; // Black outline
+    ctx.strokeStyle = outlineColor;
     ctx.lineWidth = 2.0;
     ctx.lineJoin = 'round';
 
+    // Layered feather gradients (fade from white to light yellow base)
+    const makeFeatherGrad = (x1: number, y1: number, x2: number, y2: number) => {
+      const grad = ctx.createLinearGradient(x1, y1, x2, y2);
+      grad.addColorStop(0, '#ffffff'); // Pure white tips
+      grad.addColorStop(1, '#fff59d'); // Soft yellow base
+      return grad;
+    };
+
+    // 1. Bottom rounded feather (drawn first)
+    ctx.fillStyle = makeFeatherGrad(-10, 5, -5, -1);
     ctx.beginPath();
     ctx.moveTo(2, 2);
-    
-    // Bottom feather
     ctx.quadraticCurveTo(-5, 9, -10, 5);
     ctx.quadraticCurveTo(-12, 1, -5, -1);
-    
-    // Middle feather
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // 2. Middle rounded feather
+    ctx.fillStyle = makeFeatherGrad(-15, -5, -4, -5);
+    ctx.beginPath();
+    ctx.moveTo(1, -2);
     ctx.quadraticCurveTo(-13, 1, -15, -5);
     ctx.quadraticCurveTo(-15, -9, -4, -5);
-    
-    // Top feather
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // 3. Top rounded feather (drawn last, overlapping others)
+    ctx.fillStyle = makeFeatherGrad(-9, -18, 2, -9);
+    ctx.beginPath();
+    ctx.moveTo(1, -6);
     ctx.quadraticCurveTo(-11, -11, -9, -18);
     ctx.quadraticCurveTo(-5, -18, 2, -9);
-    
-    // Back to base
     ctx.quadraticCurveTo(4, -4, 2, 2);
     ctx.closePath();
     ctx.fill();
+    ctx.stroke();
+
+    // Glossy wing highlight curve on top feather
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 0.9;
+    ctx.beginPath();
+    ctx.moveTo(-1, -9);
+    ctx.quadraticCurveTo(-4, -14, -7, -16);
     ctx.stroke();
 
     ctx.restore();
