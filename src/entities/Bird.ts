@@ -3561,24 +3561,36 @@ export class Bird {
     const faceX = Math.cos(this.angle) * 1.8;
     const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.18;
 
-    // --- 1. FAR WING (Drawn behind the body to establish 3D camera depth) ---
+    // --- 1. FAR CRYSTAL WING (Drawn behind the body to establish 3D camera depth) ---
     ctx.save();
     ctx.translate(-8, -2);
-    // Darker/muted Fire Phoenix colors for far wing
     const farFlapAngle = Math.sin(this.flapCycle + 0.3) * 0.6;
     ctx.rotate(farFlapAngle);
-    
-    const farWingGrad = ctx.createLinearGradient(0, 0, -25, 0);
-    farWingGrad.addColorStop(0, '#b32400'); // Darker orange-red
-    farWingGrad.addColorStop(1, '#cc9600'); // Darker gold/yellow
-    ctx.fillStyle = farWingGrad;
-    
+
+    const farCrystGrad = ctx.createLinearGradient(0, 0, -26, 0);
+    farCrystGrad.addColorStop(0, '#b71c1c'); // Dark red base
+    farCrystGrad.addColorStop(1, 'rgba(255, 138, 128, 0.7)'); // Muted red tip
+    ctx.fillStyle = farCrystGrad;
+    ctx.strokeStyle = '#ff8a80'; // Pinkish-red outline for far wing
+    ctx.lineWidth = 1.0;
+
+    // Wing comprised of crystal shard feathers (drawn in red)
     ctx.beginPath();
     ctx.moveTo(0, 0);
-    ctx.bezierCurveTo(-15, -12, -25, -2, -28, 6);
-    ctx.bezierCurveTo(-20, 12, -10, 4, 0, 0);
+    ctx.lineTo(-20, -12);
+    ctx.lineTo(-12, 0);
     ctx.closePath();
     ctx.fill();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-26, -3);
+    ctx.lineTo(-16, 6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
     ctx.restore();
 
     // --- 2. CLASSIC MAIN ROUND BODY (Head/body is the major part) ---
@@ -3718,8 +3730,38 @@ export class Bird {
 
     ctx.restore();
 
-    // --- 7. NEAR WING (Drawn in front of the body, copying the Fire Phoenix style) ---
-    this.drawFlappingWing(ctx, '#ff4500', '#ffd700', true);
+    // --- 7. NEAR CRYSTAL WING (Drawn in front of the body, copying the Ice Crystal style in red) ---
+    ctx.save();
+    ctx.translate(-4, 2);
+    const nearFlapAngle = Math.sin(this.flapCycle) * 0.6;
+    ctx.rotate(nearFlapAngle);
+
+    const nearCrystGrad = ctx.createLinearGradient(0, 0, -26, 0);
+    nearCrystGrad.addColorStop(0, '#ff1744'); // Vibrant red base
+    nearCrystGrad.addColorStop(1, 'rgba(255, 255, 255, 0.85)'); // Shiny white/pink tip
+    ctx.fillStyle = nearCrystGrad;
+    ctx.strokeStyle = '#ffffff'; // White outline for crystal shine
+    ctx.lineWidth = 1.0;
+
+    // Shard 1
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-20, -12);
+    ctx.lineTo(-12, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Shard 2
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-26, -3);
+    ctx.lineTo(-16, 6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore();
   }
 
   // ===== ARTICUNO (Legendary Ice Bird) =====
