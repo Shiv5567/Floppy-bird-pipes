@@ -334,8 +334,7 @@ export class UIManager {
         if (heartsSpan) {
           const hp = this.engine.playerBossHP;
           const maxHp = this.engine.maxPlayerBossHP || hp;
-          const lostHp = Math.max(0, maxHp - hp);
-          const hearts = '❤️'.repeat(hp) + '💔'.repeat(lostHp);
+          const hearts = '❤️'.repeat(hp);
           
           const fontSize = Math.max(10, 16 - Math.max(0, maxHp - 5) * 0.4);
           const letterSpacing = Math.max(0.5, 2.5 - Math.max(0, maxHp - 5) * 0.15);
@@ -1747,8 +1746,7 @@ export class UIManager {
     if ((isBossFight || isBossWarning) && this.engine.gameMode === 'flock' && this.engine.playerBossHP > 0) {
       const hp = this.engine.playerBossHP;
       const maxHp = this.engine.maxPlayerBossHP || hp;
-      const lostHp = Math.max(0, maxHp - hp);
-      const hearts = '❤️'.repeat(hp) + '💔'.repeat(lostHp);
+      const hearts = '❤️'.repeat(hp);
       
       const hasBossBar = isBossFight && isBossActive;
       const topOffset = hasBossBar ? '190px' : '130px';
