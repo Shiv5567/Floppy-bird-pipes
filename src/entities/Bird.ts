@@ -1038,8 +1038,10 @@ export class Bird {
     this.drawFlappingWing(ctx, '#8b5a2b', '#4a2f1b');
   }
 
-  // ===== DAPPER BLUE (Exactly matching the reference image) =====
+  // ===== DAPPER BLUE (Exactly matching the reference image, no hat, blue outlines) =====
   private drawDapperBlue(ctx: CanvasRenderingContext2D) {
+    const outlineColor = '#1565c0'; // Beautiful deep blue outline color
+
     // 2.5D Face shift offset
     const faceX = Math.cos(this.angle) * 1.8;
     const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.18;
@@ -1050,7 +1052,7 @@ export class Bird {
     ctx.rotate(Math.sin(this.flapCycle + 0.35) * 0.15 - 0.1);
 
     ctx.fillStyle = '#50c5f2';
-    ctx.strokeStyle = '#000000';
+    ctx.strokeStyle = outlineColor;
     ctx.lineWidth = 2.5;
     ctx.lineJoin = 'round';
 
@@ -1074,10 +1076,10 @@ export class Bird {
 
     ctx.restore();
 
-    // --- 2. BLACK TAIL FEATHERS (Three black feathers pointing back) ---
+    // --- 2. DEEP BLUE TAIL FEATHERS (Three deep blue feathers pointing back) ---
     ctx.save();
-    ctx.fillStyle = '#000000';
-    ctx.strokeStyle = '#000000';
+    ctx.fillStyle = '#1565c0'; // Deep blue tail feather fill
+    ctx.strokeStyle = outlineColor;
     ctx.lineWidth = 2.5;
     ctx.lineJoin = 'miter';
 
@@ -1146,7 +1148,7 @@ export class Bird {
     ctx.restore();
 
     // Stroke the body outline
-    ctx.strokeStyle = '#000000';
+    ctx.strokeStyle = outlineColor;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.arc(0, 0, 16, 0, Math.PI * 2);
@@ -1157,7 +1159,7 @@ export class Bird {
     ctx.translate(faceX, faceY);
 
     ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#000000';
+    ctx.strokeStyle = outlineColor;
     ctx.lineWidth = 2.5;
 
     // Left Eye
@@ -1183,53 +1185,13 @@ export class Bird {
 
     ctx.restore();
 
-    // --- 7. BOWLER HAT (Brown bowler hat with black brim and white highlight) ---
-    ctx.save();
-    ctx.translate(faceX * 0.7, faceY * 0.7 - 14);
-    ctx.rotate(0.15); // Tilted forward to the right
-
-    ctx.fillStyle = '#966f52'; // Brown bowler dome
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 2.5;
-    ctx.lineJoin = 'round';
-
-    // Dome shape
-    ctx.beginPath();
-    ctx.moveTo(-9, 0);
-    ctx.bezierCurveTo(-9, -12, 9, -12, 9, 0);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // White highlight on hat dome
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.ellipse(5, -6, 2.5, 1, -Math.PI / 6, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Black Brim
-    ctx.fillStyle = '#000000';
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.moveTo(-12, 1);
-    ctx.quadraticCurveTo(0, -1, 12, 1);
-    ctx.quadraticCurveTo(13, 2, 12, 3.5);
-    ctx.quadraticCurveTo(0, 1.5, -12, 3.5);
-    ctx.quadraticCurveTo(-13, 2, -12, 1);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.restore();
-
-    // --- 8. ORANGE BEAK & CORNER SMILE LINE ---
+    // --- 7. ORANGE BEAK & CORNER SMILE LINE ---
     ctx.save();
     ctx.translate(faceX, faceY);
 
     // Lower beak (slightly darker orange)
     ctx.fillStyle = '#ff5722';
-    ctx.strokeStyle = '#000000';
+    ctx.strokeStyle = outlineColor;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(8, 2);
@@ -1256,7 +1218,7 @@ export class Bird {
     ctx.fill();
 
     // Crease smile line at the corner of the beak
-    ctx.strokeStyle = '#000000';
+    ctx.strokeStyle = outlineColor;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.arc(6, 0, 3.5, -Math.PI / 2, Math.PI / 2, true);
@@ -1264,7 +1226,7 @@ export class Bird {
 
     ctx.restore();
 
-    // --- 9. NEAR WING (Drawn on top of body with flapping animation) ---
+    // --- 8. NEAR WING (Drawn on top of body with flapping animation) ---
     ctx.save();
     ctx.translate(-2, -1);
     
@@ -1273,7 +1235,7 @@ export class Bird {
     ctx.rotate(wingFlap);
 
     ctx.fillStyle = '#50c5f2';
-    ctx.strokeStyle = '#000000';
+    ctx.strokeStyle = outlineColor;
     ctx.lineWidth = 2.5;
     ctx.lineJoin = 'round';
 
@@ -1297,6 +1259,7 @@ export class Bird {
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
+
     ctx.restore();
   }
 
