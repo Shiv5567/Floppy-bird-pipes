@@ -262,18 +262,6 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5
-      },
-      {
-        id: 'flappy_bird',
-        name: 'Classic Flappy',
-        rarity: 'Common',
-        glowColor: 'rgba(252, 208, 28, 0.55)',
-        particleType: 'flappy_bird',
-        costCoins: 0,
-        costGems: 0,
-        unlocked: true,
-        upgradeLevel: 1,
-        maxUpgrade: 5
       }
     ];
   }
