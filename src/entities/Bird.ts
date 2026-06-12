@@ -3825,7 +3825,7 @@ export class Bird {
     ctx.stroke();
     ctx.restore();
 
-    // --- 8. FLAPPING WING (Layered rounded feathers style, Crimson & Gold) ---
+    // --- 8. FLAPPING WING (Classic rounded shape upgraded with layered flame-trail outlines) ---
     ctx.save();
     ctx.translate(-2, 1);
     const wingFlap = Math.sin(this.flapCycle) * 0.65;
@@ -3842,7 +3842,37 @@ export class Bird {
       return grad;
     };
 
-    // Bottom rounded feather
+    // Draw Flame-Trail Outlines first (behind feathers, extending further left/backward)
+    ctx.save();
+    ctx.globalAlpha = 0.6;
+    ctx.strokeStyle = '#ff3d00';
+    ctx.lineWidth = 3.5;
+    ctx.lineJoin = 'round';
+
+    // 1. Bottom flame shadow
+    ctx.beginPath();
+    ctx.moveTo(3, 3);
+    ctx.quadraticCurveTo(-7, 12, -14, 6);
+    ctx.quadraticCurveTo(-15, 0, -4, -2);
+    ctx.stroke();
+
+    // 2. Middle flame shadow
+    ctx.beginPath();
+    ctx.moveTo(2, -1);
+    ctx.quadraticCurveTo(-17, 3, -20, -6);
+    ctx.quadraticCurveTo(-19, -12, -3, -6);
+    ctx.stroke();
+
+    // 3. Top flame shadow
+    ctx.beginPath();
+    ctx.moveTo(2, -5);
+    ctx.quadraticCurveTo(-14, -14, -12, -23);
+    ctx.quadraticCurveTo(-7, -22, 3, -11);
+    ctx.stroke();
+    ctx.restore();
+
+    // Now draw the 3 main rounded feathers overlapping the flame trails
+    // Feather 1: Bottom
     ctx.fillStyle = makeFeatherGrad(-10, 5, -5, -1, '#991b1b', '#450a0a');
     ctx.beginPath();
     ctx.moveTo(2, 2);
@@ -3852,7 +3882,7 @@ export class Bird {
     ctx.fill();
     ctx.stroke();
 
-    // Middle rounded feather
+    // Feather 2: Middle
     ctx.fillStyle = makeFeatherGrad(-15, -5, -4, -5, '#dc2626', '#991b1b');
     ctx.beginPath();
     ctx.moveTo(1, -2);
@@ -3862,7 +3892,7 @@ export class Bird {
     ctx.fill();
     ctx.stroke();
 
-    // Top rounded feather (overlapping others, with golden tip)
+    // Feather 3: Top (with electric golden tip)
     ctx.fillStyle = makeFeatherGrad(-9, -18, 2, -9, '#fbbf24', '#dc2626');
     ctx.beginPath();
     ctx.moveTo(1, -6);
@@ -3873,12 +3903,20 @@ export class Bird {
     ctx.fill();
     ctx.stroke();
 
-    // Glossy wing highlight
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 0.8;
+    // Flame overlay detailing on the feathers (golden veins/spikes)
+    ctx.strokeStyle = '#ffd54f';
+    ctx.lineWidth = 1.0;
+    
+    // Top feather flame detail
     ctx.beginPath();
     ctx.moveTo(-1, -9);
-    ctx.quadraticCurveTo(-4, -14, -7, -16);
+    ctx.quadraticCurveTo(-5, -13, -7, -16);
+    ctx.stroke();
+
+    // Middle feather flame detail
+    ctx.beginPath();
+    ctx.moveTo(-2, -3);
+    ctx.quadraticCurveTo(-9, -4, -11, -5);
     ctx.stroke();
 
     ctx.restore();
