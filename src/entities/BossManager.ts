@@ -102,8 +102,8 @@ export class BossManager {
     // 1. Manage state machine
     if (this.state === 'entering') {
       // Float from offscreen
-      this.bossX += (width - 80 - this.bossX) * 0.04 * dtCoeff;
-      if (Math.abs(this.bossX - (width - 80)) < 10) {
+      this.bossX += (width - 122 - this.bossX) * 0.04 * dtCoeff;
+      if (Math.abs(this.bossX - (width - 122)) < 10) {
         this.state = 'fighting';
         this.timer = 0;
       }
@@ -234,7 +234,7 @@ export class BossManager {
     const dx = birdX - this.bossX;
     const dy = birdY - this.bossY;
 
-    const baseSpeed = 5.2;
+    const baseSpeed = 5.72;
     soundManager.playZap();
 
     const gameEngine = (window as any).gameEngine;
