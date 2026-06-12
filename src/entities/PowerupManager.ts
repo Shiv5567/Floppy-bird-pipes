@@ -11,6 +11,8 @@ export interface PowerupItem {
   active: boolean;
   pulseTimer: number;
   initialY: number;
+  associatedObstacle?: Obstacle;
+  verticalOffsetPct?: number;
 }
 
 export class PowerupManager {
@@ -275,13 +277,36 @@ export class PowerupManager {
           const pullForce = 8 * dtCoeff;
           item.x += (dx / distance) * pullForce;
           item.y += (dy / distance) * pullForce;
+          item.associatedObstacle = undefined; // Detach on magnet pull
         } else {
           item.x -= actualScrollSpeed;
-          item.y = item.initialY + Math.sin(item.pulseTimer) * 12;
+          if (item.associatedObstacle) {
+            const obs = item.associatedObstacle;
+            const gapTop = obs.topHeight;
+            const gapBottom = height - obs.bottomHeight;
+            const gapHeight = gapBottom - gapTop;
+            const gapCenter = gapTop + gapHeight * 0.5;
+            const shift = (item.verticalOffsetPct || 0) * (gapHeight * 0.5);
+            item.y = gapCenter + shift + Math.sin(item.pulseTimer) * 12;
+            item.initialY = gapCenter + shift;
+          } else {
+            item.y = item.initialY + Math.sin(item.pulseTimer) * 12;
+          }
         }
       } else {
         item.x -= actualScrollSpeed;
-        item.y = item.initialY + Math.sin(item.pulseTimer) * 12;
+        if (item.associatedObstacle) {
+          const obs = item.associatedObstacle;
+          const gapTop = obs.topHeight;
+          const gapBottom = height - obs.bottomHeight;
+          const gapHeight = gapBottom - gapTop;
+          const gapCenter = gapTop + gapHeight * 0.5;
+          const shift = (item.verticalOffsetPct || 0) * (gapHeight * 0.5);
+          item.y = gapCenter + shift + Math.sin(item.pulseTimer) * 12;
+          item.initialY = gapCenter + shift;
+        } else {
+          item.y = item.initialY + Math.sin(item.pulseTimer) * 12;
+        }
       }
 
       // Remove offscreen items
@@ -369,7 +394,7 @@ export class PowerupManager {
         }
       }
 
-      // ── Squad Survival (flock) Mode: Spawn cages every 10 to 20 obstacles, coins/gems/powerups elsewhere ──────
+      // ── Squad Survival (flock) Mode: Anchor items/cages to moving gaps with 30% up/down shifting ──────
       if (gameMode === 'flock') {
         const obsIdx = unrewardedObstacle.obstacleIdx !== undefined ? unrewardedObstacle.obstacleIdx : 0;
 
@@ -378,23 +403,31 @@ export class PowerupManager {
           this.nextRescueSpawnTarget = 10 + Math.floor(Math.random() * 6); // 10 to 15
         }
 
+        // Determine offset percent: 50% chance of 0, 50% chance of either -0.3 or 0.3
+        let offsetPct = 0;
+        if (Math.random() < 0.5) {
+          offsetPct = Math.random() < 0.5 ? -0.3 : 0.3;
+        }
+        const gapHeight = gapBottom - gapTop;
+        const targetY = gapCenterY + offsetPct * (gapHeight * 0.5);
+
         if (obsIdx === this.nextRescueSpawnTarget) {
-          // Spawn a cage in the gap center
-          this.spawnItem('rescue', width, height, targetX, gapCenterY);
+          // Spawn a cage in the gap center (or shifted)
+          this.spawnItem('rescue', width, height, targetX, targetY, unrewardedObstacle, offsetPct);
           this.nextRescueSpawnTarget = obsIdx + 10 + Math.floor(Math.random() * 6); // Set next spawn between 10 and 15 obstacles
         } else if (obsIdx % 3 === 0) {
           // Spawn 3 coins group
-          this.spawnItem('coin', width, height, targetX - 45, gapCenterY);
-          this.spawnItem('coin', width, height, targetX, gapCenterY);
-          this.spawnItem('coin', width, height, targetX + 45, gapCenterY);
+          this.spawnItem('coin', width, height, targetX - 45, targetY, unrewardedObstacle, offsetPct);
+          this.spawnItem('coin', width, height, targetX, targetY, unrewardedObstacle, offsetPct);
+          this.spawnItem('coin', width, height, targetX + 45, targetY, unrewardedObstacle, offsetPct);
         } else if (obsIdx % 7 === 4) {
           // Spare slots: gems
-          this.spawnItem('gem', width, height, targetX, gapCenterY);
+          this.spawnItem('gem', width, height, targetX, targetY, unrewardedObstacle, offsetPct);
         } else if (obsIdx % 12 === 8) {
           // Rare random powerups
           const pool: PowerupType[] = ['shield', 'slowmo', 'magnet', 'turbo', 'mini'];
           const randomType = pool[Math.floor(Math.random() * pool.length)];
-          this.spawnItem(randomType, width, height, targetX, gapCenterY);
+          this.spawnItem(randomType, width, height, targetX, targetY, unrewardedObstacle, offsetPct);
         }
       }
 
@@ -431,7 +464,9 @@ export class PowerupManager {
     width: number,
     height: number,
     customX?: number,
-    customY?: number
+    customY?: number,
+    associatedObstacle?: Obstacle,
+    verticalOffsetPct?: number
   ) {
     let radius = 20; // enlarged from 14
     if (type === 'coin') radius = 14.4; // reduced by 10% (from 16)
@@ -453,7 +488,9 @@ export class PowerupManager {
       radius,
       type,
       active: true,
-      pulseTimer: Math.random() * Math.PI * 2
+      pulseTimer: Math.random() * Math.PI * 2,
+      associatedObstacle,
+      verticalOffsetPct
     });
   }
 
