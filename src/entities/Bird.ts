@@ -1926,14 +1926,36 @@ export class Bird {
       ctx.stroke();
     });
 
-    // --- 6. DRAGON-BIRD HYBRID HEAD (Rounded bird head with small sharp golden-lavender beak) ---
-    ctx.fillStyle = '#f8fafc';
-    ctx.strokeStyle = '#c084fc';
-    ctx.lineWidth = 1.3;
+    // --- 6. DRAGON HEAD STRUCTURE (Angular dragon skull shape with small golden-lavender beak) ---
+    ctx.save();
+    
+    // Gradient for the head scales
+    const headGrad = ctx.createLinearGradient(headX - 8, headY - 8, headX + 8, headY + 8);
+    headGrad.addColorStop(0, '#f8fafc'); // Pure white
+    headGrad.addColorStop(0.5, '#f1f5f9'); // Slate white
+    headGrad.addColorStop(1, '#e2e8f0'); // Cool silver shadow
 
-    // Draw rounded bird head shape
+    ctx.fillStyle = headGrad;
+    ctx.strokeStyle = '#c084fc'; // Purple theme border
+    ctx.lineWidth = 1.4;
+
+    // Draw angular dragon head shape
     ctx.beginPath();
-    ctx.arc(headX, headY, 8.5, 0, Math.PI * 2);
+    ctx.moveTo(headX - 6, headY - 5);
+    
+    // Top of head curving down to snout bridge
+    ctx.quadraticCurveTo(headX - 1, headY - 7, headX + 4, headY - 3);
+    // Snout tip/beak top connection
+    ctx.lineTo(headX + 4.5, headY - 2.5);
+    // Mouth corner connection
+    ctx.lineTo(headX + 3, headY + 0.5);
+    // Lower jaw and chin curve
+    ctx.quadraticCurveTo(headX + 2, headY + 6, headX - 4, headY + 5);
+    // Lower throat connecting to neck
+    ctx.lineTo(headX - 7, headY + 2.5);
+    // Cheek/Neck curve back to top of head
+    ctx.quadraticCurveTo(headX - 8, headY - 1.5, headX - 6, headY - 5);
+    ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
@@ -1963,7 +1985,7 @@ export class Bird {
     ctx.quadraticCurveTo(headX + 8.4, headY - 1.2, headX + 7.8, headY + 0.6);
     ctx.stroke();
 
-    // Majestic horns (Lilac/Purple)
+    // Majestic horns sweeping backward (Lilac/Purple)
     ctx.fillStyle = '#c084fc';
     ctx.strokeStyle = '#a855f7';
     ctx.lineWidth = 1.0;
@@ -1983,6 +2005,8 @@ export class Bird {
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
+
+    ctx.restore();
 
     // --- 7. INTENSE MINIATURIZED DRAGON EYE (Reduced size from 4.5 to 2.2 for realistic proportions) ---
     // Outer iris
