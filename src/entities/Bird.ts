@@ -265,11 +265,7 @@ export class Bird {
         particleEngine.spawn(offsetBackX, offsetBackY, -0.8 - Math.random() * 1.2, (Math.random() - 0.5) * 1.0, '#d1c4e9', 3.0 + Math.random() * 3.0, 0.9, 0.02, 'star', true, 'rgba(124, 77, 255, 0.8)');
         break;
 
-      case 'dapper_blue':
-        // Shiny cyan sparkles + deep blue accent sparks!
-        particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -1 - Math.random() * 1.5, (Math.random() - 0.5) * 1.2, '#00b0ff', 3 + Math.random() * 2, 0.9, 0.02, 'circle', true, '#00e5ff');
-        particleEngine.spawn(offsetBackX + rx * 0.8, offsetBackY + ry * 0.8, -0.6 - Math.random() * 1.0, (Math.random() - 0.5) * 0.8, '#1565c0', 2 + Math.random() * 1.5, 0.85, 0.03, 'spark', true, 'rgba(21, 101, 192, 0.6)');
-        break;
+
 
       default:
         particleEngine.spawn(offsetBackX + rx, offsetBackY + ry, -1 - Math.random() * 1, (Math.random() - 0.5) * 0.5, 'rgba(255, 255, 255, 0.4)', 2, 0.8, 0.03, 'circle');
@@ -383,9 +379,7 @@ export class Bird {
       case 'cosmic_nova':
         this.drawCosmicNova(ctx);
         break;
-      case 'dapper_blue':
-        this.drawDapperBlue(ctx);
-        break;
+
       default:
         this.drawEagle(ctx); // Default Eagle
     }
@@ -486,9 +480,7 @@ export class Bird {
       case 'cosmic_nova':
         this.drawCosmicNova(ctx);
         break;
-      case 'dapper_blue':
-        this.drawDapperBlue(ctx);
-        break;
+
       default:
         this.drawEagle(ctx);
     }
@@ -511,7 +503,7 @@ export class Bird {
     ctx.globalAlpha = 0.45 + (Math.sin(this.auraPulse * 1.5) * 0.15); // Breathing opacity
     
     const disableShadows = (window as any).gameDisableShadows;
-    if (!disableShadows && this.activeSkin.glowColor && skinId !== 'dapper_blue') {
+    if (!disableShadows && this.activeSkin.glowColor) {
       ctx.shadowBlur = 10 + Math.sin(this.auraPulse) * 4;
       ctx.shadowColor = this.activeSkin.glowColor;
     }
@@ -906,10 +898,7 @@ export class Bird {
         break;
       }
 
-      case 'dapper_blue': {
-        // No magic aura — clean flat style
-        break;
-      }
+
 
       default: {
         // Gold celestial wing shield (Default Eagle)
@@ -1038,293 +1027,7 @@ export class Bird {
     this.drawFlappingWing(ctx, '#8b5a2b', '#4a2f1b');
   }
 
-  // ===== DAPPER BLUE (Upgraded design: 3D gradients, layered wing feathers, 3 crest spikes) =====
-  private drawDapperBlue(ctx: CanvasRenderingContext2D) {
-    const outlineColor = '#000000'; // Black outline color
 
-    // 2.5D Face shift offset
-    const faceX = Math.cos(this.angle) * 1.8;
-    const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.18;
-
-    // --- 1. FAR WING / HEAD FEATHERS (Drawn behind the body) ---
-    ctx.save();
-    ctx.translate(-8, -8);
-    ctx.rotate(Math.sin(this.flapCycle + 0.35) * 0.15 - 0.1);
-
-    ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 2.5;
-    ctx.lineJoin = 'round';
-
-    const crestGrad = ctx.createLinearGradient(-10, -20, 2, 0);
-    crestGrad.addColorStop(0, '#a5f3ff');
-    crestGrad.addColorStop(1, '#0085cc');
-    ctx.fillStyle = crestGrad;
-
-    // Spike 1 (bottom left)
-    ctx.beginPath();
-    ctx.moveTo(-4, 4);
-    ctx.quadraticCurveTo(-10, 1, -12, -2);
-    ctx.quadraticCurveTo(-7, -1, -2, 2);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Spike 2 (middle)
-    ctx.beginPath();
-    ctx.moveTo(-2, 2);
-    ctx.quadraticCurveTo(-8, -5, -10, -10);
-    ctx.quadraticCurveTo(-5, -5, 1, -1);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Spike 3 (top right)
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.quadraticCurveTo(-4, -12, -6, -18);
-    ctx.quadraticCurveTo(-1, -10, 3, -4);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.restore();
-
-    // --- 2. BLACK TAIL FEATHERS (Three black feathers pointing back) ---
-    ctx.save();
-    
-    // Sleek metallic dark gradient
-    const tailGrad = ctx.createLinearGradient(-24, -2, -10, 10);
-    tailGrad.addColorStop(0, '#0a0e29');
-    tailGrad.addColorStop(1, '#1f2e69');
-    
-    ctx.fillStyle = tailGrad;
-    ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 2.5;
-    ctx.lineJoin = 'miter';
-
-    // Tail feather 1 (top)
-    ctx.beginPath();
-    ctx.moveTo(-13, -2);
-    ctx.lineTo(-24, -2);
-    ctx.lineTo(-24, 3);
-    ctx.lineTo(-13, 3);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Tail feather 2 (middle)
-    ctx.beginPath();
-    ctx.moveTo(-12, 2);
-    ctx.lineTo(-22, 6);
-    ctx.lineTo(-20, 11);
-    ctx.lineTo(-11, 7);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Tail feather 3 (bottom)
-    ctx.beginPath();
-    ctx.moveTo(-10, 6);
-    ctx.lineTo(-17, 13);
-    ctx.lineTo(-14, 17);
-    ctx.lineTo(-8, 10);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.restore();
-
-    // --- 3. MAIN ROUND BLUE BODY ---
-    // Fill body with 3D radial gradient
-    const bodyGrad = ctx.createRadialGradient(-4, -4, 2, 0, 0, 16);
-    bodyGrad.addColorStop(0, '#a5f3ff'); // Bright highlight
-    bodyGrad.addColorStop(0.4, '#50c5f2'); // Sky blue base
-    bodyGrad.addColorStop(1, '#0078b8'); // Shadows
-    
-    ctx.fillStyle = bodyGrad;
-    ctx.beginPath();
-    ctx.arc(0, 0, 16, 0, Math.PI * 2);
-    ctx.fill();
-
-    // --- 4. WAVY UNDERBELLY (Clipped inside the body) ---
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(0, 0, 16, 0, Math.PI * 2);
-    ctx.clip();
-
-    // Vibrant wave gradient
-    const bellyGrad = ctx.createLinearGradient(-16, 8, 16, 16);
-    bellyGrad.addColorStop(0, '#00e5ff');
-    bellyGrad.addColorStop(1, '#006aa6');
-
-    ctx.fillStyle = bellyGrad;
-    ctx.beginPath();
-    ctx.moveTo(-18, 6);
-    ctx.quadraticCurveTo(-12, 10, -7, 6);
-    ctx.quadraticCurveTo(-2, 2, 3, 6);
-    ctx.quadraticCurveTo(8, 10, 13, 6);
-    ctx.quadraticCurveTo(16, 4, 18, 6);
-    ctx.lineTo(18, 18);
-    ctx.lineTo(-18, 18);
-    ctx.closePath();
-    ctx.fill();
-    
-    // --- 5. BODY GLOSSY HIGHLIGHT (Clipped inside body) ---
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
-    ctx.beginPath();
-    ctx.ellipse(-3, -8, 12, 6, -Math.PI / 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // Stroke the body outline
-    ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.arc(0, 0, 16, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // --- 6. BORED RECTANGULAR EYES ---
-    ctx.save();
-    ctx.translate(faceX, faceY);
-
-    ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 2.5;
-
-    // Left Eye
-    ctx.beginPath();
-    ctx.rect(3, -5, 6, 6);
-    ctx.fill();
-    ctx.stroke();
-
-    // Right Eye
-    ctx.beginPath();
-    ctx.rect(9, -5, 6, 6);
-    ctx.fill();
-    ctx.stroke();
-
-    // Pupils: Black squares/rectangles looking right
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(7, -2.2, 2, 3.2);
-    ctx.fillRect(13, -2.2, 2, 3.2);
-
-    // Bored eyelids/brows: Black rectangles
-    ctx.fillRect(2.5, -6.2, 7, 2.2);
-    ctx.fillRect(8.5, -6.2, 7, 2.2);
-
-    ctx.restore();
-
-    // --- 7. ORANGE BEAK & CORNER SMILE LINE ---
-    ctx.save();
-    ctx.translate(faceX, faceY);
-
-    // Lower beak gradient (reddish-orange)
-    const lowerBeakGrad = ctx.createLinearGradient(8, 2, 18, 4);
-    lowerBeakGrad.addColorStop(0, '#ff5722');
-    lowerBeakGrad.addColorStop(1, '#bf360c');
-    
-    ctx.fillStyle = lowerBeakGrad;
-    ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.moveTo(8, 2);
-    ctx.bezierCurveTo(11, 2, 18, 6, 18, 3);
-    ctx.bezierCurveTo(15, 6, 11, 6, 8, 4);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Upper beak gradient (golden yellow to fire orange)
-    const upperBeakGrad = ctx.createLinearGradient(7, -2, 20, 3);
-    upperBeakGrad.addColorStop(0, '#ffd54f');
-    upperBeakGrad.addColorStop(0.5, '#ff9100');
-    upperBeakGrad.addColorStop(1, '#ff3d00');
-
-    ctx.fillStyle = upperBeakGrad;
-    ctx.beginPath();
-    ctx.moveTo(7, -2);
-    ctx.bezierCurveTo(16, -4, 22, 1, 20, 3);
-    ctx.bezierCurveTo(16, 4, 11, 2, 7, 2);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Beak white highlight
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.ellipse(13, -0.5, 3, 1, Math.PI / 12, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Crease smile line at the corner of the beak
-    ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.arc(6, 0, 3.5, -Math.PI / 2, Math.PI / 2, true);
-    ctx.stroke();
-
-    ctx.restore();
-
-    // --- 8. LAYERED WING FEATHERS (Drawn on top of body with flapping animation) ---
-    ctx.save();
-    ctx.translate(-2, -1);
-    
-    // Wing flap rotation
-    const wingFlap = Math.sin(this.flapCycle) * 0.35;
-    ctx.rotate(wingFlap);
-
-    ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 2.5;
-    ctx.lineJoin = 'round';
-
-    // Helper for feather gradient
-    const makeFeatherGrad = (x1: number, y1: number, x2: number, y2: number) => {
-      const grad = ctx.createLinearGradient(x1, y1, x2, y2);
-      grad.addColorStop(0, '#8beaff'); // Bright cyan tip
-      grad.addColorStop(0.5, '#50c5f2'); // Sky blue
-      grad.addColorStop(1, '#006b9e'); // Base dark blue
-      return grad;
-    };
-
-    // 1. Bottom feather (drawn first)
-    ctx.fillStyle = makeFeatherGrad(-10, 4, -2, 1);
-    ctx.beginPath();
-    ctx.moveTo(2, 2);
-    ctx.quadraticCurveTo(-5, 8, -10, 4);
-    ctx.quadraticCurveTo(-11, 0, -2, -1);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // 2. Middle feather
-    ctx.fillStyle = makeFeatherGrad(-15, -6, -3, -4);
-    ctx.beginPath();
-    ctx.moveTo(1, -2);
-    ctx.quadraticCurveTo(-12, 0, -15, -6);
-    ctx.quadraticCurveTo(-15, -10, -3, -5);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // 3. Top feather (drawn last, overlapping others)
-    ctx.fillStyle = makeFeatherGrad(-12, -22, 1, -8);
-    ctx.beginPath();
-    ctx.moveTo(1, -6);
-    ctx.quadraticCurveTo(-12, -12, -12, -22);
-    ctx.quadraticCurveTo(-7, -22, 2, -10);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Wing white highlight line on top feather
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1.0;
-    ctx.beginPath();
-    ctx.moveTo(-1, -11);
-    ctx.quadraticCurveTo(-5, -18, -9, -20);
-    ctx.stroke();
-
-    ctx.restore();
-  }
 
   private drawPhoenix(ctx: CanvasRenderingContext2D) {
     if (!(window as any).gameDisableShadows) {

@@ -262,18 +262,6 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5
-      },
-      {
-        id: 'dapper_blue',
-        name: 'Dapper Blue',
-        rarity: 'Epic',
-        glowColor: 'rgba(0, 191, 255, 0.65)',
-        particleType: 'dapper_blue',
-        costCoins: 3000,
-        costGems: 0,
-        unlocked: false,
-        upgradeLevel: 1,
-        maxUpgrade: 5
       }
     ];
   }
