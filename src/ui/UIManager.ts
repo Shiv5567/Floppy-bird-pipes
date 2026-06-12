@@ -24,10 +24,6 @@ export class UIManager {
   private bossContainer: HTMLElement | null = null;
   private bossHealthVal: HTMLElement | null = null;
   private bossHealthFill: HTMLElement | null = null;
-  // Rescue Evolution HUD cache
-  private rescueEvolveFill: HTMLElement | null = null;
-  private lastEvolvedTier: number = -1;
-  private lastSquadCategory: number = 0;
   private playerHPContainer: HTMLElement | null = null;
 
   constructor(containerId: string, engine: GameEngine) {
@@ -80,13 +76,7 @@ export class UIManager {
       this.showFloatingGrazeText(e.detail.x, e.detail.y);
     });
 
-    // Listen for evolution events to trigger full HUD re-render (tier badge changes)
-    window.addEventListener('bird_evolved', () => {
-      this.lastEvolvedTier = -1; // Force full re-render
-      this.rescueEvolveFill = null;
-      // Full HUD re-render so tier badge and EVOLVE button update immediately
-      this.renderHUD();
-    });
+
   }
 
   private showFloatingGrazeText(x: number, y: number) {
@@ -243,93 +233,10 @@ export class UIManager {
     if (this.runStatsGems) {
       this.runStatsGems.innerText = `💎 ${this.engine.gemsCollectedThisRun}`;
     }
-    // Rescue mode: fast-update evolution bar, squad indicator, evolve button, and active skill button
-    if (this.engine.gameMode === 'rescue') {
-      const flockInd = this.container.querySelector('.flock-indicator') as HTMLElement;
-      if (flockInd) {
-        flockInd.innerText = `🪽 SQUAD: ${this.engine.flock.length}`;
-      }
-
-      // Fast-update rescue milestone progress bar
-      if (!this.rescueEvolveFill) {
-        this.rescueEvolveFill = this.container.querySelector('.rescue-evolve-fill') as HTMLElement;
-      }
-      if (this.rescueEvolveFill) {
-        const rescued = this.engine.rescuedBirdsTotal;
-        const next = this.engine.nextRescueMilestone;
-        const pct = Math.min(100, (rescued / next) * 100);
-        this.rescueEvolveFill.style.width = `${pct}%`;
-      }
-
-      // Evolved tier badge: only full-render when tier changes
-      const currentTier = this.engine.evolvedBirdTier;
-      if (currentTier !== this.lastEvolvedTier) {
-        this.lastEvolvedTier = currentTier;
-        this.renderHUD(); // Full re-render on tier change
-        return;
-      }
-
-      // Check if squad size category changed, which requires full HUD re-render for Evolve button visibility/text
-      const currentFlockLen = this.engine.flock.length;
-      let squadCategory = 0; // 0: <4, 1: 4-6, 2: 7-8, 3: 9+
-      if (currentFlockLen >= 4 && currentFlockLen <= 6) squadCategory = 1;
-      else if (currentFlockLen >= 7 && currentFlockLen <= 8) squadCategory = 2;
-      else if (currentFlockLen >= 9) squadCategory = 3;
-
-      if (squadCategory !== this.lastSquadCategory) {
-        this.lastSquadCategory = squadCategory;
-        this.renderHUD();
-        return;
-      }
-
-      // Fast-update Active Skill Button Cooldown overlay and text in-place
-      const activeSkillBtn = document.getElementById('btn-hud-active-skill');
-      if (activeSkillBtn && this.engine.activeSkillUnlocked) {
-        const cooldown = this.engine.activeSkillCooldown;
-        const maxCooldown = this.engine.activeSkillMaxCooldown;
-        const isReady = cooldown <= 0;
-
-        const skill = this.engine.activeSkillUnlocked;
-        let skillColor = '#00f3ff';
-        if (skill === 'slowmo') {
-          skillColor = '#ff007f';
-        } else if (skill === 'booster') {
-          skillColor = '#ffd700';
-        }
-
-        // Update classes and styles
-        if (isReady) {
-          if (!activeSkillBtn.classList.contains('ult-ready-pulse')) {
-            activeSkillBtn.classList.add('ult-ready-pulse');
-          }
-          activeSkillBtn.style.boxShadow = `0 0 18px ${skillColor}66`;
-          activeSkillBtn.style.background = `${skillColor}1a`;
-        } else {
-          activeSkillBtn.classList.remove('ult-ready-pulse');
-          activeSkillBtn.style.boxShadow = 'none';
-          activeSkillBtn.style.background = 'rgba(0,0,0,0.4)';
-        }
-
-        // Circular Progress Mask
-        const fill = activeSkillBtn.querySelector('.active-skill-progress-fill') as SVGPathElement | null;
-        if (fill) {
-          const pct = maxCooldown > 0 ? (cooldown / maxCooldown) * 100 : 0;
-          const circumference = 176;
-          const offset = circumference - (circumference * (100 - pct)) / 100;
-          fill.style.strokeDashoffset = `${offset}`;
-        }
-
-        // Label/Timer Text
-        const label = activeSkillBtn.querySelector('.active-skill-label') as HTMLElement | null;
-        if (label) {
-          label.innerText = isReady ? 'USE SKILL' : `${cooldown.toFixed(1)}s`;
-        }
-      }
-    } else {
-      const flockInd = this.container.querySelector('.flock-indicator') as HTMLElement;
-      if (flockInd) {
-        flockInd.innerText = `🪽 SQUAD: ${this.engine.flock.length}`;
-      }
+    // Update squad indicator for squad survival mode
+    const flockInd = this.container.querySelector('.flock-indicator') as HTMLElement;
+    if (flockInd) {
+      flockInd.innerText = `🪽 SQUAD: ${this.engine.flock.length}`;
     }
 
     // 4. Powerup timers holder (In-place updates without DOM reconstruction!)
@@ -1791,176 +1698,11 @@ export class UIManager {
           <span style="font-size: 26px; z-index: 2; transition: transform 0.2s ease; margin: 0; line-height: 1; text-shadow: ${bReady ? '0 0 8px #ffd700' : 'none'};">${bReady ? '⚡' : '⏳'}</span>
         </div>
       `;
-    } else if (this.engine.gameMode === 'rescue' || this.engine.gameMode === 'formation') {
-      // Other modes: show auto-boost progress — fires every 6 birds joined
-      const joined = this.engine.birdsJoinedThisRun;
-      const progressIn6 = joined % 6;                           // 0..5
-      const pct = Math.round((progressIn6 / 6) * 100);
-      const isActive = this.engine.boosterActive;
-
-      boosterBtnHTML = `
-        <div class="glass-card ${isActive ? 'ult-ready-pulse' : ''}"
-             style="pointer-events: none; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 62px; height: 62px; border-radius: 50%; border: 2px solid ${isActive ? '#ffd700' : 'rgba(255,215,0,0.35)'}; background: ${isActive ? 'rgba(255,215,0,0.15)' : 'rgba(0,0,0,0.25)'}; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: ${isActive ? '0 0 18px rgba(255,215,0,0.5)' : 'none'}; position: relative; margin-bottom: 6px; gap: 0;">
-          <svg width="58" height="58" viewBox="0 0 58 58" style="position: absolute; transform: rotate(-90deg); pointer-events: none;">
-            <circle cx="29" cy="29" r="25" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="3"></circle>
-            <circle cx="29" cy="29" r="25" fill="none" stroke="#ffd700" stroke-width="4"
-                    stroke-dasharray="157" stroke-dashoffset="${157 - (157 * pct) / 100}"
-                    stroke-linecap="round" style="transition: stroke-dashoffset 0.3s ease-out;"></circle>
-          </svg>
-          <span style="font-size: ${isActive ? '22' : '18'}px; z-index: 2; line-height: 1; text-shadow: ${isActive ? '0 0 8px #ffd700' : 'none'};">${isActive ? '⚡' : '🔋'}</span>
-          <span style="font-size: 8px; font-weight: 900; color: #ffd700; z-index: 2; letter-spacing: 0.2px;">${isActive ? 'BOOST!' : `${progressIn6}/6`}</span>
-        </div>
-      `;
     }
-
-
-    let formationBtnHTML = '';
-    if (this.engine.gameMode === 'formation') {
-      const activeForm = this.engine.currentFormation;
-      const formIcon = activeForm === 'v_shape' ? '🪹' : activeForm === 'line' ? '➡️' : '⬇️';
-      formationBtnHTML = `
-        <div class="hud-circle-btn glass-card ult-ready-pulse" 
-             style="pointer-events: auto; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 62px; height: 62px; border-radius: 50%; border: 2px solid #ffaa00; background: rgba(255, 170, 0, 0.12); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: all 0.3s ease; box-shadow: 0 0 15px rgba(255, 170, 0, 0.4); position: relative; margin-bottom: 6px; -webkit-tap-highlight-color: transparent;" 
-             id="btn-hud-formation" 
-             title="Tap to Cycle Flight Formation!">
-          <div style="position: absolute; inset: 2px; border-radius: 50%; background: rgba(255, 170, 0, 0.15); pointer-events: none;"></div>
-          <span style="font-size: 26px; z-index: 2; transition: transform 0.2s ease; margin: 0; line-height: 1; text-shadow: 0 0 8px #ffaa00;">${formIcon}</span>
-        </div>
-      `;
-    }
-
-    // ── Rescue Mode Evolution Panel ──────────────────────────────────────────
-    let rescueEvolutionHTML = '';
-    if (this.engine.gameMode === 'rescue') {
-      const tier = this.engine.evolvedBirdTier;
-      const rescued = this.engine.rescuedBirdsTotal;
-
-      // Dynamic next milestone target
-      const milestoneTarget = rescued < 5 ? 5 : rescued < 10 ? 10 : rescued < 15 ? 15 : rescued < 20 ? 20 : 25;
-      const milestonePct = Math.min(100, (rescued / milestoneTarget) * 100);
-
-      const TIER_NAMES = ['—', 'Swift Eagle', 'Magnet Phoenix', 'Storm Titan', 'Celestial Sovereign'];
-      const TIER_COLORS = ['#aaa', '#00f3ff', '#ff007f', '#ffd700', '#a855f7'];
-      const tierName  = tier > 0 ? TIER_NAMES[tier]  : null;
-      const tierColor = tier > 0 ? TIER_COLORS[tier] : '#aaa';
-
-      rescueEvolutionHTML = `
-        <div class="rescue-evolution-panel" style="
-          position: absolute;
-          top: 58px;
-          left: 50%;
-          transform: translateX(-50%);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 4px;
-          pointer-events: none;
-          z-index: 50;
-          min-width: 200px;
-        ">
-
-          ${ tier > 0 ? `
-          <!-- Evolved Tier Badge -->
-          <div style="
-            background: linear-gradient(135deg, ${tierColor}22, ${tierColor}44);
-            border: 1.5px solid ${tierColor};
-            border-radius: 20px;
-            padding: 3px 14px;
-            font-size: 11px;
-            font-weight: 900;
-            color: ${tierColor};
-            text-shadow: 0 0 8px ${tierColor};
-            box-shadow: 0 0 12px ${tierColor}44;
-            letter-spacing: 0.5px;
-            animation: hudPulse 1.5s ease-in-out infinite;
-          ">⚡ TIER ${tier}: ${tierName?.toUpperCase()}</div>
-          ` : '' }
-
-          <!-- Rescue Milestone Bar -->
-          <div style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.45); border: 1px solid rgba(255,170,0,0.3); border-radius: 10px; padding: 4px 10px;">
-            <span style="font-size: 13px;">🕊️</span>
-            <div style="width: 100px; height: 5px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
-              <div class="rescue-evolve-fill" style="height: 100%; width: ${milestonePct}%; background: linear-gradient(90deg, #ffaa00, #ff007f); transition: width 0.3s ease; border-radius: 3px;"></div>
-            </div>
-            <span style="font-size: 9px; color: #ffaa00; font-weight: 800;">${rescued}/${milestoneTarget}</span>
-          </div>
-        </div>
-      `;
-    }
-
-    // ── Rescue Mode EVOLVE button (bottom-left HUD) ────────────────────────
-    let evolveBtnHTML = '';
-    if (this.engine.gameMode === 'rescue') {
-      const flockLen = this.engine.flock.length;
-      const canEvolve = flockLen >= 4;
-
-      if (canEvolve) {
-        let evolveColor = '#00f3ff';
-        let evolveLabel = 'EVOLVE T1';
-        if (flockLen >= 4 && flockLen <= 6) {
-          evolveColor = '#00f3ff';
-          evolveLabel = 'EVOLVE T1';
-        } else if (flockLen >= 7 && flockLen <= 8) {
-          evolveColor = '#ff007f';
-          evolveLabel = 'EVOLVE T2';
-        } else if (flockLen >= 9) {
-          evolveColor = '#ffd700';
-          evolveLabel = 'EVOLVE T3';
-        }
-
-        evolveBtnHTML = `
-          <div class="hud-circle-btn glass-card ult-ready-pulse" 
-               style="pointer-events: auto; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 68px; height: 68px; border-radius: 50%; border: 2.5px solid ${evolveColor}; background: ${evolveColor}1a; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 0 18px ${evolveColor}66; position: relative; margin-bottom: 6px; -webkit-tap-highlight-color: transparent; gap: 1px;" 
-               id="btn-hud-merge" 
-               title="Tap to Evolve your Flock!">
-            <div style="position: absolute; inset: 2px; border-radius: 50%; background: ${evolveColor}22; pointer-events: none;"></div>
-            <span style="font-size: 20px; z-index: 2; line-height: 1;">🔀</span>
-            <span style="font-size: 7px; font-weight: 900; color: ${evolveColor}; z-index: 2; text-shadow: 0 0 6px ${evolveColor}; letter-spacing: 0.2px; text-align: center;">${evolveLabel}</span>
-          </div>
-        `;
-      }
-    }
-
-    // ── Rescue Mode Active Skill button ────────────────────────────────────
-    let activeSkillBtnHTML = '';
-    if (this.engine.gameMode === 'rescue' && this.engine.activeSkillUnlocked) {
-      const skill = this.engine.activeSkillUnlocked;
-      const cooldown = this.engine.activeSkillCooldown;
-      const maxCooldown = this.engine.activeSkillMaxCooldown;
-      const isReady = cooldown <= 0;
-
-      let skillIcon = '🛡️';
-      let skillColor = '#00f3ff';
-      if (skill === 'slowmo') {
-        skillIcon = '⏳';
-        skillColor = '#ff007f';
-      } else if (skill === 'booster') {
-        skillIcon = '⚡';
-        skillColor = '#ffd700';
-      }
-
-      const pct = maxCooldown > 0 ? (cooldown / maxCooldown) * 100 : 0;
-
-      activeSkillBtnHTML = `
-        <div class="hud-circle-btn glass-card ${isReady ? 'ult-ready-pulse' : ''}" 
-             style="pointer-events: auto; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 68px; height: 68px; border-radius: 50%; border: 2.5px solid ${skillColor}; background: ${isReady ? skillColor + '1a' : 'rgba(0,0,0,0.4)'}; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: ${isReady ? '0 0 18px ' + skillColor + '66' : 'none'}; position: relative; margin-bottom: 6px; -webkit-tap-highlight-color: transparent; gap: 1px;" 
-             id="btn-hud-active-skill" 
-             title="Tap to Trigger Active Skill!">
-          
-          <svg class="active-skill-ring" width="64" height="64" viewBox="0 0 64 64" style="position: absolute; transform: rotate(-90deg); pointer-events: none; left: 0; top: 0;">
-            <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2"></circle>
-            <circle cx="32" cy="32" r="28" fill="none" stroke="${skillColor}" stroke-width="3"
-                    stroke-dasharray="176" stroke-dashoffset="${176 - (176 * (100 - pct)) / 100}"
-                    stroke-linecap="round" class="active-skill-progress-fill" style="transition: stroke-dashoffset 0.1s linear;"></circle>
-          </svg>
-
-          <span class="active-skill-icon" style="font-size: 20px; z-index: 2; line-height: 1; text-shadow: ${isReady ? '0 0 8px ' + skillColor : 'none'};">${skillIcon}</span>
-          <span class="active-skill-label" style="font-size: 7px; font-weight: 900; color: ${skillColor}; z-index: 2; text-shadow: 0 0 6px ${skillColor}; letter-spacing: 0.2px;">
-            ${isReady ? 'USE SKILL' : `${cooldown.toFixed(1)}s`}
-          </span>
-        </div>
-      `;
-    }
+    const formationBtnHTML = '';
+    const rescueEvolutionHTML = '';
+    const evolveBtnHTML = '';
+    const activeSkillBtnHTML = '';
 
     // ── Squad Survival Mode flock merge button ─────────────────────────────
     let flockMergeBtnHTML = '';
@@ -2032,7 +1774,7 @@ export class UIManager {
           <div class="run-stats" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; font-weight: 800; font-size: 13px; pointer-events: auto;">
             <span class="stat-badge" style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); width: fit-content; margin-bottom: 0;">🟡 ${this.engine.coinsCollectedThisRun}</span>
             <span class="stat-badge" style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); width: fit-content; margin-bottom: 0;">💎 ${this.engine.gemsCollectedThisRun}</span>
-            ${(this.engine.gameMode === 'flock' || this.engine.gameMode === 'rescue' || this.engine.gameMode === 'formation') ? `
+            ${(this.engine.gameMode === 'flock') ? `
               <span class="stat-badge flock-indicator" style="background: rgba(0,243,255,0.15); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(0,243,255,0.3); width: fit-content; margin-bottom: 0; color: #00f3ff; text-shadow: 0 0 5px #00f3ff;">🪽 SQUAD: ${this.engine.flock.length}</span>
             ` : ''}
             ${this.engine.isSpectatorMode ? '<span class="spectator-indicator" style="font-size: 8px; background: rgba(0,255,180,0.15); border: 1px solid rgba(0,255,180,0.3); padding: 2px 6px; border-radius: 6px; color: #00ffb4; font-weight: 800; width: fit-content; margin-top: 2px;">🤖 AUTO-PILOT</span>' : ''}
@@ -2126,9 +1868,7 @@ export class UIManager {
       this.bossHealthFill = null;
     }
 
-    // Cache evolution fill reference
-    this.rescueEvolveFill = this.container.querySelector('.rescue-evolve-fill') as HTMLElement;
-    this.lastEvolvedTier = this.engine.evolvedBirdTier;
+
 
     // Bind triggers
     const ultBtn = document.getElementById('btn-hud-ultimate');
@@ -2157,28 +1897,7 @@ export class UIManager {
       boosterBtn.addEventListener('touchstart', triggerBooster);
     }
 
-    const formBtn = document.getElementById('btn-hud-formation');
-    if (formBtn) {
-      formBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.engine.cycleFormation();
-        this.render();
-      });
-    }
-
-    // Bind EVOLVE button for Cage Rescue mode
-    const mergeBtn = document.getElementById('btn-hud-merge');
-    if (mergeBtn) {
-      const triggerMerge = (e: Event) => {
-        e.stopPropagation();
-        e.preventDefault();
-        if (this.engine.flock.length >= 4) {
-          this.engine.triggerFlockMerge();
-        }
-      };
-      mergeBtn.addEventListener('pointerdown', triggerMerge);
-      mergeBtn.addEventListener('touchstart', triggerMerge);
-    }
+    // Formation and Cage Rescue merge buttons removed
 
     // Bind Merge button for Squad Survival mode
     const flockMergeBtn = document.getElementById('btn-hud-flock-merge');
@@ -2195,19 +1914,7 @@ export class UIManager {
       flockMergeBtn.addEventListener('touchstart', triggerFlockMerge);
     }
 
-    // Bind ACTIVE SKILL button
-    const activeSkillBtn = document.getElementById('btn-hud-active-skill');
-    if (activeSkillBtn) {
-      const triggerActiveSkill = (e: Event) => {
-        e.stopPropagation();
-        e.preventDefault();
-        if (this.engine.activeSkillCooldown <= 0) {
-          this.engine.triggerActiveSkill();
-        }
-      };
-      activeSkillBtn.addEventListener('pointerdown', triggerActiveSkill);
-      activeSkillBtn.addEventListener('touchstart', triggerActiveSkill);
-    }
+    // Active skill button removed
 
     const pBtn = document.getElementById('btn-hud-pause');
     if (pBtn) pBtn.addEventListener('click', () => {
@@ -2726,34 +2433,7 @@ export class UIManager {
               <button id="btn-select-flock" class="btn" style="width: auto; padding: 8px 14px; font-size: 11px; font-weight: 800; background: linear-gradient(180deg, #00f3ff 0%, #0088ff 100%); color: #002233; border-radius: 10px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0, 243, 255, 0.25);">FLY</button>
             </div>
 
-            <!-- Option 3: Cage Rescue / Flock Evolution -->
-            <div class="glass-card" style="padding: 12px 14px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; display: flex; align-items: center; gap: 12px;">
-              <div style="font-size: 32px; filter: drop-shadow(0 0 8px rgba(255, 0, 127, 0.5)); flex-shrink: 0; width: 45px; text-align: center;">🕊️</div>
-              <div style="flex: 1;">
-                <div style="font-size: 13.5px; font-weight: 800; color: #ff007f; display: flex; align-items: center; gap: 6px;">
-                  FLOCK EVOLUTION
-                  <span style="font-size: 8px; background: linear-gradient(135deg, #ff007f, #a855f7); padding: 2px 6px; border-radius: 6px; color: #fff; font-weight: 900;">RPG</span>
-                </div>
-                <div style="font-size: 10px; color: rgba(255, 255, 255, 0.7); margin-top: 3px; line-height: 1.4;">
-                  Rescue caged birds to grow your flock. Tap <b>EVOLVE</b> to merge them into a powerful evolved bird! 4 tiers: Swift Eagle → Magnet Phoenix → Storm Titan → Celestial Sovereign.
-                </div>
-              </div>
-              <button id="btn-select-rescue" class="btn" style="width: auto; padding: 8px 14px; font-size: 11px; font-weight: 800; background: linear-gradient(180deg, #ff007f 0%, #7b2fff 100%); color: #ffffff; border-radius: 10px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(255, 0, 127, 0.25);">FLY</button>
-            </div>
-
-            <!-- Option 4: Formation Flight -->
-            <div class="glass-card" style="padding: 12px 14px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; display: flex; align-items: center; gap: 12px;">
-              <div style="font-size: 32px; filter: drop-shadow(0 0 8px rgba(255, 170, 0, 0.5)); flex-shrink: 0; width: 45px; text-align: center;">🔄</div>
-              <div style="flex: 1;">
-                <div style="font-size: 13.5px; font-weight: 800; color: #ffaa00; display: flex; align-items: center; gap: 6px;">
-                  FORMATION FLIGHT
-                </div>
-                <div style="font-size: 10px; color: rgba(255, 255, 255, 0.7); margin-top: 3px; line-height: 1.4;">
-                  Switch formations on the fly! Cycle V-Shape, Single File, and Column to pass tight hazards. (Demo cap: 500)
-                </div>
-              </div>
-              <button id="btn-select-formation" class="btn" style="width: auto; padding: 8px 14px; font-size: 11px; font-weight: 800; background: linear-gradient(180deg, #ffaa00 0%, #ff5500 100%); color: #ffffff; border-radius: 10px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(255, 170, 0, 0.25);">FLY</button>
-            </div>
+            <!-- Option 3 and 4 were removed to make the game lightweight and focus on classic/survival modes -->
           </div>
         </div>
       </div>
@@ -2772,20 +2452,6 @@ export class UIManager {
 
     document.getElementById('btn-select-flock')?.addEventListener('click', () => {
       this.engine.gameMode = 'flock';
-      this.engine.isSpectatorMode = false;
-      this.engine.startGame();
-      this.render();
-    });
-
-    document.getElementById('btn-select-rescue')?.addEventListener('click', () => {
-      this.engine.gameMode = 'rescue';
-      this.engine.isSpectatorMode = false;
-      this.engine.startGame();
-      this.render();
-    });
-
-    document.getElementById('btn-select-formation')?.addEventListener('click', () => {
-      this.engine.gameMode = 'formation';
       this.engine.isSpectatorMode = false;
       this.engine.startGame();
       this.render();

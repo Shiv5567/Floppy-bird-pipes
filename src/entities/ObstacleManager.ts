@@ -1474,21 +1474,15 @@ export class ObstacleManager {
 
           // Use the score at spawn time to keep transitions completely smooth and stutter-free!
           const activeScore = obs.spawnScore !== undefined ? obs.spawnScore : score;
-          const isFlockMode = (gameMode === 'flock' || gameMode === 'rescue' || gameMode === 'formation');
+          const isFlockMode = gameMode === 'flock';
           const effectiveScore = isFlockMode ? Math.max(100, activeScore) : activeScore;
 
-          // Slower/less extreme movement for flock/rescue modes to accommodate larger squad height spreads
+          // Slower/less extreme movement for flock mode to accommodate larger squad height spreads
           let motionSpeedMult = 1.0;
           let motionAmpMult = 1.0;
-          if (gameMode === 'rescue') {
-            motionSpeedMult = 0.4; // 60% slower
-            motionAmpMult = 0.45;  // 55% less amplitude
-          } else if (gameMode === 'flock') {
+          if (gameMode === 'flock') {
             motionSpeedMult = 0.7;
             motionAmpMult = 2.24;  // 60% baseline increase + 40% additional increase = 2.24 (was 1.60)
-          } else if (gameMode === 'formation') {
-            motionSpeedMult = 0.7;
-            motionAmpMult = 0.7;
           }
 
           if (obs.isOrbitalSway) {
@@ -2885,7 +2879,7 @@ export class ObstacleManager {
     // Set the endless layout spacing scaling multiplier for the NEXT spawned pipe!
     this.currentEndlessDistScale = nextPattern.distScale !== undefined ? nextPattern.distScale : 1.0;
 
-    const isFlockMode = (gameMode === 'flock' || gameMode === 'rescue' || gameMode === 'formation');
+    const isFlockMode = gameMode === 'flock';
     const effectiveScore = isFlockMode ? Math.max(100, score) : score;
 
     let endlessShiftScale = 1.0;
@@ -3014,47 +3008,7 @@ export class ObstacleManager {
 
     let patterns: EndlessPatternDef[];
 
-    if (gameMode === 'rescue') {
-      // Smooth, flowing patterns with gentle vertical sways and extra wide clearances, perfect for a growing flock
-      patterns = [
-        {
-          name: 'Flock Tunnel',
-          offsets: [0, 0, 0, 0, 0, 0],
-          distScales: [1.1, 1.0, 1.0, 1.0, 1.1, 1.2],
-          gapScales: [1.2, 1.1, 1.0, 1.0, 1.1, 1.2]
-        },
-        {
-          name: 'Flock Wave',
-          offsets: [0, 25, 45, 25, 0, -25, -45, -25],
-          distScales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-          gapScales: [1.1, 1.0, 0.95, 1.0, 1.1, 1.0, 0.95, 1.0]
-        },
-        {
-          name: 'Flock Staircase',
-          offsets: [40, 20, 0, -20, -40, -20, 0, 20],
-          distScales: [0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9],
-          gapScales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-        },
-        {
-          name: 'Flock Arch',
-          offsets: [-50, -30, -10, 10, -10, -30, -50],
-          distScales: [1.1, 1.0, 0.9, 0.9, 1.0, 1.1, 1.2],
-          gapScales: [1.1, 1.0, 1.0, 1.0, 1.0, 1.1, 1.2]
-        },
-        {
-          name: 'Rescue Valley',
-          offsets: [0, 30, 50, 30, 0],
-          distScales: [1.0, 1.0, 1.0, 1.0, 1.0],
-          gapScales: [1.2, 1.1, 1.0, 1.1, 1.2]
-        },
-        {
-          name: 'Flock Diamond',
-          offsets: [0, 30, 50, 30, 0, -30, 0],
-          distScales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-          gapScales: [1.2, 1.1, 1.0, 1.1, 1.2, 1.1, 1.2]
-        }
-      ];
-    } else if (gameMode === 'flock' || gameMode === 'formation') {
+    if (gameMode === 'flock') {
       // Slightly more dynamic but still flock-friendly patterns
       patterns = [
         {

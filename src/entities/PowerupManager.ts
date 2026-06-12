@@ -38,16 +38,7 @@ export class PowerupManager {
       // Spawn at equal intervals (25, 50, 75) in the 100-obstacle block
       const indices = [25, 50, 75];
 
-      const gameEngine = (window as any).gameEngine;
-      const isRescueMode = gameEngine && gameEngine.gameMode === 'rescue';
-
-      let pool: PowerupType[];
-      if (isRescueMode) {
-        // In rescue mode: only cage rescues and standard powerups in path — NO merge orb
-        pool = ['rescue', 'rescue', 'rescue', 'shield', 'magnet'];
-      } else {
-        pool = ['shield', 'slowmo', 'magnet', 'turbo', 'mini'];
-      }
+      const pool: PowerupType[] = ['shield', 'slowmo', 'magnet', 'turbo', 'mini'];
 
       const chosenTypes: PowerupType[] = [];
       while (chosenTypes.length < 3) {
@@ -370,29 +361,6 @@ export class PowerupManager {
         }
       }
 
-      // ── Rescue Mode: Spawn cages every 15 to 25 obstacles, coins/gems/powerups elsewhere ──────────────
-      if (gameMode === 'rescue') {
-        const obsIdx = unrewardedObstacle.obstacleIdx !== undefined ? unrewardedObstacle.obstacleIdx : 0;
-
-        if (obsIdx === this.nextRescueSpawnTarget) {
-          // Spawn a cage in the gap center
-          this.spawnItem('rescue', width, height, targetX, gapCenterY);
-          this.nextRescueSpawnTarget = obsIdx + 10 + Math.floor(Math.random() * 6); // Set next spawn between 10 and 15 obstacles
-        } else if (obsIdx % 3 === 0) {
-          // Spawn 3 coins group
-          this.spawnItem('coin', width, height, targetX - 45, gapCenterY);
-          this.spawnItem('coin', width, height, targetX, gapCenterY);
-          this.spawnItem('coin', width, height, targetX + 45, gapCenterY);
-        } else if (obsIdx % 7 === 4) {
-          // Spare slots: gems
-          this.spawnItem('gem', width, height, targetX, gapCenterY);
-        } else if (obsIdx % 12 === 8) {
-          // Rare random powerups to keep the run interesting
-          const pool: PowerupType[] = ['shield', 'slowmo', 'magnet', 'turbo', 'mini'];
-          const randomType = pool[Math.floor(Math.random() * pool.length)];
-          this.spawnItem(randomType, width, height, targetX, gapCenterY);
-        }
-      }
 
       // ── Squad Survival (flock) Mode: Anchor items/cages to moving gaps with 30% up/down shifting ──────
       if (gameMode === 'flock') {
