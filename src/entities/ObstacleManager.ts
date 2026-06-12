@@ -1502,7 +1502,7 @@ export class ObstacleManager {
           } else if (obs.isGoldSplitGate) {
             // Electric Gold Split Gate gentle electric bobbing/sway once opened
             verticalShift = Math.sin(this.waveTime * 4.0 + (obs.obstacleIdx || 0) * 0.8) * 8;
-          } else if (gameMode !== 'flock' || (activeScore >= 100 && activeScore <= 300)) {
+          } else if (gameMode !== 'flock' || (activeScore >= 100 && activeScore <= 500)) {
             if (effectiveScore >= 100 && effectiveScore < 200) {
               // Simple up-down (elevator) animation keeping gap constant
               const ampIncrease = effectiveScore < 150 ? 1.15 : 1.25; // 15% increase for score 100-150, 25% increase for score 150-200
