@@ -265,9 +265,9 @@ export class ProgressManager {
       },
       {
         id: 'storm_tempest_eagle',
-        name: 'Storm Tempest Eagle',
+        name: 'Crimson Tempest Eagle',
         rarity: 'Legendary',
-        glowColor: 'rgba(0, 229, 255, 0.85)',
+        glowColor: 'rgba(255, 60, 0, 0.9)',
         particleType: 'storm_thunder',
         costCoins: 8500,
         costGems: 0,
