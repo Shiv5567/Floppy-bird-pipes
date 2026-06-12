@@ -219,7 +219,7 @@ export class Renderer {
     const gameEngine = (window as any).gameEngine;
     const isFlockMode = gameEngine && (gameEngine.gameMode === 'flock');
     if (isFlockMode) {
-      targetZoom *= 0.93; // Zoom out by 7% in squad mode!
+      targetZoom *= 0.96; // Zoom out by 4% in squad mode!
     }
 
     // Hard-lock zoom to 1.0 in performance mode, otherwise smoothly interpolate (allow zoom in flock mode and boss fight)
