@@ -1038,235 +1038,265 @@ export class Bird {
     this.drawFlappingWing(ctx, '#8b5a2b', '#4a2f1b');
   }
 
-  // ===== DAPPER BLUE (No hat, spiky head crest, navy outlines) =====
+  // ===== DAPPER BLUE (Exactly matching the reference image) =====
   private drawDapperBlue(ctx: CanvasRenderingContext2D) {
-    // No shadow glow — clean flat style for Dapper Blue
-
     // 2.5D Face shift offset
     const faceX = Math.cos(this.angle) * 1.8;
     const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.18;
 
-    // --- 1. FAR WING (Drawn behind the body) ---
+    // --- 1. FAR WING / HEAD FEATHERS (Drawn behind the body) ---
     ctx.save();
-    ctx.translate(-6, -4);
-    const farFlapAngle = Math.sin(this.flapCycle + 0.35) * 0.5;
-    ctx.rotate(farFlapAngle - 0.2); // Pointing up/back
+    ctx.translate(-8, -8);
+    ctx.rotate(Math.sin(this.flapCycle + 0.35) * 0.15 - 0.1);
 
-    ctx.fillStyle = '#4fc3f7';
-    ctx.strokeStyle = '#29b6f6';
-    ctx.lineWidth = 1.8;
+    ctx.fillStyle = '#50c5f2';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = 'round';
 
+    // Top far feather
     ctx.beginPath();
     ctx.moveTo(0, 0);
-    ctx.quadraticCurveTo(-6, -15, -10, -22); // Spike 1
-    ctx.quadraticCurveTo(-14, -14, -8, -10);
-    ctx.quadraticCurveTo(-14, -10, -14, -16); // Spike 2
-    ctx.quadraticCurveTo(-16, -8, -8, -4);
-    ctx.quadraticCurveTo(-14, -4, -14, -8); // Spike 3
-    ctx.quadraticCurveTo(-12, 2, 0, 0);
+    ctx.quadraticCurveTo(-4, -12, -6, -15);
+    ctx.quadraticCurveTo(-2, -10, 3, -4);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-    ctx.restore();
 
-    // --- 2. DARK NAVY TAIL FEATHERS (Three spiky feathers pointing back) ---
-    ctx.save();
-    ctx.translate(-14, 2);
-    const tailFlap = Math.sin(this.flapCycle * 0.8) * 0.1;
-    ctx.rotate(tailFlap);
-    ctx.fillStyle = '#00bcd4'; // Bright teal tail feathers
-    ctx.strokeStyle = '#00bcd4';
-    ctx.lineWidth = 1.5;
-
-    const tailAngles = [-0.2, 0, 0.2];
-    tailAngles.forEach(ang => {
-      ctx.save();
-      ctx.rotate(ang);
-      ctx.beginPath();
-      ctx.moveTo(0, -2);
-      ctx.lineTo(-12, -3);
-      ctx.lineTo(-12, 3);
-      ctx.lineTo(0, 2);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      ctx.restore();
-    });
-    ctx.restore();
-
-    // --- 3. MAIN ROUND CYAN BODY ---
-    ctx.fillStyle = '#4fc3f7'; // Cyan
-    ctx.strokeStyle = '#29b6f6';
-    ctx.lineWidth = 1.8;
+    // Second far feather
     ctx.beginPath();
-    ctx.arc(0, 0, 16, 0, Math.PI * 2);
+    ctx.moveTo(-3, 3);
+    ctx.quadraticCurveTo(-8, -4, -11, -7);
+    ctx.quadraticCurveTo(-6, -4, 0, 0);
+    ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // --- 4. DARKER BLUE WAVY UNDERBELLY ---
+    ctx.restore();
+
+    // --- 2. BLACK TAIL FEATHERS (Three black feathers pointing back) ---
     ctx.save();
-    // Clip to body circle so waves don't overflow
+    ctx.fillStyle = '#000000';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = 'miter';
+
+    // Tail feather 1 (top)
+    ctx.beginPath();
+    ctx.moveTo(-13, -2);
+    ctx.lineTo(-24, -2);
+    ctx.lineTo(-24, 3);
+    ctx.lineTo(-13, 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Tail feather 2 (middle)
+    ctx.beginPath();
+    ctx.moveTo(-12, 2);
+    ctx.lineTo(-22, 6);
+    ctx.lineTo(-20, 11);
+    ctx.lineTo(-11, 7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Tail feather 3 (bottom)
+    ctx.beginPath();
+    ctx.moveTo(-10, 6);
+    ctx.lineTo(-17, 13);
+    ctx.lineTo(-14, 17);
+    ctx.lineTo(-8, 10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore();
+
+    // --- 3. MAIN ROUND BLUE BODY ---
+    // Fill body base
+    ctx.fillStyle = '#50c5f2';
+    ctx.beginPath();
+    ctx.arc(0, 0, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+    // --- 4. WAVY UNDERBELLY (Clipped inside the body) ---
+    ctx.save();
     ctx.beginPath();
     ctx.arc(0, 0, 16, 0, Math.PI * 2);
     ctx.clip();
 
-    ctx.fillStyle = '#4dd0e1'; // Aqua blue underbelly
-    ctx.strokeStyle = '#29b6f6';
-    ctx.lineWidth = 1.8;
-
+    ctx.fillStyle = '#00b0ff'; // Darker blue underbelly
     ctx.beginPath();
-    ctx.moveTo(-17, 8);
-    ctx.quadraticCurveTo(-12, 4, -8, 8);
-    ctx.quadraticCurveTo(-4, 12, 0, 8);
-    ctx.quadraticCurveTo(4, 4, 8, 8);
-    ctx.quadraticCurveTo(12, 12, 17, 8);
-    ctx.lineTo(17, 17);
-    ctx.lineTo(-17, 17);
+    ctx.moveTo(-18, 6);
+    ctx.quadraticCurveTo(-12, 10, -7, 6);
+    ctx.quadraticCurveTo(-2, 2, 3, 6);
+    ctx.quadraticCurveTo(8, 10, 13, 6);
+    ctx.quadraticCurveTo(16, 4, 18, 6);
+    ctx.lineTo(18, 18);
+    ctx.lineTo(-18, 18);
     ctx.closePath();
     ctx.fill();
-    ctx.stroke();
+    
+    // --- 5. BODY GLOSSY HIGHLIGHT (Clipped inside body) ---
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+    ctx.beginPath();
+    ctx.ellipse(-3, -8, 12, 6, -Math.PI / 4, 0, Math.PI * 2);
+    ctx.fill();
     ctx.restore();
 
-    // --- 5. HEAD CREST (Two spiky cyan feathers on top, replacing the hat) ---
-    ctx.save();
-    ctx.translate(faceX * 0.5, faceY * 0.5);
-
-    // Crest feather 1 (right spike, taller)
-    ctx.fillStyle = '#4fc3f7';
-    ctx.strokeStyle = '#29b6f6';
-    ctx.lineWidth = 1.4;
+    // Stroke the body outline
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.moveTo(4, -14);
-    ctx.quadraticCurveTo(6, -24, 8, -26);
-    ctx.quadraticCurveTo(10, -24, 9, -14);
-    ctx.closePath();
-    ctx.fill();
+    ctx.arc(0, 0, 16, 0, Math.PI * 2);
     ctx.stroke();
-
-    // Crest feather 2 (left spike, shorter & angled)
-    ctx.fillStyle = '#29b6f6';
-    ctx.beginPath();
-    ctx.moveTo(1, -13);
-    ctx.quadraticCurveTo(1, -21, 3, -22);
-    ctx.quadraticCurveTo(5, -20, 4, -13);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Small highlight on crest
-    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
-    ctx.lineWidth = 0.9;
-    ctx.beginPath();
-    ctx.moveTo(6, -16);
-    ctx.quadraticCurveTo(7, -22, 8, -24);
-    ctx.stroke();
-
-    ctx.restore();
 
     // --- 6. BORED RECTANGULAR EYES ---
     ctx.save();
     ctx.translate(faceX, faceY);
 
     ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#29b6f6';
-    ctx.lineWidth = 1.8;
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2.5;
 
     // Left Eye
     ctx.beginPath();
-    ctx.rect(3, -5, 5, 4);
+    ctx.rect(3, -5, 6, 6);
     ctx.fill();
     ctx.stroke();
 
     // Right Eye
     ctx.beginPath();
-    ctx.rect(10, -5, 5, 4);
+    ctx.rect(9, -5, 6, 6);
     ctx.fill();
     ctx.stroke();
 
-    // Pupils (Bright blue squares on the right side)
-    ctx.fillStyle = '#1e88e5';
-    ctx.fillRect(6, -4, 2, 3);
-    ctx.fillRect(13, -4, 2, 3);
+    // Pupils: Black squares/rectangles looking right
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(7, -2.2, 2, 3.2);
+    ctx.fillRect(13, -2.2, 2, 3.2);
 
-    // Eyebrows/Lids (Bright blue lids covering top half)
-    ctx.fillStyle = '#1e88e5';
-    ctx.fillRect(2, -6, 7, 2);
-    ctx.fillRect(9, -6, 7, 2);
+    // Bored eyelids/brows: Black rectangles
+    ctx.fillRect(2.5, -6.2, 7, 2.2);
+    ctx.fillRect(8.5, -6.2, 7, 2.2);
 
     ctx.restore();
 
-    // --- 7. ORANGE ROUND BEAK & CORNER LINES ---
+    // --- 7. BOWLER HAT (Brown bowler hat with black brim and white highlight) ---
+    ctx.save();
+    ctx.translate(faceX * 0.7, faceY * 0.7 - 14);
+    ctx.rotate(0.15); // Tilted forward to the right
+
+    ctx.fillStyle = '#966f52'; // Brown bowler dome
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = 'round';
+
+    // Dome shape
+    ctx.beginPath();
+    ctx.moveTo(-9, 0);
+    ctx.bezierCurveTo(-9, -12, 9, -12, 9, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // White highlight on hat dome
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.ellipse(5, -6, 2.5, 1, -Math.PI / 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Black Brim
+    ctx.fillStyle = '#000000';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(-12, 1);
+    ctx.quadraticCurveTo(0, -1, 12, 1);
+    ctx.quadraticCurveTo(13, 2, 12, 3.5);
+    ctx.quadraticCurveTo(0, 1.5, -12, 3.5);
+    ctx.quadraticCurveTo(-13, 2, -12, 1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore();
+
+    // --- 8. ORANGE BEAK & CORNER SMILE LINE ---
     ctx.save();
     ctx.translate(faceX, faceY);
 
-    ctx.fillStyle = '#ff7043'; // Vibrant orange
-    ctx.strokeStyle = '#29b6f6';
-    ctx.lineWidth = 1.8;
+    // Lower beak (slightly darker orange)
+    ctx.fillStyle = '#ff5722';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(8, 2);
+    ctx.bezierCurveTo(11, 2, 18, 6, 18, 3);
+    ctx.bezierCurveTo(15, 6, 11, 6, 8, 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
 
     // Upper beak
+    ctx.fillStyle = '#ff9100';
     ctx.beginPath();
-    ctx.moveTo(9, -2);
-    ctx.bezierCurveTo(18, -4, 23, 1, 21, 3);
-    ctx.bezierCurveTo(17, 4, 12, 2, 9, 2);
+    ctx.moveTo(7, -2);
+    ctx.bezierCurveTo(16, -4, 22, 1, 20, 3);
+    ctx.bezierCurveTo(16, 4, 11, 2, 7, 2);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Lower beak
-    ctx.fillStyle = '#ff5722'; // Darker orange
+    // Beak white highlight
+    ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.moveTo(9, 2);
-    ctx.bezierCurveTo(12, 2, 17, 5, 20, 3);
-    ctx.bezierCurveTo(17, 6, 12, 6, 9, 4);
-    ctx.closePath();
+    ctx.ellipse(13, -0.5, 3, 1, Math.PI / 12, 0, Math.PI * 2);
     ctx.fill();
-    ctx.stroke();
 
-    // Beak crease line
-    ctx.strokeStyle = '#29b6f6';
-    ctx.lineWidth = 1.8;
+    // Crease smile line at the corner of the beak
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.moveTo(9, 1);
-    ctx.lineTo(20.5, 2);
-    ctx.stroke();
-
-    // Smile corner cheek line
-    ctx.beginPath();
-    ctx.arc(8, 0, 3, -Math.PI / 2, Math.PI / 2, true);
+    ctx.arc(6, 0, 3.5, -Math.PI / 2, Math.PI / 2, true);
     ctx.stroke();
 
     ctx.restore();
 
-    // --- 8. NEAR WING (Drawn on top of body) ---
+    // --- 9. NEAR WING (Drawn on top of body with flapping animation) ---
     ctx.save();
-    ctx.translate(-2, -2);
-    const nearFlapAngle = Math.sin(this.flapCycle) * 0.65;
-    ctx.rotate(nearFlapAngle - 0.2);
+    ctx.translate(-2, -1);
+    
+    // Wing flap rotation
+    const wingFlap = Math.sin(this.flapCycle) * 0.35;
+    ctx.rotate(wingFlap);
 
-    ctx.fillStyle = '#4fc3f7';
-    ctx.strokeStyle = '#29b6f6';
-    ctx.lineWidth = 1.8;
+    ctx.fillStyle = '#50c5f2';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = 'round';
 
     ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.quadraticCurveTo(-6, -15, -10, -22); // Spike 1
-    ctx.quadraticCurveTo(-14, -14, -8, -10);
-    ctx.quadraticCurveTo(-14, -10, -14, -16); // Spike 2
-    ctx.quadraticCurveTo(-16, -8, -8, -4);
-    ctx.quadraticCurveTo(-14, -4, -14, -8); // Spike 3
-    ctx.quadraticCurveTo(-12, 2, 0, 0);
+    ctx.moveTo(2, 2);
+    
+    // Bottom feather
+    ctx.quadraticCurveTo(-5, 8, -10, 4);
+    ctx.quadraticCurveTo(-12, 1, -5, -1);
+    
+    // Middle feather
+    ctx.quadraticCurveTo(-12, 0, -15, -6);
+    ctx.quadraticCurveTo(-16, -10, -7, -9);
+    
+    // Top feather
+    ctx.quadraticCurveTo(-13, -13, -12, -22);
+    ctx.quadraticCurveTo(-8, -22, -1, -12);
+    
+    // Back to base
+    ctx.quadraticCurveTo(3, -5, 2, 2);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-
-    // White wing highlight
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1.0;
-    ctx.beginPath();
-    ctx.moveTo(-1, -4);
-    ctx.quadraticCurveTo(-5, -14, -8, -19);
-    ctx.stroke();
-
     ctx.restore();
   }
 
