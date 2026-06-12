@@ -517,6 +517,11 @@ export class GameEngine {
             this.scrollSpeed = this.baseScrollSpeed * 2.3;
           } else {
             this.scrollSpeed = this.baseScrollSpeed * startSpeed * speedMultiplier;
+            // Squad mode score 500-1000 scroll speed progression (+20% speed at score 1000, kept constant above 1000)
+            if (this.gameMode === 'flock' && this.score >= 500) {
+              const progress500to1000 = Math.max(0, Math.min(1, (this.score - 500) / 500));
+              this.scrollSpeed *= (1.0 + progress500to1000 * 0.20);
+            }
           }
         }
       }
