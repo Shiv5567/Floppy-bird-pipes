@@ -102,8 +102,8 @@ export class BossManager {
     // 1. Manage state machine
     if (this.state === 'entering') {
       // Float from offscreen
-      this.bossX += (width - 120 - this.bossX) * 0.04 * dtCoeff;
-      if (Math.abs(this.bossX - (width - 120)) < 10) {
+      this.bossX += (width - 80 - this.bossX) * 0.04 * dtCoeff;
+      if (Math.abs(this.bossX - (width - 80)) < 10) {
         this.state = 'fighting';
         this.timer = 0;
       }
@@ -233,174 +233,69 @@ export class BossManager {
   private fireBossAttack(birdX: number, birdY: number, soundManager: SoundManager) {
     const dx = birdX - this.bossX;
     const dy = birdY - this.bossY;
-    const dist = Math.sqrt(dx * dx + dy * dy);
 
     const baseSpeed = 5.2;
-    const vx = (dx / dist) * baseSpeed;
-    const vy = (dy / dist) * baseSpeed;
-
     soundManager.playZap();
 
-    switch (this.worldId) {
-      case 'jungle': {
-        // Fires 3 green vine barbs in a narrow horizontal spread
-        for (let i = -1; i <= 1; i++) {
-          const spreadAngle = 0.16 * i;
-          const rx = vx * Math.cos(spreadAngle) - vy * Math.sin(spreadAngle);
-          const ry = vx * Math.sin(spreadAngle) + vy * Math.cos(spreadAngle);
-          this.projectiles.push({
-            x: this.bossX - 40,
-            y: this.bossY,
-            vx: rx * 0.95,
-            vy: ry * 0.95,
-            radius: 6.5,
-            color: '#00ff66',
-            glowColor: '#00ff66'
-          });
-        }
-        break;
-      }
-      case 'jungle_temple': {
-        for (let i = -1; i <= 1; i++) {
-          const spreadAngle = 0.20 * i;
-          const rx = vx * Math.cos(spreadAngle) - vy * Math.sin(spreadAngle);
-          const ry = vx * Math.sin(spreadAngle) + vy * Math.cos(spreadAngle);
-          this.projectiles.push({
-            x: this.bossX - 40,
-            y: this.bossY,
-            vx: rx * 0.90,
-            vy: ry * 0.90,
-            radius: 8.0,
-            color: '#ffd700',
-            glowColor: '#ffaa00'
-          });
-        }
-        break;
+    const gameEngine = (window as any).gameEngine;
+    const score = gameEngine ? gameEngine.score : 0;
+
+    let projectileCount = 2;
+    if (score < 300) {
+      projectileCount = 2;
+    } else if (score < 600) {
+      projectileCount = 3;
+    } else {
+      projectileCount = 4;
+    }
+
+    const baseAngle = Math.atan2(dy, dx);
+    const spreadAngle = 0.20; // radians spread between each energy ball
+    const startAngle = baseAngle - (projectileCount - 1) * spreadAngle / 2;
+
+    for (let i = 0; i < projectileCount; i++) {
+      const angle = startAngle + i * spreadAngle;
+      
+      let color = '#9400d3';
+      let glowColor = '#ff00ff';
+      let radius = 8;
+
+      if (this.worldId === 'jungle' || this.worldId === 'jungle_temple') {
+        color = '#ffd700';
+        glowColor = '#ffaa00';
+      } else if (this.worldId === 'cyberpunk') {
+        color = '#00f3ff';
+        glowColor = '#00f3ff';
+      } else if (this.worldId === 'ice') {
+        color = '#80d8ff';
+        glowColor = '#80d8ff';
+      } else if (this.worldId === 'desert') {
+        color = '#ffd54f';
+        glowColor = '#ffb300';
+      } else if (this.worldId === 'volcano') {
+        color = '#ff3d00';
+        glowColor = '#ff9100';
+        radius = 10;
+      } else if (this.worldId === 'space') {
+        color = '#d500f9';
+        glowColor = '#e040fb';
+      } else if (this.worldId === 'underwater') {
+        color = '#2979ff';
+        glowColor = '#2979ff';
+      } else if (this.worldId === 'heaven') {
+        color = '#ffea00';
+        glowColor = '#ffd600';
       }
 
-      case 'cyberpunk': {
-        // Dual rapid neon bolts tracking bird
-        for (let i = -1; i <= 1; i += 2) {
-          this.projectiles.push({
-            x: this.bossX - 30,
-            y: this.bossY + i * 15,
-            vx: vx * 1.3,
-            vy: vy * 1.3 + (Math.random() - 0.5) * 0.8,
-            radius: 7,
-            color: '#00f3ff',
-            glowColor: '#00f3ff'
-          });
-        }
-        break;
-      }
-
-      case 'ice': {
-        // Sub-zero frost shards spread
-        for (let i = -2; i <= 2; i++) {
-          const angle = Math.atan2(dy, dx) + i * 0.18;
-          const speed = baseSpeed * 1.05;
-          this.projectiles.push({
-            x: this.bossX - 40,
-            y: this.bossY,
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed,
-            radius: 6,
-            color: '#80d8ff',
-            glowColor: '#80d8ff'
-          });
-        }
-        break;
-      }
-
-      case 'desert': {
-        // Obelisk Sand rings sweeping outwards
-        const baseAngle = Math.atan2(dy, dx);
-        for (let i = -1; i <= 1; i++) {
-          const angle = baseAngle + i * 0.3;
-          this.projectiles.push({
-            x: this.bossX - 45,
-            y: this.bossY,
-            vx: Math.cos(angle) * baseSpeed * 0.85,
-            vy: Math.sin(angle) * baseSpeed * 0.85,
-            radius: 8,
-            color: '#ffd54f',
-            glowColor: '#ffb300'
-          });
-        }
-        break;
-      }
-
-      case 'volcano': {
-        // Heavy volcanic lava rocks lobbed upwards to arc down
-        this.projectiles.push({
-          x: this.bossX - 40,
-          y: this.bossY,
-          vx: -5.5 - Math.random() * 2,
-          vy: -4.5 + Math.random() * 3, // Initial upward velocity
-          radius: 12,
-          color: '#ff3d00',
-          glowColor: '#ff9100'
-        });
-        break;
-      }
-
-      case 'space': {
-        // Gravity portals - heavy vortex pulses
-        this.projectiles.push({
-          x: this.bossX - 50,
-          y: this.bossY,
-          vx: vx * 0.9,
-          vy: vy * 0.9,
-          radius: 14,
-          color: '#d500f9',
-          glowColor: '#e040fb'
-        });
-        break;
-      }
-
-      case 'underwater': {
-        // Deep-sea mine torpedoes - slow, massive collision threat
-        this.projectiles.push({
-          x: this.bossX - 40,
-          y: this.bossY,
-          vx: vx * 0.65,
-          vy: vy * 0.65,
-          radius: 13,
-          color: '#2979ff',
-          glowColor: '#2979ff'
-        });
-        break;
-      }
-
-      case 'heaven': {
-        // Golden plasma rays fanning out
-        for (let i = -1; i <= 1; i++) {
-          const angle = Math.atan2(dy, dx) + i * 0.25;
-          this.projectiles.push({
-            x: this.bossX - 40,
-            y: this.bossY,
-            vx: Math.cos(angle) * baseSpeed * 1.15,
-            vy: Math.sin(angle) * baseSpeed * 1.15,
-            radius: 8,
-            color: '#ffea00',
-            glowColor: '#ffd600'
-          });
-        }
-        break;
-      }
-
-      default: {
-        this.projectiles.push({
-          x: this.bossX - 40,
-          y: this.bossY,
-          vx,
-          vy,
-          radius: 8,
-          color: '#9400d3',
-          glowColor: '#ff00ff'
-        });
-        break;
-      }
+      this.projectiles.push({
+        x: this.bossX - 40,
+        y: this.bossY,
+        vx: Math.cos(angle) * baseSpeed,
+        vy: Math.sin(angle) * baseSpeed,
+        radius,
+        color,
+        glowColor
+      });
     }
   }
 

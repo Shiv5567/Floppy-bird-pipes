@@ -59,8 +59,8 @@ export class GameEngine {
   public activeSkillMaxCooldown: number = 0;        // max cooldown
 
   // Auto-Hyper Boost: fires every 6 birds joined across all flock modes
-  public birdsJoinedThisRun: number = 0;
-  public nextBossScore = 150;
+  public birdsJoinedThisRun = 0;
+  public nextBossScore = 100;
   public playerBossHP = 0;
   public maxPlayerBossHP = 0;
   public obstacleManager: ObstacleManager;
@@ -201,7 +201,7 @@ export class GameEngine {
     this.activeSkillUnlocked = null;
     this.activeSkillCooldown = 0;
     this.activeSkillMaxCooldown = 0;
-    this.nextBossScore = 150;
+    this.nextBossScore = 100;
     this.playerBossHP = 0;
     this.maxPlayerBossHP = 0;
 
@@ -302,7 +302,7 @@ export class GameEngine {
     // Smoothly adjust bird's horizontal position depending on game state and mode
     let targetX = 120;
     if (this.state === 'BOSS_WARNING' || this.state === 'BOSS_FIGHT') {
-      targetX = 180;
+      targetX = 120; // Reverted to 120 to increase bird-boss gap by 20%
     } else {
       if (this.gameMode === 'flock') {
         targetX = width > 0 ? width * 0.40 : 192;
@@ -782,7 +782,7 @@ export class GameEngine {
           }
         }
 
-        // Trigger Boss Warning in Squad Survival (Flock) mode every 50 obstacles (score gap)
+        // Trigger Boss Warning in Squad Survival (Flock) mode every 100 obstacles (score gap)
         if (this.gameMode === 'flock' && this.score >= this.nextBossScore) {
           this.triggerBossWarning();
         }
@@ -857,7 +857,7 @@ export class GameEngine {
             this.state = 'PLAYING';
             this.incrementScore(10); // Massive points
             if (this.gameMode === 'flock') {
-              this.nextBossScore = this.score + 150;
+              this.nextBossScore = this.score + 100;
             }
           }
         }
