@@ -1783,8 +1783,8 @@ export class Bird {
     ctx.scale(1.3, 1.3);
 
     if (!(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 15;
-      ctx.shadowColor = 'rgba(224, 180, 255, 0.7)';
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = 'rgba(168, 85, 247, 0.85)'; // Neon Purple Glow
     }
 
     // 2.5D Face shift offset (for head features only)
@@ -1795,29 +1795,61 @@ export class Bird {
     const headX = 10 + faceX;
     const headY = -8 + faceY;
 
-    // --- 1. DRAGON TAIL (Undulating, reduced by 50% length: only 3 segments instead of 6) ---
+    // --- 1. DRAGON TAIL (Undulating, 3 segments with glowing elements) ---
     ctx.save();
-    ctx.translate(-20, 6); // Position slightly adjusted due to increased body size
+    ctx.translate(-20, 6);
     let prevX = 0;
     let prevY = 0;
-    ctx.strokeStyle = '#f8fafc';
-    ctx.lineWidth = 5;
+    
+    // Tail core gradient
+    const tailSegGrad = ctx.createLinearGradient(0, 0, -15, 10);
+    tailSegGrad.addColorStop(0, '#ffffff');
+    tailSegGrad.addColorStop(1, '#e9d5ff'); // Light lavender shadow
+    
+    ctx.strokeStyle = tailSegGrad;
+    ctx.lineWidth = 5.5;
     ctx.lineCap = 'round';
     
     ctx.beginPath();
     ctx.moveTo(prevX, prevY);
-    for (let i = 1; i <= 3; i++) { // 3 segments is exactly 50% less than 6
-      const tailSegLength = 5.0;
+    
+    const segments: {x: number, y: number}[] = [];
+    for (let i = 1; i <= 3; i++) {
+      const tailSegLength = 5.5;
       const angleOffset = i * 0.4;
       const waveAngle = Math.sin(this.flapCycle * 1.3 - angleOffset) * 0.35 + (this.vy * 0.05);
       
       prevX -= Math.cos(waveAngle) * tailSegLength;
       prevY += Math.sin(waveAngle) * tailSegLength;
       ctx.lineTo(prevX, prevY);
+      segments.push({x: prevX, y: prevY});
     }
     ctx.stroke();
     
-    // Tail spade (flaming lavender tip)
+    // Draw glowing node lights along tail joints
+    ctx.save();
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = '#06b6d4'; // Glowing cyan joint beads
+    ctx.fillStyle = '#06b6d4';
+    segments.forEach(seg => {
+      ctx.beginPath();
+      ctx.arc(seg.x, seg.y, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+    
+    // Tail spade (Multi-layered glowing celestial flame)
+    ctx.save();
+    // Outer glow
+    ctx.fillStyle = 'rgba(168, 85, 247, 0.45)';
+    ctx.beginPath();
+    ctx.moveTo(prevX, prevY);
+    ctx.bezierCurveTo(prevX - 6, prevY - 6, prevX - 11, prevY, prevX - 12, prevY + 2);
+    ctx.bezierCurveTo(prevX - 11, prevY + 4, prevX - 6, prevY + 9, prevX, prevY);
+    ctx.closePath();
+    ctx.fill();
+
+    // Inner flame
     ctx.fillStyle = '#c084fc';
     ctx.beginPath();
     ctx.moveTo(prevX, prevY);
@@ -1825,6 +1857,14 @@ export class Bird {
     ctx.bezierCurveTo(prevX - 8, prevY + 3, prevX - 4, prevY + 7, prevX, prevY);
     ctx.closePath();
     ctx.fill();
+
+    // Core spark
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(prevX - 3, prevY + 0.5, 1.0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    
     ctx.restore();
 
     // --- 2. DRAGON LEGS (Tucked claw legs, scaled up for body increase) ---
@@ -1832,10 +1872,15 @@ export class Bird {
     ctx.save();
     ctx.translate(-12, 11);
     ctx.rotate(Math.sin(this.flapCycle) * 0.15);
-    ctx.fillStyle = '#f8fafc';
+    
+    const legGrad = ctx.createLinearGradient(0, -4, 0, 7);
+    legGrad.addColorStop(0, '#f8fafc');
+    legGrad.addColorStop(1, '#e2e8f0');
+    ctx.fillStyle = legGrad;
     ctx.beginPath();
-    ctx.ellipse(0, 0, 3.5, 7, 0.4, 0, Math.PI * 2); // slightly larger
+    ctx.ellipse(0, 0, 3.5, 7, 0.4, 0, Math.PI * 2);
     ctx.fill();
+    
     // Talons
     ctx.fillStyle = '#c084fc';
     ctx.beginPath();
@@ -1854,7 +1899,7 @@ export class Bird {
     ctx.rotate(Math.sin(this.flapCycle + Math.PI/2) * 0.15);
     ctx.fillStyle = '#fbcfe8';
     ctx.beginPath();
-    ctx.ellipse(0, 0, 3.5, 7, 0.2, 0, Math.PI * 2); // slightly larger
+    ctx.ellipse(0, 0, 3.5, 7, 0.2, 0, Math.PI * 2);
     ctx.fill();
     // Talons
     ctx.fillStyle = '#c084fc';
@@ -1868,71 +1913,139 @@ export class Bird {
     ctx.fill();
     ctx.restore();
 
-    // --- 3. MAJESTIC SERPENTINE TORSO & NECK (Size increased by ~15%) ---
+    // --- 3. MAJESTIC SERPENTINE TORSO & NECK (Size increased by ~15%, premium gradients) ---
     const bodyGrad = ctx.createLinearGradient(-22, -6, 14, 14);
-    bodyGrad.addColorStop(0, '#f1f5f9');
-    bodyGrad.addColorStop(0.5, '#f8fafc');
-    bodyGrad.addColorStop(1, '#e2e8f0');
+    bodyGrad.addColorStop(0, '#ffffff');
+    bodyGrad.addColorStop(0.4, '#f8fafc');
+    bodyGrad.addColorStop(0.8, '#e2e8f0');
+    bodyGrad.addColorStop(1, '#cbd5e1');
 
     ctx.fillStyle = bodyGrad;
     ctx.strokeStyle = '#c084fc';
     ctx.lineWidth = 1.4;
 
     ctx.beginPath();
-    // Neck starts at head connection
     ctx.moveTo(headX - 4, headY + 4);
-    // Outer neck curve down to chest (wider chest area)
     ctx.quadraticCurveTo(7, 0, 4, 10);
-    // Underbelly (deeper, fuller curve)
     ctx.bezierCurveTo(0, 16, -15, 14, -22, 6);
-    // Rear transition
     ctx.lineTo(-20, 1);
-    // Back ridge line curving up to neck
     ctx.bezierCurveTo(-13, -5, -3, -2, headX - 9, headY + 7);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // --- 4. BACK SPIKES / DORSAL RIDGE ---
-    ctx.fillStyle = '#c084fc';
+    // --- 3B. SEGMENTED UNDERBELLY ARMOR PLATES (Gives premium dragon anatomy) ---
+    ctx.save();
     ctx.beginPath();
-    // Spike 1 (Back)
-    ctx.moveTo(-17, 2);
-    ctx.lineTo(-21, -5);
-    ctx.lineTo(-12, 0);
-    // Spike 2 (Mid-back)
-    ctx.moveTo(-10, -2);
-    ctx.lineTo(-13, -9);
-    ctx.lineTo(-5, -3);
-    // Spike 3 (Lower neck)
-    ctx.moveTo(-4, -4);
-    ctx.lineTo(-6, -11);
-    ctx.lineTo(1, -5);
+    // Clip to torso path so belly plates don't overflow the body boundary
+    ctx.moveTo(headX - 4, headY + 4);
+    ctx.quadraticCurveTo(7, 0, 4, 10);
+    ctx.bezierCurveTo(0, 16, -15, 14, -22, 6);
+    ctx.lineTo(-20, 1);
+    ctx.bezierCurveTo(-13, -5, -3, -2, headX - 9, headY + 7);
     ctx.closePath();
-    ctx.fill();
+    ctx.clip();
 
-    // --- 5. OVERLAY PROCEDURAL DRAGON SCALES ---
-    ctx.strokeStyle = 'rgba(192, 132, 252, 0.4)';
+    // Draw chest plates running along front underbelly
+    const bellyPlateGrad = ctx.createLinearGradient(-10, 4, 6, 14);
+    bellyPlateGrad.addColorStop(0, '#ffffff');
+    bellyPlateGrad.addColorStop(0.7, '#f5d0fe'); // Shimmering light lilac
+    bellyPlateGrad.addColorStop(1, '#e9d5ff');
+    ctx.fillStyle = bellyPlateGrad;
+    ctx.strokeStyle = 'rgba(168, 85, 247, 0.4)';
+    ctx.lineWidth = 1.0;
+
+    for (let j = 0; j < 5; j++) {
+      ctx.beginPath();
+      // Draw plate segment curves
+      ctx.arc(-8 + j * 3.5, 9 - j * 1.5, 9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // --- 4. GLOWING CRYSTALLINE DORSAL SPIKES ---
+    for (let s = 0; s < 3; s++) {
+      ctx.save();
+      const spikeGrad = ctx.createLinearGradient(-17 + s * 6.5, s * -3, -21 + s * 6.5, -5 + s * -3);
+      spikeGrad.addColorStop(0, '#c084fc'); // Lilac
+      spikeGrad.addColorStop(0.6, '#38bdf8'); // Glowing Cyan
+      spikeGrad.addColorStop(1, '#ffffff');
+
+      ctx.fillStyle = spikeGrad;
+      ctx.strokeStyle = '#a855f7';
+      ctx.lineWidth = 0.8;
+
+      ctx.beginPath();
+      if (s === 0) {
+        ctx.moveTo(-17, 2); ctx.lineTo(-22, -6); ctx.lineTo(-12, 0);
+      } else if (s === 1) {
+        ctx.moveTo(-10, -2); ctx.lineTo(-14, -10); ctx.lineTo(-5, -3);
+      } else {
+        ctx.moveTo(-4, -4); ctx.lineTo(-7, -12); ctx.lineTo(1, -5);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Sharp crystal facet line inside spike for high-quality detail
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 0.6;
+      ctx.beginPath();
+      if (s === 0) {
+        ctx.moveTo(-17, 2); ctx.lineTo(-22, -6);
+      } else if (s === 1) {
+        ctx.moveTo(-10, -2); ctx.lineTo(-14, -10);
+      } else {
+        ctx.moveTo(-4, -4); ctx.lineTo(-7, -12);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // --- 5. OVERLAY PROCEDURAL DRAGON SCALES WITH SPARKLING DOTS ---
+    ctx.strokeStyle = 'rgba(192, 132, 252, 0.45)';
     ctx.lineWidth = 1;
-    // Draw scales adjusted for larger body size
     const scalePoints = [
       {x: -15, y: 4}, {x: -11, y: 5}, {x: -7, y: 6}, {x: -3, y: 7}, {x: 1, y: 7},
       {x: -13, y: 1}, {x: -9, y: 2}, {x: -5, y: 3}, {x: -1, y: 4}, {x: 3, y: 4},
       {x: -7, y: -2}, {x: -3, y: -1}, {x: 1, y: 0}, {x: 5, y: 1}
     ];
-    scalePoints.forEach(p => {
+    scalePoints.forEach((p, idx) => {
       ctx.beginPath();
       ctx.arc(p.x, p.y, 2.8, 0, Math.PI);
       ctx.stroke();
+
+      // Sparkling scale reflections on every 3rd scale
+      if (idx % 3 === 0) {
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(p.x + 0.8, p.y - 1.2, 0.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
     });
+
+    // --- 5B. FLOWING NECK MANE (Dragon fur/plumage detail behind neck) ---
+    ctx.save();
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#c084fc';
+    ctx.lineWidth = 0.9;
+    ctx.beginPath();
+    ctx.moveTo(headX - 6, headY + 3);
+    ctx.quadraticCurveTo(headX - 14, headY + 8, headX - 10, headY + 12);
+    ctx.quadraticCurveTo(headX - 6, headY + 10, headX - 5, headY + 6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
 
     // --- 6. DRAGON HEAD STRUCTURE (Angular dragon skull shape with small golden-lavender beak) ---
     ctx.save();
     
     // Gradient for the head scales
     const headGrad = ctx.createLinearGradient(headX - 8, headY - 8, headX + 8, headY + 8);
-    headGrad.addColorStop(0, '#f8fafc'); // Pure white
-    headGrad.addColorStop(0.5, '#f1f5f9'); // Slate white
+    headGrad.addColorStop(0, '#ffffff'); // Pure white
+    headGrad.addColorStop(0.6, '#f1f5f9'); // Slate white
     headGrad.addColorStop(1, '#e2e8f0'); // Cool silver shadow
 
     ctx.fillStyle = headGrad;
@@ -1985,6 +2098,14 @@ export class Bird {
     ctx.quadraticCurveTo(headX + 8.4, headY - 1.2, headX + 7.8, headY + 0.6);
     ctx.stroke();
 
+    // Glowing cyan energy line crack running along beak mouth (Dragon power detail!)
+    ctx.strokeStyle = '#22d3ee'; // Electric cyan
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(headX + 4.8, headY + 0.6);
+    ctx.quadraticCurveTo(headX + 7.0, headY + 1.1, headX + 8.5, headY + 1.6);
+    ctx.stroke();
+
     // Majestic horns sweeping backward (Lilac/Purple)
     ctx.fillStyle = '#c084fc';
     ctx.strokeStyle = '#a855f7';
@@ -2008,15 +2129,21 @@ export class Bird {
 
     ctx.restore();
 
-    // --- 7. INTENSE MINIATURIZED DRAGON EYE (Reduced size from 4.5 to 2.2 for realistic proportions) ---
-    // Outer iris
+    // --- 7. INTENSE MINIATURIZED DRAGON EYE ---
+    // Outer iris (with neon purple shadow)
+    ctx.save();
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#d8b4fe';
+    }
     ctx.fillStyle = '#7c3aed';
     ctx.beginPath();
-    ctx.arc(headX + 1, headY - 1, 2.2, 0, Math.PI * 2); // 50% decrease in size
+    ctx.arc(headX + 1, headY - 1, 2.2, 0, Math.PI * 2);
     ctx.fill();
+    ctx.restore();
     
-    // Slit pupil
-    ctx.fillStyle = '#1e1b29';
+    // Slit pupil (glowing electric blue core)
+    ctx.fillStyle = '#22d3ee'; // Cyan slit pupil!
     ctx.beginPath();
     ctx.ellipse(headX + 1, headY - 1, 0.6, 1.8, 0.1, 0, Math.PI * 2);
     ctx.fill();
@@ -2027,7 +2154,7 @@ export class Bird {
     ctx.arc(headX + 1.6, headY - 1.6, 0.6, 0, Math.PI * 2);
     ctx.fill();
 
-    // Defined shadow brow line over the eye (gives a sharp, realistic look)
+    // Defined shadow brow line over the eye
     ctx.strokeStyle = '#5b21b6';
     ctx.lineWidth = 1.2;
     ctx.beginPath();
@@ -2035,14 +2162,19 @@ export class Bird {
     ctx.quadraticCurveTo(headX + 1.5, headY - 3.8, headX + 4, headY - 2.8);
     ctx.stroke();
 
-    // --- 8. WEBBED WINGS (Centered at shoulder: -2, 2) ---
+    // --- 8. WEBBED WINGS (Centered at shoulder: -2, 2, high quality textures) ---
     ctx.save();
     ctx.translate(-2, 2);
     const wingFlap = Math.sin(this.flapCycle) * 0.65;
     ctx.rotate(wingFlap);
     
-    // Draw Webbing first
-    ctx.fillStyle = 'rgba(192, 132, 252, 0.45)';
+    // Draw Webbing first with stunning radial purple-cyan gradient
+    const webGrad = ctx.createRadialGradient(-10, 0, 2, -10, 0, 25);
+    webGrad.addColorStop(0, 'rgba(168, 85, 247, 0.6)'); // Translucent neon purple
+    webGrad.addColorStop(0.7, 'rgba(6, 182, 212, 0.4)'); // Translucent cyan
+    webGrad.addColorStop(1, 'rgba(6, 182, 212, 0.1)');
+    
+    ctx.fillStyle = webGrad;
     ctx.beginPath();
     ctx.moveTo(0, 0);
     
@@ -2056,6 +2188,16 @@ export class Bird {
     ctx.lineTo(0, 0);
     ctx.closePath();
     ctx.fill();
+
+    // Draw glowing cyan vein lines inside webbing
+    ctx.strokeStyle = 'rgba(34, 211, 238, 0.4)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-20, -4);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-12, 5);
+    ctx.stroke();
     
     // Draw bone structure
     ctx.strokeStyle = '#f8fafc';
