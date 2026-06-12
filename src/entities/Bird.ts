@@ -1011,6 +1011,48 @@ export class Bird {
     const faceX = Math.cos(this.angle) * 1.8;
     const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.18;
 
+    // --- 1. TAIL FEATHERS (Classic Flappy shape, Golden Eagle theme) ---
+    ctx.save();
+    const tailGrad = ctx.createLinearGradient(faceX - 24, faceY - 2, faceX - 10, faceY + 10);
+    tailGrad.addColorStop(0, '#4a2f1b'); // Dark brown
+    tailGrad.addColorStop(1, '#8b5a2b'); // Golden brown
+    
+    ctx.fillStyle = tailGrad;
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = 1.8;
+    ctx.lineJoin = 'miter';
+
+    // Tail feather 1 (top)
+    ctx.beginPath();
+    ctx.moveTo(faceX - 13, faceY - 2);
+    ctx.lineTo(faceX - 24, faceY - 2);
+    ctx.lineTo(faceX - 24, faceY + 3);
+    ctx.lineTo(faceX - 13, faceY + 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Tail feather 2 (middle)
+    ctx.beginPath();
+    ctx.moveTo(faceX - 12, faceY + 1);
+    ctx.lineTo(faceX - 21, faceY + 4);
+    ctx.lineTo(faceX - 20, faceY + 8);
+    ctx.lineTo(faceX - 11, faceY + 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Tail feather 3 (bottom)
+    ctx.beginPath();
+    ctx.moveTo(faceX - 10, faceY + 4);
+    ctx.lineTo(faceX - 17, faceY + 10);
+    ctx.lineTo(faceX - 15, faceY + 14);
+    ctx.lineTo(faceX - 8, faceY + 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
     // --- 2. BACKWARDS CREST FEATHERS (White with Gold tips) ---
     ctx.save();
     ctx.fillStyle = '#ffffff';
@@ -3722,6 +3764,48 @@ export class Bird {
     // Parallax face shifting
     const faceX = Math.cos(this.angle) * 2.0;
     const faceY = Math.sin(this.angle) * 1.3 - this.vy * 0.15;
+
+    // --- 1. TAIL FEATHERS (Classic Flappy shape, Crimson Red & Gold theme) ---
+    ctx.save();
+    const tailGrad = ctx.createLinearGradient(faceX - 24, faceY - 2, faceX - 10, faceY + 10);
+    tailGrad.addColorStop(0, '#450a0a'); // Dark maroon
+    tailGrad.addColorStop(1, '#991b1b'); // Crimson
+    
+    ctx.fillStyle = tailGrad;
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = 1.8;
+    ctx.lineJoin = 'miter';
+
+    // Tail feather 1 (top)
+    ctx.beginPath();
+    ctx.moveTo(faceX - 13, faceY - 2);
+    ctx.lineTo(faceX - 24, faceY - 2);
+    ctx.lineTo(faceX - 24, faceY + 3);
+    ctx.lineTo(faceX - 13, faceY + 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Tail feather 2 (middle)
+    ctx.beginPath();
+    ctx.moveTo(faceX - 12, faceY + 1);
+    ctx.lineTo(faceX - 21, faceY + 4);
+    ctx.lineTo(faceX - 20, faceY + 8);
+    ctx.lineTo(faceX - 11, faceY + 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Tail feather 3 (bottom)
+    ctx.beginPath();
+    ctx.moveTo(faceX - 10, faceY + 4);
+    ctx.lineTo(faceX - 17, faceY + 10);
+    ctx.lineTo(faceX - 15, faceY + 14);
+    ctx.lineTo(faceX - 8, faceY + 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
 
     // --- 2. BACKWARDS CREST FEATHERS (Eagle detail, White with Crimson tips) ---
     ctx.save();
