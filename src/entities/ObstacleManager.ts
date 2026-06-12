@@ -1512,9 +1512,9 @@ export class ObstacleManager {
               verticalShift = Math.sin(this.waveTime * 2.2 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 50 * motionAmpMult;
             } else if (effectiveScore >= 300) {
               if (gameMode === 'flock') {
-                // Smooth up-down and zigzag animations with dynamic difficulty scaling (up to 30% increase at score 500, kept constant above 500)
+                // Smooth up-down and zigzag animations with dynamic difficulty scaling (up to 20% increase at score 500, kept constant above 500)
                 const progress = Math.max(0, Math.min(1, (effectiveScore - 300) / 200));
-                const diffScale = 1.0 + progress * 0.30; // 30% difficulty increase at score 500
+                const diffScale = 1.0 + progress * 0.20; // 20% difficulty increase at score 500 (10% decrease from 30%)
                 
                 const speed = 2.0 * motionSpeedMult * diffScale;
                 const amp = 50 * motionAmpMult * diffScale;
