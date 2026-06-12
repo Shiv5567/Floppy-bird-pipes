@@ -1005,109 +1005,224 @@ export class Bird {
       ctx.shadowColor = 'rgba(212, 175, 55, 0.4)';
     }
 
-    // Body gradient
-    const grad = ctx.createLinearGradient(-15, -15, 15, 15);
-    grad.addColorStop(0, '#d4af37'); // Gold beak/brown elements
-    grad.addColorStop(0.5, '#8b5a2b');
-    grad.addColorStop(1, '#4a2f1b');
-
-    ctx.fillStyle = grad;
-    // Main round body
-    ctx.beginPath();
-    ctx.arc(0, 0, 16, 0, Math.PI * 2);
-    ctx.fill();
-
-    // White eagle crown head detail
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.moveTo(-2, -15);
-    ctx.lineTo(10, -10);
-    ctx.lineTo(12, 0);
-    ctx.lineTo(8, 10);
-    ctx.lineTo(-4, 0);
-    ctx.closePath();
-    ctx.fill();
-
+    const outlineColor = '#3d2503'; // Dark bronze outline
+    
     // 2.5D Face shift offset
     const faceX = Math.cos(this.angle) * 1.8;
     const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.18;
 
-    // Anchor head position for features (Golden Eagle eye is originally at 8, -4)
     const headX = 8 + faceX;
     const headY = -4 + faceY;
 
+    // --- 1. TAIL FEATHERS (Classic Flappy shape, Golden Eagle theme) ---
     ctx.save();
+    const tailGrad = ctx.createLinearGradient(-24, -2, -10, 10);
+    tailGrad.addColorStop(0, '#4a2f1b'); // Dark brown
+    tailGrad.addColorStop(1, '#8b5a2b'); // Golden brown
+    
+    ctx.fillStyle = tailGrad;
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = 1.8;
+    ctx.lineJoin = 'miter';
 
-    // --- WHITE DRAGON EYE EXACT REPLICA ---
+    // Tail feather 1 (top)
+    ctx.beginPath();
+    ctx.moveTo(-13, -2);
+    ctx.lineTo(-24, -2);
+    ctx.lineTo(-24, 3);
+    ctx.lineTo(-13, 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Tail feather 2 (middle)
+    ctx.beginPath();
+    ctx.moveTo(-12, 1);
+    ctx.lineTo(-21, 4);
+    ctx.lineTo(-20, 8);
+    ctx.lineTo(-11, 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Tail feather 3 (bottom)
+    ctx.beginPath();
+    ctx.moveTo(-10, 4);
+    ctx.lineTo(-17, 10);
+    ctx.lineTo(-15, 14);
+    ctx.lineTo(-8, 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // --- 2. MAIN ROUND BODY (Flappy structure: radius 15) ---
+    const bodyGrad = ctx.createRadialGradient(-3, -3, 2, 0, 0, 15);
+    bodyGrad.addColorStop(0, '#ffd700'); // Pure gold highlight
+    bodyGrad.addColorStop(0.6, '#8b5a2b'); // Golden brown base
+    bodyGrad.addColorStop(1, '#4a2f1b'); // Dark brown shadow
+    
+    ctx.fillStyle = bodyGrad;
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    ctx.arc(0, 0, 15, 0, Math.PI * 2);
+    ctx.fill();
+
+    // --- 3. UNDERBELLY (Clipped inside body, gold-white gradient) ---
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0, 0, 15, 0, Math.PI * 2);
+    ctx.clip();
+    
+    const bellyGrad = ctx.createLinearGradient(-8, 4, 4, 15);
+    bellyGrad.addColorStop(0, '#ffffff'); // Pure white top
+    bellyGrad.addColorStop(0.7, '#f5f5f7'); // Silver grey
+    bellyGrad.addColorStop(1, '#ffe082'); // Golden yellow glow at bottom
+    
+    ctx.fillStyle = bellyGrad;
+    ctx.beginPath();
+    ctx.ellipse(-4, 7, 12, 8, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Glossy body highlight
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.beginPath();
+    ctx.ellipse(-3, -7, 11, 5, -Math.PI / 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    
+    // Redraw body outline
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    ctx.arc(0, 0, 15, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // --- 4. BACKWARDS CREST FEATHERS (White with Gold tips) ---
+    ctx.save();
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = 1.0;
+    for (let k = 0; k < 2; k++) {
+      ctx.beginPath();
+      ctx.moveTo(headX - 6, headY - 12 + k * 4);
+      ctx.lineTo(headX - 14, headY - 9 + k * 4);
+      ctx.lineTo(headX - 8, headY - 6 + k * 4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      
+      // Gold tips
+      ctx.fillStyle = '#ffd700';
+      ctx.beginPath();
+      ctx.moveTo(headX - 11, headY - 10 + k * 4);
+      ctx.lineTo(headX - 14, headY - 9 + k * 4);
+      ctx.lineTo(headX - 12, headY - 7 + k * 4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+    }
+    ctx.restore();
+
+    // --- 5. EAGLE HEAD PLUMAGE (White Eagle Crown, overlapping upper body) ---
+    ctx.save();
+    ctx.fillStyle = '#ffffff'; // Pure white plumage
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(headX + 3, headY - 5, 8.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Feathery details inside crown
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.06)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.arc(headX + 1, headY - 6, 6, 0.3 * Math.PI, 0.8 * Math.PI);
+    ctx.stroke();
+    ctx.restore();
+
+    // White feathered collar base (feathers at throat)
+    ctx.save();
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    ctx.moveTo(headX - 10, headY + 1);
+    ctx.quadraticCurveTo(headX - 6, headY + 5, headX - 2, headY + 3);
+    ctx.quadraticCurveTo(headX + 2, headY + 5, headX + 6, headY + 2);
+    ctx.lineTo(headX - 2, headY - 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // --- 6. INTENSE WARRIOR EYE & BROW (Purple/Violet theme matching original) ---
+    ctx.save();
     // Outer iris (Vibrant Purple/Violet `#7c3aed`)
     ctx.fillStyle = '#7c3aed';
     ctx.beginPath();
-    ctx.arc(headX + 1, headY - 1, 2.2, 0, Math.PI * 2);
+    ctx.arc(headX + 5, headY - 5.5, 2.8, 0, Math.PI * 2);
     ctx.fill();
     
     // Slit pupil (Dark `#1e1b29`)
     ctx.fillStyle = '#1e1b29';
     ctx.beginPath();
-    ctx.ellipse(headX + 1, headY - 1, 0.6, 1.8, 0.1, 0, Math.PI * 2);
+    ctx.arc(headX + 5, headY - 5.5, 1.2, 0, Math.PI * 2);
     ctx.fill();
     
     // Tiny reflection highlight
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(headX + 1.6, headY - 1.6, 0.6, 0, Math.PI * 2);
+    ctx.arc(headX + 5.5, headY - 6.0, 0.6, 0, Math.PI * 2);
     ctx.fill();
 
     // Defined shadow brow line over the eye (Vivid violet `#5b21b6`)
     ctx.strokeStyle = '#5b21b6';
-    ctx.lineWidth = 1.2;
+    ctx.lineWidth = 1.8;
     ctx.beginPath();
-    ctx.moveTo(headX - 2, headY - 3.5);
-    ctx.quadraticCurveTo(headX + 1.5, headY - 3.8, headX + 4, headY - 2.8);
+    ctx.moveTo(headX + 1.5, headY - 8.2);
+    ctx.lineTo(headX + 8.5, headY - 6.8);
     ctx.stroke();
+    ctx.restore();
 
-    // --- THICK MAJESTIC GOLDEN EAGLE BEAK ---
-    const beakGrad = ctx.createLinearGradient(headX + 2.0, headY - 4.5, headX + 18, headY + 7.5);
+    // --- 7. THICK MAJESTIC GOLDEN EAGLE BEAK (Hooked gold beak with lavender tip) ---
+    ctx.save();
+    const beakGrad = ctx.createLinearGradient(headX + 8, headY - 7, headX + 17, headY + 1);
     beakGrad.addColorStop(0, '#ffd54f'); // Golden yellow base
     beakGrad.addColorStop(0.6, '#ff8f00'); // Deep gold
     beakGrad.addColorStop(1, '#c084fc'); // Lavender tip
+    
     ctx.fillStyle = beakGrad;
-    ctx.strokeStyle = '#3d2503';
+    ctx.strokeStyle = outlineColor;
     ctx.lineWidth = 1.2;
 
     ctx.beginPath();
-    ctx.moveTo(headX + 2.0, headY - 4.5); // Starts higher up the forehead for a thick, solid base
-    ctx.quadraticCurveTo(headX + 16, headY - 4.5, headX + 18, headY + 7.5); // Heavy predatory curve down to hook tip
-    ctx.lineTo(headX + 10, headY + 5.0); // Lower beak edge dropped down
-    ctx.quadraticCurveTo(headX + 5, headY + 3.2, headX + 1.5, headY + 3.5); // Thicker throat connection
+    ctx.moveTo(headX + 8, headY - 7);
+    ctx.quadraticCurveTo(headX + 18, headY - 6, headX + 15, headY + 2); // hooked down tip
+    ctx.lineTo(headX + 12, headY + 0.5);
+    ctx.quadraticCurveTo(headX + 10, headY - 1.2, headX + 7.5, headY - 2.5);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
     // Beak mouth line
-    ctx.strokeStyle = '#3d2503';
+    ctx.strokeStyle = outlineColor;
     ctx.lineWidth = 1.0;
     ctx.beginPath();
-    ctx.moveTo(headX + 1.5, headY + 0.5);
-    ctx.quadraticCurveTo(headX + 10, headY + 1.5, headX + 15, headY + 4.5);
+    ctx.moveTo(headX + 8.0, headY - 1.8);
+    ctx.quadraticCurveTo(headX + 11.5, headY - 0.2, headX + 14.2, headY + 0.6);
     ctx.stroke();
-
-    // Subtle beak highlight reflection line (gives 3D shiny metallic feel)
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 0.9;
-    ctx.beginPath();
-    ctx.moveTo(headX + 3.5, headY - 3.5);
-    ctx.quadraticCurveTo(headX + 13, headY - 2.5, headX + 14, headY + 4.0);
-    ctx.stroke();
-
     ctx.restore();
 
-    // --- FLAPPY BIRD STYLE GOLDEN EAGLE WINGS ---
+    // --- 8. FLAPPING WINGS (Classic flappy wings shape, gold-brown color scheme) ---
     ctx.save();
     ctx.translate(-2, 1);
     const wingFlap = Math.sin(this.flapCycle) * 0.65;
     ctx.rotate(wingFlap);
 
-    ctx.strokeStyle = '#3d2503';
+    ctx.strokeStyle = outlineColor;
     ctx.lineWidth = 1.8;
     ctx.lineJoin = 'round';
 
