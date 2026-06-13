@@ -2784,6 +2784,7 @@ body.mobile-performance .glass-card {
 .level-select-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  align-content: start;
   gap: 12px;
   overflow-y: auto;
   overflow-x: hidden;
