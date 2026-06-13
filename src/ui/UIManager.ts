@@ -375,13 +375,9 @@ export class UIManager {
       const barContainer = this.container.querySelector('.ultimate-duration-bar-container') as HTMLElement;
       if (barContainer) {
         const fill = barContainer.querySelector('.ultimate-duration-bar-fill') as HTMLElement;
-        const text = barContainer.querySelector('.ultimate-duration-bar-text') as HTMLElement;
-        if (fill && text) {
+        if (fill) {
           const pct = Math.max(0, Math.min(100, (this.engine.ultimateDurationLeft / this.engine.ultimateMaxDuration) * 100));
           fill.style.width = `${pct}%`;
-          
-          const activeSkin = this.engine.bird.getSkin();
-          text.innerText = `${activeSkin.name} Active: ${this.engine.ultimateDurationLeft.toFixed(1)}s`;
         }
       }
     }
@@ -1803,7 +1799,6 @@ export class UIManager {
       ultDurationBarHTML = `
         <div class="ultimate-duration-bar-container fade-in" style="border-color: ${skinGlow}88; box-shadow: 0 0 15px ${skinGlow}33;">
           <div class="ultimate-duration-bar-fill" style="width: ${pct}%; background: linear-gradient(90deg, ${skinGlow}, #ffffff); box-shadow: 0 0 10px ${skinGlow};"></div>
-          <span class="ultimate-duration-bar-text" style="text-shadow: 0 0 4px rgba(0,0,0,0.8), 0 0 8px ${skinGlow};">${activeSkin.name} Active: ${this.engine.ultimateDurationLeft.toFixed(1)}s</span>
         </div>
       `;
     }
