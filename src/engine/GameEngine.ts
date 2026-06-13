@@ -1499,6 +1499,7 @@ export class GameEngine {
 
     this.ultimateActive = true;
     this.ultimateEnergy = 0;
+    this.bird.ultimateStartVy = this.bird.vy;
 
     const skin = this.bird.getSkin();
     let duration = 5.0; // Default duration in seconds

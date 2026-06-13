@@ -30,6 +30,7 @@ export class Bird {
   public isInvincible = false;
   public hasShield = false;
   public isGhost = false;
+  public ultimateStartVy = 0;
 
   // Custom cosmetics
   private activeSkin: Skin;
@@ -82,6 +83,12 @@ export class Bird {
 
   public jump(soundManager?: any, score = 0) {
     if (this.isCrashing) return;
+
+    const engine = (window as any).gameEngine;
+    if (engine && engine.ultimateActive) {
+      // Keep velocity constant during Ultimate, disable active jumping
+      return;
+    }
     
     // Jump lift scaled with skin upgrade level (minor bonus)
     const levelBonus = (this.activeSkin.upgradeLevel - 1) * 0.05;
@@ -90,7 +97,6 @@ export class Bird {
     const jumpScale = this.getJumpScale(score);
     
     // Check if playing in Level 2 or Level 13 of level mode (which contains the Level 4 snake/laser layout)
-    const engine = (window as any).gameEngine;
     const isLevelMode = engine && engine.gameMode === 'level';
     const isLevel2 = isLevelMode && engine.currentLevelNum === 2;
     const isLevel8 = isLevelMode && engine.currentLevelNum === 8;
@@ -178,9 +184,13 @@ export class Bird {
     }
     
     if (isPlaying) {
-      // Apply gravity (dampened to 0 during Lotus Hummingbird hover ultimate)
-      if (engine && engine.ultimateActive && this.activeSkin.id === 'jade_lotus') {
-        this.vy += (0 - this.vy) * 0.12 * dtCoeff; // Smoothly damp vertical movement to hover
+      // Apply gravity or keep velocity constant during ultimate
+      if (engine && engine.ultimateActive) {
+        if (this.activeSkin.id === 'jade_lotus') {
+          this.vy += (0 - this.vy) * 0.12 * dtCoeff; // Smoothly damp vertical movement to hover
+        } else {
+          this.vy = this.ultimateStartVy;
+        }
       } else {
         this.vy += currentGravity * dtCoeff;
       }
