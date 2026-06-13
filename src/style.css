@@ -2785,7 +2785,8 @@ body.mobile-performance .glass-card {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   align-content: start;
-  gap: 12px;
+  row-gap: 18px;
+  column-gap: 12px;
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 6px;
@@ -2799,7 +2800,8 @@ body.mobile-performance .glass-card {
 @media (max-width: 767px) and (orientation: landscape), (max-width: 767px) and (max-height: 620px) {
   .level-select-grid {
     grid-template-columns: repeat(6, 1fr) !important;
-    gap: 10px !important;
+    row-gap: 15px !important;
+    column-gap: 10px !important;
   }
 }
 
