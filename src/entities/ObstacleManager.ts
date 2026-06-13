@@ -1503,9 +1503,22 @@ export class ObstacleManager {
             verticalShift = Math.sin(this.waveTime * 4.0 + (obs.obstacleIdx || 0) * 0.8) * 8;
           } else if (gameMode !== 'flock' || activeScore >= 100) {
             if (effectiveScore >= 100 && effectiveScore < 200) {
-              // Simple up-down (elevator) animation keeping gap constant
-              const ampIncrease = effectiveScore < 150 ? 1.15 : 1.25; // 15% increase for score 100-150, 25% increase for score 150-200
-              verticalShift = Math.sin(this.waveTime * 1.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.4) * (32 * ampIncrease) * motionAmpMult;
+              if (zone === 'classic' || gameMode === 'endless') {
+                if (effectiveScore < 150) {
+                  // Cos-based Out-of-Phase Oscillation (adjacent pipes move in opposite directions, keeping gap constant)
+                  const phaseSign = (obs.obstacleIdx || 0) % 2 === 0 ? 1 : -1;
+                  verticalShift = Math.cos(this.waveTime * 1.8 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 35 * phaseSign * motionAmpMult;
+                } else {
+                  // Double Wave Oscillation (combination of slow overall vertical sway and faster ripple)
+                  const slowSway = Math.sin(this.waveTime * 0.8 * motionSpeedMult) * 22;
+                  const fastRipple = Math.sin(this.waveTime * 2.2 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.6) * 16;
+                  verticalShift = (slowSway + fastRipple) * motionAmpMult;
+                }
+              } else {
+                // Simple up-down (elevator) animation keeping gap constant for other zones
+                const ampIncrease = effectiveScore < 150 ? 1.15 : 1.25; // 15% increase for score 100-150, 25% increase for score 150-200
+                verticalShift = Math.sin(this.waveTime * 1.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.4) * (32 * ampIncrease) * motionAmpMult;
+              }
             } else if (effectiveScore >= 200 && effectiveScore < 300) {
               // Added 8% difficulty: increase base amplitude from 50px to 54px
               verticalShift = Math.sin(this.waveTime * 2.2 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 54 * motionAmpMult;
