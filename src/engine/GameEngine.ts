@@ -440,7 +440,7 @@ export class GameEngine {
       if (this.state === 'PLAYING') {
         if (this.gameMode === 'level' && this.activeLevelConfig) {
           if (this.ultimateActive && this.bird.getSkin().id === 'dread_falcon') {
-            this.scrollSpeed = this.activeLevelConfig.scrollSpeed * 2.8;
+            this.scrollSpeed = this.activeLevelConfig.scrollSpeed * 3.64;
           } else if (this.ultimateActive && this.bird.getSkin().id === 'articuno') {
             this.scrollSpeed = this.activeLevelConfig.scrollSpeed * 0.4;
           } else if (this.activePowerupsList['turbo']) {
@@ -525,7 +525,7 @@ export class GameEngine {
           }
 
           if (this.ultimateActive && this.bird.getSkin().id === 'dread_falcon') {
-            this.scrollSpeed = this.baseScrollSpeed * 2.8;
+            this.scrollSpeed = this.baseScrollSpeed * 3.64;
           } else if (this.ultimateActive && this.bird.getSkin().id === 'articuno') {
             this.scrollSpeed = this.baseScrollSpeed * 0.4;
           } else if (this.activePowerupsList['turbo']) {
@@ -1543,7 +1543,7 @@ export class GameEngine {
       // Charan Falcon: Sonic Supercharge
       duration = 4.0;
       this.bird.isInvincible = true;
-      this.scrollSpeed = this.baseScrollSpeed * 2.8;
+      this.scrollSpeed = this.baseScrollSpeed * 3.64;
       subtext = 'SUPERSONIC SPEED BLAST ACTIVE!';
     } else if (id === 'legendary_eagle_king') {
       // Legendary Eagle King: Aurum Gilded Age
