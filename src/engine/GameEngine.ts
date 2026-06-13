@@ -571,8 +571,8 @@ export class GameEngine {
           // Set speed to 15.0x
           this.scrollSpeed = this.baseScrollSpeed * 15.0;
 
-          // Increment score smoothly over the 2-second boost (100 points total, ~50 per second)
-          this.boosterScoreAccumulator += dt * 50;
+          // Increment score smoothly over the 1-second boost (20 points total, ~20 per second)
+          this.boosterScoreAccumulator += dt * 20;
           if (this.boosterScoreAccumulator >= 1.0) {
             const pointsToAdd = Math.floor(this.boosterScoreAccumulator);
             this.boosterScoreAccumulator -= pointsToAdd;
@@ -1348,8 +1348,8 @@ export class GameEngine {
       this.boosterActive = true;
       this.boosterTapsThisRun++;
       
-      // Every tap/activation should add exactly 50 points (cross 50 score/obstacles).
-      this.boosterTimer = 1.0; // 1 second * 50 score/sec = 50 score points/obstacles on every action/tap
+      // Every tap/activation should add exactly 20 points (cross 20 score/obstacles).
+      this.boosterTimer = 1.0; // 1 second * 20 score/sec = 20 score points/obstacles on every action/tap
       this.boosterScoreAccumulator = 0.0;
       this.bird.isInvincible = true;
       
