@@ -146,7 +146,7 @@ export class LevelManager {
       } else if (levelNum === 12) {
         patterns = ['level12_doublewave'];
       } else if (levelNum === 13) {
-        patterns = ['level4_snake'];
+        patterns = ['level13_scurve']; // W-shape (Level 11 Group 3)
       } else if (levelNum === 14) {
         patterns = ['level3_arc'];
       } else if (levelNum === 15) {
@@ -252,7 +252,8 @@ export class LevelManager {
       [36, 39],
       [45, 48],
       [46, 50],
-      [45, 47]
+      [45, 47],
+      [8, 18]
     ];
     for (const [a, b] of swapPairs) {
       const idxA = this.levels.findIndex(l => l.levelNum === a);
@@ -281,53 +282,75 @@ export class LevelManager {
         this.levels[idxB].name = tempName;
       }
     }
+    // Re-swap gapHeight for Level 8 and 18 so each level keeps its original gap
+    // (patterns/speed are exchanged but gap stays as it was for each level)
+    const lvl8g = this.levels.find(l => l.levelNum === 8);
+    const lvl18g = this.levels.find(l => l.levelNum === 18);
+    if (lvl8g && lvl18g) {
+      const tempGap = lvl8g.gapHeight;
+      lvl8g.gapHeight = lvl18g.gapHeight;
+      lvl18g.gapHeight = tempGap;
+    }
 
-    // Reduce Level 2 path gap by 30%; Reduce Level 3 path gap by 20% and set total obstacles to 150; Reduce Level 4 path gap by 30%
+    // Levels 1–10 gap adjustments (each multiplied by ×0.88 for global 12% reduction across L1–L10)
+    const lvl1 = this.levels.find(l => l.levelNum === 1);
+    if (lvl1) {
+      lvl1.gapHeight = Math.round(lvl1.gapHeight * 0.88); // 12% reduced
+    }
     const lvl2 = this.levels.find(l => l.levelNum === 2);
     if (lvl2) {
-      lvl2.gapHeight = Math.round(lvl2.gapHeight * 1.00); // Increased by another 20% (0.84 * 1.20 = 1.00)
+      lvl2.gapHeight = Math.round(lvl2.gapHeight * 1.18272); // Net: 1.056 × 1.12 (12% increased)
     }
     const lvl3 = this.levels.find(l => l.levelNum === 3);
     if (lvl3) {
-      lvl3.gapHeight = Math.round(lvl3.gapHeight * 0.90);
+      lvl3.gapHeight = Math.round(lvl3.gapHeight * 0.792); // Net: 0.90 × 0.88
       lvl3.targetScore = 150;
     }
     const lvl4 = this.levels.find(l => l.levelNum === 4);
     if (lvl4) {
-      lvl4.gapHeight = Math.round(lvl4.gapHeight * 0.70);
+      lvl4.gapHeight = Math.round(lvl4.gapHeight * 0.616); // Net: 0.70 × 0.88
     }
     const lvl5 = this.levels.find(l => l.levelNum === 5);
     if (lvl5) {
-      lvl5.gapHeight = Math.round(lvl5.gapHeight * 0.90);
+      lvl5.gapHeight = Math.round(lvl5.gapHeight * 0.792); // Net: 0.90 × 0.88
     }
     const lvl6 = this.levels.find(l => l.levelNum === 6);
     if (lvl6) {
-      lvl6.gapHeight = Math.round(lvl6.gapHeight * 1.10);
+      lvl6.gapHeight = Math.round(lvl6.gapHeight * 0.8228); // Net: 0.935 × 0.88
     }
     const lvl7 = this.levels.find(l => l.levelNum === 7);
     if (lvl7) {
-      lvl7.gapHeight = Math.round(lvl7.gapHeight * 1.25);
+      lvl7.gapHeight = Math.round(lvl7.gapHeight * 1.10); // Net: 1.25 × 0.88
     }
     const lvl8 = this.levels.find(l => l.levelNum === 8);
     if (lvl8) {
-      lvl8.gapHeight = Math.round(lvl8.gapHeight * 1.45);
+      lvl8.gapHeight = Math.round(lvl8.gapHeight * 0.97614); // Net: 1.10925 × 0.88
     }
     const lvl9 = this.levels.find(l => l.levelNum === 9);
     if (lvl9) {
-      lvl9.gapHeight = Math.round(lvl9.gapHeight * 1.25);
+      lvl9.gapHeight = Math.round(lvl9.gapHeight * 1.10); // Net: 1.25 × 0.88
     }
     const lvl10 = this.levels.find(l => l.levelNum === 10);
     if (lvl10) {
-      lvl10.gapHeight = Math.round(lvl10.gapHeight * 1.45);
+      lvl10.gapHeight = Math.round(lvl10.gapHeight * 1.1484); // Net: 1.305 × 0.88
     }
     const lvl11 = this.levels.find(l => l.levelNum === 11);
     if (lvl11) {
-      lvl11.gapHeight = Math.round(lvl11.gapHeight * 0.80);
+      lvl11.gapHeight = Math.round(lvl11.gapHeight * 0.704); // Net: 0.80 × 0.88 (12% reduced)
+    }
+    const lvl12 = this.levels.find(l => l.levelNum === 12);
+    if (lvl12) {
+      lvl12.gapHeight = Math.round(lvl12.gapHeight * 0.64768); // Net: 0.704 × 0.92 (further 8% reduced)
     }
     // Reduce Level 14 path gap by 20% (post Level 14<->18 swap)
     const lvl14 = this.levels.find(l => l.levelNum === 14);
     if (lvl14) {
-      lvl14.gapHeight = Math.round(lvl14.gapHeight * 0.80);
+      lvl14.gapHeight = Math.round(lvl14.gapHeight * 0.4437); // Net: 0.522 × 0.85 (15% reduced)
+      lvl14.patterns = ['level14_zigzag']; // Override to zigzag pattern
+    }
+    const lvl16 = this.levels.find(l => l.levelNum === 16);
+    if (lvl16) {
+      lvl16.gapHeight = Math.round(lvl16.gapHeight * 0.85); // 15% reduced
     }
     // Level 18 path gap: net ×0.78925 (post 14↔18 swap +25%, post 18↔20 swap −30%, +10%, then −18%: 1.25×0.70×1.10×0.82=0.78925)
     const lvl18 = this.levels.find(l => l.levelNum === 18);
@@ -337,7 +360,15 @@ export class LevelManager {
     // Increase Level 19 path gap by 10%
     const lvl19 = this.levels.find(l => l.levelNum === 19);
     if (lvl19) {
-      lvl19.gapHeight = Math.round(lvl19.gapHeight * 1.10);
+      lvl19.gapHeight = Math.round(lvl19.gapHeight * 0.825); // Net: 1.10 × 0.75 (25% reduced)
+    }
+    const lvl22 = this.levels.find(l => l.levelNum === 22);
+    if (lvl22) {
+      lvl22.gapHeight = Math.round(lvl22.gapHeight * 0.90); // 10% reduced
+    }
+    const lvl24 = this.levels.find(l => l.levelNum === 24);
+    if (lvl24) {
+      lvl24.gapHeight = Math.round(lvl24.gapHeight * 0.90); // 10% reduced
     }
     // Level 20 path gap: net ×1.1808 (−18% then +20% then +20%: 0.82×1.20×1.20=1.1808)
     const lvl20 = this.levels.find(l => l.levelNum === 20);
@@ -350,6 +381,12 @@ export class LevelManager {
       lvl39.gapHeight = Math.round(lvl39.gapHeight * 1.20);
     }
     
+    // Reduce Level 8 scroll speed by 15%
+    const lvl8Speed = this.levels.find(l => l.levelNum === 8);
+    if (lvl8Speed) {
+      lvl8Speed.scrollSpeed = lvl8Speed.scrollSpeed * 0.85;
+    }
+
     // Reduce Level 50 scroll speed by 20%
     const lvl50 = this.levels.find(l => l.levelNum === 50);
     if (lvl50) {

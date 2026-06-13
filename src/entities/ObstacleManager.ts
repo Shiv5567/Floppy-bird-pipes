@@ -495,37 +495,35 @@ export class ObstacleManager {
               obs.targetTopHeight = obs.baseTopHeight! + wave;
               obs.targetBottomHeight = obs.baseBottomHeight! - wave;
             } else {
-              // Group 3 (Double V / W-Shape): "Double Peristaltic Wave". Sequential traveling ripple through W peaks and valleys.
-              const rippleAngle = (idx / 11) * Math.PI * 2;
-              const ripple = Math.sin(this.waveTime * 2.8 + rippleAngle * 2) * 16;
-              obs.targetTopHeight = obs.baseTopHeight! + ripple;
-              obs.targetBottomHeight = obs.baseBottomHeight! - ripple;
+              // Group 3: "Tilted pivots" (same as Group 2)
+              const tiltFactor = (idx - 4) / 7.0;
+              const wave = Math.sin(this.waveTime * 2.2) * 20 * tiltFactor;
+              obs.targetTopHeight = obs.baseTopHeight! + wave;
+              obs.targetBottomHeight = obs.baseBottomHeight! - wave;
             }
           } else if (obs.patternType === 'level12_doublewave') {
-            // Level 12: "The Pincer Maze" — Tidal breathing + lateral zigzag oscillation
-            // Tidal: whole corridor breathes up and down slowly (reduced 20%)
-            const tidal = Math.sin(this.waveTime * 1.6) * 18 * 0.80;
-            // Zigzag lateral: odd/even columns oscillate in opposite vertical phase (reduced 20%)
+            // Level 12: "The Pincer Maze" — net ×0.805 (−30%+15%)
+            const tidal = Math.sin(this.waveTime * 1.6) * 14.5 * 0.80;
             const isOdd = (actualIdx % 2 === 1);
-            const zigzag = Math.sin(this.waveTime * 3.0 + actualIdx * 0.9) * 14 * (isOdd ? 1 : -1) * 0.80;
-            // Pincer pulse: gap breathes with an extra squeeze on top of base gap
-            const pincerSqueeze = Math.pow(Math.sin(this.waveTime * 2.2 - actualIdx * 0.4), 2) * 20;
+            const zigzag = Math.sin(this.waveTime * 3.0 + actualIdx * 0.9) * 11.3 * (isOdd ? 1 : -1) * 0.80;
+            const pincerSqueeze = Math.pow(Math.sin(this.waveTime * 2.2 - actualIdx * 0.4), 2) * 16;
             obs.targetTopHeight = obs.baseTopHeight! + tidal + zigzag + pincerSqueeze;
             obs.targetBottomHeight = obs.baseBottomHeight! - tidal - zigzag + pincerSqueeze;
           } else if (obs.patternType === 'level13_scurve') {
-            // Level 13: Helix Spirals
-            // 3D Twist using horizontal orbital shake, vertical helical waves, and vertical shifting frequency
-            const helixPhase = this.waveTime * 2.3 + actualIdx * 0.6;
-            obs.shakeX = Math.sin(helixPhase) * 22;
-            obs.shakeX2 = Math.cos(helixPhase) * 22;
-
-            // Vertical helical wave (breathing) — amplitude +15%: 14 → 16.1
-            const vWave = Math.sin(this.waveTime * 1.8 - actualIdx * 0.4) * 16.1;
-            // Vertical shifting frequency (moves the whole gap center up/down) — amplitude +15%: 20 → 23
-            const vShift = Math.sin(this.waveTime * 2.0 + actualIdx * 0.5) * 23;
-
-            obs.targetTopHeight = obs.baseTopHeight! + vWave + vShift;
-            obs.targetBottomHeight = obs.baseBottomHeight! - vWave + vShift;
+            // Level 13: W-shape "Double Peristaltic Wave" (Level 11 Group 3 — all obstacles)
+            const rippleAngle = (actualIdx / 11) * Math.PI * 2;
+            const ripple = Math.sin(this.waveTime * 2.8 + rippleAngle * 2) * 16;
+            obs.targetTopHeight = obs.baseTopHeight! + ripple;
+            obs.targetBottomHeight = obs.baseBottomHeight! - ripple;
+          } else if (obs.patternType === 'level14_zigzag') {
+            // Level 14: Zigzag bounce — alternating opposite-phase bounce + lateral shake
+            const isEven = (actualIdx % 2 === 0);
+            const phase = isEven ? 0 : Math.PI;
+            const bounce = Math.sin(this.waveTime * 2.5 + phase) * 7;
+            obs.shakeX = Math.cos(this.waveTime * 2.0 + phase) * 4;
+            obs.shakeX2 = -obs.shakeX;
+            obs.targetTopHeight = obs.baseTopHeight! + bounce;
+            obs.targetBottomHeight = obs.baseBottomHeight! - bounce;
           } else if (obs.patternType === 'level14_crossflow') {
             // Level 18 (swapped): "The Wormhole Vortex" — path gap shifting reduced 60% (×0.40)
             const p14group = Math.floor((actualIdx % 18) / 6); // 0=spiral, 1=shockwave, 2=gravity
@@ -588,13 +586,12 @@ export class ObstacleManager {
             obs.targetTopHeight = obs.baseTopHeight! + gateMove;
             obs.targetBottomHeight = obs.baseBottomHeight! - gateMove;
           } else if (obs.patternType === 'level20_masterhybrid') {
-            // Level 20: Master Boss Hybrid
-            // Synthesis: Helix 3D rotation, crossflow zipping, and slithering waves
-            const orbital = this.waveTime * 2.5 + actualIdx * 0.6;
+            // Level 20: Master Boss Hybrid — animation 22% slowed (waveTime ×0.78)
+            const orbital = this.waveTime * 1.95 + actualIdx * 0.6; // 2.5×0.78=1.95
             obs.shakeX = Math.sin(orbital) * 20;
             obs.shakeX2 = Math.cos(orbital) * 20;
             const hybridSign = (actualIdx % 2 === 0 ? 1 : -1);
-            const hybridMove = Math.sin(this.waveTime * 2.6 - actualIdx * 0.4) * 16 + (Math.sin(this.waveTime * 3.2) * 8 * hybridSign);
+            const hybridMove = Math.sin(this.waveTime * 2.028 - actualIdx * 0.4) * 16 + (Math.sin(this.waveTime * 2.496) * 8 * hybridSign); // 2.6→2.028, 3.2→2.496
             obs.targetTopHeight = obs.baseTopHeight! + hybridMove;
             obs.targetBottomHeight = obs.baseBottomHeight! - hybridMove;
           } else if (obs.patternType === 'level30_hybridwave') {
@@ -1057,8 +1054,9 @@ export class ObstacleManager {
             obs.targetTopHeight = centerY - obs.gapHeight! / 2;
             obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
           } else if (obs.patternType === 'waterfall_25') {
-            const totalSpan = 240;
-            const offset = ((obs.obstacleIdx! * 45 - this.waveTime * 80) % totalSpan) - totalSpan / 2;
+            // Level 25: Waterfall — difficulty +25% (speed 80→100, span 240→300, offset 45→56)
+            const totalSpan = 300; // 240×1.25=300
+            const offset = ((obs.obstacleIdx! * 56 - this.waveTime * 100) % totalSpan) - totalSpan / 2; // 45→56, 80→100
             const centerY = height / 2 + offset;
             obs.targetTopHeight = centerY - obs.gapHeight! / 2;
             obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
@@ -2008,66 +2006,53 @@ export class ObstacleManager {
             targetTopHeight = (height / 2 - localGapHeight / 2) - 80 + (idx - 4) * 22;
           }
         } else {
-          // Group 3: Symmetrical W-shape (Double V-shape valley profile)
-          localGapHeight = gapHeight - 15;
-          const angle = (idx / 11) * Math.PI * 2;
-          targetTopHeight = (height / 2 - localGapHeight / 2) + Math.cos(angle * 2) * 70;
+          // Group 3: Asymmetric Sloped Ridge Peak (same as Group 2)
+          localGapHeight = gapHeight - 20;
+          if (idx <= 4) {
+            targetTopHeight = (height / 2 - localGapHeight / 2) - 80 + (4 - idx) * 35;
+          } else {
+            targetTopHeight = (height / 2 - localGapHeight / 2) - 80 + (idx - 4) * 22;
+          }
         }
         triggerDistance = 240;
         animDuration = 0.72;
       } else if (patternType === 'level12_doublewave') {
-        // LEVEL 12: "The Pincer Maze" — 3-group challenging corridor
-        // Group 1: Staggered Zigzag Staircase (hard alternating high/low gaps)
-        // Group 2: Converging Pincer Squeeze (both walls close in from opposite sides)
-        // Group 3: Cross-Diagonal Sweep (gap center snakes diagonally top→bottom→top)
+        // LEVEL 12: Cross-diagonal sweep (Group 3 expanded to ALL obstacles)
         hasAsymmetricHeights = true;
-        const p12idx = obstacleIdx % 18;
-        if (p12idx <= 5) {
-          // Group 1: Alternating zigzag staircase — odd pillars push gap high, even push low (shifting reduced 20%)
-          const step = p12idx;
-          const isOdd = (step % 2 === 1);
-          localGapHeight = Math.max(170, gapHeight - 10);
-          const stairShift = isOdd ? -60 : 60; // sharp high/low alternation (75 * 0.80 = 60)
-          targetTopHeight = height / 2 - localGapHeight / 2 + stairShift;
-        } else if (p12idx <= 11) {
-          // Group 2: Pincer squeeze — top wall drops down, bottom wall rises up simultaneously (shifting reduced 20%)
-          const pStep = p12idx - 6; // 0..5
-          const squeeze = Math.sin((pStep / 5) * Math.PI) * 60; // arc: 0→60→0
-          localGapHeight = Math.max(168, gapHeight - squeeze * 0.6);
-          const topBias = squeeze * 0.40; // reduced 20% (0.5 * 0.80 = 0.40)
-          const botBias = squeeze * 0.40; // reduced 20% (0.5 * 0.80 = 0.40)
-          targetTopHeight = height / 2 - localGapHeight / 2 + topBias;
-          const explicitBottom = height / 2 - localGapHeight / 2 + botBias;
-          targetBottomHeight = explicitBottom;
-        } else {
-          // Group 3: Cross-diagonal sweep — center Y sweeps from top-left to bottom-right then back (shifting reduced 20%)
-          const dStep = p12idx - 12; // 0..5
-          localGapHeight = Math.max(168, gapHeight - 5);
-          const sweepArc = Math.sin((dStep / 5) * Math.PI * 2) * 64; // full sine sweep (80 * 0.80 = 64)
-          targetTopHeight = height / 2 - localGapHeight / 2 + sweepArc;
-        }
+        const dStep = obstacleIdx % 6;
+        localGapHeight = Math.max(168, gapHeight - 5);
+        const sweepArc = Math.sin((dStep / 5) * Math.PI * 2) * 52;
+        targetTopHeight = height / 2 - localGapHeight / 2 + sweepArc;
         triggerDistance = 230;
         animDuration = 0.55;
       } else if (patternType === 'level13_scurve') {
-        // LEVEL 13: Helix Spirals (twisting spiral/orbital rotation)
+        // LEVEL 13: Symmetrical W-shape (Level 11 Group 3 — all obstacles)
         hasAsymmetricHeights = true;
-        if (obstacleIdx <= 5) {
-          // Group 1: Helix top height sine progression
+        const idx = obstacleIdx % 12;
+        localGapHeight = gapHeight - 15;
+        const angle = (idx / 11) * Math.PI * 2;
+        targetTopHeight = (height / 2 - localGapHeight / 2) + Math.cos(angle * 2) * 70;
+        triggerDistance = 240;
+        animDuration = 0.72;
+      } else if (patternType === 'level14_zigzag') {
+        // LEVEL 14: "Zigzag Corridor" — path shifting reduced 60% (×0.40)
+        hasAsymmetricHeights = true;
+        const zigStep = obstacleIdx % 12;
+        const isHigh = (zigStep % 2 === 0);
+        if (zigStep <= 5) {
           localGapHeight = gapHeight;
-          targetTopHeight = height / 2 - localGapHeight / 2 + Math.sin(obstacleIdx * (Math.PI / 2.5)) * 60;
-        } else if (obstacleIdx <= 11) {
-          // Group 2: Phase-shifted Helix
+          targetTopHeight = height / 2 - localGapHeight / 2 + (isHigh ? -22 : 22);
+        } else if (zigStep <= 8) {
+          const step = zigStep - 6;
+          const amp = 17 + step * 8;
           localGapHeight = gapHeight;
-          const idx = obstacleIdx - 6;
-          targetTopHeight = height / 2 - localGapHeight / 2 + Math.cos(idx * (Math.PI / 2.5)) * 60;
+          targetTopHeight = height / 2 - localGapHeight / 2 + (isHigh ? -amp : amp);
         } else {
-          // Group 3: Helix Tunnel (expanding helical radius)
-          const idx = obstacleIdx - 12;
-          localGapHeight = gapHeight - 15 + idx * 6;
-          targetTopHeight = height / 2 - localGapHeight / 2 + Math.sin(idx * (Math.PI / 2)) * (30 + idx * 5);
+          localGapHeight = gapHeight - 10;
+          targetTopHeight = height / 2 - localGapHeight / 2 + (isHigh ? -39 : 39);
         }
-        triggerDistance = 205;
-        animDuration = 0.44;
+        triggerDistance = 200;
+        animDuration = 0.38;
       } else if (patternType === 'level14_crossflow') {
         // LEVEL 18 (swapped): "The Wormhole Vortex" — vertical shifts from midline reduced 40% (×0.60), triggerDistance increased for surface alignment
         // Group 1: Spiral Funnel — gap center orbits asymmetrically (cos top, -sin bottom)
@@ -2179,41 +2164,37 @@ export class ObstacleManager {
         // LEVEL 18: Magnetic Slingshots (Proximity magnetic repulsion/attraction)
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
-          // Group 1: Symmetric Magnetic Horns (top and bottom converge)
-          localGapHeight = gapHeight - 35;
-          targetTopHeight = height / 2 - localGapHeight / 2 - Math.sin((obstacleIdx / 5) * Math.PI) * 40;
+          // Group 1: Symmetric Magnetic Horns — shift 60% reduced (40→16)
+          localGapHeight = gapHeight - 20;
+          targetTopHeight = height / 2 - localGapHeight / 2 - Math.sin((obstacleIdx / 5) * Math.PI) * 16;
         } else if (obstacleIdx <= 11) {
-          // Group 2: Repelling Poles (top and bottom diverge)
+          // Group 2: Repelling Poles — gap neutral
           const idx = obstacleIdx - 6;
-          localGapHeight = gapHeight + 35;
+          localGapHeight = gapHeight;
           targetTopHeight = height / 2 - localGapHeight / 2 + Math.sin((idx / 5) * Math.PI) * 40;
         } else {
-          // Group 3: Alternating Pole Pairs
+          // Group 3: Alternating Pole Pairs — gap neutral
           const idx = obstacleIdx - 12;
-          localGapHeight = gapHeight + (idx % 2 === 0 ? -25 : 25);
+          localGapHeight = gapHeight;
           targetTopHeight = height / 2 - localGapHeight / 2;
         }
         triggerDistance = 195;
         animDuration = 0.38;
       } else if (patternType === 'level19_magnetic') {
-        // LEVEL 19: Crossflow Intercepting Gates (Dual-phase zipping barriers)
+        // LEVEL 19: Crossflow Intercepting Gates — path straightened (all offsets zeroed)
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
-          // Group 1: Alternating Upper/Lower Blocks
+          // Group 1: straight center
           localGapHeight = gapHeight - 20;
-          const isTopHeavy = (obstacleIdx % 2 === 0);
-          targetTopHeight = height / 2 - localGapHeight / 2 + (isTopHeavy ? 65 : -65);
+          targetTopHeight = height / 2 - localGapHeight / 2;
         } else if (obstacleIdx <= 11) {
-          // Group 2: Intercepting Wave Gates
-          const idx = obstacleIdx - 6;
-          localGapHeight = gapHeight - 15;
-          const isTopHeavy = (idx % 2 === 1);
-          targetTopHeight = height / 2 - localGapHeight / 2 + (isTopHeavy ? 65 : -65);
+          // Group 2: straight center — gap 10% reduced
+          localGapHeight = Math.round((gapHeight - 15) * 0.90);
+          targetTopHeight = height / 2 - localGapHeight / 2;
         } else {
-          // Group 3: Double Squeezing Gates
-          const idx = obstacleIdx - 12;
-          localGapHeight = gapHeight + 20;
-          targetTopHeight = height / 2 - localGapHeight / 2 + (idx % 3 === 0 ? 55 : idx % 3 === 1 ? -55 : 0);
+          // Group 3: straight center — gap 18% reduced
+          localGapHeight = Math.round((gapHeight + 20) * 0.82);
+          targetTopHeight = height / 2 - localGapHeight / 2;
         }
         triggerDistance = 220;
         animDuration = 0.45;
@@ -2646,7 +2627,10 @@ export class ObstacleManager {
         targetCenterY = height / 2 + offsets[obstacleIdx % offsets.length];
       } else if (patternType === 'waterfall_25') {
         const offsets = [-80, -40, 0, 40, 80, 80, 40, 0, -40, -80];
-        targetCenterY = height / 2 + offsets[obstacleIdx % offsets.length];
+        const rawOffset = offsets[obstacleIdx % offsets.length];
+        // G1 (idx 0-5) and G2 (idx 6-11): vertical offset +20%
+        const offsetScale = (obstacleIdx <= 11) ? 1.20 : 1.0;
+        targetCenterY = height / 2 + rawOffset * offsetScale;
       } else if (patternType === 'elevator_26') {
         targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -70 : 70);
       } else if (patternType === 'sliding_29') {
@@ -2680,9 +2664,9 @@ export class ObstacleManager {
         if (levelNum === 25 && subPattern === 'elevator_26') {
           localGapHeight = Math.round(localGapHeight * 0.92); // 15% increase for Level 25 Group 3 (0.80 * 1.15 = 0.92)
         } else if (levelNum === 25 && subPattern === 'pendulum_28') {
-          localGapHeight = Math.round(localGapHeight * 0.75 * 0.90); // Group 1 reduced 10% (net 0.675)
+          localGapHeight = Math.round(localGapHeight * 0.594); // G1: 0.675×0.88=0.594 (12% reduced)
         } else if (levelNum === 25 && subPattern === 'magnetic_27') {
-          localGapHeight = Math.round(localGapHeight * 0.80 * 0.90); // Group 2 reduced 10% (net 0.72)
+          localGapHeight = Math.round(localGapHeight * 0.6336); // G2: 0.72×0.88=0.6336 (12% reduced)
         } else if (levelNum === 26 && subPattern === 'sliding_29' && actualPatternIdx >= groupSize * 2) {
           localGapHeight = Math.round(localGapHeight * 0.78 * 1.20); // Group 3 (last group) increased by 20% (net 0.936)
         } else if (levelNum === 26 && subPattern === 'sliding_29' && actualPatternIdx < groupSize) {

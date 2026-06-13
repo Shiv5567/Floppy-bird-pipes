@@ -91,8 +91,12 @@ export class Bird {
     
     // Check if playing in Level 2 or Level 13 of level mode (which contains the Level 4 snake/laser layout)
     const engine = (window as any).gameEngine;
-    const isLevel2 = engine && engine.gameMode === 'level' && (engine.currentLevelNum === 2 || engine.currentLevelNum === 13);
-    const jumpReduction = isLevel2 ? 0.78 : 1.0;
+    const isLevelMode = engine && engine.gameMode === 'level';
+    const isLevel2 = isLevelMode && engine.currentLevelNum === 2;
+    const isLevel8 = isLevelMode && engine.currentLevelNum === 8;
+    // Global 20% reduction in level mode for all levels & all characters
+    // Level 2 keeps its own stricter reduction (0.78); Level 8 keeps its boost but still gets the base reduction
+    const jumpReduction = isLevel2 ? 0.78 : isLevel8 ? (0.80 * 1.18) : isLevelMode ? 0.80 : 1.0;
     
     let impulse = this.jumpLift * (1 + levelBonus) * jumpScale * jumpReduction;
     
@@ -133,8 +137,11 @@ export class Bird {
     
     // Check if playing in Level 2 or Level 13 of level mode (which contains the Level 4 snake/laser layout)
     const engine = (window as any).gameEngine;
-    const isLevel2 = engine && engine.gameMode === 'level' && (engine.currentLevelNum === 2 || engine.currentLevelNum === 13);
-    const speedReduction = isLevel2 ? 0.75 : 1.0;
+    const isLevelMode = engine && engine.gameMode === 'level';
+    const isLevel2 = isLevelMode && (engine.currentLevelNum === 2 || engine.currentLevelNum === 13);
+    const isLevel8 = isLevelMode && engine.currentLevelNum === 8;
+    // speedReduction: only Level 2 / Level 8 specific gravity adjustments (gravity unchanged for other levels)
+    const speedReduction = isLevel2 ? 0.75 : isLevel8 ? 1.18 : 1.0;
     
     let currentGravity = this.gravity * speedMultiplier * speedReduction;
     let currentMaxFallSpeed = this.maxFallSpeed * speedMultiplier * speedReduction;
@@ -159,7 +166,8 @@ export class Bird {
     const jumpScale = this.getJumpScale(effectiveScore);
     
     // Scale maximum rise speed dynamically to stay fully synchronized with jump impulse (unreduced for upward speed!)
-    let currentMaxRiseSpeed = this.maxRiseSpeed * jumpScale * (isLevel2 ? 0.78 : 1.0);
+    // maxRiseSpeed: apply same 20% level mode reduction to cap the upward velocity consistently
+    let currentMaxRiseSpeed = this.maxRiseSpeed * jumpScale * (isLevel2 ? 0.78 : isLevel8 ? (0.80 * 1.18) : isLevelMode ? 0.80 : 1.0);
     
     // Scale vertical velocity physics in squad/flock mode:
     // - Scale max rise speed by 15% (1.15) to match the increased jump impulse
