@@ -758,30 +758,32 @@ export class ObstacleManager {
             const obstacleIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
             const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
 
+            // Apply high-amplitude up-down animation globally for Level 26 / Level 36!
+            const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 2.8 + (obs.obstacleIdx! % 2) * Math.PI) * 120;
+
             if (obstacleIdx < groupSize) {
-              // Group 1: Single vortex rotation (increased by 35%)
+              // Group 1: Single vortex rotation (increased by 35%) with up-down animation
               const angle = this.waveTime * 2.43 + obstacleIdx * 0.4;
               obs.shakeX = Math.sin(angle) * 24;
               obs.shakeX2 = Math.cos(angle) * 24;
-              obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2;
+              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else if (obstacleIdx < groupSize * 2) {
-              // Group 2: Double spiral vortex (top/bottom offset) with high-amplitude up-down animation
+              // Group 2: Double spiral vortex with up-down animation
               const angle = this.waveTime * 3.37 + obstacleIdx * 0.5;
               obs.shakeX = Math.sin(angle) * 22.4; // reduced 30% from 32
               obs.shakeX2 = Math.cos(angle + Math.PI / 2) * 22.4; // reduced 30% from 32
-              const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 2.8 + (obs.obstacleIdx! % 2) * Math.PI) * 120; // High amplitude up-down
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else {
-              // Group 3: Black hole squeeze (shrinking vortex) (increased by 35%)
+              // Group 3: Black hole squeeze (shrinking vortex) with up-down animation
               const angle = this.waveTime * 4.32 + obstacleIdx * 0.6;
               obs.shakeX = Math.sin(angle) * 38;
               obs.shakeX2 = Math.cos(angle) * 38;
               const pulse = Math.sin(this.waveTime * 4.05) * 27;
               const breathingGap = obs.gapHeight! - Math.abs(pulse);
-              obs.targetTopHeight = obs.spawnCenterY! - breathingGap / 2;
-              obs.targetBottomHeight = height - obs.spawnCenterY! - breathingGap / 2;
+              obs.targetTopHeight = centerY - breathingGap / 2;
+              obs.targetBottomHeight = height - centerY - breathingGap / 2;
             }
           } else if (obs.patternType === 'level37_elevator') {
             // LEVEL 37: Tectonic Cracks
@@ -1111,7 +1113,7 @@ export class ObstacleManager {
             } else if (levelNum === 25) {
               subPattern = obstacleIdx < groupSize ? 'pendulum_28' : (obstacleIdx < groupSize * 2 ? 'magnetic_27' : 'elevator_26');
             } else if (levelNum === 26) {
-              subPattern = obstacleIdx < groupSize ? 'sliding_29' : (obstacleIdx < groupSize * 2 ? 'wave_10' : 'elevator_26'); // Group 3 changed to elevator_26 updown
+              subPattern = 'elevator_26'; // All groups use high-amplitude elevator_26 updown animation
             } else if (levelNum === 27) {
               subPattern = obstacleIdx < groupSize ? 'moving_stair_15' : (obstacleIdx < groupSize * 2 ? 'rotating_17' : 'dynamic_w_18');
             } else if (levelNum === 28) {
@@ -2307,14 +2309,12 @@ export class ObstacleManager {
         animDuration = 0.42;
       } else if (patternType === 'level36_spiralflow') {
         // LEVEL 36: Wormhole Vortex
+        targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -120 : 120); // High-amplitude up-down spawn for all groups
         if (actualPatternIdx < groupSize) {
-          targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 4.5)) * 40;
           localGapHeight = Math.round(gapHeight * 0.775 * 0.93); // reduced by 7%
         } else if (actualPatternIdx < groupSize * 2) {
-          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -120 : 120); // High-amplitude up-down spawn
           localGapHeight = Math.round(gapHeight * 0.725); // 17% increase (0.62 * 1.17 = 0.7254)
         } else {
-          targetCenterY = height / 2 - 40 + (obstacleIdx - 12) * 15;
           localGapHeight = Math.round(gapHeight * 0.65 * 1.12); // increased by 12%
         }
         triggerDistance = 210;
@@ -2557,7 +2557,7 @@ export class ObstacleManager {
         } else if (levelNum === 25) {
           subPattern = actualPatternIdx < groupSize ? 'pendulum_28' : (actualPatternIdx < groupSize * 2 ? 'magnetic_27' : 'elevator_26'); // Swapped first and last group
         } else if (levelNum === 26) {
-          subPattern = actualPatternIdx < groupSize ? 'sliding_29' : (actualPatternIdx < groupSize * 2 ? 'wave_10' : 'elevator_26'); // Group 3 changed to elevator_26 updown
+          subPattern = 'elevator_26'; // All groups use high-amplitude elevator_26 updown animation
         } else if (levelNum === 27) {
           subPattern = actualPatternIdx < groupSize ? 'moving_stair_15' : (actualPatternIdx < groupSize * 2 ? 'rotating_17' : 'dynamic_w_18');
         } else if (levelNum === 28) {
@@ -2666,10 +2666,12 @@ export class ObstacleManager {
           localGapHeight = Math.round(localGapHeight * 0.594); // G1: 0.675×0.88=0.594 (12% reduced)
         } else if (levelNum === 25 && subPattern === 'magnetic_27') {
           localGapHeight = Math.round(localGapHeight * 0.6336); // G2: 0.72×0.88=0.6336 (12% reduced)
-        } else if (levelNum === 26 && subPattern === 'elevator_26' && actualPatternIdx >= groupSize * 2) {
-          localGapHeight = Math.round(localGapHeight * 0.78 * 1.20); // Group 3 (last group) increased by 20% (net 0.936)
-        } else if (levelNum === 26 && subPattern === 'sliding_29' && actualPatternIdx < groupSize) {
-          localGapHeight = Math.round(localGapHeight * 1.15); // Group 1 increased by 15%
+        } else if (levelNum === 26 && subPattern === 'elevator_26') {
+          if (actualPatternIdx < groupSize) {
+            localGapHeight = Math.round(localGapHeight * 1.15); // Group 1 increased by 15%
+          } else if (actualPatternIdx >= groupSize * 2) {
+            localGapHeight = Math.round(localGapHeight * 0.78 * 1.20); // Group 3 (last group) increased by 20% (net 0.936)
+          }
         } else if (levelNum === 27 && actualPatternIdx < groupSize) {
           localGapHeight = Math.round(localGapHeight * 0.80 * 1.15); // Level 38 Group 1 increased by 15%
         } else if (levelNum === 27 && actualPatternIdx >= groupSize * 2) {
