@@ -11,9 +11,9 @@ export class Bird {
   
   // Physics parameters (Increased vertical velocity by 20% for snappier feel)
   private gravity = 0.432;      // +20% increase (was 0.36)
-  private jumpLift = -6.912;    // +20% increase (was -5.76)
+  private jumpLift = -6.5664;   // Reduced by 5% (was -6.912)
   private maxFallSpeed = 11.88;  // +20% increase (was 9.9)
-  private maxRiseSpeed = -9.18; // +20% increase (was -7.65)
+  private maxRiseSpeed = -8.721; // Reduced by 5% (was -9.18)
   
   // Animation variables
   private flapCycle = 0;
@@ -42,9 +42,9 @@ export class Bird {
   public setDifficulty(difficulty: 'easy' | 'medium' | 'hard') {
     void difficulty; // Enforce constant medium physics for balanced predictability
     this.gravity = 0.432;       // +20% increase (was 0.36)
-    this.jumpLift = -6.912;     // +20% increase (was -5.76)
+    this.jumpLift = -6.5664;    // Reduced by 5% (was -6.912)
     this.maxFallSpeed = 11.88;   // +20% increase (was 9.9)
-    this.maxRiseSpeed = -9.18; // +20% increase (was -7.65)
+    this.maxRiseSpeed = -8.721;  // Reduced by 5% (was -9.18)
   }
 
   public setSkin(skin: Skin) {
