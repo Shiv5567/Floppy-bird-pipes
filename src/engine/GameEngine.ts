@@ -808,10 +808,10 @@ export class GameEngine {
           }
         }
 
-        // Trigger Boss Warning sequence only when all Level Mode obstacles have been passed and cleared from screen
+        // Trigger Level Completion sequence directly once all Level Mode obstacles have been passed and cleared from screen
         if (this.gameMode === 'level' && this.activeLevelConfig && this.score >= this.activeLevelConfig.targetScore) {
           if (this.obstacleManager.getList().length === 0) {
-            this.triggerBossWarning();
+            this.triggerLevelComplete();
           }
         }
 
@@ -835,58 +835,14 @@ export class GameEngine {
 
         if (bossDefeated) {
           // Boss defeated trigger
-
-          // Award gems according to level bracket when boss/monster is defeated
           if (this.gameMode === 'level') {
-            const levelNum = this.currentLevelNum;
-            let bossGems = 2;
-            if (levelNum >= 1 && levelNum <= 10) {
-              bossGems = 2;
-            } else if (levelNum >= 11 && levelNum <= 20) {
-              bossGems = 2;
-            } else if (levelNum >= 21 && levelNum <= 30) {
-              bossGems = 3;
-            } else if (levelNum >= 31 && levelNum <= 40) {
-              bossGems = 3;
-            } else if (levelNum >= 41 && levelNum <= 50) {
-              bossGems = 4;
-            }
-            this.gemsCollectedThisRun += bossGems;
-            this.progressManager.addGems(bossGems);
-          }
-
-          this.progressManager.incrementAchievement('boss_slayer', 1);
-          this.progressManager.updateQuestProgress('slayer', 1);
-          this.soundManager.playLevelUp();
-          this.particleEngine.emitRing(width * 0.7, height * 0.5, '#ffd700', 40);
-
-          if (this.gameMode === 'level' && this.activeLevelConfig) {
-            // Level complete!
-            this.state = 'LEVEL_COMPLETE' as any;
-            this.soundManager.stopMusic();
-            
-            // Stars calculation:
-            // 3 Stars: 0 revives used AND shield not broken
-            // 2 Stars: 0 revives used AND shield broken
-            // 1 Star: 1 or more revives used
-            let stars = 1;
-            if (this.revivesUsedThisRun === 0) {
-              stars = this.shieldBrokenThisRun ? 2 : 3;
-            }
-            
-            this.progressManager.setLevelComplete(this.currentLevelNum, stars);
-            
-            window.dispatchEvent(new CustomEvent('level_complete_state', {
-              detail: {
-                levelNum: this.currentLevelNum,
-                stars: stars,
-                score: this.score,
-                targetScore: this.activeLevelConfig.targetScore,
-                coinsGained: this.coinsCollectedThisRun,
-                gemsGained: this.gemsCollectedThisRun
-              }
-            }));
+            this.triggerLevelComplete();
           } else {
+            this.progressManager.incrementAchievement('boss_slayer', 1);
+            this.progressManager.updateQuestProgress('slayer', 1);
+            this.soundManager.playLevelUp();
+            this.particleEngine.emitRing(width * 0.7, height * 0.5, '#ffd700', 40);
+
             this.state = 'PLAYING';
             this.incrementScore(10); // Massive points
             if (this.gameMode === 'flock') {
@@ -1295,6 +1251,60 @@ export class GameEngine {
     this.state = 'BOSS_WARNING';
     this.bossWarningTimer = 0;
     this.obstacleManager.clear();
+  }
+
+  private triggerLevelComplete() {
+    if (this.gameMode !== 'level' || !this.activeLevelConfig) return;
+
+    // Award gems according to level bracket when level is completed
+    const levelNum = this.currentLevelNum;
+    let bossGems = 2;
+    if (levelNum >= 1 && levelNum <= 10) {
+      bossGems = 2;
+    } else if (levelNum >= 11 && levelNum <= 20) {
+      bossGems = 2;
+    } else if (levelNum >= 21 && levelNum <= 30) {
+      bossGems = 3;
+    } else if (levelNum >= 31 && levelNum <= 40) {
+      bossGems = 3;
+    } else if (levelNum >= 41 && levelNum <= 50) {
+      bossGems = 4;
+    }
+    this.gemsCollectedThisRun += bossGems;
+    this.progressManager.addGems(bossGems);
+
+    // Play chime / sounds and register completion stats
+    this.soundManager.playLevelUp();
+
+    const width = this.renderer.canvas.width / this.renderer.dpr;
+    const height = this.renderer.canvas.height / this.renderer.dpr;
+    this.particleEngine.emitRing(width * 0.7, height * 0.5, '#ffd700', 40);
+
+    // Level complete state
+    this.state = 'LEVEL_COMPLETE' as any;
+    this.soundManager.stopMusic();
+    
+    // Stars calculation:
+    // 3 Stars: 0 revives used AND shield not broken
+    // 2 Stars: 0 revives used AND shield broken
+    // 1 Star: 1 or more revives used
+    let stars = 1;
+    if (this.revivesUsedThisRun === 0) {
+      stars = this.shieldBrokenThisRun ? 2 : 3;
+    }
+    
+    this.progressManager.setLevelComplete(this.currentLevelNum, stars);
+    
+    window.dispatchEvent(new CustomEvent('level_complete_state', {
+      detail: {
+        levelNum: this.currentLevelNum,
+        stars: stars,
+        score: this.score,
+        targetScore: this.activeLevelConfig.targetScore,
+        coinsGained: this.coinsCollectedThisRun,
+        gemsGained: this.gemsCollectedThisRun
+      }
+    }));
   }
 
   // Activate game changing powerup mechanics
