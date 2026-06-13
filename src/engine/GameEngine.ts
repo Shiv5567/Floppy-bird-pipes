@@ -506,6 +506,8 @@ export class GameEngine {
                 speedMultiplier *= (1.0 + over500Factor * 0.05);
               }
             }
+            // Increase speed of squad mode gameplay by 8%
+            speedMultiplier *= 1.08;
           } else {
             if (this.score <= 100) {
               speedMultiplier = 1.08;
