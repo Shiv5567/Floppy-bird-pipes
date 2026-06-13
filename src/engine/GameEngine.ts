@@ -1525,7 +1525,7 @@ export class GameEngine {
       subtext = 'SCREEN-WIDE COIN HARVESTER ACTIVE!';
     } else if (id === 'white_dragon') {
       // Seto Drake: Lunar Sanctuary
-      duration = 5.0;
+      duration = 10.0;
       this.bird.hasShield = true;
       this.bird.isInvincible = true;
       subtext = 'FULL INVINCIBILITY & PROTECTIVE SHIELD!';
@@ -1590,6 +1590,10 @@ export class GameEngine {
     this.scoreMultiplier = 1;
     this.bird.isInvincible = false;
     this.bird.isGhost = false;
+
+    if (!this.activePowerupsList['shield']) {
+      this.bird.hasShield = false;
+    }
 
     // Reset default size multiplier
     let baseSizeMult = 1.0;
