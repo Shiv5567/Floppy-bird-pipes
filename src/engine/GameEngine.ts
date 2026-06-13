@@ -1531,9 +1531,9 @@ export class GameEngine {
       subtext = 'FULL INVINCIBILITY & PROTECTIVE SHIELD!';
     } else if (id === 'kingfisher') {
       // Azure Kingfisher: Temporal Distortion
-      duration = 7.0;
-      this.timeScale = 0.40; // 60% slowmo
-      subtext = 'WORLD TIME DILATED BY 60%!';
+      duration = 10.0;
+      this.timeScale = 0.60; // 40% slowmo
+      subtext = 'WORLD TIME DILATED BY 40%!';
     } else if (id === 'dread_owl') {
       // Great Horned Owl: Ghost Walk
       duration = 5.5;
