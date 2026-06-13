@@ -688,15 +688,19 @@ export class GameEngine {
                 }
                 
                 // 4. Tremor screen shake
-                this.renderer.triggerScreenShake(7, 0.22);
+                if (this.gameMode !== 'level') {
+                  this.renderer.triggerScreenShake(7, 0.22);
+                }
                 
                 // 5. Dispatch custom event for floating HUD texts
-                window.dispatchEvent(new CustomEvent('bird_grazed', {
-                  detail: {
-                    x: this.bird.x,
-                    y: this.bird.y
-                  }
-                }));
+                if (this.gameMode !== 'level') {
+                  window.dispatchEvent(new CustomEvent('bird_grazed', {
+                    detail: {
+                      x: this.bird.x,
+                      y: this.bird.y
+                    }
+                  }));
+                }
               }
             }
           }
@@ -794,7 +798,9 @@ export class GameEngine {
                 // Explode shield wave
                 this.particleEngine.emitRing(this.bird.x, this.bird.y, '#00f3ff', 24);
                 this.soundManager.playShieldDeflect();
-                this.renderer.triggerScreenShake(20, 0.4);
+                if (this.gameMode !== 'level') {
+                  this.renderer.triggerScreenShake(20, 0.4);
+                }
                 
                 // Temporary invincibility safety delay
                 setTimeout(() => {
@@ -1061,7 +1067,9 @@ export class GameEngine {
   private handleCrash() {
     this.bird.isCrashing = true;
     this.soundManager.playExplosion();
-    this.renderer.triggerScreenShake(25, 0.5);
+    if (this.gameMode !== 'level') {
+      this.renderer.triggerScreenShake(25, 0.5);
+    }
 
     // Debris explosion sparks
     this.particleEngine.emitExplosion(this.bird.x, this.bird.y, this.bird.getSkin().glowColor, 35);

@@ -72,6 +72,7 @@ export class UIManager {
     });
 
     window.addEventListener('bird_grazed', (e: any) => {
+      if (this.engine.gameMode === 'level') return;
       // 1. Show floating graze text
       this.showFloatingGrazeText(e.detail.x, e.detail.y);
     });
