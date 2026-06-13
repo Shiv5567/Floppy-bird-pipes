@@ -1516,8 +1516,8 @@ export class GameEngine {
     if (id === 'default') {
       // Sky Sovereign: Micro Glider
       duration = 6.0;
-      this.bird.sizeMultiplier = 0.35;
-      subtext = 'MICRO SIZE & LOW GRAVITY ACTIVE!';
+      this.bird.sizeMultiplier = 0.25;
+      subtext = 'MICRO SIZE ACTIVE!';
     } else if (id === 'neon_crow') {
       // Neon Raven: Cyber Singularity
       duration = 8.0;

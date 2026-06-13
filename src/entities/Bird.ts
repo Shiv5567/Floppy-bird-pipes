@@ -147,11 +147,7 @@ export class Bird {
     let currentMaxFallSpeed = this.maxFallSpeed * speedMultiplier * speedReduction;
     
     // Apply skin-specific passive & active ultimate physics modifications
-    if (this.activeSkin.id === 'default') {
-      if (engine && engine.ultimateActive) {
-        currentGravity *= 0.50; // 50% gravity during Sky Sovereign ultimate!
-      }
-    } else if (this.activeSkin.id === 'jade_lotus') {
+    if (this.activeSkin.id === 'jade_lotus') {
       if (engine && engine.ultimateActive) {
         currentGravity *= 0.0; // 0% gravity during Lotus Hummingbird ultimate!
       }
@@ -222,7 +218,7 @@ export class Bird {
     if (engine && engine.activePowerupsList['mini']) {
       this.sizeMultiplier = 0.55;
     } else if (engine && engine.ultimateActive && this.activeSkin.id === 'default') {
-      this.sizeMultiplier = 0.35; // Ultimate Micro Size!
+      this.sizeMultiplier = 0.25; // Ultimate Micro Size!
     } else if (engine && engine.gameMode === 'flock' && engine.playerBossHP > 0) {
       this.sizeMultiplier = baseSizeMult + engine.playerBossHP * 0.03;
     } else {
