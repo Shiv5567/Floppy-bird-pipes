@@ -766,11 +766,11 @@ export class ObstacleManager {
               obs.targetTopHeight = obs.spawnCenterY! - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - obs.spawnCenterY! - obs.gapHeight! / 2;
             } else if (obstacleIdx < groupSize * 2) {
-              // Group 2: Double spiral vortex (top/bottom offset) (shifting reduced by 30%)
+              // Group 2: Double spiral vortex (top/bottom offset) with high-amplitude up-down animation
               const angle = this.waveTime * 3.37 + obstacleIdx * 0.5;
               obs.shakeX = Math.sin(angle) * 22.4; // reduced 30% from 32
               obs.shakeX2 = Math.cos(angle + Math.PI / 2) * 22.4; // reduced 30% from 32
-              const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 2.02) * 14; // reduced 30% from 20
+              const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 2.8 + (obs.obstacleIdx! % 2) * Math.PI) * 120; // High amplitude up-down
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else {
@@ -1061,7 +1061,7 @@ export class ObstacleManager {
             obs.targetTopHeight = centerY - obs.gapHeight! / 2;
             obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
           } else if (obs.patternType === 'elevator_26') {
-            const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 2.8 + (obs.obstacleIdx! % 2) * Math.PI) * 65;
+            const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 2.8 + (obs.obstacleIdx! % 2) * Math.PI) * 120; // High amplitude up-down
             obs.targetTopHeight = centerY - obs.gapHeight! / 2;
             obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
           } else if (obs.patternType === 'magnetic_27') {
@@ -1111,7 +1111,7 @@ export class ObstacleManager {
             } else if (levelNum === 25) {
               subPattern = obstacleIdx < groupSize ? 'pendulum_28' : (obstacleIdx < groupSize * 2 ? 'magnetic_27' : 'elevator_26');
             } else if (levelNum === 26) {
-              subPattern = obstacleIdx < groupSize ? 'sliding_29' : (obstacleIdx < groupSize * 2 ? 'wave_10' : 'sliding_29');
+              subPattern = obstacleIdx < groupSize ? 'sliding_29' : (obstacleIdx < groupSize * 2 ? 'wave_10' : 'elevator_26'); // Group 3 changed to elevator_26 updown
             } else if (levelNum === 27) {
               subPattern = obstacleIdx < groupSize ? 'moving_stair_15' : (obstacleIdx < groupSize * 2 ? 'rotating_17' : 'dynamic_w_18');
             } else if (levelNum === 28) {
@@ -1182,7 +1182,7 @@ export class ObstacleManager {
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else if (subPattern === 'elevator_26') {
               const elevatorScale = (levelNum === 25) ? 0.56 : 1.0; // Reduced additional 20% for Level 25 (0.70 * 0.80 = 0.56)
-              const shift = Math.sin(this.waveTime * 1.8 + (obs.obstacleIdx! % 2) * Math.PI) * (40 * elevatorScale);
+              const shift = Math.sin(this.waveTime * 1.8 + (obs.obstacleIdx! % 2) * Math.PI) * (120 * elevatorScale); // High amplitude up-down
               const centerY = obs.spawnCenterY! + shift;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
@@ -2174,7 +2174,6 @@ export class ObstacleManager {
           targetTopHeight = height / 2 - localGapHeight / 2 + Math.sin((idx / 5) * Math.PI) * 40;
         } else {
           // Group 3: Alternating Pole Pairs — gap neutral
-          const idx = obstacleIdx - 12;
           localGapHeight = gapHeight;
           targetTopHeight = height / 2 - localGapHeight / 2;
         }
@@ -2312,7 +2311,7 @@ export class ObstacleManager {
           targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 4.5)) * 40;
           localGapHeight = Math.round(gapHeight * 0.775 * 0.93); // reduced by 7%
         } else if (actualPatternIdx < groupSize * 2) {
-          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? 24.5 : -24.5); // shifting/surface alignment offset reduced 30% from 35
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -120 : 120); // High-amplitude up-down spawn
           localGapHeight = Math.round(gapHeight * 0.725); // 17% increase (0.62 * 1.17 = 0.7254)
         } else {
           targetCenterY = height / 2 - 40 + (obstacleIdx - 12) * 15;
@@ -2558,7 +2557,7 @@ export class ObstacleManager {
         } else if (levelNum === 25) {
           subPattern = actualPatternIdx < groupSize ? 'pendulum_28' : (actualPatternIdx < groupSize * 2 ? 'magnetic_27' : 'elevator_26'); // Swapped first and last group
         } else if (levelNum === 26) {
-          subPattern = actualPatternIdx < groupSize ? 'sliding_29' : (actualPatternIdx < groupSize * 2 ? 'wave_10' : 'sliding_29'); // Group 1 restored to sliding_29, removing breathing_12
+          subPattern = actualPatternIdx < groupSize ? 'sliding_29' : (actualPatternIdx < groupSize * 2 ? 'wave_10' : 'elevator_26'); // Group 3 changed to elevator_26 updown
         } else if (levelNum === 27) {
           subPattern = actualPatternIdx < groupSize ? 'moving_stair_15' : (actualPatternIdx < groupSize * 2 ? 'rotating_17' : 'dynamic_w_18');
         } else if (levelNum === 28) {
@@ -2598,7 +2597,7 @@ export class ObstacleManager {
           targetCenterY = height / 2 + offsets[actualPatternIdx % offsets.length];
         } else if (subPattern === 'elevator_26') {
           const elevatorSpawnScale = (levelNum === 25) ? 0.56 : 1.0; // Reduced additional 20% for Level 25 (0.70 * 0.80 = 0.56)
-          targetCenterY = height / 2 + (actualPatternIdx % 2 === 0 ? -70 : 70) * elevatorSpawnScale;
+          targetCenterY = height / 2 + (actualPatternIdx % 2 === 0 ? -120 : 120) * elevatorSpawnScale; // High-amplitude spawn
         } else if (subPattern === 'magnetic_27') {
           targetCenterY = height / 2 + (actualPatternIdx % 4 === 0 ? -40 : 40);
         } else if (subPattern === 'pendulum_28') {
@@ -2632,7 +2631,7 @@ export class ObstacleManager {
         const offsetScale = (obstacleIdx <= 11) ? 1.20 : 1.0;
         targetCenterY = height / 2 + rawOffset * offsetScale;
       } else if (patternType === 'elevator_26') {
-        targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -70 : 70);
+        targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -120 : 120); // High-amplitude spawn
       } else if (patternType === 'sliding_29') {
         const offsets = [-50, 0, 50, 0];
         targetCenterY = height / 2 + offsets[obstacleIdx % offsets.length];
@@ -2667,7 +2666,7 @@ export class ObstacleManager {
           localGapHeight = Math.round(localGapHeight * 0.594); // G1: 0.675×0.88=0.594 (12% reduced)
         } else if (levelNum === 25 && subPattern === 'magnetic_27') {
           localGapHeight = Math.round(localGapHeight * 0.6336); // G2: 0.72×0.88=0.6336 (12% reduced)
-        } else if (levelNum === 26 && subPattern === 'sliding_29' && actualPatternIdx >= groupSize * 2) {
+        } else if (levelNum === 26 && subPattern === 'elevator_26' && actualPatternIdx >= groupSize * 2) {
           localGapHeight = Math.round(localGapHeight * 0.78 * 1.20); // Group 3 (last group) increased by 20% (net 0.936)
         } else if (levelNum === 26 && subPattern === 'sliding_29' && actualPatternIdx < groupSize) {
           localGapHeight = Math.round(localGapHeight * 1.15); // Group 1 increased by 15%
