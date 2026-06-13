@@ -1130,11 +1130,9 @@ export class UIManager {
         return `
           <div class="tab-sheet-title">🏆 SELECT A LEVEL TO START</div>
           <div class="level-select-grid-container">
-            <button class="level-nav-arrow prev-arrow" id="btn-levels-prev" style="opacity: 0; pointer-events: none;">◀</button>
             <div class="level-select-grid">
               ${levelCards}
             </div>
-            <button class="level-nav-arrow next-arrow" id="btn-levels-next" style="opacity: 0; pointer-events: none;">▶</button>
           </div>
         `;
       }
@@ -1417,38 +1415,6 @@ export class UIManager {
       });
     });
 
-    // Levels horizontal scroll arrows and dynamic visibility
-    const levelsGrid = this.container.querySelector('.level-select-grid') as HTMLElement;
-    const btnLevelsPrev = document.getElementById('btn-levels-prev');
-    const btnLevelsNext = document.getElementById('btn-levels-next');
-
-    if (levelsGrid && btnLevelsPrev && btnLevelsNext) {
-      const updateArrows = () => {
-        const scrollLeft = levelsGrid.scrollLeft;
-        const maxScroll = levelsGrid.scrollWidth - levelsGrid.clientWidth;
-
-        btnLevelsPrev.style.opacity = scrollLeft <= 10 ? '0' : '1';
-        btnLevelsPrev.style.pointerEvents = scrollLeft <= 10 ? 'none' : 'auto';
-
-        btnLevelsNext.style.opacity = scrollLeft >= maxScroll - 10 ? '0' : '1';
-        btnLevelsNext.style.pointerEvents = scrollLeft >= maxScroll - 10 ? 'none' : 'auto';
-      };
-
-      levelsGrid.addEventListener('scroll', updateArrows);
-
-      btnLevelsPrev.addEventListener('click', (e) => {
-        e.stopPropagation();
-        levelsGrid.scrollBy({ left: -levelsGrid.clientWidth, behavior: 'smooth' });
-      });
-
-      btnLevelsNext.addEventListener('click', (e) => {
-        e.stopPropagation();
-        levelsGrid.scrollBy({ left: levelsGrid.clientWidth, behavior: 'smooth' });
-      });
-
-      // Run initially after layout settles
-      setTimeout(updateArrows, 100);
-    }
 
     // Photo mode
     bindClick('btn-photo', () => {
