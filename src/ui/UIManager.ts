@@ -1098,10 +1098,8 @@ export class UIManager {
         const starsMap = progress.levelModeStars || {};
 
         const pageSize = 20;
-        const numRows = 5;
-        const numCols = 4;
         const numPages = Math.ceil(allLevels.length / pageSize);
-        const orderedLevels: (typeof allLevels[0] | null)[] = [];
+        let pagesHtml = '';
 
         for (let p = 0; p < numPages; p++) {
           const pageStart = p * pageSize;
@@ -1110,56 +1108,55 @@ export class UIManager {
           while (pageLevels.length < pageSize) {
             pageLevels.push(null as any);
           }
-          
-          for (let i = 0; i < pageSize; i++) {
-            const r = i % numRows;
-            const c = Math.floor(i / numRows);
-            const sourceIndex = r * numCols + c;
-            orderedLevels.push(pageLevels[sourceIndex]);
-          }
-        }
 
-        const levelCards = orderedLevels.map(lvl => {
-          if (!lvl) {
-            return `<div class="level-select-card placeholder" style="opacity: 0; pointer-events: none;"></div>`;
-          }
-          const isLocked = false;
-          const starsCount = starsMap[lvl.levelNum] || 0;
-          
-          let starHtml = '';
-          for (let s = 1; s <= 3; s++) {
-            starHtml += `<span class="level-select-star ${s <= starsCount ? 'filled' : ''}">★</span>`;
-          }
+          const pageCards = pageLevels.map(lvl => {
+            if (!lvl) {
+              return `<div class="level-select-card placeholder" style="opacity: 0; pointer-events: none;"></div>`;
+            }
+            const isLocked = false;
+            const starsCount = starsMap[lvl.levelNum] || 0;
+            
+            let starHtml = '';
+            for (let s = 1; s <= 3; s++) {
+              starHtml += `<span class="level-select-star ${s <= starsCount ? 'filled' : ''}">★</span>`;
+            }
 
-          const worldEmojis: Record<string, string> = {
-            jungle: '🌴', jungle_temple: '🛕', ice: '❄️', cyberpunk: '🏙️', volcano: '🌋'
-          };
-          const emoji = worldEmojis[lvl.worldId] || '🐦';
+            const worldEmojis: Record<string, string> = {
+              jungle: '🌴', jungle_temple: '🛕', ice: '❄️', cyberpunk: '🏙️', volcano: '🌋'
+            };
+            const emoji = worldEmojis[lvl.worldId] || '🐦';
 
-          return `
-            <div class="level-select-card glass-card ${isLocked ? 'locked' : 'unlocked'}" 
-                 data-level-num="${lvl.levelNum}"
-            >
-              ${isLocked 
-                ? `<div class="level-lock-icon">🔒</div>`
-                : `
-                  <div class="level-num-label">${lvl.levelNum}</div>
-                  <div class="level-emoji-label">${emoji}</div>
-                  <div class="level-select-stars">${starHtml}</div>
-                `
-              }
+            return `
+              <div class="level-select-card glass-card ${isLocked ? 'locked' : 'unlocked'}" 
+                   data-level-num="${lvl.levelNum}"
+              >
+                ${isLocked 
+                  ? `<div class="level-lock-icon">🔒</div>`
+                  : `
+                    <div class="level-num-label">${lvl.levelNum}</div>
+                    <div class="level-emoji-label">${emoji}</div>
+                    <div class="level-select-stars">${starHtml}</div>
+                  `
+                }
+              </div>
+            `;
+          }).join('');
+
+          pagesHtml += `
+            <div class="level-select-page">
+              ${pageCards}
             </div>
           `;
-        }).join('');
+        }
 
         return `
           <div class="tab-sheet-title">🏆 SELECT A LEVEL TO START</div>
           <div class="level-select-grid-container">
-            <button class="level-nav-arrow prev-arrow" id="btn-levels-prev" style="opacity: 0; pointer-events: none;">◀</button>
+            <button class="level-nav-arrow prev-arrow" id="btn-levels-prev" style="opacity: 0; pointer-events: none;">▲</button>
             <div class="level-select-grid">
-              ${levelCards}
+              ${pagesHtml}
             </div>
-            <button class="level-nav-arrow next-arrow" id="btn-levels-next" style="opacity: 0; pointer-events: none;">▶</button>
+            <button class="level-nav-arrow next-arrow" id="btn-levels-next" style="opacity: 0; pointer-events: none;">▼</button>
           </div>
         `;
       }
@@ -1441,33 +1438,33 @@ export class UIManager {
         this.render();
       });
     });
-      // Levels horizontal scroll arrows and dynamic visibility
+    // Levels vertical scroll arrows and dynamic visibility
     const levelsGrid = this.container.querySelector('.level-select-grid') as HTMLElement;
     const btnLevelsPrev = document.getElementById('btn-levels-prev');
     const btnLevelsNext = document.getElementById('btn-levels-next');
 
     if (levelsGrid && btnLevelsPrev && btnLevelsNext) {
       const updateArrows = () => {
-        const scrollLeft = levelsGrid.scrollLeft;
-        const maxScroll = levelsGrid.scrollWidth - levelsGrid.clientWidth;
+        const scrollTop = levelsGrid.scrollTop;
+        const maxScroll = levelsGrid.scrollHeight - levelsGrid.clientHeight;
 
-        btnLevelsPrev.style.opacity = scrollLeft <= 10 ? '0' : '1';
-        btnLevelsPrev.style.pointerEvents = scrollLeft <= 10 ? 'none' : 'auto';
+        btnLevelsPrev.style.opacity = scrollTop <= 10 ? '0' : '1';
+        btnLevelsPrev.style.pointerEvents = scrollTop <= 10 ? 'none' : 'auto';
 
-        btnLevelsNext.style.opacity = scrollLeft >= maxScroll - 10 ? '0' : '1';
-        btnLevelsNext.style.pointerEvents = scrollLeft >= maxScroll - 10 ? 'none' : 'auto';
+        btnLevelsNext.style.opacity = scrollTop >= maxScroll - 10 ? '0' : '1';
+        btnLevelsNext.style.pointerEvents = scrollTop >= maxScroll - 10 ? 'none' : 'auto';
       };
 
       levelsGrid.addEventListener('scroll', updateArrows);
 
       btnLevelsPrev.addEventListener('click', (e) => {
         e.stopPropagation();
-        levelsGrid.scrollBy({ left: -levelsGrid.clientWidth, behavior: 'smooth' });
+        levelsGrid.scrollBy({ top: -levelsGrid.clientHeight, behavior: 'smooth' });
       });
 
       btnLevelsNext.addEventListener('click', (e) => {
         e.stopPropagation();
-        levelsGrid.scrollBy({ left: levelsGrid.clientWidth, behavior: 'smooth' });
+        levelsGrid.scrollBy({ top: levelsGrid.clientHeight, behavior: 'smooth' });
       });
 
       // Run initially after layout settles
