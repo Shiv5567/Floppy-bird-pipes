@@ -1861,7 +1861,7 @@ export class ObstacleManager {
         // LEVEL 1: "The Winding Cavern" (Smooth continuous undulating wave path aligned with the surfaces, touching side-by-side)
         hasAsymmetricHeights = false;
         targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.35) * 48;
-        triggerDistance = 675; // Shifted 10% towards the bird (from 750 to 675) to make the splitting animation properly visible on screen
+        triggerDistance = 600; // Shifted 10% further left (from 675 to 600) to make the splitting animation properly visible on screen
         animDuration = 0.50;
       } else if (patternType === 'level2_diamond') {
         // LEVEL 2: "The Wave Gauntlet" (Smooth continuous wave pattern aligned side-by-side)
