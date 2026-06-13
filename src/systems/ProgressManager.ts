@@ -85,7 +85,7 @@ export class ProgressManager {
         upgradeLevel: 1,
         maxUpgrade: 5,
         abilityName: 'Ultimate Micro Glider',
-        abilityDesc: 'Press Ultimate to shrink to 20% size.'
+        abilityDesc: 'Press Ultimate to shrink to 60% size.'
       },
       {
         id: 'neon_crow',
