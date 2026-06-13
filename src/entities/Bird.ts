@@ -218,7 +218,7 @@ export class Bird {
     if (engine && engine.activePowerupsList['mini']) {
       this.sizeMultiplier = 0.55;
     } else if (engine && engine.ultimateActive && this.activeSkin.id === 'default') {
-      this.sizeMultiplier = 0.25; // Ultimate Micro Size!
+      this.sizeMultiplier = 0.20; // Ultimate Micro Size!
     } else if (engine && engine.gameMode === 'flock' && engine.playerBossHP > 0) {
       this.sizeMultiplier = baseSizeMult + engine.playerBossHP * 0.03;
     } else {
