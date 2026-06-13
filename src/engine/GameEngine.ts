@@ -1532,8 +1532,8 @@ export class GameEngine {
     } else if (id === 'kingfisher') {
       // Azure Kingfisher: Temporal Distortion
       duration = 10.0;
-      this.timeScale = 0.60; // 40% slowmo
-      subtext = 'WORLD TIME DILATED BY 40%!';
+      this.timeScale = 0.70; // 30% slowmo
+      subtext = 'WORLD TIME DILATED BY 30%!';
     } else if (id === 'dread_owl') {
       // Great Horned Owl: Ghost Walk
       duration = 5.5;
