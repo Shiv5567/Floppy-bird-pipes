@@ -1509,10 +1509,10 @@ export class ObstacleManager {
                   const phaseSign = (obs.obstacleIdx || 0) % 2 === 0 ? 1 : -1;
                   verticalShift = Math.cos(this.waveTime * 1.8 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 35 * phaseSign * motionAmpMult;
                 } else {
-                  // Double Wave Oscillation (combination of slow overall vertical sway and faster ripple)
-                  const slowSway = Math.sin(this.waveTime * 0.8 * motionSpeedMult) * 22;
-                  const fastRipple = Math.sin(this.waveTime * 2.2 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.6) * 16;
-                  verticalShift = (slowSway + fastRipple) * motionAmpMult;
+                  // Challenging "Tectonic Eruption Ripple" (complex out-of-phase double-wave with fast high-amplitude sways)
+                  const baseWobble = Math.sin(this.waveTime * 2.8 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.7) * 38;
+                  const secondarySpike = Math.cos(this.waveTime * 1.4 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.35) * 18;
+                  verticalShift = (baseWobble + secondarySpike) * motionAmpMult;
                 }
               } else {
                 // Simple up-down (elevator) animation keeping gap constant for other zones

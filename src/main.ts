@@ -135,6 +135,21 @@ function setupInputs() {
         gameEngine.togglePause();
         uiManager.render();
       }
+    } else if (e.code === 'KeyK') {
+      e.preventDefault();
+      if (gameEngine.state === 'PLAYING') {
+        if (gameEngine.score < 100) {
+          gameEngine.score = 105;
+          console.log("Debug: score set to 105");
+        } else if (gameEngine.score < 150) {
+          gameEngine.score = 155;
+          console.log("Debug: score set to 155");
+        } else {
+          gameEngine.score = 0;
+          console.log("Debug: score set to 0");
+        }
+        uiManager.render();
+      }
     }
   });
 }
