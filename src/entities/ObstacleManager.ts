@@ -1502,62 +1502,72 @@ export class ObstacleManager {
             // Electric Gold Split Gate gentle electric bobbing/sway once opened
             verticalShift = Math.sin(this.waveTime * 4.0 + (obs.obstacleIdx || 0) * 0.8) * 8;
           } else if (gameMode !== 'flock' || activeScore >= 100) {
-            if (effectiveScore >= 100 && effectiveScore < 200) {
-              if (zone === 'classic' || gameMode === 'endless') {
-                if (effectiveScore < 150) {
-                  // Cos-based Out-of-Phase Oscillation (adjacent pipes move in opposite directions, keeping gap constant)
-                  const phaseSign = (obs.obstacleIdx || 0) % 2 === 0 ? 1 : -1;
-                  verticalShift = Math.cos(this.waveTime * 1.8 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 35 * phaseSign * motionAmpMult;
-                } else {
-                  // Challenging "Tectonic Eruption Ripple" (complex out-of-phase double-wave with fast high-amplitude sways)
-                  const baseWobble = Math.sin(this.waveTime * 2.8 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.7) * 38;
-                  const secondarySpike = Math.cos(this.waveTime * 1.4 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.35) * 18;
-                  verticalShift = (baseWobble + secondarySpike) * motionAmpMult;
-                }
+            // Apply Progressive Cos-based Out-of-Phase Oscillation for Classic Endless Mode (Score 100 to 500)
+            if ((zone === 'classic' || gameMode === 'endless') && effectiveScore >= 100 && effectiveScore < 500) {
+              const phaseSign = (obs.obstacleIdx || 0) % 2 === 0 ? 1 : -1;
+              if (effectiveScore < 150) {
+                // Cos-based Out-of-Phase Oscillation (Standard: 100-150)
+                verticalShift = Math.cos(this.waveTime * 1.8 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 35 * phaseSign * motionAmpMult;
+              } else if (effectiveScore < 200) {
+                // Cos-based Out-of-Phase Oscillation (Progressive Level 1: 150-200 - Faster & Higher Amplitude)
+                verticalShift = Math.cos(this.waveTime * 2.1 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.6) * 42 * phaseSign * motionAmpMult;
+              } else if (effectiveScore < 300) {
+                // Cos-based Out-of-Phase Oscillation (Progressive Level 2: 200-300 - Dual Wave Harmonic, Out-of-Phase)
+                const primary = Math.cos(this.waveTime * 2.4 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.7) * 38;
+                const secondary = Math.cos(this.waveTime * 1.2 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.35) * 14;
+                verticalShift = (primary + secondary) * phaseSign * motionAmpMult;
               } else {
+                // Cos-based Out-of-Phase Oscillation (Progressive Level 3: 300-500 - Extreme High Frequency Dual Wave Ripple, Out-of-Phase)
+                const primary = Math.cos(this.waveTime * 2.8 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.8) * 48;
+                const secondary = Math.cos(this.waveTime * 1.4 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.4) * 17;
+                verticalShift = (primary + secondary) * phaseSign * motionAmpMult;
+              }
+            } else {
+              // Existing non-classic endless or other ranges logic (remains untouched!)
+              if (effectiveScore >= 100 && effectiveScore < 200) {
                 // Simple up-down (elevator) animation keeping gap constant for other zones
                 const ampIncrease = effectiveScore < 150 ? 1.15 : 1.25; // 15% increase for score 100-150, 25% increase for score 150-200
                 verticalShift = Math.sin(this.waveTime * 1.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.4) * (32 * ampIncrease) * motionAmpMult;
-              }
-            } else if (effectiveScore >= 200 && effectiveScore < 300) {
-              // Added 8% difficulty: increase base amplitude from 50px to 54px
-              verticalShift = Math.sin(this.waveTime * 2.2 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 54 * motionAmpMult;
-            } else if (effectiveScore >= 300) {
-              if (gameMode === 'flock') {
-                // Smooth up-down and zigzag animations with dynamic difficulty scaling (up to 20% increase at score 500, and additional 60% increase from 500 to 1000)
-                const progress = Math.max(0, Math.min(1, (effectiveScore - 300) / 200));
-                let diffScale = 1.0 + progress * 0.20; // 20% difficulty increase at score 500
-                if (effectiveScore >= 500) {
-                  const progress500to1000 = Math.max(0, Math.min(1, (effectiveScore - 500) / 500));
-                  diffScale = 1.20 * (1.0 + progress500to1000 * 0.60); // 60% increase at score 1000, kept constant above 1000
-                }
-                
-                const speed = 2.0 * motionSpeedMult * diffScale;
-                const amp = 50 * motionAmpMult * diffScale;
-                
-                const style = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0) % 2;
-                if (style === 0) {
-                  // Style 0: Smooth up-down animation (keeping gap constant)
-                  verticalShift = Math.sin(this.waveTime * speed + (obs.obstacleIdx || 0) * 0.5) * amp;
+              } else if (effectiveScore >= 200 && effectiveScore < 300) {
+                // Added 8% difficulty: increase base amplitude from 50px to 54px
+                verticalShift = Math.sin(this.waveTime * 2.2 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 54 * motionAmpMult;
+              } else if (effectiveScore >= 300) {
+                if (gameMode === 'flock') {
+                  // Smooth up-down and zigzag animations with dynamic difficulty scaling (up to 20% increase at score 500, and additional 60% increase from 500 to 1000)
+                  const progress = Math.max(0, Math.min(1, (effectiveScore - 300) / 200));
+                  let diffScale = 1.0 + progress * 0.20; // 20% difficulty increase at score 500
+                  if (effectiveScore >= 500) {
+                    const progress500to1000 = Math.max(0, Math.min(1, (effectiveScore - 500) / 500));
+                    diffScale = 1.20 * (1.0 + progress500to1000 * 0.60); // 60% increase at score 1000, kept constant above 1000
+                  }
+                  
+                  const speed = 2.0 * motionSpeedMult * diffScale;
+                  const amp = 50 * motionAmpMult * diffScale;
+                  
+                  const style = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0) % 2;
+                  if (style === 0) {
+                    // Style 0: Smooth up-down animation (keeping gap constant)
+                    verticalShift = Math.sin(this.waveTime * speed + (obs.obstacleIdx || 0) * 0.5) * amp;
+                  } else {
+                    // Style 1: Zigzag animation (opposing vertical directions, keeping gap constant)
+                    const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
+                    verticalShift = Math.sin(this.waveTime * speed) * amp * elevatorDir;
+                  }
+                } else if (effectiveScore < 500) {
+                  // Score 300-500: full high difficulty smooth up-down sways up to 60px
+                  verticalShift = Math.sin(this.waveTime * 2.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 60 * motionAmpMult;
                 } else {
-                  // Style 1: Zigzag animation (opposing vertical directions, keeping gap constant)
-                  const elevatorDir = ((obs.obstacleIdx || 0) % 2 === 0) ? 1 : -1;
-                  verticalShift = Math.sin(this.waveTime * speed) * amp * elevatorDir;
+                  // Score >= 500 for non-flock modes (progressive sways)
+                  let intervals = Math.floor((effectiveScore - 500) / 100);
+                  if (intervals < 0) intervals = 0;
+
+                  // Progressive difficulty: increase amplitude (starting at 1.3x) and frequency (starting at 1.25x)
+                  const amplitudeMultiplier = Math.min(1.8, 1.3 + intervals * 0.10) * motionAmpMult;
+                  const frequencyMultiplier = Math.min(1.5, 1.25 + intervals * 0.05) * motionSpeedMult;
+
+                  // Smooth up-down animation with progressive difficulty
+                  verticalShift = Math.sin(this.waveTime * 2.2 * frequencyMultiplier + (obs.obstacleIdx || 0) * 0.5) * 50 * amplitudeMultiplier;
                 }
-              } else if (effectiveScore < 500) {
-                // Score 300-500: full high difficulty smooth up-down sways up to 60px
-                verticalShift = Math.sin(this.waveTime * 2.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 60 * motionAmpMult;
-              } else {
-                // Score >= 500 for non-flock modes (progressive sways)
-                let intervals = Math.floor((effectiveScore - 500) / 100);
-                if (intervals < 0) intervals = 0;
-
-                // Progressive difficulty: increase amplitude (starting at 1.3x) and frequency (starting at 1.25x)
-                const amplitudeMultiplier = Math.min(1.8, 1.3 + intervals * 0.10) * motionAmpMult;
-                const frequencyMultiplier = Math.min(1.5, 1.25 + intervals * 0.05) * motionSpeedMult;
-
-                // Smooth up-down animation with progressive difficulty
-                verticalShift = Math.sin(this.waveTime * 2.2 * frequencyMultiplier + (obs.obstacleIdx || 0) * 0.5) * 50 * amplitudeMultiplier;
               }
             }
           }

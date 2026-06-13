@@ -140,10 +140,16 @@ function setupInputs() {
       if (gameEngine.state === 'PLAYING') {
         if (gameEngine.score < 100) {
           gameEngine.score = 105;
-          console.log("Debug: score set to 105");
+          console.log("Debug: score set to 105 (Cos-based Out-of-Phase 100-150)");
         } else if (gameEngine.score < 150) {
           gameEngine.score = 155;
-          console.log("Debug: score set to 155");
+          console.log("Debug: score set to 155 (Cos-based Out-of-Phase 150-200)");
+        } else if (gameEngine.score < 200) {
+          gameEngine.score = 220;
+          console.log("Debug: score set to 220 (Cos-based Out-of-Phase 200-300)");
+        } else if (gameEngine.score < 300) {
+          gameEngine.score = 350;
+          console.log("Debug: score set to 350 (Cos-based Out-of-Phase 300-500)");
         } else {
           gameEngine.score = 0;
           console.log("Debug: score set to 0");
