@@ -654,26 +654,27 @@ export class GameEngine {
               // Vertical distance to pipe edge
               const topDist = Math.abs(this.bird.y - topPipeBottom);
               const bottomDist = Math.abs(this.bird.y - bottomPipeTop);
-              
               const grazeThreshold = 42; // generous and premium graze trigger distance
               
               if (topDist <= grazeThreshold || bottomDist <= grazeThreshold) {
                 obs.grazed = true;
                 
                 // 1. Emit ring and star sparkles
-                this.particleEngine.emitRing(this.bird.x, this.bird.y, '#00f3ff', 15);
-                for (let k = 0; k < 10; k++) {
-                  this.particleEngine.spawn(
-                    this.bird.x + (Math.random() - 0.5) * 15,
-                    this.bird.y + (Math.random() - 0.5) * 15,
-                    -1 - Math.random() * 3,
-                    (Math.random() - 0.5) * 4,
-                    '#ffd700',
-                    2.5 + Math.random() * 3,
-                    1.0,
-                    0.025,
-                    'star'
-                  );
+                if (this.gameMode !== 'level') {
+                  this.particleEngine.emitRing(this.bird.x, this.bird.y, '#00f3ff', 15);
+                  for (let k = 0; k < 10; k++) {
+                    this.particleEngine.spawn(
+                      this.bird.x + (Math.random() - 0.5) * 15,
+                      this.bird.y + (Math.random() - 0.5) * 15,
+                      -1 - Math.random() * 3,
+                      (Math.random() - 0.5) * 4,
+                      '#ffd700',
+                      2.5 + Math.random() * 3,
+                      1.0,
+                      0.025,
+                      'star'
+                    );
+                  }
                 }
                 
                 // Play sound
@@ -796,7 +797,9 @@ export class GameEngine {
                 this.bird.isInvincible = true;
                 
                 // Explode shield wave
-                this.particleEngine.emitRing(this.bird.x, this.bird.y, '#00f3ff', 24);
+                if (this.gameMode !== 'level') {
+                  this.particleEngine.emitRing(this.bird.x, this.bird.y, '#00f3ff', 24);
+                }
                 this.soundManager.playShieldDeflect();
                 if (this.gameMode !== 'level') {
                   this.renderer.triggerScreenShake(20, 0.4);
@@ -1072,7 +1075,9 @@ export class GameEngine {
     }
 
     // Debris explosion sparks
-    this.particleEngine.emitExplosion(this.bird.x, this.bird.y, this.bird.getSkin().glowColor, 35);
+    if (this.gameMode !== 'level') {
+      this.particleEngine.emitExplosion(this.bird.x, this.bird.y, this.bird.getSkin().glowColor, 35);
+    }
     
     // Check if player owns an automatic Revive safety feather powerup active
     if (this.activePowerupsList['revive']) {
