@@ -85,8 +85,8 @@ export class Bird {
     if (this.isCrashing) return;
 
     const engine = (window as any).gameEngine;
-    if (engine && (engine.ultimateActive || engine.boosterActive)) {
-      // Keep velocity constant during Ultimate / Booster, disable active jumping
+    if (engine && engine.boosterActive) {
+      // Keep velocity constant during Booster, disable active jumping
       return;
     }
     
@@ -189,7 +189,8 @@ export class Bird {
         if (this.activeSkin.id === 'jade_lotus') {
           this.vy += (0 - this.vy) * 0.12 * dtCoeff; // Smoothly damp vertical movement to hover
         } else {
-          this.vy = this.ultimateStartVy;
+          // Controllable: smoothly return to starting velocity after a jump
+          this.vy += (this.ultimateStartVy - this.vy) * 0.10 * dtCoeff;
         }
       } else {
         this.vy += currentGravity * dtCoeff;

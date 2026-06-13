@@ -1596,6 +1596,9 @@ export class GameEngine {
     this.bird.isInvincible = false;
     this.bird.isGhost = false;
 
+    // Restore starting velocity as final velocity
+    this.bird.vy = this.bird.ultimateStartVy;
+
     if (!this.activePowerupsList['shield']) {
       this.bird.hasShield = false;
     }
