@@ -1097,7 +1097,32 @@ export class UIManager {
         const allLevels = LevelManager.getAllLevels();
         const starsMap = progress.levelModeStars || {};
 
-        const levelCards = allLevels.map(lvl => {
+        const pageSize = 20;
+        const numRows = 5;
+        const numCols = 4;
+        const numPages = Math.ceil(allLevels.length / pageSize);
+        const orderedLevels: (typeof allLevels[0] | null)[] = [];
+
+        for (let p = 0; p < numPages; p++) {
+          const pageStart = p * pageSize;
+          const pageLevels = allLevels.slice(pageStart, pageStart + pageSize);
+          
+          while (pageLevels.length < pageSize) {
+            pageLevels.push(null as any);
+          }
+          
+          for (let i = 0; i < pageSize; i++) {
+            const r = i % numRows;
+            const c = Math.floor(i / numRows);
+            const sourceIndex = r * numCols + c;
+            orderedLevels.push(pageLevels[sourceIndex]);
+          }
+        }
+
+        const levelCards = orderedLevels.map(lvl => {
+          if (!lvl) {
+            return `<div class="level-select-card placeholder" style="opacity: 0; pointer-events: none;"></div>`;
+          }
           const isLocked = false;
           const starsCount = starsMap[lvl.levelNum] || 0;
           
@@ -1130,9 +1155,11 @@ export class UIManager {
         return `
           <div class="tab-sheet-title">🏆 SELECT A LEVEL TO START</div>
           <div class="level-select-grid-container">
+            <button class="level-nav-arrow prev-arrow" id="btn-levels-prev" style="opacity: 0; pointer-events: none;">◀</button>
             <div class="level-select-grid">
               ${levelCards}
             </div>
+            <button class="level-nav-arrow next-arrow" id="btn-levels-next" style="opacity: 0; pointer-events: none;">▶</button>
           </div>
         `;
       }
@@ -1414,6 +1441,38 @@ export class UIManager {
         this.render();
       });
     });
+      // Levels horizontal scroll arrows and dynamic visibility
+    const levelsGrid = this.container.querySelector('.level-select-grid') as HTMLElement;
+    const btnLevelsPrev = document.getElementById('btn-levels-prev');
+    const btnLevelsNext = document.getElementById('btn-levels-next');
+
+    if (levelsGrid && btnLevelsPrev && btnLevelsNext) {
+      const updateArrows = () => {
+        const scrollLeft = levelsGrid.scrollLeft;
+        const maxScroll = levelsGrid.scrollWidth - levelsGrid.clientWidth;
+
+        btnLevelsPrev.style.opacity = scrollLeft <= 10 ? '0' : '1';
+        btnLevelsPrev.style.pointerEvents = scrollLeft <= 10 ? 'none' : 'auto';
+
+        btnLevelsNext.style.opacity = scrollLeft >= maxScroll - 10 ? '0' : '1';
+        btnLevelsNext.style.pointerEvents = scrollLeft >= maxScroll - 10 ? 'none' : 'auto';
+      };
+
+      levelsGrid.addEventListener('scroll', updateArrows);
+
+      btnLevelsPrev.addEventListener('click', (e) => {
+        e.stopPropagation();
+        levelsGrid.scrollBy({ left: -levelsGrid.clientWidth, behavior: 'smooth' });
+      });
+
+      btnLevelsNext.addEventListener('click', (e) => {
+        e.stopPropagation();
+        levelsGrid.scrollBy({ left: levelsGrid.clientWidth, behavior: 'smooth' });
+      });
+
+      // Run initially after layout settles
+      setTimeout(updateArrows, 100);
+    }
 
 
     // Photo mode
