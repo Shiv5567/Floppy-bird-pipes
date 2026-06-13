@@ -34,6 +34,7 @@ export class GameEngine {
   public ultimateEnergy = 0; // 0 to 100
   public ultimateActive = false;
   public ultimateDurationLeft = 0;
+  public ultimateMaxDuration = 6.0;
   
   // High-performance engines references
   public soundManager: SoundManager;
@@ -1567,6 +1568,7 @@ export class GameEngine {
       subtext = 'ZERO GRAVITY HOVER MODE ACTIVE!';
     }
 
+    this.ultimateMaxDuration = duration;
     this.ultimateDurationLeft = duration;
 
     // Dispatch a beautiful custom event to display alerts on the HUD

@@ -363,6 +363,29 @@ export class UIManager {
       this.renderHUD();
     }
 
+    // 5.8. Ultimate Duration Bar In-place updates
+    const isUltActive = this.engine.ultimateActive;
+    const hasUltBar = !!document.querySelector('.ultimate-duration-bar-container');
+    if (isUltActive !== hasUltBar) {
+      this.renderHUD();
+      return;
+    }
+
+    if (isUltActive) {
+      const barContainer = this.container.querySelector('.ultimate-duration-bar-container') as HTMLElement;
+      if (barContainer) {
+        const fill = barContainer.querySelector('.ultimate-duration-bar-fill') as HTMLElement;
+        const text = barContainer.querySelector('.ultimate-duration-bar-text') as HTMLElement;
+        if (fill && text) {
+          const pct = Math.max(0, Math.min(100, (this.engine.ultimateDurationLeft / this.engine.ultimateMaxDuration) * 100));
+          fill.style.width = `${pct}%`;
+          
+          const activeSkin = this.engine.bird.getSkin();
+          text.innerText = `${activeSkin.name} Active: ${this.engine.ultimateDurationLeft.toFixed(1)}s`;
+        }
+      }
+    }
+
     // 6. Booster System HUD Overlay In-place updates
     const isBoosterActive = this.engine.boosterActive;
     const hasBoosterOverlay = !!document.querySelector('.hud-booster-overlay');
@@ -1771,11 +1794,26 @@ export class UIManager {
       `;
     }
 
+    // Ultimate Duration Bar
+    let ultDurationBarHTML = '';
+    if (this.engine.ultimateActive) {
+      const activeSkin = this.engine.bird.getSkin();
+      const pct = Math.max(0, Math.min(100, (this.engine.ultimateDurationLeft / this.engine.ultimateMaxDuration) * 100));
+      const skinGlow = activeSkin.glowColor || '#00f3ff';
+      ultDurationBarHTML = `
+        <div class="ultimate-duration-bar-container fade-in" style="border-color: ${skinGlow}88; box-shadow: 0 0 15px ${skinGlow}33;">
+          <div class="ultimate-duration-bar-fill" style="width: ${pct}%; background: linear-gradient(90deg, ${skinGlow}, #ffffff); box-shadow: 0 0 10px ${skinGlow};"></div>
+          <span class="ultimate-duration-bar-text" style="text-shadow: 0 0 4px rgba(0,0,0,0.8), 0 0 8px ${skinGlow};">${activeSkin.name} Active: ${this.engine.ultimateDurationLeft.toFixed(1)}s</span>
+        </div>
+      `;
+    }
+
     const hudHTML = `
       <div class="hud fade-in">
         ${boosterOverlayHTML}
         ${rescueEvolutionHTML}
         ${playerHPBarHTML}
+        ${ultDurationBarHTML}
         <div class="hud-top">
           <!-- Coins & Gems (Left side) -->
           <div class="run-stats" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; font-weight: 800; font-size: 13px; pointer-events: auto;">
