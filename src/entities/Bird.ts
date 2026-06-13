@@ -85,8 +85,8 @@ export class Bird {
     if (this.isCrashing) return;
 
     const engine = (window as any).gameEngine;
-    if (engine && engine.ultimateActive) {
-      // Keep velocity constant during Ultimate, disable active jumping
+    if (engine && (engine.ultimateActive || engine.boosterActive)) {
+      // Keep velocity constant during Ultimate / Booster, disable active jumping
       return;
     }
     

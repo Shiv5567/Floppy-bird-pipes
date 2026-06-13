@@ -557,6 +557,10 @@ export class GameEngine {
         
         // Suppress collisions and enforce invincibility
         this.bird.isInvincible = true;
+        
+        // Smoothly pull bird to the vertical center of the screen
+        this.bird.y += (height / 2 - this.bird.y) * 0.25 * (dt * 60);
+        this.bird.vy = 0;
 
         if (this.boosterTimer <= 0) {
           // Enter deactivation cooldown phase
