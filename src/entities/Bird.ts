@@ -102,9 +102,11 @@ export class Bird {
     }
     
     // Scale velocity impulse in squad/flock mode:
+    // - Increase by 15% (1.15) for squad/flock mode
     // - Score >= 500: increase by 8% (1.08)
     // - Score >= 50: increase by 7% (1.07) (covers score 50 to 500, including 300 to 500)
     if (engine && engine.gameMode === 'flock') {
+      impulse *= 1.15;
       if (score >= 500) {
         impulse *= 1.08;
       } else if (score >= 50) {
@@ -160,9 +162,11 @@ export class Bird {
     let currentMaxRiseSpeed = this.maxRiseSpeed * jumpScale * (isLevel2 ? 0.78 : 1.0);
     
     // Scale vertical velocity physics in squad/flock mode:
+    // - Scale max rise speed by 15% (1.15) to match the increased jump impulse
     // - Score >= 500: scale max rise speed by 8% (1.08), gravity and fall speed by 7% (1.07)
     // - Score >= 50: scale max rise speed, gravity, and fall speed by 7% (1.07)
     if (engine && engine.gameMode === 'flock') {
+      currentMaxRiseSpeed *= 1.15;
       if (score >= 50) {
         currentGravity *= 1.07;
         currentMaxFallSpeed *= 1.07;
