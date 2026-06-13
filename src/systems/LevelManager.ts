@@ -285,7 +285,7 @@ export class LevelManager {
     // Reduce Level 2 path gap by 30%; Reduce Level 3 path gap by 20% and set total obstacles to 150; Reduce Level 4 path gap by 30%
     const lvl2 = this.levels.find(l => l.levelNum === 2);
     if (lvl2) {
-      lvl2.gapHeight = Math.round(lvl2.gapHeight * 0.70);
+      lvl2.gapHeight = Math.round(lvl2.gapHeight * 0.84); // Increased by 20% (0.70 * 1.20 = 0.84)
     }
     const lvl3 = this.levels.find(l => l.levelNum === 3);
     if (lvl3) {
