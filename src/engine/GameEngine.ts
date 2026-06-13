@@ -218,16 +218,7 @@ export class GameEngine {
     this.dreadFalconTurboTimer = 22;
     this.angryBirdDemolitionTimer = 0;
 
-    // Apply shield passive for Seto Drake (white_dragon) and Legendary Eagle King at start
-    const startSkinId = currentSkin.id;
-    if (startSkinId === 'white_dragon' || startSkinId === 'legendary_eagle_king') {
-      this.bird.hasShield = true;
-      this.activePowerupsList['shield'] = {
-        type: 'shield',
-        durationLeft: 99999,
-        maxDuration: 99999
-      };
-    }
+    // Starting shield passive removed - all control from Ultimate button only
 
     if (this.gameMode === 'flock') {
       const width = this.renderer.canvas.width / this.renderer.dpr;
@@ -449,6 +440,8 @@ export class GameEngine {
         if (this.gameMode === 'level' && this.activeLevelConfig) {
           if (this.ultimateActive && this.bird.getSkin().id === 'dread_falcon') {
             this.scrollSpeed = this.activeLevelConfig.scrollSpeed * 2.8;
+          } else if (this.ultimateActive && this.bird.getSkin().id === 'articuno') {
+            this.scrollSpeed = this.activeLevelConfig.scrollSpeed * 0.4;
           } else if (this.activePowerupsList['turbo']) {
             this.scrollSpeed = this.activeLevelConfig.scrollSpeed * 2.3;
           } else {
@@ -532,6 +525,8 @@ export class GameEngine {
 
           if (this.ultimateActive && this.bird.getSkin().id === 'dread_falcon') {
             this.scrollSpeed = this.baseScrollSpeed * 2.8;
+          } else if (this.ultimateActive && this.bird.getSkin().id === 'articuno') {
+            this.scrollSpeed = this.baseScrollSpeed * 0.4;
           } else if (this.activePowerupsList['turbo']) {
             this.scrollSpeed = this.baseScrollSpeed * 2.3;
           } else {
@@ -552,10 +547,7 @@ export class GameEngine {
           }
         }
         
-        // Ice Phoenix passive Blizzard Chill 20% slow-down
-        if (this.bird.getSkin().id === 'articuno') {
-          this.scrollSpeed *= 0.80;
-        }
+        // Ice Phoenix passive Blizzard Chill 20% slow-down removed
       }
 
       // Booster overrides scroll speed and active effects
@@ -1242,8 +1234,8 @@ export class GameEngine {
 
   private incrementScore(amt = 1) {
     let multiplier = this.scoreMultiplier;
-    if (this.bird.getSkin().id === 'legendary_eagle_king') {
-      multiplier *= 2; // Legendary Eagle King gets 2x score passively!
+    if (this.bird.getSkin().id === 'legendary_eagle_king' && this.ultimateActive) {
+      multiplier *= 2; // Legendary Eagle King gets 2x score only when ultimate is active!
     }
     this.score += amt * multiplier;
     this.progressManager.incrementAchievement('first_flight', this.score);
@@ -1375,8 +1367,8 @@ export class GameEngine {
       } else if (this.score >= 500) {
         coinVal = 3;
       }
-      if (this.bird.getSkin().id === 'legendary_eagle_king') {
-        coinVal *= 2; // Legendary Eagle King gets 2x coins passively!
+      if (this.bird.getSkin().id === 'legendary_eagle_king' && this.ultimateActive) {
+        coinVal *= 2; // Legendary Eagle King gets 2x coins only when ultimate is active!
       }
       this.coinsCollectedThisRun += coinVal;
       this.progressManager.addCoins(coinVal);
@@ -1390,8 +1382,8 @@ export class GameEngine {
 
     if (type === 'gem') {
       let gemVal = 1;
-      if (this.bird.getSkin().id === 'legendary_eagle_king') {
-        gemVal *= 2; // Legendary Eagle King gets 2x gems passively!
+      if (this.bird.getSkin().id === 'legendary_eagle_king' && this.ultimateActive) {
+        gemVal *= 2; // Legendary Eagle King gets 2x gems only when ultimate is active!
       }
       this.gemsCollectedThisRun += gemVal;
       this.progressManager.addGems(gemVal);
@@ -1597,11 +1589,8 @@ export class GameEngine {
     this.bird.isInvincible = false;
     this.bird.isGhost = false;
 
-    // Reset default size multiplier (since Sky Sovereign might need 0.8)
+    // Reset default size multiplier
     let baseSizeMult = 1.0;
-    if (this.bird.getSkin().id === 'default') {
-      baseSizeMult = 0.80;
-    }
     this.bird.sizeMultiplier = baseSizeMult;
 
     window.dispatchEvent(new CustomEvent('hud_alert', { 

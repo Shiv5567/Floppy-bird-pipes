@@ -101,7 +101,7 @@ export class Bird {
     let impulse = this.jumpLift * (1 + levelBonus) * jumpScale * jumpReduction;
     
     // Lotus Hummingbird extra wing lift
-    if (this.activeSkin.id === 'jade_lotus') {
+    if (this.activeSkin.id === 'jade_lotus' && engine && engine.ultimateActive) {
       impulse *= 1.08;
     }
     
@@ -150,15 +150,10 @@ export class Bird {
     if (this.activeSkin.id === 'default') {
       if (engine && engine.ultimateActive) {
         currentGravity *= 0.50; // 50% gravity during Sky Sovereign ultimate!
-      } else {
-        currentGravity *= 0.85; // Sky Sovereign falls 15% slower
       }
     } else if (this.activeSkin.id === 'jade_lotus') {
       if (engine && engine.ultimateActive) {
         currentGravity *= 0.0; // 0% gravity during Lotus Hummingbird ultimate!
-      } else {
-        currentGravity *= 0.70; // Lotus Hummingbird falls 30% slower
-        currentMaxFallSpeed *= 0.75;
       }
     }
     
@@ -223,9 +218,6 @@ export class Bird {
 
     // Size scaling - Apply skin passive & active ultimate size overrides
     let baseSizeMult = 1.0;
-    if (this.activeSkin.id === 'default') {
-      baseSizeMult = 0.80; // Sky Sovereign is 20% smaller
-    }
 
     if (engine && engine.activePowerupsList['mini']) {
       this.sizeMultiplier = 0.55;

@@ -245,7 +245,7 @@ export class PowerupManager {
       const isUltimateActive = gameEngine && gameEngine.ultimateActive;
       
       const isAttracted = hasMagnet || 
-                          (isNeonCrow && (item.type === 'coin' || item.type === 'gem')) ||
+                          (isNeonCrow && isUltimateActive && (item.type === 'coin' || item.type === 'gem')) ||
                           (isEagleKing && isUltimateActive && (item.type === 'coin' || item.type === 'gem'));
 
       let activeRange = 160;
@@ -422,10 +422,24 @@ export class PowerupManager {
         const obsIdx = unrewardedObstacle.obstacleIdx !== undefined ? unrewardedObstacle.obstacleIdx : 0;
         const gameEngine = (window as any).gameEngine;
         const targetScore = gameEngine?.activeLevelConfig?.targetScore || 150;
+        
+        // Permanent Level 35 custom powerup spawns: 2 shields in Group 2 (magnetic_27)
+        const levelNumPlayable = gameEngine?.activeLevelConfig?.levelNum;
+        let hasCustomSpawn = false;
+        if (levelNumPlayable === 35) {
+          const groupSize = Math.floor(targetScore / 3);
+          const startIdx = groupSize;
+          const midIdx = groupSize + Math.floor(groupSize / 2);
+          if (obsIdx === startIdx || obsIdx === midIdx) {
+            this.spawnItem('shield', width, height, targetX, gapCenterY, unrewardedObstacle, 0);
+            hasCustomSpawn = true;
+          }
+        }
+
         const plan = this.getLevelSpawnPlan(targetScore);
         const planItem = plan.find(item => item.index === obsIdx);
 
-        if (planItem) {
+        if (planItem && !hasCustomSpawn) {
           // Spawn exactly in the center of the gap (targetX, gapCenterY)
           this.spawnItem(planItem.type, width, height, targetX, gapCenterY);
         }

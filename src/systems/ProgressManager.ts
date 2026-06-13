@@ -84,8 +84,8 @@ export class ProgressManager {
         unlocked: true,
         upgradeLevel: 1,
         maxUpgrade: 5,
-        abilityName: 'Tiny Glider',
-        abilityDesc: 'Body size is 20% smaller and falls 15% slower.'
+        abilityName: 'Ultimate Micro Glider',
+        abilityDesc: 'Press Ultimate to shrink to 35% size and fall 50% slower.'
       },
       {
         id: 'neon_crow',
@@ -98,8 +98,8 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5,
-        abilityName: 'Cyber Magnet',
-        abilityDesc: 'Passively attracts nearby coins and gems within 160px.'
+        abilityName: 'Ultimate Cyber Magnet',
+        abilityDesc: 'Press Ultimate to attract coins and gems screen-wide.'
       },
       {
         id: 'white_dragon',
@@ -112,8 +112,8 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5,
-        abilityName: 'Lunar Shield',
-        abilityDesc: 'Starts with a shield. Regenerates a new shield every 35s.'
+        abilityName: 'Ultimate Lunar Sanctuary',
+        abilityDesc: 'Press Ultimate for full invincibility and a protective shield.'
       },
       {
         id: 'kingfisher',
@@ -126,8 +126,8 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5,
-        abilityName: 'Temporal Focus',
-        abilityDesc: 'Slows down time by 30% when approaching obstacles.'
+        abilityName: 'Ultimate Temporal Focus',
+        abilityDesc: 'Press Ultimate to slow down game time by 60%.'
       },
       {
         id: 'dread_owl',
@@ -140,8 +140,8 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5,
-        abilityName: 'Ghost Phasing',
-        abilityDesc: 'Automatically becomes a ghost for 3.5s every 18s.'
+        abilityName: 'Ultimate Ghost Phasing',
+        abilityDesc: 'Press Ultimate to become a ghost and pass through solid pipes.'
       },
 
       {
@@ -155,8 +155,8 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5,
-        abilityName: 'Sonic Boost',
-        abilityDesc: 'Automatically triggers a 2.5s hyper booster every 22s.'
+        abilityName: 'Ultimate Sonic Boost',
+        abilityDesc: 'Press Ultimate to trigger a supersonic speed blast and invincibility.'
       },
       {
         id: 'legendary_eagle_king',
@@ -169,8 +169,8 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5,
-        abilityName: 'Gilded Fortune',
-        abilityDesc: 'Starts with a shield. Passively gains 2x score and coin values.'
+        abilityName: 'Ultimate Gilded Fortune',
+        abilityDesc: 'Press Ultimate for a shield, 3x score/coins, and a coin magnet.'
       },
       {
         id: 'angry_red',
@@ -183,8 +183,8 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5,
-        abilityName: 'Furious Smash',
-        abilityDesc: 'Can crash and demolish 1 obstacle every 20s.'
+        abilityName: 'Ultimate Furious Smash',
+        abilityDesc: 'Press Ultimate to become invincible and demolish all obstacles on touch.'
       },
       {
         id: 'articuno',
@@ -197,8 +197,8 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5,
-        abilityName: 'Blizzard Chill',
-        abilityDesc: 'Passively freezes and slows down game speed by 20% globally.'
+        abilityName: 'Ultimate Blizzard Chill',
+        abilityDesc: 'Press Ultimate to freeze and slow down world scroll speed by 60%.'
       },
       {
         id: 'jade_lotus',
@@ -211,8 +211,8 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5,
-        abilityName: 'Blossom Hover',
-        abilityDesc: 'Hummingbird wings decrease gravity by 30% and boost lift by 8%.'
+        abilityName: 'Ultimate Blossom Hover',
+        abilityDesc: 'Press Ultimate to activate a protective shield and zero-gravity hover.'
       },
 
     ];

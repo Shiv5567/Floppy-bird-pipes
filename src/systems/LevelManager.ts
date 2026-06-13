@@ -253,7 +253,8 @@ export class LevelManager {
       [45, 48],
       [46, 50],
       [45, 47],
-      [8, 18]
+      [8, 18],
+      [26, 29]
     ];
     for (const [a, b] of swapPairs) {
       const idxA = this.levels.findIndex(l => l.levelNum === a);
@@ -409,7 +410,10 @@ export class LevelManager {
       lvl47.gapHeight = Math.round(lvl47.gapHeight * 1.12);
     }
 
-
+    // Add 45 extra obstacles/pillars to every single level (1 to 50)
+    for (const lvl of this.levels) {
+      lvl.targetScore += 45;
+    }
   }
 
   public static getLevel(levelNum: number): LevelConfig | undefined {
