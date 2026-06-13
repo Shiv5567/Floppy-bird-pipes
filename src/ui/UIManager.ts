@@ -1153,11 +1153,9 @@ export class UIManager {
         return `
           <div class="tab-sheet-title">🏆 SELECT A LEVEL TO START</div>
           <div class="level-select-grid-container">
-            <button class="level-nav-arrow prev-arrow" id="btn-levels-prev" style="opacity: 0; pointer-events: none;">▲</button>
             <div class="level-select-grid">
               ${pagesHtml}
             </div>
-            <button class="level-nav-arrow next-arrow" id="btn-levels-next" style="opacity: 0; pointer-events: none;">▼</button>
           </div>
         `;
       }
@@ -1439,38 +1437,7 @@ export class UIManager {
         this.render();
       });
     });
-    // Levels vertical scroll arrows and dynamic visibility
-    const levelsGrid = this.container.querySelector('.level-select-grid') as HTMLElement;
-    const btnLevelsPrev = document.getElementById('btn-levels-prev');
-    const btnLevelsNext = document.getElementById('btn-levels-next');
-
-    if (levelsGrid && btnLevelsPrev && btnLevelsNext) {
-      const updateArrows = () => {
-        const scrollTop = levelsGrid.scrollTop;
-        const maxScroll = levelsGrid.scrollHeight - levelsGrid.clientHeight;
-
-        btnLevelsPrev.style.opacity = scrollTop <= 10 ? '0' : '1';
-        btnLevelsPrev.style.pointerEvents = scrollTop <= 10 ? 'none' : 'auto';
-
-        btnLevelsNext.style.opacity = scrollTop >= maxScroll - 10 ? '0' : '1';
-        btnLevelsNext.style.pointerEvents = scrollTop >= maxScroll - 10 ? 'none' : 'auto';
-      };
-
-      levelsGrid.addEventListener('scroll', updateArrows);
-
-      btnLevelsPrev.addEventListener('click', (e) => {
-        e.stopPropagation();
-        levelsGrid.scrollBy({ top: -levelsGrid.clientHeight, behavior: 'smooth' });
-      });
-
-      btnLevelsNext.addEventListener('click', (e) => {
-        e.stopPropagation();
-        levelsGrid.scrollBy({ top: levelsGrid.clientHeight, behavior: 'smooth' });
-      });
-
-      // Run initially after layout settles
-      setTimeout(updateArrows, 100);
-    }
+    // Levels vertical scroll arrows and dynamic visibility are removed as per request
 
 
     // Photo mode
