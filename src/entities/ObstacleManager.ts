@@ -759,7 +759,7 @@ export class ObstacleManager {
             const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
 
             // Apply high-amplitude up-down animation globally for Level 26 / Level 36!
-            const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 2.8 + (obs.obstacleIdx! % 2) * Math.PI) * 100;
+            const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 2.8 + (obs.obstacleIdx! % 2) * Math.PI) * 30;
 
             if (obstacleIdx < groupSize) {
               // Group 1: Single vortex rotation (increased by 35%) with up-down animation
@@ -1063,7 +1063,7 @@ export class ObstacleManager {
             obs.targetTopHeight = centerY - obs.gapHeight! / 2;
             obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
           } else if (obs.patternType === 'elevator_26') {
-            const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 2.8 + (obs.obstacleIdx! % 2) * Math.PI) * 100; // High amplitude up-down
+            const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 2.8 + (obs.obstacleIdx! % 2) * Math.PI) * 30; // High amplitude up-down
             obs.targetTopHeight = centerY - obs.gapHeight! / 2;
             obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
           } else if (obs.patternType === 'magnetic_27') {
@@ -1184,7 +1184,7 @@ export class ObstacleManager {
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else if (subPattern === 'elevator_26') {
               const elevatorScale = (levelNum === 25) ? 0.56 : 1.0; // Reduced additional 20% for Level 25 (0.70 * 0.80 = 0.56)
-              const shift = Math.sin(this.waveTime * 1.8 + (obs.obstacleIdx! % 2) * Math.PI) * (100 * elevatorScale); // High amplitude up-down
+              const shift = Math.sin(this.waveTime * 1.8 + (obs.obstacleIdx! % 2) * Math.PI) * (30 * elevatorScale); // High amplitude up-down
               const centerY = obs.spawnCenterY! + shift;
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
@@ -2309,7 +2309,7 @@ export class ObstacleManager {
         animDuration = 0.42;
       } else if (patternType === 'level36_spiralflow') {
         // LEVEL 36: Wormhole Vortex
-        targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -100 : 100); // High-amplitude up-down spawn for all groups
+        targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -30 : 30); // High-amplitude up-down spawn for all groups
         if (actualPatternIdx < groupSize) {
           localGapHeight = Math.round(gapHeight * 0.775 * 0.93); // reduced by 7%
         } else if (actualPatternIdx < groupSize * 2) {
@@ -2597,7 +2597,7 @@ export class ObstacleManager {
           targetCenterY = height / 2 + offsets[actualPatternIdx % offsets.length];
         } else if (subPattern === 'elevator_26') {
           const elevatorSpawnScale = (levelNum === 25) ? 0.56 : 1.0; // Reduced additional 20% for Level 25 (0.70 * 0.80 = 0.56)
-          targetCenterY = height / 2 + (actualPatternIdx % 2 === 0 ? -100 : 100) * elevatorSpawnScale; // High-amplitude spawn
+          targetCenterY = height / 2 + (actualPatternIdx % 2 === 0 ? -30 : 30) * elevatorSpawnScale; // High-amplitude spawn
         } else if (subPattern === 'magnetic_27') {
           targetCenterY = height / 2 + (actualPatternIdx % 4 === 0 ? -40 : 40);
         } else if (subPattern === 'pendulum_28') {
@@ -2631,7 +2631,7 @@ export class ObstacleManager {
         const offsetScale = (obstacleIdx <= 11) ? 1.20 : 1.0;
         targetCenterY = height / 2 + rawOffset * offsetScale;
       } else if (patternType === 'elevator_26') {
-        targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -100 : 100); // High-amplitude spawn
+        targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -30 : 30); // High-amplitude spawn
       } else if (patternType === 'sliding_29') {
         const offsets = [-50, 0, 50, 0];
         targetCenterY = height / 2 + offsets[obstacleIdx % offsets.length];
