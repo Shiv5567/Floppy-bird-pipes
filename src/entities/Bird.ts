@@ -109,17 +109,7 @@ export class Bird {
     
     
     // Scale velocity impulse in squad/flock mode:
-    // - Increase by 15% (1.15) for squad/flock mode
-    // - Score >= 500: increase by 8% (1.08)
-    // - Score >= 50: increase by 7% (1.07) (covers score 50 to 500, including 300 to 500)
-    if (engine && engine.gameMode === 'flock') {
-      impulse *= 1.15;
-      if (score >= 500) {
-        impulse *= 1.08;
-      } else if (score >= 50) {
-        impulse *= 1.07;
-      }
-    }
+    // Disabled to keep upward flying/jump per tap velocity exactly like classic endless mode
     
     // Instant, sharp, predictable and completely constant jump:
     // Instantly set vertical velocity to the jump impulse to give an immediate constant response on every tap.
@@ -158,19 +148,12 @@ export class Bird {
     let currentMaxRiseSpeed = this.maxRiseSpeed * jumpScale * (isLevel2 ? 0.78 : isLevel8 ? (0.80 * 1.18) : isLevelMode ? 0.80 : 1.0);
     
     // Scale vertical velocity physics in squad/flock mode:
-    // - Scale max rise speed by 15% (1.15) to match the increased jump impulse
-    // - Score >= 500: scale max rise speed by 8% (1.08), gravity and fall speed by 7% (1.07)
-    // - Score >= 50: scale max rise speed, gravity, and fall speed by 7% (1.07)
+    // - Gravity and fall speed scaled by 7% (1.07) for score >= 50
+    // - Max rise speed scaling disabled to keep upward flying/jump per tap velocity exactly like classic endless mode
     if (engine && engine.gameMode === 'flock') {
-      currentMaxRiseSpeed *= 1.15;
       if (score >= 50) {
         currentGravity *= 1.07;
         currentMaxFallSpeed *= 1.07;
-      }
-      if (score >= 500) {
-        currentMaxRiseSpeed *= 1.08;
-      } else if (score >= 50) {
-        currentMaxRiseSpeed *= 1.07;
       }
     }
     
