@@ -1566,7 +1566,7 @@ export class GameEngine {
       this.falconScoreAccumulator = 0.0;
     } else if (id === 'legendary_eagle_king') {
       // Legendary Eagle King: Aurum Gilded Age
-      duration = 7.0;
+      duration = 12.0;
       this.bird.hasShield = true;
       this.scoreMultiplier = 3;
       subtext = '3X SCORE & COINS + COIN MAGNET!';
