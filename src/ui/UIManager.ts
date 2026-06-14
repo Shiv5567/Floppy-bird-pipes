@@ -859,7 +859,7 @@ export class UIManager {
               </div>
               <div class="grid-card-name">${s.name}</div>
               <button class="btn-skin-info" data-skin-info="${s.id}"
-                style="background:rgba(195, 175, 214, 0.15);border:1px solid rgba(168,85,247,0.5);color:#a855f7;font-size:8px;font-weight:800;padding:3px 10px;border-radius:8px;cursor:pointer;letter-spacing:0.5px;margin-top:4px;font-family:inherit;"
+                style="background:rgba(230, 200, 255, 0.15);border:1px solid rgba(230, 200, 255, 0.5);color:rgba(230, 200, 255, 0.8);font-size:8px;font-weight:800;padding:3px 10px;border-radius:8px;cursor:pointer;letter-spacing:0.5px;margin-top:4px;font-family:inherit;"
               >Special Ability Info &#9432;</button>
               <div class="skin-info-panel" id="info-${s.id}"
                 style="visibility:hidden;min-height:32px;margin-top:4px;width:100%;text-align:center;"
