@@ -106,10 +106,6 @@ export class Bird {
     
     let impulse = this.jumpLift * (1 + levelBonus) * jumpScale * jumpReduction;
     
-    // Lotus Hummingbird extra wing lift
-    if (this.activeSkin.id === 'jade_lotus' && engine && engine.ultimateActive) {
-      impulse *= 1.08;
-    }
     
     // Scale velocity impulse in squad/flock mode:
     // - Increase by 15% (1.15) for squad/flock mode
@@ -152,12 +148,6 @@ export class Bird {
     let currentGravity = this.gravity * speedMultiplier * speedReduction;
     let currentMaxFallSpeed = this.maxFallSpeed * speedMultiplier * speedReduction;
     
-    // Apply skin-specific passive & active ultimate physics modifications
-    if (this.activeSkin.id === 'jade_lotus') {
-      if (engine && engine.ultimateActive) {
-        currentGravity *= 0.0; // 0% gravity during Lotus Hummingbird ultimate!
-      }
-    }
     
     // Custom progressive score-based jump scaling:
     const jumpScale = this.getJumpScale(effectiveScore);
@@ -186,12 +176,8 @@ export class Bird {
     if (isPlaying) {
       // Apply gravity or keep velocity constant during ultimate
       if (engine && engine.ultimateActive) {
-        if (this.activeSkin.id === 'jade_lotus') {
-          this.vy += (0 - this.vy) * 0.12 * dtCoeff; // Smoothly damp vertical movement to hover
-        } else {
-          // Controllable: smoothly return to starting velocity after a jump
-          this.vy += (this.ultimateStartVy - this.vy) * 0.10 * dtCoeff;
-        }
+        // Controllable: smoothly return to starting velocity after a jump
+        this.vy += (this.ultimateStartVy - this.vy) * 0.10 * dtCoeff;
       } else {
         this.vy += currentGravity * dtCoeff;
       }

@@ -211,8 +211,9 @@ export class ObstacleManager {
 
     const gameEngine = (window as any).gameEngine;
     const isArticunoUltimate = gameEngine && gameEngine.ultimateActive && gameEngine.bird && gameEngine.bird.getSkin().id === 'articuno';
+    const isJadeLotusUltimate = gameEngine && gameEngine.ultimateActive && gameEngine.bird && gameEngine.bird.getSkin().id === 'jade_lotus';
 
-    if (!isArticunoUltimate) {
+    if (!isArticunoUltimate && !isJadeLotusUltimate) {
       this.waveTime += deltaTime * timeScale * motionSpeedScale;
     }
 
@@ -297,7 +298,7 @@ export class ObstacleManager {
       obs.x -= actualScrollSpeed;
 
       // Update moving energy ball Y position inside the gap
-      if (obs.hasEnergyBall && obs.energyBallY !== undefined && obs.energyBallSpeedY !== undefined) {
+      if (obs.hasEnergyBall && obs.energyBallY !== undefined && obs.energyBallSpeedY !== undefined && !isJadeLotusUltimate) {
         let currentBallSpeed = obs.energyBallSpeedY * dtCoeff;
         if (obs.levelNum !== undefined && obs.levelNum >= 40 && obs.levelNum <= 50) {
           const groupSize = Math.floor((this.activeLevelConfig?.targetScore || 150) / 3);
@@ -371,9 +372,11 @@ export class ObstacleManager {
         }
 
         if (obs.isTriggered) {
-          obs.animTimer! += deltaTime * timeScale;
-          if (obs.animTimer! > obs.animDuration!) {
-            obs.animTimer = obs.animDuration!;
+          if (!isJadeLotusUltimate) {
+            obs.animTimer! += deltaTime * timeScale;
+            if (obs.animTimer! > obs.animDuration!) {
+              obs.animTimer = obs.animDuration!;
+            }
           }
 
           const progress = obs.animTimer! / obs.animDuration!;

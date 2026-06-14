@@ -211,8 +211,8 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5,
-        abilityName: 'Ultimate Blossom Hover',
-        abilityDesc: 'Press Ultimate to activate a protective shield and zero-gravity hover.'
+        abilityName: 'Ultimate Temporal Freeze',
+        abilityDesc: 'Press Ultimate to freeze all obstacles in place and pause their animations for 10 seconds.'
       },
 
     ];

@@ -1581,10 +1581,10 @@ export class GameEngine {
       this.scrollSpeed = this.baseScrollSpeed * 0.4; // 60% scroll speed reduction
       subtext = 'WORLD SCROLL AND PIPE MOTION FROZEN!';
     } else if (id === 'jade_lotus') {
-      // Lotus Hummingbird: Nectar Hover
-      duration = 6.0;
-      this.bird.hasShield = true;
-      subtext = 'ZERO GRAVITY HOVER MODE ACTIVE!';
+      // Lotus Hummingbird: Temporal Freeze
+      duration = 10.0;
+      this.scrollSpeed = 0.0;
+      subtext = 'ALL OBSTACLES AND MOTION FROZEN FOR 10 SECONDS!';
     }
 
     this.ultimateMaxDuration = duration;
