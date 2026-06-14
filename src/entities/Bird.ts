@@ -409,8 +409,8 @@ export class Bird {
     ctx.save();
     ctx.clearRect(0, 0, width, height);
     
-    // Translate to center of canvas
-    ctx.translate(width / 2, height / 2);
+    // Translate to center of canvas (slightly shifted to the right to leave more room for the tail/left-side)
+    ctx.translate(width * 0.58, height / 2);
 
     // Save original bird parameters to prevent disrupting active gameplay state
     const origSkin = this.activeSkin;
@@ -429,7 +429,20 @@ export class Bird {
     this.vy = Math.cos(Date.now() / 250) * 1.5;
 
     // Apply standard scaling (preview scales dynamically based on canvas dimensions)
-    const scale = Math.min(width, height) / 95;
+    let scale = Math.min(width, height) / 95;
+
+    // Scale down birds with extremely long tails/wings to prevent clipping inside the small canvas bounds
+    if (skin.id === 'articuno') {
+      scale *= 0.40; // Articuno has extremely long tail ribbons (-132 units)
+    } else if (skin.id === 'white_dragon') {
+      scale *= 0.65; // White Dragon is scaled up by 1.3x and has long undulating tail/wings
+    } else if (skin.id === 'jade_lotus') {
+      scale *= 0.78; // Jade Lotus has long tail feathers (-48 units)
+    } else if (skin.id === 'legendary_eagle_king') {
+      scale *= 0.82; // Eagle King has wide decorative halo/wings
+    } else if (skin.id === 'dread_falcon') {
+      scale *= 0.85; // Dread Falcon has wide targeting brackets
+    }
     ctx.scale(scale, scale);
 
     // Render the beautiful rotating Magic Aura
