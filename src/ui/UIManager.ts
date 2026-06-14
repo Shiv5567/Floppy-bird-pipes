@@ -858,9 +858,14 @@ export class UIManager {
                 <canvas class="skin-preview-canvas" data-skin-id="${s.id}" width="90" height="90" style="width: 90px; height: 90px;"></canvas>
               </div>
               <div class="grid-card-name">${s.name}</div>
-              <span class="tag tag-${s.rarity.toLowerCase()}" style="color:${rc};border-color:${rc}33">${s.rarity}</span>
-              ${s.abilityName ? `<div style="font-size:9px;color:${rc};font-weight:800;margin-top:5px;letter-spacing:0.5px;">⚡ ${s.abilityName.toUpperCase()}</div>` : ''}
-              ${s.abilityDesc ? `<div style="font-size:8px;color:rgba(255,255,255,0.6);margin-top:2px;line-height:1.2;min-height:20px;padding:0 4px;text-align:center;">${s.abilityDesc}</div>` : ''}
+              <button class="btn-skin-info" data-skin-info="${s.id}"
+                style="background:${rc}22;border:1px solid ${rc}55;color:${rc};font-size:8px;font-weight:800;padding:3px 10px;border-radius:8px;cursor:pointer;letter-spacing:0.5px;margin-top:4px;font-family:inherit;"
+              >${s.rarity} ℹ</button>
+              <div class="skin-info-panel" id="info-${s.id}"
+                style="display:none;margin-top:6px;padding:6px 6px;background:rgba(0,0,0,0.35);border-radius:8px;border:1px solid ${rc}33;width:100%;text-align:center;"
+              >
+                ${s.abilityDesc ? `<div style="font-size:8px;color:rgba(255,255,255,0.7);line-height:1.4;">${s.abilityDesc}</div>` : '<div style="font-size:8px;color:rgba(255,255,255,0.4);">No special ability.</div>'}
+              </div>
               ${isSelected ? `<div style="font-size:9px;color:#00ff88;font-weight:800;margin-top:4px">✓ SELECTED</div>` : ''}
               <div class="upgrade-row">
                 <span class="level-indicator">Lvl ${s.upgradeLevel}/5</span>
@@ -1473,7 +1478,7 @@ export class UIManager {
         const skinId = (card as HTMLElement).getAttribute('data-skin-id') || '';
         const target = e.target as HTMLElement;
         // Don't double-fire if clicking a nested action button
-        if (target.classList.contains('btn-buy-skin') || target.classList.contains('btn-upgrade-skin') || target.classList.contains('btn-equip-skin')) return;
+        if (target.classList.contains('btn-buy-skin') || target.classList.contains('btn-upgrade-skin') || target.classList.contains('btn-equip-skin') || target.classList.contains('btn-skin-info')) return;
         
         const skin = this.engine.progressManager.getSkins().find((s: Skin) => s.id === skinId);
         if (!skin) return;
@@ -1529,6 +1534,22 @@ export class UIManager {
         const res = this.engine.progressManager.upgradeSkin(id);
         this.showToastNotification(res.success ? 'UPGRADE SUCCESSFUL ⬆' : 'UPGRADE FAILED', res.msg);
         this.render();
+      });
+    });
+
+    // Info toggle buttons on skin cards
+    const infoBtns = this.container.querySelectorAll('.btn-skin-info');
+    infoBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const skinId = (btn as HTMLElement).getAttribute('data-skin-info') || '';
+        const panel = this.container.querySelector(`#info-${skinId}`) as HTMLElement | null;
+        if (!panel) return;
+        const isOpen = panel.style.display !== 'none';
+        panel.style.display = isOpen ? 'none' : 'block';
+        (btn as HTMLElement).textContent = isOpen
+          ? (btn as HTMLElement).textContent!.replace('▲', '').trim().replace(/ℹ.*/, '') + ' ℹ'
+          : (btn as HTMLElement).textContent!.replace('ℹ', '▲').trim();
       });
     });
 
