@@ -88,6 +88,34 @@ export class ProgressManager {
         abilityDesc: 'Shrink to 60% size.'
       },
       {
+        id: 'angry_red',
+        name: 'Angry Bird',
+        rarity: 'Legendary',
+        glowColor: 'rgba(255, 30, 0, 0.9)',
+        particleType: 'angry_fire',
+        costCoins: 7500,
+        costGems: 0,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5,
+        abilityName: 'Ultimate Cyber Magnet',
+        abilityDesc: 'Attract coins and gems.'
+      },
+      {
+        id: 'jade_lotus',
+        name: 'Lotus Hummingbird',
+        rarity: 'Rare',
+        glowColor: 'rgba(0, 230, 118, 0.7)',
+        particleType: 'jade_lotus',
+        costCoins: 2500,
+        costGems: 0,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5,
+        abilityName: 'Ultimate Temporal Dilation',
+        abilityDesc: 'Slow down obstacles and time by 70% and 35% camera zoom out.'
+      },
+      {
         id: 'neon_crow',
         name: 'Neon crow',
         rarity: 'Epic',
@@ -99,6 +127,20 @@ export class ProgressManager {
         upgradeLevel: 1,
         maxUpgrade: 5,
         abilityDesc: 'Double your character.'
+      },
+      {
+        id: 'articuno',
+        name: 'Ice Phoenix',
+        rarity: 'Legendary',
+        glowColor: 'rgba(100, 200, 255, 0.9)',
+        particleType: 'blizzard_crystal',
+        costCoins: 8000,
+        costGems: 0,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5,
+        abilityName: 'Ultimate Temporal Freeze',
+        abilityDesc: 'Freeze all obstacles in place and pause their motion.'
       },
       {
         id: 'white_dragon',
@@ -142,7 +184,6 @@ export class ProgressManager {
         abilityName: 'Ultimate Ghost Phasing',
         abilityDesc: ' ghost/transparent and pass through solid pipes.'
       },
-
       {
         id: 'dread_falcon',
         name: 'Charan Falcon',
@@ -170,50 +211,7 @@ export class ProgressManager {
         maxUpgrade: 5,
         abilityName: 'Ultimate Gilded Fortune',
         abilityDesc: 'A shield, 3x score/coins, and a coin magnet.'
-      },
-      {
-        id: 'angry_red',
-        name: 'Angry Bird',
-        rarity: 'Legendary',
-        glowColor: 'rgba(255, 30, 0, 0.9)',
-        particleType: 'angry_fire',
-        costCoins: 7500,
-        costGems: 0,
-        unlocked: false,
-        upgradeLevel: 1,
-        maxUpgrade: 5,
-        abilityName: 'Ultimate Cyber Magnet',
-        abilityDesc: 'Attract coins and gems.'
-      },
-      {
-        id: 'articuno',
-        name: 'Ice Phoenix',
-        rarity: 'Legendary',
-        glowColor: 'rgba(100, 200, 255, 0.9)',
-        particleType: 'blizzard_crystal',
-        costCoins: 8000,
-        costGems: 0,
-        unlocked: false,
-        upgradeLevel: 1,
-        maxUpgrade: 5,
-        abilityName: 'Ultimate Temporal Freeze',
-        abilityDesc: 'Freeze all obstacles in place and pause their motion.'
-      },
-      {
-        id: 'jade_lotus',
-        name: 'Lotus Hummingbird',
-        rarity: 'Rare',
-        glowColor: 'rgba(0, 230, 118, 0.7)',
-        particleType: 'jade_lotus',
-        costCoins: 2500,
-        costGems: 0,
-        unlocked: false,
-        upgradeLevel: 1,
-        maxUpgrade: 5,
-        abilityName: 'Ultimate Temporal Dilation',
-        abilityDesc: 'Slow down obstacles and time by 70% and 35% camera zoom out.'
-      },
-
+      }
     ];
   }
 
