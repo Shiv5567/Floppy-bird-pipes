@@ -86,6 +86,7 @@ export class GameEngine {
   public boosterDeactivateTimer = 0.0;
   public boosterSpawnTimer = 5.0;
   private boosterScoreAccumulator = 0.0;
+  private falconScoreAccumulator = 0.0;
   public boosterTapsThisRun = 0;
   
   // Powerups timers
@@ -179,6 +180,7 @@ export class GameEngine {
     this.boosterDeactivateTimer = 0.0;
     this.boosterSpawnTimer = 0.0; // Button starts fully charged and ready at start!
     this.boosterScoreAccumulator = 0.0;
+    this.falconScoreAccumulator = 0.0;
     this.boosterTapsThisRun = 0;
     
     // Reset ultimate skill status
@@ -617,6 +619,17 @@ export class GameEngine {
         }
       }
 
+      // Smooth score accumulator for Charan Falcon ultimate
+      if (this.ultimateActive && this.bird.getSkin().id === 'dread_falcon') {
+        this.falconScoreAccumulator += dt * 3.75; // 15 obstacles / 4 seconds = 3.75 obstacles/sec
+        if (this.falconScoreAccumulator >= 1.0) {
+          const pointsToAdd = Math.floor(this.falconScoreAccumulator);
+          this.falconScoreAccumulator -= pointsToAdd;
+          this.score += pointsToAdd;
+          this.particleEngine.emitCoinSparkle(this.bird.x + 30, this.bird.y, '#00f3ff');
+        }
+      }
+      
       this.renderer.update(dt, this.scrollSpeed, this.bird.y, activeTimeScale);
 
       if (this.state === 'PLAYING') {
@@ -1550,6 +1563,7 @@ export class GameEngine {
       this.bird.isInvincible = true;
       this.scrollSpeed = this.baseScrollSpeed * 3.64;
       subtext = 'SUPERSONIC SPEED BLAST ACTIVE!';
+      this.falconScoreAccumulator = 0.0;
     } else if (id === 'legendary_eagle_king') {
       // Legendary Eagle King: Aurum Gilded Age
       duration = 7.0;
