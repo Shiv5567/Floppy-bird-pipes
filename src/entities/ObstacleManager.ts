@@ -210,7 +210,8 @@ export class ObstacleManager {
     }
 
     const gameEngine = (window as any).gameEngine;
-    const isJadeLotusUltimate = gameEngine && gameEngine.ultimateActive && gameEngine.bird && gameEngine.bird.getSkin().id === 'jade_lotus';
+    const isJadeLotusUltimate = gameEngine && gameEngine.ultimateActive && gameEngine.bird && 
+      (gameEngine.bird.getSkin().id === 'jade_lotus' || gameEngine.bird.getSkin().id === 'articuno');
 
     if (!isJadeLotusUltimate) {
       this.waveTime += deltaTime * timeScale * motionSpeedScale;
@@ -1782,9 +1783,7 @@ export class ObstacleManager {
 
 
       // Remove offscreen obstacles & recycle them back to the free pool for Object Pooling!
-      const gameEngine = (window as any).gameEngine;
-      const isArticunoUltimate = gameEngine && gameEngine.ultimateActive && gameEngine.bird && gameEngine.bird.getSkin().id === 'articuno';
-      const offscreenLeftLimit = isArticunoUltimate ? -500 : -50;
+      const offscreenLeftLimit = -50;
       if (obs.x + obs.width < offscreenLeftLimit) {
         this.freePool.push(obs);
         this.list.splice(i, 1);

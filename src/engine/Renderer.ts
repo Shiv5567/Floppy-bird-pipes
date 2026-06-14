@@ -222,13 +222,8 @@ export class Renderer {
       targetZoom *= 0.96; // Zoom out by 4% in squad mode!
     }
 
-    const isArticunoUltimate = gameEngine && gameEngine.ultimateActive && gameEngine.bird && gameEngine.bird.getSkin().id === 'articuno';
-    if (isArticunoUltimate) {
-      targetZoom *= 0.55; // 45% zoom out (scale to 55%)
-    }
-
-    // Hard-lock zoom to 1.0 in performance mode, otherwise smoothly interpolate (allow zoom in flock mode, boss fight, and Ice Phoenix ultimate)
-    if (isPerformanceMode && !isFlockMode && gameState !== 'BOSS_FIGHT' && !isArticunoUltimate) {
+    // Hard-lock zoom to 1.0 in performance mode, otherwise smoothly interpolate (allow zoom in flock mode and boss fight)
+    if (isPerformanceMode && !isFlockMode && gameState !== 'BOSS_FIGHT') {
       this.zoomFactor = 1.0;
     } else {
       this.zoomFactor += (targetZoom - this.zoomFactor) * 0.08 * (deltaTime * 60);

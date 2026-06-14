@@ -179,6 +179,7 @@ export class Bird {
         engine &&
         engine.ultimateActive &&
         this.activeSkin.id !== 'jade_lotus' &&
+        this.activeSkin.id !== 'articuno' &&
         this.activeSkin.id !== 'neon_crow' &&
         this.activeSkin.id !== 'angry_red'
       ) {

@@ -442,10 +442,10 @@ export class GameEngine {
       // Calculate and set unified progressive scroll speed before updating visual backgrounds or physics managers
       if (this.state === 'PLAYING') {
         if (this.gameMode === 'level' && this.activeLevelConfig) {
-          if (this.ultimateActive && this.bird.getSkin().id === 'dread_falcon') {
+          if (this.ultimateActive && (this.bird.getSkin().id === 'jade_lotus' || this.bird.getSkin().id === 'articuno')) {
+            this.scrollSpeed = 0.0;
+          } else if (this.ultimateActive && this.bird.getSkin().id === 'dread_falcon') {
             this.scrollSpeed = this.activeLevelConfig.scrollSpeed * 3.64;
-          } else if (this.ultimateActive && this.bird.getSkin().id === 'articuno') {
-            this.scrollSpeed = this.activeLevelConfig.scrollSpeed * 0.4;
           } else if (this.activePowerupsList['turbo']) {
             this.scrollSpeed = this.activeLevelConfig.scrollSpeed * 2.3;
           } else {
@@ -527,10 +527,10 @@ export class GameEngine {
             }
           }
 
-          if (this.ultimateActive && this.bird.getSkin().id === 'dread_falcon') {
+          if (this.ultimateActive && (this.bird.getSkin().id === 'jade_lotus' || this.bird.getSkin().id === 'articuno')) {
+            this.scrollSpeed = 0.0;
+          } else if (this.ultimateActive && this.bird.getSkin().id === 'dread_falcon') {
             this.scrollSpeed = this.baseScrollSpeed * 3.64;
-          } else if (this.ultimateActive && this.bird.getSkin().id === 'articuno') {
-            this.scrollSpeed = this.baseScrollSpeed * 0.4;
           } else if (this.activePowerupsList['turbo']) {
             this.scrollSpeed = this.baseScrollSpeed * 2.3;
           } else {
@@ -1594,10 +1594,10 @@ export class GameEngine {
       duration = 8.0;
       subtext = 'SCREEN-WIDE COIN HARVESTER ACTIVE!';
     } else if (id === 'articuno') {
-      // Ice Phoenix: Cryo-Zoom
-      duration = 8.0;
-      this.scrollSpeed = this.baseScrollSpeed * 0.5; // 50% scroll speed reduction
-      subtext = 'FLYING SPEED REDUCED BY 50% & VIEW ZOOMED OUT!';
+      // Ice Phoenix: Temporal Freeze
+      duration = 10.0;
+      this.scrollSpeed = 0.0;
+      subtext = 'ALL OBSTACLES AND MOTION FROZEN FOR 10 SECONDS!';
     } else if (id === 'jade_lotus') {
       // Lotus Hummingbird: Temporal Freeze
       duration = 10.0;

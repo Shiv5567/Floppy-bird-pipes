@@ -197,8 +197,8 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5,
-        abilityName: 'Ultimate Cryo-Zoom',
-        abilityDesc: 'Press Ultimate to slow down flying speed by 50% and zoom out the screen view by 45%.'
+        abilityName: 'Ultimate Temporal Freeze',
+        abilityDesc: 'Press Ultimate to freeze all obstacles in place and pause their animations for 10 seconds.'
       },
       {
         id: 'jade_lotus',
