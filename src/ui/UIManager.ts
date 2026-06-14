@@ -860,7 +860,7 @@ export class UIManager {
               <div class="grid-card-name">${s.name}</div>
               <button class="btn-skin-info" data-skin-info="${s.id}"
                 style="background:${rc}22;border:1px solid ${rc}55;color:${rc};font-size:8px;font-weight:800;padding:3px 10px;border-radius:8px;cursor:pointer;letter-spacing:0.5px;margin-top:4px;font-family:inherit;"
-              >${s.rarity} ℹ</button>
+              >Special Ability Info ℹ</button>
               <div class="skin-info-panel" id="info-${s.id}"
                 style="display:none;margin-top:6px;padding:6px 6px;background:rgba(0,0,0,0.35);border-radius:8px;border:1px solid ${rc}33;width:100%;text-align:center;"
               >
@@ -1547,9 +1547,7 @@ export class UIManager {
         if (!panel) return;
         const isOpen = panel.style.display !== 'none';
         panel.style.display = isOpen ? 'none' : 'block';
-        (btn as HTMLElement).textContent = isOpen
-          ? (btn as HTMLElement).textContent!.replace('▲', '').trim().replace(/ℹ.*/, '') + ' ℹ'
-          : (btn as HTMLElement).textContent!.replace('ℹ', '▲').trim();
+        (btn as HTMLElement).textContent = isOpen ? 'Special Ability Info ℹ' : 'Special Ability Info ▲';
       });
     });
 
