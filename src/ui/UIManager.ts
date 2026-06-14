@@ -859,12 +859,12 @@ export class UIManager {
               </div>
               <div class="grid-card-name">${s.name}</div>
               <button class="btn-skin-info" data-skin-info="${s.id}"
-                style="background:${rc}22;border:1px solid ${rc}55;color:${rc};font-size:8px;font-weight:800;padding:3px 10px;border-radius:8px;cursor:pointer;letter-spacing:0.5px;margin-top:4px;font-family:inherit;"
-              >Special Ability Info ℹ</button>
+                style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.5);color:#a855f7;font-size:8px;font-weight:800;padding:3px 10px;border-radius:8px;cursor:pointer;letter-spacing:0.5px;margin-top:4px;font-family:inherit;"
+              >Special Ability Info &#9432;</button>
               <div class="skin-info-panel" id="info-${s.id}"
-                style="display:none;margin-top:6px;padding:6px 6px;background:rgba(0,0,0,0.35);border-radius:8px;border:1px solid ${rc}33;width:100%;text-align:center;"
+                style="visibility:hidden;min-height:32px;margin-top:4px;width:100%;text-align:center;"
               >
-                ${s.abilityDesc ? `<div style="font-size:8px;color:rgba(255,255,255,0.7);line-height:1.4;">${s.abilityDesc}</div>` : '<div style="font-size:8px;color:rgba(255,255,255,0.4);">No special ability.</div>'}
+                ${s.abilityDesc ? `<div style="font-size:8px;color:rgba(255,255,255,0.5);line-height:1.4;padding:0 4px;">${s.abilityDesc}</div>` : '<div style="font-size:8px;color:rgba(255,255,255,0.3);">No special ability.</div>'}
               </div>
               ${isSelected ? `<div style="font-size:9px;color:#00ff88;font-weight:800;margin-top:4px">✓ SELECTED</div>` : ''}
               <div class="upgrade-row">
@@ -1545,8 +1545,8 @@ export class UIManager {
         const skinId = (btn as HTMLElement).getAttribute('data-skin-info') || '';
         const panel = this.container.querySelector(`#info-${skinId}`) as HTMLElement | null;
         if (!panel) return;
-        const isOpen = panel.style.display !== 'none';
-        panel.style.display = isOpen ? 'none' : 'block';
+        const isOpen = panel.style.visibility !== 'hidden';
+        panel.style.visibility = isOpen ? 'hidden' : 'visible';
         (btn as HTMLElement).textContent = isOpen ? 'Special Ability Info ℹ' : 'Special Ability Info ▲';
       });
     });
