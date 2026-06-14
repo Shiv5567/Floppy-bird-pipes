@@ -89,7 +89,7 @@ export class ProgressManager {
       },
       {
         id: 'neon_crow',
-        name: 'Neon Raven',
+        name: 'Neon crow',
         rarity: 'Epic',
         glowColor: 'rgba(255, 0, 127, 0.7)',
         particleType: 'neon_pink',
@@ -98,12 +98,11 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5,
-        abilityName: 'Ultimate Cyber Clone',
-        abilityDesc: 'Double your character with a helper cyber clone.'
+        abilityDesc: 'Double your character.'
       },
       {
         id: 'white_dragon',
-        name: 'Seto Drake',
+        name: 'Seto Dragon',
         rarity: 'Legendary',
         glowColor: 'rgba(224, 180, 255, 0.7)',
         particleType: 'purple_sparkle',
@@ -113,7 +112,7 @@ export class ProgressManager {
         upgradeLevel: 1,
         maxUpgrade: 5,
         abilityName: 'Ultimate Lunar Sanctuary',
-        abilityDesc: 'Full invincibility and a protective shield.'
+        abilityDesc: ' invincibility and  protective shield.'
       },
       {
         id: 'kingfisher',
@@ -141,7 +140,7 @@ export class ProgressManager {
         upgradeLevel: 1,
         maxUpgrade: 5,
         abilityName: 'Ultimate Ghost Phasing',
-        abilityDesc: 'Become a ghost and pass through solid pipes.'
+        abilityDesc: ' ghost/transparent and pass through solid pipes.'
       },
 
       {
@@ -156,7 +155,7 @@ export class ProgressManager {
         upgradeLevel: 1,
         maxUpgrade: 5,
         abilityName: 'Ultimate Sonic Boost',
-        abilityDesc: 'Trigger a supersonic speed blast and invincibility.'
+        abilityDesc: 'Boost supersonic speed blast and invincibility.'
       },
       {
         id: 'legendary_eagle_king',
@@ -184,7 +183,7 @@ export class ProgressManager {
         upgradeLevel: 1,
         maxUpgrade: 5,
         abilityName: 'Ultimate Cyber Magnet',
-        abilityDesc: 'Attract coins and gems screen-wide.'
+        abilityDesc: 'Attract coins and gems.'
       },
       {
         id: 'articuno',
@@ -198,7 +197,7 @@ export class ProgressManager {
         upgradeLevel: 1,
         maxUpgrade: 5,
         abilityName: 'Ultimate Temporal Freeze',
-        abilityDesc: 'Freeze all obstacles in place and pause their animations.'
+        abilityDesc: 'Freeze all obstacles in place and pause their motion.'
       },
       {
         id: 'jade_lotus',
@@ -212,7 +211,7 @@ export class ProgressManager {
         upgradeLevel: 1,
         maxUpgrade: 5,
         abilityName: 'Ultimate Temporal Dilation',
-        abilityDesc: 'Slow down obstacles and time by 70% while maintaining your full response speed.'
+        abilityDesc: 'Slow down obstacles and time by 70% and 35% camera zoom out.'
       },
 
     ];
