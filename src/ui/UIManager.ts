@@ -855,7 +855,7 @@ export class UIManager {
                  style="${isSelected ? `box-shadow: 0 0 0 2px ${rc}, 0 0 18px ${rc}55;` : ''}"
             >
               <div class="skin-emoji" style="display: flex; align-items: center; justify-content: center; width: 90px; height: 90px; margin-bottom: 8px; position: relative;">
-                <canvas class="skin-preview-canvas" data-skin-id="${s.id}" width="90" height="90" style="width: 90px; height: 90px;"></canvas>
+                <canvas class="skin-preview-canvas" data-skin-id="${s.id}" width="90" height="90" style="width: 90px; height: 90px; transform: scale(1.2);"></canvas>
               </div>
               <div class="grid-card-name">${s.name}</div>
               <button class="btn-skin-info" data-skin-info="${s.id}"
