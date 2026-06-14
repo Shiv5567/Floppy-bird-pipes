@@ -224,7 +224,7 @@ export class Renderer {
 
     const isJadeLotusUltimate = gameEngine && gameEngine.ultimateActive && gameEngine.bird && gameEngine.bird.getSkin().id === 'jade_lotus';
     if (isJadeLotusUltimate) {
-      targetZoom *= 0.80; // 20% zoom out (scale to 80%)
+      targetZoom *= 0.85; // 15% zoom out (scale to 85%)
     }
 
     // Hard-lock zoom to 1.0 in performance mode, otherwise smoothly interpolate (allow zoom in flock mode, boss fight, and Hummingbird ultimate)
