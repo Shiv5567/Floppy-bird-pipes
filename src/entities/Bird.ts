@@ -31,6 +31,7 @@ export class Bird {
   public hasShield = false;
   public isGhost = false;
   public ultimateStartVy = 0;
+  public isPreviewMode = false;
 
   // Custom cosmetics
   private activeSkin: Skin;
@@ -419,6 +420,7 @@ export class Bird {
     const origAuraPulse = this.auraPulse;
     const origAuraAngle = this.auraAngle;
     const origVy = this.vy;
+    const origIsPreview = this.isPreviewMode;
 
     // Apply mock parameters for a pristine, centered flight-pose preview (dynamic animation loop)
     this.activeSkin = skin;
@@ -427,22 +429,10 @@ export class Bird {
     this.auraPulse = (Date.now() / 350) % (Math.PI * 2);
     this.auraAngle = (Date.now() / 800) % (Math.PI * 2);
     this.vy = Math.cos(Date.now() / 250) * 1.5;
+    this.isPreviewMode = true;
 
     // Apply standard scaling (preview scales dynamically based on canvas dimensions)
-    let scale = Math.min(width, height) / 95;
-
-    // Scale down birds with extremely long tails/wings to prevent clipping inside the small canvas bounds
-    if (skin.id === 'articuno') {
-      scale *= 0.40; // Articuno has extremely long tail ribbons (-132 units)
-    } else if (skin.id === 'white_dragon') {
-      scale *= 0.65; // White Dragon is scaled up by 1.3x and has long undulating tail/wings
-    } else if (skin.id === 'jade_lotus') {
-      scale *= 0.78; // Jade Lotus has long tail feathers (-48 units)
-    } else if (skin.id === 'legendary_eagle_king') {
-      scale *= 0.82; // Eagle King has wide decorative halo/wings
-    } else if (skin.id === 'dread_falcon') {
-      scale *= 0.85; // Dread Falcon has wide targeting brackets
-    }
+    const scale = Math.min(width, height) / 95;
     ctx.scale(scale, scale);
 
     // Render the beautiful rotating Magic Aura
@@ -459,6 +449,7 @@ export class Bird {
     this.auraPulse = origAuraPulse;
     this.auraAngle = origAuraAngle;
     this.vy = origVy;
+    this.isPreviewMode = origIsPreview;
 
     ctx.restore();
   }
@@ -1014,6 +1005,9 @@ export class Bird {
     // --- 1. DRAGON TAIL (Undulating, 3 segments with glowing elements) ---
     ctx.save();
     ctx.translate(-20, 6);
+    if (this.isPreviewMode) {
+      ctx.scale(0.75, 0.90);
+    }
     let prevX = 0;
     let prevY = 0;
     
@@ -3222,6 +3216,9 @@ export class Bird {
     // --- 2. DUAL FLOWING ICE TAIL RIBBONS (drawn behind body) ---
     ctx.save();
     ctx.translate(-14, 2);
+    if (this.isPreviewMode) {
+      ctx.scale(0.38, 0.70);
+    }
     const tailWave1 = Math.sin(this.flapCycle * 0.35) * 0.16;
     const tailWave2 = Math.sin(this.flapCycle * 0.35 + 0.8) * 0.14;
 
@@ -3569,6 +3566,9 @@ export class Bird {
     // --- 1. FLOWING TAIL FEATHERS (drawn behind body) ---
     ctx.save();
     ctx.translate(-12, 2);
+    if (this.isPreviewMode) {
+      ctx.scale(0.80, 0.90);
+    }
     const tailWave = Math.sin(wingFlapCycle * 0.3) * 0.14;
     ctx.rotate(tailWave);
 
