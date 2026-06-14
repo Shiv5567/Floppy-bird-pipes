@@ -1782,7 +1782,10 @@ export class ObstacleManager {
 
 
       // Remove offscreen obstacles & recycle them back to the free pool for Object Pooling!
-      if (obs.x + obs.width < -50) {
+      const gameEngine = (window as any).gameEngine;
+      const isArticunoUltimate = gameEngine && gameEngine.ultimateActive && gameEngine.bird && gameEngine.bird.getSkin().id === 'articuno';
+      const offscreenLeftLimit = isArticunoUltimate ? -500 : -50;
+      if (obs.x + obs.width < offscreenLeftLimit) {
         this.freePool.push(obs);
         this.list.splice(i, 1);
       }

@@ -1571,10 +1571,9 @@ export class GameEngine {
       this.scoreMultiplier = 3;
       subtext = '3X SCORE & COINS + COIN MAGNET!';
     } else if (id === 'angry_red') {
-      // Angry Bird: Furious Rampage
-      duration = 5.0;
-      this.bird.isInvincible = true;
-      subtext = 'DEMOLISH ALL OBSTACLES ON TOUCH!';
+      // Angry Bird: Cyber Magnet
+      duration = 8.0;
+      subtext = 'SCREEN-WIDE COIN HARVESTER ACTIVE!';
     } else if (id === 'articuno') {
       // Ice Phoenix: Cryo-Zoom
       duration = 8.0;

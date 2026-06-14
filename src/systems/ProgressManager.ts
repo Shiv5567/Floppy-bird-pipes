@@ -183,8 +183,8 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5,
-        abilityName: 'Ultimate Furious Smash',
-        abilityDesc: 'Press Ultimate to become invincible and demolish all obstacles on touch.'
+        abilityName: 'Ultimate Cyber Magnet',
+        abilityDesc: 'Press Ultimate to attract coins and gems screen-wide.'
       },
       {
         id: 'articuno',
