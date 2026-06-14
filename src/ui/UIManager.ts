@@ -864,7 +864,7 @@ export class UIManager {
               <div class="skin-info-panel" id="info-${s.id}"
                 style="visibility:hidden;min-height:32px;margin-top:4px;width:100%;text-align:center;"
               >
-                ${s.abilityDesc ? `<div style="font-size:8px;color:rgba(255,255,255,0.5);line-height:1.4;padding:0 4px;">${s.abilityDesc}</div>` : '<div style="font-size:8px;color:rgba(255,255,255,0.3);">No special ability.</div>'}
+                ${s.abilityDesc ? `<div style="font-size:8px;color:rgba(230,200,255,0.8);line-height:1.4;padding:0 4px;">${s.abilityDesc}</div>` : '<div style="font-size:8px;color:rgba(230,200,255,0.6);">No special ability.</div>'}
               </div>
               ${isSelected ? `<div style="font-size:9px;color:#00ff88;font-weight:800;margin-top:4px">✓ SELECTED</div>` : ''}
               <div class="upgrade-row">
