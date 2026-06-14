@@ -342,12 +342,13 @@ export class GameEngine {
     if (this.state === 'PLAYING' || this.state === 'BOSS_FIGHT') {
 
       let activeTimeScale = this.timeScale;
-      this.bird.update(dt, this.particleEngine, true, activeTimeScale, this.score);
+      let birdTimeScale = (this.ultimateActive && this.bird.getSkin().id === 'jade_lotus') ? 1.0 : activeTimeScale;
+      this.bird.update(dt, this.particleEngine, true, birdTimeScale, this.score);
 
       // Follower birds only come from cage rescues in flock mode
 
       // Update follower birds positions and logic in flocking modes
-      this.updateFlockFollowers(dt, activeTimeScale);
+      this.updateFlockFollowers(dt, birdTimeScale);
       
       // Booster automatic vertical centering cruised flight
       if (this.boosterActive) {
@@ -442,7 +443,7 @@ export class GameEngine {
       // Calculate and set unified progressive scroll speed before updating visual backgrounds or physics managers
       if (this.state === 'PLAYING') {
         if (this.gameMode === 'level' && this.activeLevelConfig) {
-          if (this.ultimateActive && (this.bird.getSkin().id === 'jade_lotus' || this.bird.getSkin().id === 'articuno')) {
+          if (this.ultimateActive && this.bird.getSkin().id === 'articuno') {
             this.scrollSpeed = 0.0;
           } else if (this.ultimateActive && this.bird.getSkin().id === 'dread_falcon') {
             this.scrollSpeed = this.activeLevelConfig.scrollSpeed * 3.64;
@@ -527,7 +528,7 @@ export class GameEngine {
             }
           }
 
-          if (this.ultimateActive && (this.bird.getSkin().id === 'jade_lotus' || this.bird.getSkin().id === 'articuno')) {
+          if (this.ultimateActive && this.bird.getSkin().id === 'articuno') {
             this.scrollSpeed = 0.0;
           } else if (this.ultimateActive && this.bird.getSkin().id === 'dread_falcon') {
             this.scrollSpeed = this.baseScrollSpeed * 3.64;
@@ -1599,10 +1600,10 @@ export class GameEngine {
       this.scrollSpeed = 0.0;
       subtext = 'ALL OBSTACLES AND MOTION FROZEN FOR 10 SECONDS!';
     } else if (id === 'jade_lotus') {
-      // Lotus Hummingbird: Temporal Freeze
+      // Lotus Hummingbird: Temporal Dilation
       duration = 10.0;
-      this.scrollSpeed = 0.0;
-      subtext = 'ALL OBSTACLES AND MOTION FROZEN FOR 10 SECONDS!';
+      this.timeScale = 0.30; // 70% slow-mo
+      subtext = 'WORLD TIME SLOWED BY 70%! HYPER AGILITY ACTIVE!';
     }
 
     this.ultimateMaxDuration = duration;

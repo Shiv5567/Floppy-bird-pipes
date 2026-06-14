@@ -211,7 +211,7 @@ export class ObstacleManager {
 
     const gameEngine = (window as any).gameEngine;
     const isJadeLotusUltimate = gameEngine && gameEngine.ultimateActive && gameEngine.bird && 
-      (gameEngine.bird.getSkin().id === 'jade_lotus' || gameEngine.bird.getSkin().id === 'articuno');
+      (gameEngine.bird.getSkin().id === 'articuno');
 
     if (!isJadeLotusUltimate) {
       this.waveTime += deltaTime * timeScale * motionSpeedScale;

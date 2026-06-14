@@ -211,8 +211,8 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5,
-        abilityName: 'Ultimate Temporal Freeze',
-        abilityDesc: 'Press Ultimate to freeze all obstacles in place and pause their animations for 10 seconds.'
+        abilityName: 'Ultimate Temporal Dilation',
+        abilityDesc: 'Press Ultimate to slow down obstacles and time by 70% while maintaining your full response speed for 10 seconds.'
       },
 
     ];
