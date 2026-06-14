@@ -211,7 +211,8 @@ function loop(time: number) {
   gameEngine.obstacleManager.render(ctx, height);
   gameEngine.powerupManager.render(ctx, gameEngine);
   gameEngine.bossManager.render(ctx, gameEngine.bird.isCrashing);
-  if (gameEngine.gameMode === 'flock' && gameEngine.flock && gameEngine.flock.length > 0) {
+  const isNeonCrowUltimate = gameEngine.ultimateActive && gameEngine.bird && gameEngine.bird.getSkin().id === 'neon_crow';
+  if ((gameEngine.gameMode === 'flock' || isNeonCrowUltimate) && gameEngine.flock && gameEngine.flock.length > 0) {
     const len = gameEngine.flock.length;
     for (let i = len - 1; i >= 0; i--) {
       gameEngine.flock[i].render(ctx);

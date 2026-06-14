@@ -240,17 +240,16 @@ export class PowerupManager {
       }
       
       const gameEngine = (window as any).gameEngine;
-      const isNeonCrow = gameEngine && gameEngine.bird && gameEngine.bird.getSkin().id === 'neon_crow';
       const isAngryRed = gameEngine && gameEngine.bird && gameEngine.bird.getSkin().id === 'angry_red';
       const isEagleKing = gameEngine && gameEngine.bird && gameEngine.bird.getSkin().id === 'legendary_eagle_king';
       const isUltimateActive = gameEngine && gameEngine.ultimateActive;
       
       const isAttracted = hasMagnet || 
-                          ((isNeonCrow || isAngryRed) && isUltimateActive && (item.type === 'coin' || item.type === 'gem')) ||
+                          (isAngryRed && isUltimateActive && (item.type === 'coin' || item.type === 'gem')) ||
                           (isEagleKing && isUltimateActive && (item.type === 'coin' || item.type === 'gem'));
 
       let activeRange = 160;
-      if (isUltimateActive && (isNeonCrow || isAngryRed)) {
+      if (isUltimateActive && isAngryRed) {
         activeRange = 800; // Screen-wide
       } else if (hasMagnet || (isUltimateActive && isEagleKing)) {
         activeRange = 280;

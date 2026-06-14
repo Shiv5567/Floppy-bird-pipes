@@ -98,8 +98,8 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5,
-        abilityName: 'Ultimate Cyber Magnet',
-        abilityDesc: 'Press Ultimate to attract coins and gems screen-wide.'
+        abilityName: 'Ultimate Cyber Clone',
+        abilityDesc: 'Press Ultimate to double your character with a helper cyber clone.'
       },
       {
         id: 'white_dragon',

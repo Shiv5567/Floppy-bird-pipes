@@ -35,6 +35,7 @@ export class GameEngine {
   public ultimateActive = false;
   public ultimateDurationLeft = 0;
   public ultimateMaxDuration = 6.0;
+  private preUltimateFlockLength = 0;
   
   // High-performance engines references
   public soundManager: SoundManager;
@@ -970,7 +971,8 @@ export class GameEngine {
       }
 
       // Check items pickup — all birds in flock collect all objects in their path
-      if (this.gameMode === 'flock') {
+      const isNeonCrowUltimate = this.ultimateActive && this.bird.getSkin().id === 'neon_crow';
+      if (this.gameMode === 'flock' || isNeonCrowUltimate) {
         const flockLen = this.flock.length;
         for (let idx = 0; idx < flockLen; idx++) {
           const b = this.flock[idx];
@@ -1538,9 +1540,26 @@ export class GameEngine {
       this.bird.sizeMultiplier = 0.60;
       subtext = 'MICRO SIZE ACTIVE!';
     } else if (id === 'neon_crow') {
-      // Neon Raven: Cyber Singularity
+      // Neon Raven: Cyber Clone
       duration = 8.0;
-      subtext = 'SCREEN-WIDE COIN HARVESTER ACTIVE!';
+      subtext = 'CYBER CLONE ACTIVE!';
+      this.preUltimateFlockLength = this.flock.length;
+      if (this.gameMode !== 'flock') {
+        this.flock = [this.bird];
+        const cloneBird = new Bird(skin);
+        cloneBird.x = this.bird.x - 60;
+        cloneBird.y = this.bird.y;
+        this.flock.push(cloneBird);
+      } else {
+        const len = this.flock.length;
+        for (let i = 0; i < len; i++) {
+          const original = this.flock[i];
+          const cloneBird = new Bird(original.getSkin());
+          cloneBird.x = original.x - 60;
+          cloneBird.y = original.y;
+          this.flock.push(cloneBird);
+        }
+      }
     } else if (id === 'white_dragon') {
       // Seto Drake: Lunar Sanctuary
       duration = 10.0;
@@ -1602,6 +1621,14 @@ export class GameEngine {
   private deactivateUltimate() {
     this.ultimateActive = false;
 
+    if (this.gameMode !== 'flock') {
+      this.flock = [];
+    } else {
+      if (this.preUltimateFlockLength > 0 && this.flock.length > this.preUltimateFlockLength) {
+        this.flock = this.flock.slice(0, this.preUltimateFlockLength);
+      }
+    }
+
     // Reset variables modified by ultimate abilities
     this.timeScale = 1.0;
     this.scrollSpeed = this.baseScrollSpeed;
@@ -1657,7 +1684,8 @@ export class GameEngine {
   // ── SQUAD SURVIVAL FOLLOWER UPDATES ──────────────────────────────────────────
 
   private updateFlockFollowers(dt: number, activeTimeScale: number) {
-    if (this.gameMode === 'flock') {
+    const isNeonCrowUltimate = this.ultimateActive && this.bird.getSkin().id === 'neon_crow';
+    if (this.gameMode === 'flock' || isNeonCrowUltimate) {
       if (this.flock.length > 0) {
         this.bird = this.flock[0];
       }
