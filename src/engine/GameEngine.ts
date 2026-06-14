@@ -1550,20 +1550,11 @@ export class GameEngine {
       this.preUltimateFlockLength = this.flock.length;
       if (this.gameMode !== 'flock') {
         this.flock = [this.bird];
-        const cloneBird = new Bird(skin);
-        cloneBird.x = this.bird.x - 60;
-        cloneBird.y = this.bird.y;
-        this.flock.push(cloneBird);
-      } else {
-        const len = this.flock.length;
-        for (let i = 0; i < len; i++) {
-          const original = this.flock[i];
-          const cloneBird = new Bird(original.getSkin());
-          cloneBird.x = original.x - 60;
-          cloneBird.y = original.y;
-          this.flock.push(cloneBird);
-        }
       }
+      const cloneBird = new Bird(skin);
+      cloneBird.x = this.bird.x - 60;
+      cloneBird.y = this.bird.y;
+      this.flock.push(cloneBird);
     } else if (id === 'white_dragon') {
       // Seto Drake: Lunar Sanctuary
       duration = 10.0;
