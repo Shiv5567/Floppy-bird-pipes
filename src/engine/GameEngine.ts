@@ -536,6 +536,9 @@ export class GameEngine {
             this.scrollSpeed = this.baseScrollSpeed * 2.3;
           } else {
             this.scrollSpeed = this.baseScrollSpeed * startSpeed * speedMultiplier;
+            if (this.gameMode === 'endless' && this.score >= 1 && this.score <= 50) {
+              this.scrollSpeed *= 0.93; // 7% reduction
+            }
             // Squad mode scroll speed progression:
             // - Score 500 to 1000: up to +20% speed (at 1000)
             // - Score >= 1000: +3% speed for every 50 points of score increment (endless)

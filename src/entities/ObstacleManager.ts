@@ -1447,7 +1447,16 @@ export class ObstacleManager {
         }
       } else {
         // Endless mode obstacle movement
-        if (obs.approachAnimType !== undefined) {
+        const isStaticEndless = gameMode === 'endless' && (score < 50 || (obs.spawnScore !== undefined && obs.spawnScore < 50));
+        
+        if (isStaticEndless) {
+          obs.shakeX = 0;
+          obs.shakeX2 = 0;
+          const centerY = obs.spawnCenterY !== undefined ? obs.spawnCenterY : (obs.initialTopHeight + (height - obs.initialBottomHeight - obs.initialTopHeight) / 2);
+          const currentGap = obs.gapHeight !== undefined ? obs.gapHeight : (height - obs.initialBottomHeight - obs.initialTopHeight);
+          obs.topHeight = centerY - currentGap / 2;
+          obs.bottomHeight = height - centerY - currentGap / 2;
+        } else if (obs.approachAnimType !== undefined) {
           // Check near approach trigger
           if (_birdX !== undefined) {
             const dx = obs.x - _birdX;
@@ -3082,7 +3091,8 @@ export class ObstacleManager {
     let isGoldSplitGate = false;
 
     // Check for random distribution of Group 1 (Orbital Sway) and Group 3 (Gold Split Gate) in score 1-99 range
-    if ((gameMode === 'endless' || gameMode === 'flock') && score >= 1 && score < 100) {
+    const isSpecialAnimAllowed = gameMode === 'flock' ? (score >= 1 && score < 100) : (gameMode === 'endless' ? (score >= 50 && score < 100) : false);
+    if (isSpecialAnimAllowed) {
       if (Math.random() < 0.35) { // 35% chance of applying a special animation
         if (Math.random() < 0.50) {
           isOrbitalSway = true;
