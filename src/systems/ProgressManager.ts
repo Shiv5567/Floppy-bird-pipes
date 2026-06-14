@@ -85,7 +85,7 @@ export class ProgressManager {
         upgradeLevel: 1,
         maxUpgrade: 5,
         abilityName: 'Ultimate Micro Glider',
-        abilityDesc: 'Shrink to 60% size.'
+        abilityDesc: 'Turns super tiny to fit through small gaps!'
       },
       {
         id: 'neon_crow',
@@ -99,7 +99,7 @@ export class ProgressManager {
         upgradeLevel: 1,
         maxUpgrade: 5,
         abilityName: 'Ultimate Cyber Clone',
-        abilityDesc: 'Double your character with a helper cyber clone.'
+        abilityDesc: 'Creates a copy of you that helps collect coins!'
       },
       {
         id: 'white_dragon',
@@ -113,7 +113,7 @@ export class ProgressManager {
         upgradeLevel: 1,
         maxUpgrade: 5,
         abilityName: 'Ultimate Lunar Sanctuary',
-        abilityDesc: 'Full invincibility and a protective shield.'
+        abilityDesc: 'Goes invincible with a magic shield around you!'
       },
       {
         id: 'kingfisher',
@@ -127,7 +127,7 @@ export class ProgressManager {
         upgradeLevel: 1,
         maxUpgrade: 5,
         abilityName: 'Ultimate Temporal Focus',
-        abilityDesc: 'Slow down game time by 60%.'
+        abilityDesc: 'Slows down everything around you like slow motion!'
       },
       {
         id: 'dread_owl',
@@ -141,7 +141,7 @@ export class ProgressManager {
         upgradeLevel: 1,
         maxUpgrade: 5,
         abilityName: 'Ultimate Ghost Phasing',
-        abilityDesc: 'Become a ghost and pass through solid pipes.'
+        abilityDesc: 'Turns into a ghost and flies right through pipes!'
       },
 
       {
@@ -156,7 +156,7 @@ export class ProgressManager {
         upgradeLevel: 1,
         maxUpgrade: 5,
         abilityName: 'Ultimate Sonic Boost',
-        abilityDesc: 'Trigger a supersonic speed blast and invincibility.'
+        abilityDesc: 'Blasts forward at super speed and nothing can stop you!'
       },
       {
         id: 'legendary_eagle_king',
@@ -170,7 +170,7 @@ export class ProgressManager {
         upgradeLevel: 1,
         maxUpgrade: 5,
         abilityName: 'Ultimate Gilded Fortune',
-        abilityDesc: 'A shield, 3x score/coins, and a coin magnet.'
+        abilityDesc: 'Gets a shield, earns 3x more coins, and pulls coins to you!'
       },
       {
         id: 'angry_red',
@@ -184,7 +184,7 @@ export class ProgressManager {
         upgradeLevel: 1,
         maxUpgrade: 5,
         abilityName: 'Ultimate Cyber Magnet',
-        abilityDesc: 'Attract coins and gems screen-wide.'
+        abilityDesc: 'Pulls all coins and gems on screen right to you!'
       },
       {
         id: 'articuno',
@@ -198,7 +198,7 @@ export class ProgressManager {
         upgradeLevel: 1,
         maxUpgrade: 5,
         abilityName: 'Ultimate Temporal Freeze',
-        abilityDesc: 'Freeze all obstacles in place and pause their animations.'
+        abilityDesc: 'Freezes all pipes in place so they can\'t move!'
       },
       {
         id: 'jade_lotus',
@@ -212,7 +212,7 @@ export class ProgressManager {
         upgradeLevel: 1,
         maxUpgrade: 5,
         abilityName: 'Ultimate Temporal Dilation',
-        abilityDesc: 'Slow down obstacles and time by 70% while maintaining your full response speed.'
+        abilityDesc: 'Slows down the world but you stay fast and in control!'
       },
 
     ];
