@@ -1576,10 +1576,10 @@ export class GameEngine {
       this.bird.isInvincible = true;
       subtext = 'DEMOLISH ALL OBSTACLES ON TOUCH!';
     } else if (id === 'articuno') {
-      // Ice Phoenix: Glacial Freeze
-      duration = 6.0;
-      this.scrollSpeed = this.baseScrollSpeed * 0.4; // 60% scroll speed reduction
-      subtext = 'WORLD SCROLL AND PIPE MOTION FROZEN!';
+      // Ice Phoenix: Cryo-Zoom
+      duration = 8.0;
+      this.scrollSpeed = this.baseScrollSpeed * 0.5; // 50% scroll speed reduction
+      subtext = 'FLYING SPEED REDUCED BY 50% & VIEW ZOOMED OUT!';
     } else if (id === 'jade_lotus') {
       // Lotus Hummingbird: Temporal Freeze
       duration = 10.0;

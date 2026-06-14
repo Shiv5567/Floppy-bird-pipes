@@ -197,8 +197,8 @@ export class ProgressManager {
         unlocked: false,
         upgradeLevel: 1,
         maxUpgrade: 5,
-        abilityName: 'Ultimate Blizzard Chill',
-        abilityDesc: 'Press Ultimate to freeze and slow down world scroll speed by 60%.'
+        abilityName: 'Ultimate Cryo-Zoom',
+        abilityDesc: 'Press Ultimate to slow down flying speed by 50% and zoom out the screen view by 45%.'
       },
       {
         id: 'jade_lotus',
