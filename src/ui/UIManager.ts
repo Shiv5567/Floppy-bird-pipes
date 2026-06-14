@@ -646,7 +646,7 @@ export class UIManager {
             <div class="bird-aura"></div>
             <div class="bird-floaties">${floatiesHtml}</div>
             <div class="bird-mascot" id="bird-mascot-tap" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 120px; height: 120px; position: relative; margin: 0 auto;">
-              <canvas id="main-menu-bird-canvas" width="140" height="140" style="width: 140px; height: 140px;"></canvas>
+              <canvas id="main-menu-bird-canvas" width="180" height="140" style="width: 180px; height: 140px; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) translateX(28px);"></canvas>
             </div>
             <div class="bird-select-character-pill" id="btn-mascot-skins-quick" style="position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); background: rgba(0, 243, 255, 0.25); border: 1px solid rgba(0, 243, 255, 0.6); padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; color: #fff; cursor: pointer; text-shadow: 0 0 5px #00f3ff; box-shadow: 0 0 10px rgba(0, 243, 255, 0.3); white-space: nowrap; transition: all 0.2s ease; z-index: 10;">🔄 SELECT CHARACTER</div>
           </div>
