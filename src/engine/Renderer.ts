@@ -222,8 +222,13 @@ export class Renderer {
       targetZoom *= 0.96; // Zoom out by 4% in squad mode!
     }
 
-    // Hard-lock zoom to 1.0 in performance mode, otherwise smoothly interpolate (allow zoom in flock mode and boss fight)
-    if (isPerformanceMode && !isFlockMode && gameState !== 'BOSS_FIGHT') {
+    const isJadeLotusUltimate = gameEngine && gameEngine.ultimateActive && gameEngine.bird && gameEngine.bird.getSkin().id === 'jade_lotus';
+    if (isJadeLotusUltimate) {
+      targetZoom *= 0.80; // 20% zoom out (scale to 80%)
+    }
+
+    // Hard-lock zoom to 1.0 in performance mode, otherwise smoothly interpolate (allow zoom in flock mode, boss fight, and Hummingbird ultimate)
+    if (isPerformanceMode && !isFlockMode && gameState !== 'BOSS_FIGHT' && !isJadeLotusUltimate) {
       this.zoomFactor = 1.0;
     } else {
       this.zoomFactor += (targetZoom - this.zoomFactor) * 0.08 * (deltaTime * 60);

@@ -1783,7 +1783,9 @@ export class ObstacleManager {
 
 
       // Remove offscreen obstacles & recycle them back to the free pool for Object Pooling!
-      const offscreenLeftLimit = -50;
+      const gameEngine = (window as any).gameEngine;
+      const isHummingbirdUltimate = gameEngine && gameEngine.ultimateActive && gameEngine.bird && gameEngine.bird.getSkin().id === 'jade_lotus';
+      const offscreenLeftLimit = isHummingbirdUltimate ? -200 : -50;
       if (obs.x + obs.width < offscreenLeftLimit) {
         this.freePool.push(obs);
         this.list.splice(i, 1);
