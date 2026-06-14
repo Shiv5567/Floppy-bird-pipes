@@ -175,7 +175,13 @@ export class Bird {
     
     if (isPlaying) {
       // Apply gravity or keep velocity constant during ultimate
-      if (engine && engine.ultimateActive && this.activeSkin.id !== 'jade_lotus') {
+      if (
+        engine &&
+        engine.ultimateActive &&
+        this.activeSkin.id !== 'jade_lotus' &&
+        this.activeSkin.id !== 'neon_crow' &&
+        this.activeSkin.id !== 'angry_red'
+      ) {
         // Controllable: smoothly return to starting velocity after a jump
         this.vy += (this.ultimateStartVy - this.vy) * 0.10 * dtCoeff;
       } else {
