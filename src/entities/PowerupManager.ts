@@ -13,6 +13,7 @@ export interface PowerupItem {
   initialY: number;
   associatedObstacle?: Obstacle;
   verticalOffsetPct?: number;
+  verticalOffsetPx?: number;
 }
 
 export class PowerupManager {
@@ -293,7 +294,17 @@ export class PowerupManager {
             const gapBottom = height - obs.bottomHeight;
             const gapHeight = gapBottom - gapTop;
             const gapCenter = gapTop + gapHeight * 0.5;
-            const shift = (item.verticalOffsetPct || 0) * (gapHeight * 0.5);
+            
+            let shift = 0;
+            if (item.verticalOffsetPx !== undefined) {
+              shift = item.verticalOffsetPx;
+            } else {
+              shift = (item.verticalOffsetPct || 0) * (gapHeight * 0.5);
+              if (item.type === 'coin') {
+                if (item.verticalOffsetPct === 0.25) shift = 20;
+                else if (item.verticalOffsetPct === -0.25) shift = -20;
+              }
+            }
             item.y = gapCenter + shift + Math.sin(item.pulseTimer) * 12;
             item.initialY = gapCenter + shift;
           } else {
@@ -308,7 +319,16 @@ export class PowerupManager {
           const gapBottom = height - obs.bottomHeight;
           const gapHeight = gapBottom - gapTop;
           const gapCenter = gapTop + gapHeight * 0.5;
-          const shift = (item.verticalOffsetPct || 0) * (gapHeight * 0.5);
+          let shift = 0;
+          if (item.verticalOffsetPx !== undefined) {
+            shift = item.verticalOffsetPx;
+          } else {
+            shift = (item.verticalOffsetPct || 0) * (gapHeight * 0.5);
+            if (item.type === 'coin') {
+              if (item.verticalOffsetPct === 0.25) shift = 20;
+              else if (item.verticalOffsetPct === -0.25) shift = -20;
+            }
+          }
           item.y = gapCenter + shift + Math.sin(item.pulseTimer) * 12;
           item.initialY = gapCenter + shift;
         } else {
@@ -366,11 +386,80 @@ export class PowerupManager {
         if (planItem) {
           // Spawn exactly in the center of the gap (targetX, gapCenterY)
           this.spawnItem(planItem.type, width, height, targetX, gapCenterY);
-        } else if (indexInBlock % 3 === 0) {
-          // Spawn 3 coins group in the center at equal intervals (every 3rd obstacle, except on powerup indices)
-          this.spawnItem('coin', width, height, targetX - 49.5, gapCenterY);
-          this.spawnItem('coin', width, height, targetX, gapCenterY);
-          this.spawnItem('coin', width, height, targetX + 49.5, gapCenterY);
+        } else if (indexInBlock % 4 === 0) {
+          // Cycle through 4 pattern styles for engaging gameplay:
+          // Pattern 0: Convex Arch Shape (5 coins: pointing up)
+          // Pattern 1: Concave U Shape (5 coins: pointing down)
+          // Pattern 2: Diamond Shape (8 coins)
+          // Pattern 3: Right Arrow Shape (8 coins)
+          // Spawning on a modulo of 4 ensures exactly 25 spawns per 100 score interval.
+          // By cycling through these 4 patterns, we get around 162 coins per 100 score!
+          const patternType = Math.floor(obsIdx / 4) % 4;
+          const syncTimer = 0; // Ensure they hover in sync!
+
+          if (patternType === 0) {
+            // Spawn Convex Arch Shape (5 coins: pointing up)
+            this.spawnItem('coin', width, height, targetX - 40, gapCenterY + 15, unrewardedObstacle, undefined, 15);
+            this.spawnItem('coin', width, height, targetX - 20, gapCenterY,     unrewardedObstacle, undefined, 0);
+            this.spawnItem('coin', width, height, targetX,      gapCenterY - 15, unrewardedObstacle, undefined, -15);
+            this.spawnItem('coin', width, height, targetX + 20, gapCenterY,     unrewardedObstacle, undefined, 0);
+            this.spawnItem('coin', width, height, targetX + 40, gapCenterY + 15, unrewardedObstacle, undefined, 15);
+
+            const startIdx = this.list.length - 5;
+            for (let k = startIdx; k < this.list.length; k++) {
+              if (this.list[k]) this.list[k].pulseTimer = syncTimer;
+            }
+          } else if (patternType === 1) {
+            // Spawn Concave U Shape (5 coins: pointing down)
+            this.spawnItem('coin', width, height, targetX - 40, gapCenterY - 15, unrewardedObstacle, undefined, -15);
+            this.spawnItem('coin', width, height, targetX - 20, gapCenterY,     unrewardedObstacle, undefined, 0);
+            this.spawnItem('coin', width, height, targetX,      gapCenterY + 15, unrewardedObstacle, undefined, 15);
+            this.spawnItem('coin', width, height, targetX + 20, gapCenterY,     unrewardedObstacle, undefined, 0);
+            this.spawnItem('coin', width, height, targetX + 40, gapCenterY - 15, unrewardedObstacle, undefined, -15);
+
+            const startIdx = this.list.length - 5;
+            for (let k = startIdx; k < this.list.length; k++) {
+              if (this.list[k]) this.list[k].pulseTimer = syncTimer;
+            }
+          } else if (patternType === 2) {
+            // Spawn Diamond Shape (8 coins)
+            this.spawnItem('coin', width, height, targetX,      gapCenterY - 30, unrewardedObstacle, undefined, -30);
+            this.spawnItem('coin', width, height, targetX - 20, gapCenterY - 15, unrewardedObstacle, undefined, -15);
+            this.spawnItem('coin', width, height, targetX + 20, gapCenterY - 15, unrewardedObstacle, undefined, -15);
+            this.spawnItem('coin', width, height, targetX - 40, gapCenterY,     unrewardedObstacle, undefined, 0);
+            this.spawnItem('coin', width, height, targetX + 40, gapCenterY,     unrewardedObstacle, undefined, 0);
+            this.spawnItem('coin', width, height, targetX - 20, gapCenterY + 15, unrewardedObstacle, undefined, 15);
+            this.spawnItem('coin', width, height, targetX + 20, gapCenterY + 15, unrewardedObstacle, undefined, 15);
+            this.spawnItem('coin', width, height, targetX,      gapCenterY + 30, unrewardedObstacle, undefined, 30);
+
+            const startIdx = this.list.length - 8;
+            for (let k = startIdx; k < this.list.length; k++) {
+              if (this.list[k]) this.list[k].pulseTimer = syncTimer;
+            }
+          } else {
+            // Spawn Right-Pointing Arrow Shape (8 coins)
+            // Column 1: targetX - 40, offset Y: 0 (stem start)
+            // Column 2: targetX - 20, offset Y: 0 (stem mid)
+            // Column 3: targetX,      offset Y: 0 (arrow base center)
+            //           targetX,      offset Y: -30 (top wing tip)
+            //           targetX,      offset Y: +30 (bottom wing tip)
+            // Column 4: targetX + 20, offset Y: -15 (upper arrow boundary)
+            //           targetX + 20, offset Y: +15 (lower arrow boundary)
+            // Column 5: targetX + 40, offset Y: 0 (tip pointing right)
+            this.spawnItem('coin', width, height, targetX - 40, gapCenterY,      unrewardedObstacle, undefined, 0);
+            this.spawnItem('coin', width, height, targetX - 20, gapCenterY,      unrewardedObstacle, undefined, 0);
+            this.spawnItem('coin', width, height, targetX,      gapCenterY - 30, unrewardedObstacle, undefined, -30);
+            this.spawnItem('coin', width, height, targetX,      gapCenterY,      unrewardedObstacle, undefined, 0);
+            this.spawnItem('coin', width, height, targetX,      gapCenterY + 30, unrewardedObstacle, undefined, 30);
+            this.spawnItem('coin', width, height, targetX + 20, gapCenterY - 15, unrewardedObstacle, undefined, -15);
+            this.spawnItem('coin', width, height, targetX + 20, gapCenterY + 15, unrewardedObstacle, undefined, 15);
+            this.spawnItem('coin', width, height, targetX + 40, gapCenterY,      unrewardedObstacle, undefined, 0);
+
+            const startIdx = this.list.length - 8;
+            for (let k = startIdx; k < this.list.length; k++) {
+              if (this.list[k]) this.list[k].pulseTimer = syncTimer;
+            }
+          }
         } else if (indexInBlock % 10 === 5) {
           // Spawn a gem at equal intervals (every 10th obstacle, except on powerup indices)
           this.spawnItem('gem', width, height, targetX, gapCenterY);
@@ -400,9 +489,10 @@ export class PowerupManager {
           this.spawnItem('rescue', width, height, targetX, targetY, unrewardedObstacle, offsetPct);
           this.nextRescueSpawnTarget = obsIdx + 10 + Math.floor(Math.random() * 6); // Set next spawn between 10 and 15 obstacles
         } else if (obsIdx % 3 === 0) {
-          // Spawn 3 coins group
+          // Spawn 4 coins group (aims for around 100 coins per 100 score interval)
           this.spawnItem('coin', width, height, targetX - 45, targetY, unrewardedObstacle, offsetPct);
-          this.spawnItem('coin', width, height, targetX, targetY, unrewardedObstacle, offsetPct);
+          this.spawnItem('coin', width, height, targetX - 15, targetY, unrewardedObstacle, offsetPct);
+          this.spawnItem('coin', width, height, targetX + 15, targetY, unrewardedObstacle, offsetPct);
           this.spawnItem('coin', width, height, targetX + 45, targetY, unrewardedObstacle, offsetPct);
         } else if (obsIdx % 7 === 4) {
           // Spare slots: gems
@@ -464,7 +554,8 @@ export class PowerupManager {
     customX?: number,
     customY?: number,
     associatedObstacle?: Obstacle,
-    verticalOffsetPct?: number
+    verticalOffsetPct?: number,
+    verticalOffsetPx?: number
   ) {
     let radius = 20; // enlarged from 14
     if (type === 'coin') radius = 14.4; // reduced by 10% (from 16)
@@ -488,7 +579,8 @@ export class PowerupManager {
       active: true,
       pulseTimer: Math.random() * Math.PI * 2,
       associatedObstacle,
-      verticalOffsetPct
+      verticalOffsetPct,
+      verticalOffsetPx
     });
   }
 

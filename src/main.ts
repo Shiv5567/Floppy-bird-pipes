@@ -106,9 +106,6 @@ function setupInputs() {
     if (gameEngine.state === 'PLAYING' || gameEngine.state === 'BOSS_FIGHT') {
       // ALWAYS jump instantly on every single click/tap! No blocking or delay!
       gameEngine.jump();
-    } else if (gameEngine.state === 'MENU' && uiManager.getActiveTab() === 'main') {
-      const startBtn = document.getElementById('btn-start-game');
-      if (startBtn) startBtn.click();
     } else if (gameEngine.state === 'GAMEOVER') {
       const retryBtn = document.getElementById('btn-retry');
       if (retryBtn) retryBtn.click();

@@ -546,19 +546,6 @@ export class UIManager {
       return;
     }
 
-    // World meta lookup
-    const worldMeta: Record<string, { name: string; emoji: string }> = {
-      jungle:     { name: 'Tropical Rainforest', emoji: '🌴' },
-      cyberpunk:  { name: 'Cyberpunk Neon City',  emoji: '🏙️' },
-      ice:        { name: 'Frozen Ice Kingdom',   emoji: '❄️' },
-      desert:     { name: 'Ancient Desert Ruins',  emoji: '🏜️' },
-      volcano:    { name: 'Volcano Hell World',    emoji: '🌋' },
-      space:      { name: 'Space Galaxy Void',     emoji: '🌌' },
-      underwater: { name: 'Deep Ocean Trench',     emoji: '🐙' },
-      heaven:     { name: 'Heaven Fantasy Realm',  emoji: '🌤️' },
-      retro:      { name: 'Retro Classic',         emoji: '🎮' },
-    };
-    const world = worldMeta[worldId] || { name: 'Tropical Rainforest', emoji: '🌴' };
 
 
 
@@ -595,34 +582,17 @@ export class UIManager {
 
         <!-- ===== TOP BAR ===== -->
         <div class="menu-top-bar">
-          <div class="top-bar-player">
-            <canvas class="top-bar-avatar-canvas" width="40" height="40" style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #1a4fd6, #6c14e0); border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 0 10px rgba(108, 20, 224, 0.5);"></canvas>
-            <div>
-              <div class="top-bar-name">LEGENDARY AVIATOR</div>
-            </div>
-          </div>
           <div class="top-bar-currencies">
-            <div class="top-bar-coin" style="position: relative;">
+            <div class="top-bar-coin" id="btn-coin-topup" style="position: relative; cursor: pointer;">
               <span class="top-bar-coin-icon">🪙</span>${progress.coins.toLocaleString()}
               <button class="top-bar-add-btn" id="btn-plus-coins" title="Watch ad for +500 Coins">+</button>
             </div>
-            <div class="top-bar-gem" style="position: relative;">
+            <div class="top-bar-gem" id="btn-gem-topup" style="position: relative; cursor: pointer;">
               <span class="top-bar-gem-icon">💎</span>${progress.gems.toLocaleString()}
               <button class="top-bar-add-btn" id="btn-plus-gems" title="Watch ad for +10 Gems">+</button>
             </div>
-            <button class="top-bar-settings-btn" id="btn-open-settings" style="background: none; border: none; font-size: 20px; cursor: pointer; color: white; margin-left: 8px; display: flex; align-items: center; justify-content: center;">⚙️</button>
+            <button class="top-bar-settings-btn" id="btn-open-settings">⚙️</button>
           </div>
-        </div>
-
-        <!-- ===== GAME LOGO ===== -->
-        <div class="logo-container">
-          <div class="logo-wings-row">
-            <span class="logo-wing">🪽</span>
-            <span class="logo-flight">FLIGHT</span>
-            <span class="logo-wing right">🪽</span>
-          </div>
-          <span class="logo-of">OF</span>
-          <div class="logo-legends">LEGENDS</div>
         </div>
 
         <!-- ===== CENTER STAGE ===== -->
@@ -631,35 +601,32 @@ export class UIManager {
           <!-- Left side panel -->
           <div class="side-panel-left">
             <button class="side-btn" id="side-btn-skins">
-              <img class="side-btn-icon" src="character_icon.png" style="width: 55px; height: 55px; object-fit: contain; margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.5));">
+              ${this.getCharacterIconSvg('55px', '55px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.5));', 'home')}
               <span class="side-btn-label">CHARACTERS</span>
             </button>
             <button class="side-btn" id="side-btn-worlds">
-              <img class="side-btn-icon" src="worlds_icon.png" style="width: 55px; height: 55px; object-fit: contain; margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(123, 47, 255, 0.5));">
+              ${this.getWorldsIconSvg('55px', '55px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(123, 47, 255, 0.5));', 'home')}
               <span class="side-btn-label">WORLDS</span>
             </button>
           </div>
 
           <!-- Bird Mascot -->
           <div class="bird-stage">
-            <div class="bird-aura-outer"></div>
-            <div class="bird-aura"></div>
             <div class="bird-floaties">${floatiesHtml}</div>
             <div class="bird-mascot" id="bird-mascot-tap" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 120px; height: 120px; position: relative; margin: 0 auto;">
               <canvas id="main-menu-bird-canvas" width="180" height="140" style="width: 180px; height: 140px; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);"></canvas>
             </div>
-            <div class="bird-select-character-pill" id="btn-mascot-skins-quick" style="position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); background: rgba(0, 243, 255, 0.25); border: 1px solid rgba(0, 243, 255, 0.6); padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; color: #fff; cursor: pointer; text-shadow: 0 0 5px #00f3ff; box-shadow: 0 0 10px rgba(0, 243, 255, 0.3); white-space: nowrap; transition: all 0.2s ease; z-index: 10;">🔄 SELECT CHARACTER</div>
           </div>
 
           <!-- Right side panel -->
           <div class="side-panel-right">
             <button class="side-btn" id="side-btn-rewards" style="width: 100%; margin-bottom: 8px;">
               <div class="side-btn-badge">!</div>
-              <img class="side-btn-icon" src="reward_box.png" style="width: 55px; height: 55px; object-fit: contain; margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(255, 170, 0, 0.5));">
+              ${this.getRewardBoxSvg('55px', '55px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(255, 170, 0, 0.5));', 'home')}
               <span class="side-btn-label">REWARDS</span>
             </button>
             <button class="side-btn" id="side-btn-powerups" style="width: 100%;">
-              <img class="side-btn-icon" src="upgrade_icon.png" style="width: 55px; height: 55px; object-fit: contain; margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.6));">
+              ${this.getUpgradeIconSvg('55px', '55px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.6));', 'home')}
               <span class="side-btn-label">UPGRADES</span>
             </button>
           </div>
@@ -669,14 +636,8 @@ export class UIManager {
         <div class="world-platform-area">
           <div class="platform-base">
             <div class="platform-glow-ring"></div>
-            
-            <div class="world-selector-chip" id="btn-open-worlds">
-              <span class="world-chip-icon">${world.emoji}</span>
-              <span>${world.name}</span>
-              <span class="world-chip-info-icon">ℹ</span>
-            </div>
 
-            <div style="display: flex; gap: 8px; width: 100%; margin-bottom: 6px; margin-top: 8px;">
+            <div style="display: flex; gap: 8px; width: 100%; margin-bottom: 6px; margin-top: 8px; transform: translateY(50px);">
               <button class="start-fly-btn" id="btn-start-game" style="flex: 1; padding: 12px 10px; font-size: 16px;">
                 <span>ENDLESS</span>
                 <span class="start-fly-wing">🪶</span>
@@ -686,7 +647,7 @@ export class UIManager {
                 <span class="start-fly-wing">🏆</span>
               </button>
             </div>
-            <button class="spectator-btn-small" id="btn-spectator">🤖 SPECTATOR AUTO-PILOT</button>
+            <button class="spectator-btn-small" id="btn-spectator" style="transform: translateY(50px);">🤖 SPECTATOR AUTO-PILOT</button>
           </div>
         </div>
 
@@ -705,17 +666,7 @@ export class UIManager {
       const activeSkin = this.engine.progressManager.getActiveSkinInfo();
       const ctx = mainCanvas.getContext('2d');
       if (ctx) {
-        this.engine.bird.renderPreview(ctx, mainCanvas.width, mainCanvas.height, activeSkin);
-      }
-    }
-
-    // 2. Draw top bar player avatar preview if present
-    const avatarCanvas = this.container.querySelector('.top-bar-avatar-canvas') as HTMLCanvasElement | null;
-    if (avatarCanvas) {
-      const activeSkin = this.engine.progressManager.getActiveSkinInfo();
-      const ctx = avatarCanvas.getContext('2d');
-      if (ctx) {
-        this.engine.bird.renderPreview(ctx, avatarCanvas.width, avatarCanvas.height, activeSkin);
+        this.engine.bird.renderPreview(ctx, mainCanvas.width, mainCanvas.height, activeSkin, true);
       }
     }
 
@@ -752,14 +703,14 @@ export class UIManager {
     const progress = this.engine.progressManager.getState();
 
     const tabMeta: Record<string, { icon: string; title: string; color: string; heroIcon: string; heroSubtitle: string }> = {
-      skins:        { icon: '<img src="character_icon.png" style="width: 32px; height: 32px; object-fit: contain; vertical-align: middle; display: inline-block;">', title: 'CHARACTERS',  color: '#00f3ff', heroIcon: '<img src="character_icon.png" style="width: 72px; height: 72px; object-fit: contain; animation: floatBird 4s ease-in-out infinite;">', heroSubtitle: 'Select your legendary aviator' },
-      worlds:       { icon: '<img src="worlds_icon.png" style="width: 32px; height: 32px; object-fit: contain; vertical-align: middle; display: inline-block;">', title: 'SELECT BATTLEFIELD',   color: '#7b2fff', heroIcon: '<img src="worlds_icon.png" style="width: 72px; height: 72px; object-fit: contain; animation: floatBird 4s ease-in-out infinite;">', heroSubtitle: 'Choose your flying world' },
+      skins:        { icon: this.getCharacterIconSvg('32px', '32px', 'vertical-align: middle; display: inline-block;', 'tab'), title: 'SELECT YOUR CHARACTER',  color: '#00f3ff', heroIcon: this.getCharacterIconSvg('72px', '72px', 'animation: floatBird 4s ease-in-out infinite;', 'hero'), heroSubtitle: '' },
+      worlds:       { icon: this.getWorldsIconSvg('32px', '32px', 'vertical-align: middle; display: inline-block;', 'tab'), title: 'SELECT BATTLEFIELD',   color: '#7b2fff', heroIcon: this.getWorldsIconSvg('72px', '72px', 'animation: floatBird 4s ease-in-out infinite;', 'hero'), heroSubtitle: 'Choose your flying world' },
       bp:           { icon: '🎫', title: 'SEASON 1 BATTLE PASS', color: '#ff007f', heroIcon: '⚔️', heroSubtitle: 'Unlock exclusive rewards' },
       achievements: { icon: '🏆', title: 'HALL OF TROPHIES',     color: '#ffd700', heroIcon: '🏅', heroSubtitle: 'Track your legendary feats' },
-      rewards:      { icon: '<img src="reward_box.png" style="width: 32px; height: 32px; object-fit: contain; vertical-align: middle; display: inline-block;">', title: 'REWARDS & PROGRESSION HUB', color: '#ffaa00', heroIcon: '<img src="reward_box.png" style="width: 72px; height: 72px; object-fit: contain; animation: floatBird 4s ease-in-out infinite;">', heroSubtitle: 'Claim your daily logs, trophies, and battle pass!' },
+      rewards:      { icon: this.getRewardBoxSvg('32px', '32px', 'vertical-align: middle; display: inline-block;', 'tab'), title: 'REWARDS & PROGRESSION HUB', color: '#ffaa00', heroIcon: this.getRewardBoxSvg('72px', '72px', 'animation: floatBird 4s ease-in-out infinite;', 'hero'), heroSubtitle: 'Claim your daily logs, trophies, and battle pass!' },
       settings:     { icon: '⚙️', title: 'GAME CONFIGURATION',   color: '#00ff88', heroIcon: '⚙️', heroSubtitle: 'Configure your flight difficulty mode' },
       levels:       { icon: '🏆', title: 'LEVEL SELECT MODE',    color: '#7b2fff', heroIcon: '🏆', heroSubtitle: 'Complete all 50 transforming levels!' },
-      powerups:     { icon: '<img src="upgrade_icon.png" style="width: 32px; height: 32px; object-fit: contain; vertical-align: middle; display: inline-block;">', title: 'POWERUP UPGRADE LAB',   color: '#00f3ff', heroIcon: '<img src="upgrade_icon.png" style="width: 72px; height: 72px; object-fit: contain; animation: floatBird 4s ease-in-out infinite;">', heroSubtitle: 'Upgrade bubble durations & effectiveness' }
+      powerups:     { icon: this.getUpgradeIconSvg('32px', '32px', 'vertical-align: middle; display: inline-block;', 'tab'), title: 'POWERUP UPGRADE LAB',   color: '#00f3ff', heroIcon: this.getUpgradeIconSvg('72px', '72px', 'animation: floatBird 4s ease-in-out infinite;', 'hero'), heroSubtitle: 'Upgrade bubble durations & effectiveness' }
     };
     const meta = tabMeta[this.activeTab] || tabMeta['skins'];
 
@@ -782,9 +733,10 @@ export class UIManager {
 
         <!-- World background -->
         <div class="menu-world-bg world-bg-${worldId}"></div>
-        <div class="menu-particles">${particlesHtml}</div>
+        ${this.activeTab !== 'settings' ? `<div class="menu-particles">${particlesHtml}</div>` : ''}
 
         <!-- ===== TAB HERO HEADER ===== -->
+        ${this.activeTab !== 'settings' ? `
         <div class="tab-hero-header">
           <button class="tab-back-btn" id="btn-back-main">
             <span class="tab-back-arrow">‹</span>
@@ -799,9 +751,10 @@ export class UIManager {
           </div>
           <div class="tab-hero-spacer"></div>
         </div>
+        ` : ''}
 
         <!-- ===== HERO FEATURE SPOTLIGHT ===== -->
-        ${this.activeTab !== 'levels' ? `
+        ${(this.activeTab !== 'levels' && this.activeTab !== 'settings') ? `
         <div class="tab-hero-spotlight">
           <div class="tab-spotlight-glow" style="background:radial-gradient(circle,${meta.color}33 0%,transparent 70%)"></div>
           ${this.activeTab === 'skins' ? 
@@ -885,7 +838,6 @@ export class UIManager {
           `;
         }).join('');
         return `
-          <div class="tab-sheet-title">✨ SELECT YOUR CHARACTER</div>
           <div class="grid-scroll">${skinsCards}</div>
         `;
       }
@@ -894,7 +846,7 @@ export class UIManager {
         const worldColors: Record<string, string> = {
           jungle: '#00c853', jungle_temple: '#2e7d32', cyberpunk: '#7c4dff', ice: '#40c4ff',
           desert: '#ffab40', volcano: '#ff3d00', space: '#651fff',
-          underwater: '#0091ea', heaven: '#ffd740', retro: '#78909c'
+          heaven: '#ffd740'
         };
         const worlds = [
           { id: 'jungle',     name: 'Tropical Rainforest', emoji: '🌴', desc: 'Lush greenery, cascades & ancient ruins' },
@@ -904,9 +856,7 @@ export class UIManager {
           { id: 'desert',     name: 'Ancient Desert Ruins', emoji: '🏜️', desc: 'Swirling dust & golden sandstone obelisks' },
           { id: 'volcano',    name: 'Volcano Hell World',   emoji: '🌋', desc: 'Magma rivers, lightning & basalt spires' },
           { id: 'space',      name: 'Space Galaxy Void',    emoji: '🌌', desc: 'Warp zones & drifting asteroid fields' },
-          { id: 'underwater', name: 'Deep Ocean Trench',    emoji: '🐙', desc: 'Kelp forests, currents & sea mines' },
-          { id: 'heaven',     name: 'Heaven Fantasy Realm', emoji: '🌤️', desc: 'Marble pillars & golden sky lightrays' },
-          { id: 'retro',      name: 'Retro Classic',        emoji: '🎮', desc: 'Lag-free simple classic world with zero heavy effects' }
+          { id: 'heaven',     name: 'Heaven Fantasy Realm', emoji: '🌤️', desc: 'Marble pillars & golden sky lightrays' }
         ];
         const worldsCards = worlds.map(w => {
           const isActive = progress.activeWorld === w.id;
@@ -984,7 +934,7 @@ export class UIManager {
             calendarHtml += `
               <div class="${classes}" data-day="${d}">
                 <span class="day-label">Day ${d}</span>
-                <span class="day-icon">${d === 7 ? '<img src="reward_box.png" style="width: 38px; height: 38px; object-fit: contain; vertical-align: middle;">' : '📅'}</span>
+                <span class="day-icon">${d === 7 ? this.getRewardBoxSvg('38px', '38px', 'vertical-align: middle;', 'day7') : '📅'}</span>
                 <span class="day-reward-value">${rewardText}</span>
               </div>
             `;
@@ -1245,8 +1195,10 @@ export class UIManager {
 
       case 'settings': {
         return `
-          <div class="tab-sheet-title">⚙️ CONFIGURATION & SOUND SETTINGS</div>
-          <div class="zones-configuration-card glass-card" style="padding: 24px; border-radius: 20px; background: rgba(13, 10, 28, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); max-width: 420px; margin: 0 auto;">
+          <div class="zones-configuration-card glass-card" style="width: 90%; max-width: 380px; padding: 22px 18px; border-radius: 24px; background: rgba(13, 10, 28, 0.85); border: 1.5px solid rgba(0, 255, 136, 0.2); box-shadow: 0 10px 30px rgba(0, 255, 136, 0.15), 0 5px 15px rgba(0, 0, 0, 0.5); margin: 30px auto; position: relative;">
+            <!-- Close icon button -->
+            <button id="btn-settings-back-icon" style="position: absolute; right: 15px; top: 15px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: white; width: 28px; height: 28px; border-radius: 50%; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">✖</button>
+
             <!-- Difficulty segmented control -->
             <div class="control-group" style="margin-bottom: 24px;">
               <div class="segment-label" style="font-size: 11px; font-weight: 800; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 10px; text-transform: uppercase;">SELECT DIFFICULTY</div>
@@ -1283,12 +1235,214 @@ export class UIManager {
                 >
               </div>
             </div>
+
+            <!-- Back Button at bottom -->
+            <div style="margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px;">
+              <button class="btn btn-secondary" id="btn-settings-back" style="width: 100%; padding: 12px; border-radius: 12px; font-weight: 800; cursor: pointer;">BACK TO MENU</button>
           </div>
         `;
       }
 
       default:
         return '';
+    }
+  }
+
+  private showTopupPopup() {
+    // Remove any existing popup
+    const existing = document.getElementById('topup-modal-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'topup-modal-overlay';
+    overlay.className = 'topup-modal-overlay fade-in';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999999;
+      font-family: 'Outfit', sans-serif;
+    `;
+
+    const cooldownMs = AdManager.getEconomyCooldownRemaining();
+    const onCooldown = cooldownMs > 0;
+    const cooldownStr = onCooldown ? Math.ceil(cooldownMs / 1000) + 's' : '';
+
+    overlay.innerHTML = `
+      <div class="topup-modal-card glass-card" style="
+        width: 85%;
+        max-width: 300px;
+        background: linear-gradient(135deg, rgba(20, 15, 38, 0.96), rgba(10, 5, 20, 0.98));
+        border: 2px solid rgba(0, 243, 255, 0.4);
+        border-radius: 20px;
+        padding: 20px 16px;
+        color: white;
+        box-shadow: 0 0 25px rgba(0, 243, 255, 0.25);
+        text-align: center;
+        position: relative;
+        font-family: inherit;
+        animation: modalSlideIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      ">
+        <!-- Close Button -->
+        <button id="topup-close-btn" style="
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.15);
+          color: white;
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          font-size: 12px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        ">✕</button>
+
+        <!-- Header -->
+        <div style="font-size: 18px; font-weight: 900; letter-spacing: 1.5px; color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.4); margin-bottom: 4px; margin-top: 6px;">
+          🎁 FREE REWARDS 🎁
+        </div>
+        <div style="font-size: 10px; font-weight: 800; color: #00f3ff; margin-bottom: 16px; text-shadow: 0 0 8px rgba(0,243,255,0.35); display: flex; align-items: center; justify-content: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+          📺 WATCH ADS, GET REWARD!
+        </div>
+
+        <!-- Cooldown Indicator -->
+        ${onCooldown ? `
+          <div style="
+            background: rgba(255, 0, 85, 0.1);
+            border: 1px solid rgba(255, 0, 85, 0.35);
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 10px;
+            color: #ff3366;
+            margin-bottom: 14px;
+            font-weight: 800;
+            display: inline-block;
+          ">
+            ⏳ COOLDOWN: Refilling in ${cooldownStr}
+          </div>
+        ` : ''}
+
+        <!-- Cards Section -->
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <!-- Coins Card -->
+          <div class="topup-card" style="
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            border-radius: 14px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s;
+          ">
+            <div style="font-size: 14px; font-weight: 900; color: #ffe47a;">
+              🪙 +500 Coins
+            </div>
+            <button id="topup-coins-ad-btn" ${onCooldown ? 'disabled' : ''} style="
+              background: ${onCooldown ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #ffd700, #ff8800)'};
+              border: none;
+              padding: 8px 14px;
+              border-radius: 10px;
+              color: ${onCooldown ? 'rgba(255,255,255,0.35)' : 'white'};
+              font-weight: 800;
+              font-size: 10px;
+              font-family: inherit;
+              cursor: ${onCooldown ? 'not-allowed' : 'pointer'};
+              box-shadow: ${onCooldown ? 'none' : '0 3px 8px rgba(255,136,0,0.2)'};
+              transition: all 0.2s;
+            ">
+              ${onCooldown ? 'COOLING' : 'WATCH AD 📺'}
+            </button>
+          </div>
+
+          <!-- Gems Card -->
+          <div class="topup-card" style="
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 168, 255, 0.25);
+            border-radius: 14px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s;
+          ">
+            <div style="font-size: 14px; font-weight: 900; color: #a8e5ff;">
+              💎 +10 Gems
+            </div>
+            <button id="topup-gems-ad-btn" ${onCooldown ? 'disabled' : ''} style="
+              background: ${onCooldown ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #00c3ff, #0055ff)'};
+              border: none;
+              padding: 8px 14px;
+              border-radius: 10px;
+              color: ${onCooldown ? 'rgba(255,255,255,0.35)' : 'white'};
+              font-weight: 800;
+              font-size: 10px;
+              font-family: inherit;
+              cursor: ${onCooldown ? 'not-allowed' : 'pointer'};
+              box-shadow: ${onCooldown ? 'none' : '0 3px 8px rgba(0,85,255,0.2)'};
+              transition: all 0.2s;
+            ">
+              ${onCooldown ? 'COOLING' : 'WATCH AD 📺'}
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Close button
+    const closeBtn = document.getElementById('topup-close-btn');
+    if (closeBtn) closeBtn.addEventListener('click', () => overlay.remove());
+    // Click outside to close
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.remove();
+    });
+
+    // Coins Watch Ad
+    const coinsAdBtn = document.getElementById('topup-coins-ad-btn');
+    if (coinsAdBtn && !onCooldown) {
+      coinsAdBtn.addEventListener('click', () => {
+        overlay.remove();
+        AdManager.showEconomyRewarded((success) => {
+          if (success) {
+            this.engine.progressManager.addCoins(500);
+            this.engine.progressManager.save();
+            this.render();
+            this.showToastNotification('COINS CLAIMED! 🪙', 'You received 500 Coins!');
+          } else {
+            this.showToastNotification('AD FAILED', 'Failed to play or watch ad.');
+          }
+        });
+      });
+    }
+
+    // Gems Watch Ad
+    const gemsAdBtn = document.getElementById('topup-gems-ad-btn');
+    if (gemsAdBtn && !onCooldown) {
+      gemsAdBtn.addEventListener('click', () => {
+        overlay.remove();
+        AdManager.showEconomyRewarded((success) => {
+          if (success) {
+            this.engine.progressManager.addGems(10);
+            this.engine.progressManager.save();
+            this.render();
+            this.showToastNotification('GEMS CLAIMED! 💎', 'You received 10 Gems!');
+          } else {
+            this.showToastNotification('AD FAILED', 'Failed to play or watch ad.');
+          }
+        });
+      });
     }
   }
 
@@ -1304,12 +1458,28 @@ export class UIManager {
       this.render();
     });
 
+    bindClick('btn-settings-back', () => {
+      this.activeTab = 'main';
+      this.render();
+    });
+    bindClick('btn-settings-back-icon', () => {
+      this.activeTab = 'main';
+      this.render();
+    });
+
     // Side panel quick-access buttons → open dedicated tab page
     bindClick('side-btn-rewards',      () => { this.activeTab = 'rewards';      this.render(); });
     bindClick('side-btn-powerups',     () => { this.activeTab = 'powerups';     this.render(); });
     bindClick('side-btn-skins',        () => { this.activeTab = 'skins';        this.render(); });
     bindClick('side-btn-worlds',       () => { this.activeTab = 'worlds';       this.render(); });
     bindClick('btn-open-settings',     () => { this.activeTab = 'settings';     this.render(); });
+    bindClick('btn-coin-topup',         () => { this.showTopupPopup(); });
+    bindClick('btn-gem-topup',          () => { this.showTopupPopup(); });
+    // Also bind the + buttons directly (stopPropagation so they don't bubble to parent div)
+    const btnPlusCoinsEl = document.getElementById('btn-plus-coins');
+    if (btnPlusCoinsEl) btnPlusCoinsEl.addEventListener('click', (e) => { e.stopPropagation(); this.showTopupPopup(); });
+    const btnPlusGemsEl = document.getElementById('btn-plus-gems');
+    if (btnPlusGemsEl) btnPlusGemsEl.addEventListener('click', (e) => { e.stopPropagation(); this.showTopupPopup(); });
 
     // Difficulty selection buttons
     const diffBtns = this.container.querySelectorAll('.segmented-control [data-diff]');
@@ -1422,15 +1592,8 @@ export class UIManager {
       });
     });
 
-    // World selector chip on main → open worlds page
-    bindClick('btn-open-worlds', () => { this.activeTab = 'worlds'; this.render(); });
-
     // Bird mascot tap opens Skins hangar directly!
     bindClick('bird-mascot-tap', () => {
-      this.activeTab = 'skins';
-      this.render();
-    });
-    bindClick('btn-mascot-skins-quick', () => {
       this.activeTab = 'skins';
       this.render();
     });
@@ -1587,41 +1750,6 @@ export class UIManager {
         }
       });
     });
-
-    // Currency Plus Ad Buttons
-    const btnPlusCoins = document.getElementById('btn-plus-coins');
-    if (btnPlusCoins) {
-      btnPlusCoins.addEventListener('click', (e) => {
-        e.stopPropagation();
-        AdManager.showEconomyRewarded((success) => {
-          if (success) {
-            this.engine.progressManager.addCoins(500);
-            this.engine.progressManager.save();
-            this.render();
-            this.showToastNotification('COINS CLAIMED! 🪙', 'You received 500 Coins!');
-          } else {
-            this.showToastNotification('AD FAILED', 'Failed to play or watch ad.');
-          }
-        });
-      });
-    }
-
-    const btnPlusGems = document.getElementById('btn-plus-gems');
-    if (btnPlusGems) {
-      btnPlusGems.addEventListener('click', (e) => {
-        e.stopPropagation();
-        AdManager.showEconomyRewarded((success) => {
-          if (success) {
-            this.engine.progressManager.addGems(10);
-            this.engine.progressManager.save();
-            this.render();
-            this.showToastNotification('GEMS CLAIMED! 💎', 'You received 10 Gems!');
-          } else {
-            this.showToastNotification('AD FAILED', 'Failed to play or watch ad.');
-          }
-        });
-      });
-    }
 
     // Extra Rewards Ad Button
     const btnExtraRewards = document.getElementById('btn-extra-rewards');
@@ -2528,6 +2656,678 @@ export class UIManager {
       case 'mini': return '#00ff7f';
       default: return '#ffffff';
     }
+  }
+
+  private getRewardBoxSvg(width: string, height: string, extraStyle: string = '', idSuffix: string = 'main'): string {
+    return `
+<svg viewBox="0 0 512 512" style="width: ${width}; height: ${height}; ${extraStyle}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Wood Gradients -->
+    <linearGradient id="wood-left-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E2B770" />
+      <stop offset="100%" stop-color="#A57038" />
+    </linearGradient>
+    <linearGradient id="wood-right-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#B28247" />
+      <stop offset="100%" stop-color="#72451C" />
+    </linearGradient>
+    <linearGradient id="wood-lid-top-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F3D19E" />
+      <stop offset="100%" stop-color="#D29A4E" />
+    </linearGradient>
+    <linearGradient id="wood-recessed-${idSuffix}" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#8E5623" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#2A1608" stop-opacity="0.6" />
+    </linearGradient>
+
+    <!-- Ribbon Gradients -->
+    <linearGradient id="ribbon-left-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FF5555" />
+      <stop offset="30%" stop-color="#D61A1A" />
+      <stop offset="100%" stop-color="#800000" />
+    </linearGradient>
+    <linearGradient id="ribbon-right-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#D61A1A" />
+      <stop offset="70%" stop-color="#9E0C0C" />
+      <stop offset="100%" stop-color="#5E0000" />
+    </linearGradient>
+    <linearGradient id="ribbon-top-left-${idSuffix}" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FF5555" />
+      <stop offset="100%" stop-color="#9E0C0C" />
+    </linearGradient>
+
+    <!-- Metal Gold Gradients -->
+    <linearGradient id="gold-grad-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCE69B" />
+      <stop offset="50%" stop-color="#D4A034" />
+      <stop offset="100%" stop-color="#7B4B17" />
+    </linearGradient>
+    <linearGradient id="gold-highlight-${idSuffix}" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#FFE580" stop-opacity="0.1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Drop Shadow -->
+  <ellipse cx="256" cy="425" rx="160" ry="40" fill="rgba(0, 0, 0, 0.3)" filter="blur(8px)" />
+
+  <g stroke="#2A1608" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Left Wall Base -->
+    <polygon points="120,180 256,260 256,420 120,340" fill="url(#wood-left-${idSuffix})" />
+    <!-- Recessed Left Panel -->
+    <polygon points="135,200 241,262 241,400 135,338" fill="url(#wood-left-${idSuffix})" />
+    <polygon points="135,200 241,262 241,400 135,338" fill="url(#wood-recessed-${idSuffix})" />
+
+    <!-- Right Wall Base -->
+    <polygon points="256,260 392,180 392,340 256,420" fill="url(#wood-right-${idSuffix})" />
+    <!-- Recessed Right Panel -->
+    <polygon points="271,262 377,200 377,338 271,400" fill="url(#wood-right-${idSuffix})" />
+    <polygon points="271,262 377,200 377,338 271,400" fill="url(#wood-recessed-${idSuffix})" />
+
+    <!-- Lid Overhang Rim -->
+    <!-- Left Lid Rim -->
+    <polygon points="110,135 256,225 256,265 110,175" fill="url(#wood-left-${idSuffix})" />
+    <!-- Right Lid Rim -->
+    <polygon points="256,225 402,135 402,175 256,265" fill="url(#wood-right-${idSuffix})" />
+    
+    <!-- Top Lid Face -->
+    <polygon points="110,135 256,45 402,135 256,225" fill="url(#wood-lid-top-${idSuffix})" />
+    <!-- Top Lid Recessed Panel -->
+    <polygon points="125,135 256,58 387,135 256,212" fill="url(#wood-lid-top-${idSuffix})" />
+    <polygon points="125,135 256,58 387,135 256,212" fill="url(#wood-recessed-${idSuffix})" />
+  </g>
+
+  <!-- Ribbons -->
+  <g stroke="#2A1608" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Top Face Ribbons -->
+    <polygon points="163,168 256,113 296,137 203,192" fill="url(#ribbon-top-left-${idSuffix})" />
+    <polygon points="309,192 216,137 256,113 349,168" fill="url(#ribbon-top-left-${idSuffix})" />
+
+    <!-- Left Wall Ribbon -->
+    <polygon points="168,208 208,232 208,392 168,368" fill="url(#ribbon-left-${idSuffix})" />
+    <!-- Left Lid Overhang Ribbon -->
+    <polygon points="163,168 203,192 203,232 163,208" fill="url(#ribbon-left-${idSuffix})" />
+
+    <!-- Right Wall Ribbon -->
+    <polygon points="304,232 344,208 344,368 304,392" fill="url(#ribbon-right-${idSuffix})" />
+    <!-- Right Lid Overhang Ribbon -->
+    <polygon points="309,192 349,168 349,208 309,232" fill="url(#ribbon-right-${idSuffix})" />
+  </g>
+
+  <!-- Metal Corners -->
+  <g fill="url(#gold-grad-${idSuffix})" stroke="#2A1608" stroke-width="5" stroke-linejoin="round">
+    <!-- Bottom Left -->
+    <path d="M 120,315 C 120,325 125,335 135,340 C 145,335 150,325 150,315 L 120,315 Z" transform="rotate(-15, 135, 327)" />
+    <circle cx="120" cy="340" r="10" />
+
+    <!-- Bottom Middle -->
+    <path d="M 256,395 C 270,395 281,405 281,410 C 270,418 242,418 231,410 C 231,405 242,395 256,395 Z" />
+    <circle cx="256" cy="420" r="12" />
+
+    <!-- Bottom Right -->
+    <path d="M 392,315 C 392,325 387,335 377,340 C 367,335 362,325 362,315 L 392,315 Z" transform="rotate(15, 377, 327)" />
+    <circle cx="392" cy="340" r="10" />
+
+    <!-- Lid corners (Top-Left, Top-Middle, Top-Right) -->
+    <circle cx="110" cy="135" r="12" />
+    <circle cx="256" cy="225" r="14" />
+    <circle cx="402" cy="135" r="12" />
+    <circle cx="256" cy="45" r="10" />
+  </g>
+
+  <!-- Lock Plate (Right Wall, on Ribbon) -->
+  <g stroke="#2A1608" stroke-width="5" stroke-linejoin="round">
+    <!-- Golden Escutcheon Badge -->
+    <path d="M 324,225 C 342,225 352,238 349,252 C 345,268 324,285 324,285 C 324,285 303,268 299,252 C 296,238 306,225 324,225 Z" fill="url(#gold-grad-${idSuffix})" />
+    
+    <!-- Red Center Shield -->
+    <path d="M 324,233 C 334,233 340,240 338,250 C 335,260 324,272 324,272 C 324,272 313,260 310,250 C 308,240 314,233 324,233 Z" fill="#D61A1A" />
+    
+    <!-- Keyhole -->
+    <circle cx="324" cy="248" r="5" fill="#2A1608" />
+    <polygon points="321,250 327,250 329,263 319,263" fill="#2A1608" />
+  </g>
+
+  <!-- Bow (Top Center of Lid) -->
+  <g stroke="#2A1608" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Ribbon Tails -->
+    <path d="M 245,130 C 225,160 190,195 200,210 C 210,210 235,180 249,145 Z" fill="url(#ribbon-left-${idSuffix})" />
+    <path d="M 267,130 C 287,160 322,195 312,210 C 302,210 277,180 263,145 Z" fill="url(#ribbon-right-${idSuffix})" />
+
+    <!-- Left Loop -->
+    <path d="M 246,128 C 210,85 140,95 165,140 C 185,165 230,145 246,128 Z" fill="url(#ribbon-left-${idSuffix})" />
+    <!-- Left Loop Inner Shadow -->
+    <path d="M 230,135 C 205,145 185,148 178,137 C 168,122 210,105 238,126 Z" fill="#5E0000" opacity="0.4" stroke="none" />
+
+    <!-- Right Loop -->
+    <path d="M 266,128 C 302,85 372,95 347,140 C 327,165 282,145 266,128 Z" fill="url(#ribbon-right-${idSuffix})" />
+    <!-- Right Loop Inner Shadow -->
+    <path d="M 282,135 C 307,145 327,148 334,137 C 344,122 302,105 274,126 Z" fill="#5E0000" opacity="0.4" stroke="none" />
+
+    <!-- Center Knot -->
+    <rect x="242" y="116" width="28" height="24" rx="8" ry="8" fill="url(#ribbon-left-${idSuffix})" />
+  </g>
+</svg>
+    `;
+  }
+
+  private getWorldsIconSvg(width: string, height: string, extraStyle: string = '', idSuffix: string = 'main'): string {
+    return `
+<svg viewBox="0 0 600 400" style="width: ${width}; height: ${height}; ${extraStyle}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background Wooden Ring Gradients -->
+    <linearGradient id="woodRingGrad-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fdf5e2" />
+      <stop offset="50%" stop-color="#dfc091" />
+      <stop offset="100%" stop-color="#b68f56" />
+    </linearGradient>
+
+    <!-- Biome 1: Snow Gradients -->
+    <linearGradient id="snowGrad-${idSuffix}" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#bce3eb" />
+    </linearGradient>
+    <linearGradient id="snowMountainShade-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#e1f5fe" />
+      <stop offset="100%" stop-color="#90caf9" />
+    </linearGradient>
+
+    <!-- Biome 2 & 3: Valley Gradients -->
+    <linearGradient id="valleyGrad-${idSuffix}" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#acd57a" />
+      <stop offset="100%" stop-color="#559933" />
+    </linearGradient>
+    <linearGradient id="mountainWoodGrad-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a1887f" />
+      <stop offset="100%" stop-color="#5d4037" />
+    </linearGradient>
+
+    <!-- Biome 4: Desert Gradients -->
+    <linearGradient id="desertGrad-${idSuffix}" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fdd480" />
+      <stop offset="100%" stop-color="#d98c3b" />
+    </linearGradient>
+
+    <!-- Paper Texture & Shading -->
+    <linearGradient id="foldLight-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.0" />
+    </linearGradient>
+    <linearGradient id="foldDark-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.0" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.25" />
+    </linearGradient>
+
+    <!-- Red Map Pin Gradient -->
+    <radialGradient id="pinGrad-${idSuffix}" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#ff8a80" />
+      <stop offset="70%" stop-color="#d50000" />
+      <stop offset="100%" stop-color="#9a0007" />
+    </radialGradient>
+
+    <!-- Shadows -->
+    <filter id="mapShadow-${idSuffix}" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="15" stdDeviation="10" flood-color="#000000" flood-opacity="0.55" />
+    </filter>
+
+    <!-- Clip Paths for Accordion Folds -->
+    <clipPath id="panel1-clip-${idSuffix}">
+      <polygon points="80,130 190,95 190,295 80,330" />
+    </clipPath>
+    <clipPath id="panel2-clip-${idSuffix}">
+      <polygon points="190,95 300,130 300,330 190,295" />
+    </clipPath>
+    <clipPath id="panel3-clip-${idSuffix}">
+      <polygon points="300,130 410,95 410,295 300,330" />
+    </clipPath>
+    <clipPath id="panel4-clip-${idSuffix}">
+      <polygon points="410,95 520,130 520,330 410,295" />
+    </clipPath>
+  </defs>
+
+  <!-- 1. Background Wooden Hoop Ring -->
+  <ellipse cx="300" cy="200" rx="230" ry="170" fill="none" stroke="url(#woodRingGrad-${idSuffix})" stroke-width="14" stroke-opacity="0.9" />
+  <ellipse cx="300" cy="200" rx="230" ry="170" fill="none" stroke="#6d4c41" stroke-width="1.5" stroke-opacity="0.4" />
+
+  <!-- Group with Drop Shadow -->
+  <g filter="url(#mapShadow-${idSuffix})">
+
+    <!-- ================= PANEL 1: SNOW BIOME ================= -->
+    <g clip-path="url(#panel1-clip-${idSuffix})">
+      <!-- Background Ice/Snow -->
+      <polygon points="80,130 190,95 190,295 80,330" fill="url(#snowGrad-${idSuffix})" />
+      
+      <!-- Blue-tinted Mountains (Left) -->
+      <!-- Left Peak -->
+      <polygon points="100,130 140,240 70,240" fill="url(#snowMountainShade-${idSuffix})" stroke="#90caf9" stroke-width="1" />
+      <polygon points="100,130 100,240 140,240" fill="#64b5f6" fill-opacity="0.3" /> <!-- Shadow face -->
+      
+      <!-- Right Peak -->
+      <polygon points="140,140 180,250 110,250" fill="url(#snowMountainShade-${idSuffix})" stroke="#90caf9" stroke-width="1" />
+      <polygon points="140,140 140,250 180,250" fill="#64b5f6" fill-opacity="0.3" />
+      
+      <!-- Snowy Peaks overlay -->
+      <polygon points="100,130 112,165 100,160 88,165" fill="#ffffff" />
+      <polygon points="140,140 152,175 140,170 128,175" fill="#ffffff" />
+
+      <!-- River (Ice melt) -->
+      <path d="M 140 240 Q 120 280 160 295" fill="none" stroke="#29b6f6" stroke-width="4.5" stroke-linecap="round" />
+      
+      <!-- Snow Pines -->
+      <polygon points="90,270 95,285 85,285" fill="#4dd0e1" />
+      <polygon points="90,265 93,275 87,275" fill="#ffffff" />
+      
+      <polygon points="105,280 110,295 100,295" fill="#4dd0e1" />
+      <polygon points="115,260 120,275 110,275" fill="#4dd0e1" />
+
+      <!-- Igloo -->
+      <path d="M 155 285 A 15 15 0 0 1 185 285 Z" fill="#e0f7fa" stroke="#80deea" stroke-width="1.5" />
+      <path d="M 165 285 A 6 6 0 0 1 175 285 Z" fill="#80deea" />
+      <!-- Yeti Silhouetted Shadow -->
+      <circle cx="125" cy="220" r="7" fill="#ffffff" opacity="0.9" />
+      <path d="M 120 232 L 130 232 L 128 223 L 122 223 Z" fill="#ffffff" opacity="0.9" />
+
+      <!-- Panel 1 lighting overlay -->
+      <polygon points="80,130 190,95 190,295 80,330" fill="url(#foldLight-${idSuffix})" />
+    </g>
+
+    <!-- ================= PANEL 2: VOLCANO & SHORE ================= -->
+    <g clip-path="url(#panel2-clip-${idSuffix})">
+      <!-- Background Valley/Ocean -->
+      <polygon points="190,95 300,130 300,330 190,295" fill="url(#valleyGrad-${idSuffix})" />
+      
+      <!-- Sea water boundary (Left edge is water) -->
+      <path d="M 190 95 C 220 120 200 200 230 250 C 250 280 210 290 190 295 Z" fill="#29b6f6" />
+      <path d="M 190 95 C 220 120 200 200 230 250 C 250 280 210 290 190 295" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-opacity="0.5" />
+
+      <!-- Volcano Mountain -->
+      <polygon points="255,135 285,220 225,220" fill="url(#mountainWoodGrad-${idSuffix})" stroke="#4e342e" stroke-width="1.5" />
+      <!-- Volcano Shadow side -->
+      <polygon points="255,135 255,220 285,220" fill="#3e2723" fill-opacity="0.35" />
+      
+      <!-- Lava Crater Peak -->
+      <polygon points="250,138 260,138 265,145 245,145" fill="#ff5722" />
+      <ellipse cx="255" cy="138" rx="5" ry="2" fill="#ffeb3b" />
+      <!-- Smoke -->
+      <path d="M 255 133 C 250 115 270 110 260 95 C 275 100 265 120 255 133" fill="#cfd8dc" opacity="0.6" />
+
+      <!-- Tiny Coast Houses -->
+      <rect x="235" y="245" width="8" height="8" fill="#d7ccc8" stroke="#5d4037" stroke-width="1" />
+      <polygon points="233,245 245,245 239,239" fill="#e53935" />
+      
+      <rect x="250" y="255" width="10" height="8" fill="#d7ccc8" stroke="#5d4037" stroke-width="1" />
+      <polygon points="248,255 262,255 255,249" fill="#e53935" />
+
+      <!-- Little Sailboat -->
+      <path d="M 205 230 L 215 230 L 212 234 L 208 234 Z" fill="#5d4037" />
+      <polygon points="210,218 210,230 215,226" fill="#ffffff" />
+
+      <!-- Panel 2 shadow overlay -->
+      <polygon points="190,95 300,130 300,330 190,295" fill="url(#foldDark-${idSuffix})" />
+    </g>
+
+    <!-- ================= PANEL 3: VALLEYS & GEYSERS ================= -->
+    <g clip-path="url(#panel3-clip-${idSuffix})">
+      <!-- Background Valley -->
+      <polygon points="300,130 410,95 410,295 300,330" fill="url(#valleyGrad-${idSuffix})" />
+      
+      <!-- Winding River coming from Volcano -->
+      <path d="M 300 220 Q 320 210 340 240 T 380 230 Q 400 240 410 270" fill="none" stroke="#29b6f6" stroke-width="5" stroke-linecap="round" />
+
+      <!-- Mountains in Background -->
+      <polygon points="360,110 390,190 330,190" fill="url(#mountainWoodGrad-${idSuffix})" stroke="#4e342e" stroke-width="1.5" />
+      <polygon points="360,110 360,190 390,190" fill="#3e2723" fill-opacity="0.3" />
+
+      <!-- Active Geysers (Water Spouts) -->
+      <!-- Geyser 1 -->
+      <path d="M 330 205 Q 325 185 330 165 Q 335 185 330 205" fill="#e0f7fa" opacity="0.8" />
+      <ellipse cx="330" cy="205" rx="6" ry="2.5" fill="#80deea" opacity="0.7" />
+      <!-- Geyser 2 -->
+      <path d="M 375 225 Q 370 200 375 180 Q 380 200 375 225" fill="#e0f7fa" opacity="0.8" />
+      <ellipse cx="375" cy="225" rx="6" ry="2.5" fill="#80deea" opacity="0.7" />
+
+      <!-- Forest Clumps -->
+      <circle cx="320" cy="275" r="9" fill="#2e7d32" stroke="#1b5e20" stroke-width="1" />
+      <circle cx="330" cy="280" r="7" fill="#388e3c" />
+      <circle cx="312" cy="282" r="6" fill="#1b5e20" />
+      
+      <circle cx="385" cy="180" r="8" fill="#2e7d32" stroke="#1b5e20" stroke-width="1" />
+      <circle cx="393" cy="184" r="6" fill="#388e3c" />
+
+      <!-- Panel 3 lighting overlay -->
+      <polygon points="300,130 410,95 410,295 300,330" fill="url(#foldLight-${idSuffix})" />
+    </g>
+
+    <!-- ================= PANEL 4: DESERT & TOWN ================= -->
+    <g clip-path="url(#panel4-clip-${idSuffix})">
+      <!-- Background Desert -->
+      <polygon points="410,95 520,130 520,330 410,295" fill="url(#desertGrad-${idSuffix})" />
+
+      <!-- River flowing into Delta -->
+      <path d="M 410 270 Q 425 290 440 280 T 470 300" fill="none" stroke="#29b6f6" stroke-width="4" stroke-linecap="round" />
+
+      <!-- Small Sandy Dunes -->
+      <path d="M 410 160 C 430 150 450 170 470 160 C 490 150 500 170 520 160" fill="none" stroke="#e65100" stroke-width="1.5" stroke-opacity="0.3" />
+      <path d="M 420 190 C 440 180 460 200 480 190 T 520 180" fill="none" stroke="#e65100" stroke-width="1.5" stroke-opacity="0.3" />
+
+      <!-- Medieval Castle/Fortress City -->
+      <g transform="translate(440, 210) scale(0.9)">
+        <!-- Castle Walls -->
+        <rect x="10" y="30" width="45" height="25" fill="#b0bec5" stroke="#37474f" stroke-width="1.5" />
+        <line x1="10" y1="30" x2="55" y2="30" stroke="#37474f" stroke-width="3" stroke-dasharray="3,3" /> <!-- Crenellations -->
+        
+        <!-- Tower 1 (Left) -->
+        <rect x="5" y="15" width="12" height="40" fill="#90a4ae" stroke="#37474f" stroke-width="1.5" />
+        <polygon points="2,15 8,2 14,2 20,15" fill="#37474f" />
+        <polygon points="5,15 11,2 17,15" fill="#d84315" /> <!-- Red conical roof -->
+
+        <!-- Tower 2 (Right) -->
+        <rect x="48" y="15" width="12" height="40" fill="#90a4ae" stroke="#37474f" stroke-width="1.5" />
+        <polygon points="45,15 51,2 57,2 63,15" fill="#37474f" />
+        <polygon points="48,15 54,2 60,15" fill="#d84315" />
+        
+        <!-- Little Houses inside -->
+        <rect x="22" y="20" width="10" height="10" fill="#eceff1" stroke="#37474f" stroke-width="1" />
+        <polygon points="20,20 32,20 26,14" fill="#ff8f00" />
+        <rect x="34" y="22" width="8" height="8" fill="#eceff1" stroke="#37474f" stroke-width="1" />
+        <polygon points="32,22 44,22 38,17" fill="#ff8f00" />
+      </g>
+
+      <!-- Panel 4 shadow overlay -->
+      <polygon points="410,95 520,130 520,330 410,295" fill="url(#foldDark-${idSuffix})" />
+    </g>
+
+    <!-- ================= BORDERS & ACCORDION OUTLINES ================= -->
+    <!-- Fold Lines (Shadow overlays between panels) -->
+    <!-- Fold 1 (Concave/Valley fold - dark) -->
+    <line x1="190" y1="95" x2="190" y2="295" stroke="#3e2723" stroke-width="3" stroke-linecap="round" opacity="0.65" />
+    <line x1="190" y1="95" x2="190" y2="295" stroke="#000000" stroke-width="1.5" stroke-linecap="round" opacity="0.4" />
+    
+    <!-- Fold 2 (Convex/Ridge fold - bright highlight) -->
+    <line x1="300" y1="130" x2="300" y2="330" stroke="#ffecb3" stroke-width="3.5" stroke-linecap="round" opacity="0.75" />
+    <line x1="300" y1="130" x2="300" y2="330" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" opacity="0.9" />
+
+    <!-- Fold 3 (Concave/Valley fold - dark) -->
+    <line x1="410" y1="95" x2="410" y2="295" stroke="#3e2723" stroke-width="3" stroke-linecap="round" opacity="0.65" />
+    <line x1="410" y1="95" x2="410" y2="295" stroke="#000000" stroke-width="1.5" stroke-linecap="round" opacity="0.4" />
+
+    <!-- Outer Hand-drawn Map Border -->
+    <!-- Thick Outer dark-brown border -->
+    <polygon points="80,130 190,95 300,130 410,95 520,130 520,330 410,295 300,330 190,295 80,330" 
+             fill="none" stroke="#4e2c16" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" />
+    
+    <!-- Thin Inner golden-brown decorative border -->
+    <polygon points="85,128 190,99 300,134 410,99 515,128 515,326 410,291 300,326 190,291 85,326" 
+             fill="none" stroke="#d7ccc8" stroke-width="1.5" stroke-linejoin="round" stroke-opacity="0.85" />
+
+    <!-- Dashed navigation line on the border inside -->
+    <polygon points="88,126 190,102 300,137 410,102 512,126 512,323 410,288 300,323 190,288 88,323" 
+             fill="none" stroke="#b0bec5" stroke-width="1" stroke-linejoin="round" stroke-dasharray="5,4" stroke-opacity="0.4" />
+
+    <!-- ================= 3D RED MAP PIN / MARKER ================= -->
+    <!-- Placed on the Right-most Panel (Desert Town) -->
+    <g transform="translate(470, 248) scale(1.15)">
+      <!-- Soft Map Pin Shadow on the paper -->
+      <ellipse cx="0" cy="18" rx="8" ry="4" fill="rgba(0, 0, 0, 0.4)" filter="blur(1.5px)" />
+      
+      <!-- Pin Pinpoint base needle -->
+      <path d="M 0 18 L -6 4 L 6 4 Z" fill="#9a0007" />
+      
+      <!-- Pin Body (Teardrop shape) -->
+      <path d="M 0 18 C -15 0 -15 -18 0 -18 C 15 -18 15 0 0 18 Z" fill="url(#pinGrad-${idSuffix})" stroke="#7f0000" stroke-width="1.5" />
+      
+      <!-- Glossy Reflection Highlights -->
+      <!-- Crescent highlight on top-left -->
+      <path d="M -7 -9 C -4 -13 0 -15 4 -13" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.6" />
+      
+      <!-- Inner Core Hole Circle -->
+      <circle cx="0" cy="-4" r="5" fill="#ffffff" />
+      <circle cx="0" cy="-4" r="5" fill="#ffebee" opacity="0.95" />
+      <circle cx="0" cy="-4" r="3.5" fill="#d50000" opacity="0.15" />
+    </g>
+
+  </g>
+</svg>
+    `;
+  }
+
+  private getUpgradeIconSvg(width: string, height: string, extraStyle: string = '', idSuffix: string = 'main'): string {
+    return `
+<svg viewBox="0 0 100 100" style="width: ${width}; height: ${height}; ${extraStyle}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background outer glow -->
+    <radialGradient id="plasmaBgGrad-${idSuffix}" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0d1b2a" />
+      <stop offset="80%" stop-color="#080e1a" />
+      <stop offset="100%" stop-color="#02050b" />
+    </radialGradient>
+
+    <!-- Center core pink glow -->
+    <radialGradient id="plasmaCoreGrad-${idSuffix}" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="25%" stop-color="#ff80ab" />
+      <stop offset="65%" stop-color="#ec407a" />
+      <stop offset="100%" stop-color="#880e4f" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Bottom green ambient glow -->
+    <radialGradient id="plasmaGreenGlow-${idSuffix}" cx="50%" cy="85%" r="40%">
+      <stop offset="0%" stop-color="#00e676" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#00e676" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Glow filter for electric tendrils -->
+    <filter id="plasmaGlow-${idSuffix}" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.5" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- 1. Background Sphere fill -->
+  <circle cx="50" cy="50" r="45" fill="url(#plasmaBgGrad-${idSuffix})" />
+  
+  <!-- 2. Bottom Greenish ambient gas glow -->
+  <circle cx="50" cy="50" r="45" fill="url(#plasmaGreenGlow-${idSuffix})" />
+
+  <!-- 3. Glowing Electric Tendrils (Vein branching pattern) -->
+  <g filter="url(#plasmaGlow-${idSuffix})" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Tendril 1 (Top) -->
+    <path d="M 50 50 Q 48 38 46 26 T 48 12" fill="none" stroke="#00f3ff" stroke-width="2" opacity="0.45" />
+    <path d="M 48 38 Q 42 32 38 24" fill="none" stroke="#00f3ff" stroke-width="1.5" opacity="0.4" />
+    <path d="M 47 30 Q 54 24 55 14" fill="none" stroke="#00f3ff" stroke-width="1.5" opacity="0.4" />
+
+    <!-- Tendril 2 (Top-Right) -->
+    <path d="M 50 50 Q 56 40 68 34 T 78 24" fill="none" stroke="#00f3ff" stroke-width="2" opacity="0.45" />
+    <path d="M 56 40 Q 64 30 65 18" fill="none" stroke="#00f3ff" stroke-width="1.5" opacity="0.4" />
+    <path d="M 68 34 Q 74 42 82 42" fill="none" stroke="#00f3ff" stroke-width="1.5" opacity="0.4" />
+
+    <!-- Tendril 3 (Right) -->
+    <path d="M 50 50 Q 64 48 76 50 T 88 48" fill="none" stroke="#00f3ff" stroke-width="2" opacity="0.45" />
+    <path d="M 64 48 Q 70 38 78 36" fill="none" stroke="#00f3ff" stroke-width="1.5" opacity="0.4" />
+
+    <!-- Tendril 4 (Bottom-Right) -->
+    <path d="M 50 50 Q 60 58 70 68 T 78 78" fill="none" stroke="#00e676" stroke-width="2" opacity="0.5" />
+    <path d="M 60 58 Q 72 60 78 54" fill="none" stroke="#00e676" stroke-width="1.5" opacity="0.4" />
+
+    <!-- Tendril 5 (Bottom) -->
+    <path d="M 50 50 Q 48 64 52 76 T 50 88" fill="none" stroke="#00e676" stroke-width="2" opacity="0.55" />
+    <path d="M 48 64 Q 40 70 36 78" fill="none" stroke="#00e676" stroke-width="1.5" opacity="0.4" />
+    <path d="M 52 76 Q 60 80 62 86" fill="none" stroke="#00e676" stroke-width="1.5" opacity="0.4" />
+
+    <!-- Tendril 6 (Bottom-Left) -->
+    <path d="M 50 50 Q 42 60 32 68 T 22 78" fill="none" stroke="#00e676" stroke-width="2" opacity="0.5" />
+    <path d="M 42 60 Q 30 62 26 56" fill="none" stroke="#00e676" stroke-width="1.5" opacity="0.4" />
+
+    <!-- Tendril 7 (Left) -->
+    <path d="M 50 50 Q 36 52 26 50 T 12 48" fill="none" stroke="#00f3ff" stroke-width="2" opacity="0.45" />
+    <path d="M 36 52 Q 30 42 24 38" fill="none" stroke="#00f3ff" stroke-width="1.5" opacity="0.4" />
+    <path d="M 28 51 Q 22 58 20 66" fill="none" stroke="#00e676" stroke-width="1.5" opacity="0.4" />
+
+    <!-- Tendril 8 (Top-Left) -->
+    <path d="M 50 50 Q 40 38 32 30 T 22 20" fill="none" stroke="#00f3ff" stroke-width="2" opacity="0.45" />
+    <path d="M 40 38 Q 32 44 24 46" fill="none" stroke="#00f3ff" stroke-width="1.5" opacity="0.4" />
+
+    <!-- Bright White Inner Electrical Cores (makes them look intensely hot) -->
+    <path d="M 50 50 Q 48 38 46 26 T 48 12" fill="none" stroke="#ffffff" stroke-width="0.75" opacity="0.9" />
+    <path d="M 50 50 Q 56 40 68 34 T 78 24" fill="none" stroke="#ffffff" stroke-width="0.75" opacity="0.9" />
+    <path d="M 50 50 Q 64 48 76 50 T 88 48" fill="none" stroke="#ffffff" stroke-width="0.75" opacity="0.9" />
+    <path d="M 50 50 Q 60 58 70 68 T 78 78" fill="none" stroke="#ffffff" stroke-width="0.75" opacity="0.9" />
+    <path d="M 50 50 Q 48 64 52 76 T 50 88" fill="none" stroke="#ffffff" stroke-width="0.75" opacity="0.9" />
+    <path d="M 50 50 Q 42 60 32 68 T 22 78" fill="none" stroke="#ffffff" stroke-width="0.75" opacity="0.9" />
+    <path d="M 50 50 Q 36 52 26 50 T 12 48" fill="none" stroke="#ffffff" stroke-width="0.75" opacity="0.9" />
+    <path d="M 50 50 Q 40 38 32 30 T 22 20" fill="none" stroke="#ffffff" stroke-width="0.75" opacity="0.9" />
+  </g>
+
+  <!-- 4. Bright Glowing Pinkish-Red Center Core -->
+  <circle cx="50" cy="50" r="14" fill="url(#plasmaCoreGrad-${idSuffix})" />
+  <circle cx="50" cy="50" r="4" fill="#ffffff" filter="url(#plasmaGlow-${idSuffix})" />
+
+  <!-- 5. Specular reflections for the glass sphere -->
+  <!-- Outer thin glass ring -->
+  <circle cx="50" cy="50" r="45" fill="none" stroke="#00f3ff" stroke-width="1" opacity="0.35" />
+  <circle cx="50" cy="50" r="46.5" fill="none" stroke="#ffffff" stroke-width="0.75" opacity="0.25" />
+  
+  <!-- Highlight reflection curve on top-left -->
+  <path d="M 18 32 A 36 36 0 0 1 32 18" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" opacity="0.5" />
+  <path d="M 23 25 A 36 36 0 0 1 25 23" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.6" />
+</svg>
+    `;
+  }
+
+  private getCharacterIconSvg(width: string, height: string, extraStyle: string = '', idSuffix: string = 'main'): string {
+    return `
+<svg viewBox="0 0 100 100" style="width: ${width}; height: ${height}; ${extraStyle}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="redBaseGrad-${idSuffix}" x1="40%" y1="10%" x2="60%" y2="90%">
+      <stop offset="0%" stop-color="#ff3b30" />
+      <stop offset="50%" stop-color="#d61a1a" />
+      <stop offset="100%" stop-color="#800000" />
+    </linearGradient>
+
+    <linearGradient id="beakUpperGrad-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff176" />
+      <stop offset="50%" stop-color="#ffb300" />
+      <stop offset="100%" stop-color="#ff6f00" />
+    </linearGradient>
+
+    <linearGradient id="beakLowerGrad-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffa000" />
+      <stop offset="100%" stop-color="#e65100" />
+    </linearGradient>
+
+    <linearGradient id="throatGrad-${idSuffix}" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="70%" stop-color="#f5f2eb" />
+      <stop offset="100%" stop-color="#dfdcd6" />
+    </linearGradient>
+  </defs>
+
+  <g stroke="#1a0a05" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round">
+    <!-- 1. BASE HEAD AND SHARP CREST/BACK SPIKES (EXPANDED TO LEFT) -->
+    <path d="
+      M 66,20
+      C 76,30 78,45 74,60
+      C 70,72 64,80 50,82
+      C 38,82 28,80 20,76
+      Q 8,74 6,76
+      Q 16,70 16,68
+      Q 4,66 2,64
+      Q 12,58 14,56
+      Q 3,52 1,50
+      Q 10,44 12,42
+      Q 4,36 2,34
+      Q 12,30 14,28
+      Q 6,22 4,20
+      Q 16,18 18,16
+      Q 12,8 10,6
+      Q 22,8 24,10
+      Q 28,0 30,2
+      Q 36,10 38,12
+      Q 48,4 50,5
+      Q 52,12 52,14
+      C 58,16 62,18 66,20 Z" 
+      fill="url(#redBaseGrad-${idSuffix})" />
+
+    <!-- Overlapping red spikes for volume (middle layers) -->
+    <path d="
+      M 38,24
+      L 28,16
+      Q 32,22 33,24
+      L 20,19
+      Q 25,27 27,29
+      L 14,27
+      Q 19,33 21,35
+      L 8,38
+      Q 14,43 16,45
+      L 8,48
+      Q 13,53 15,55
+      L 8,60
+      Q 14,63 16,65
+      C 20,55 24,43 30,31 Z"
+      fill="#a61212" stroke="none" />
+
+    <!-- 2. WHITE THROAT FEATHERS -->
+    <path d="
+      M 56,54
+      C 48,56 42,60 38,65
+      Q 34,71 39,73
+      Q 34,78 40,81
+      Q 36,87 44,87
+      Q 42,93 50,91
+      Q 56,87 60,84
+      C 66,77 69,68 67,58
+      C 64,54 60,53 56,54 Z"
+      fill="url(#throatGrad-${idSuffix})" />
+
+    <!-- Shading/Texture lines on white throat -->
+    <path d="M 44,70 C 42,75 44,79 46,83" fill="none" stroke="#cfcbc2" stroke-width="1.5" />
+    <path d="M 50,68 C 49,74 51,78 53,82" fill="none" stroke="#cfcbc2" stroke-width="1.5" />
+
+    <!-- 3. LOWER BEAK -->
+    <path d="
+      M 60,54
+      Q 68,62 76,58
+      Q 82,56 83,51
+      Q 72,51 60,54 Z"
+      fill="url(#beakLowerGrad-${idSuffix})" />
+
+    <!-- 4. UPPER BEAK -->
+    <path d="
+      M 64,38
+      C 72,36 82,38 88,43
+      C 94,48 96,56 92,61
+      Q 89,64 87,59
+      C 83,54 76,52 66,52
+      C 62,52 61,47 62,44
+      C 63,40 63,38 64,38 Z"
+      fill="url(#beakUpperGrad-${idSuffix})" />
+    
+    <!-- Nostril -->
+    <ellipse cx="70" cy="43" rx="1.2" ry="1.8" fill="#4d1a00" stroke="none" transform="rotate(-20, 70, 43)" />
+
+    <!-- 5. EYE -->
+    <ellipse cx="54" cy="45" rx="10" ry="9.5" fill="#ffffff" />
+    <ellipse cx="58" cy="46" rx="5.5" ry="5.3" fill="#121212" />
+    <circle cx="60" cy="44" r="1.6" fill="#ffffff" stroke="none" />
+
+    <!-- 6. ANGRY EYEBROW -->
+    <path d="M 44,27 Q 49,23 54,26 Q 50,29 44,30 Z" fill="#121212" />
+    <path d="
+      M 40,36
+      Q 36,31 41,27
+      Q 40,35 43,37
+      Q 48,36 54,36
+      L 70,37
+      Q 67,44 65,43
+      Q 56,39 48,40
+      Q 43,40 40,36 Z"
+      fill="#121212" />
+  </g>
+</svg>
+    `;
   }
 
 }

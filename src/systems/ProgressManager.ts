@@ -143,20 +143,6 @@ export class ProgressManager {
         abilityDesc: 'Freeze all obstacles in place and pause their motion.'
       },
       {
-        id: 'white_dragon',
-        name: 'Seto Dragon',
-        rarity: 'Legendary',
-        glowColor: 'rgba(224, 180, 255, 0.7)',
-        particleType: 'purple_sparkle',
-        costCoins: 0,
-        costGems: 300,
-        unlocked: false,
-        upgradeLevel: 1,
-        maxUpgrade: 5,
-        abilityName: 'Ultimate Lunar Sanctuary',
-        abilityDesc: ' invincibility and  protective shield.'
-      },
-      {
         id: 'kingfisher',
         name: 'Azure Kingfisher',
         rarity: 'Legendary',
@@ -169,6 +155,20 @@ export class ProgressManager {
         maxUpgrade: 5,
         abilityName: 'Ultimate Temporal Focus',
         abilityDesc: 'Slow down game time by 60%.'
+      },
+      {
+        id: 'white_dragon',
+        name: 'Seto Dragon',
+        rarity: 'Legendary',
+        glowColor: 'rgba(224, 180, 255, 0.7)',
+        particleType: 'purple_sparkle',
+        costCoins: 0,
+        costGems: 300,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5,
+        abilityName: 'Ultimate Lunar Sanctuary',
+        abilityDesc: ' invincibility and  protective shield.'
       },
       {
         id: 'dread_owl',

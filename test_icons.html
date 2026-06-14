@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Map Icon Comparison</title>
+  <style>
+    body {
+      background: #120c24;
+      color: white;
+      font-family: sans-serif;
+      padding: 40px;
+    }
+    .comparison-container {
+      display: flex;
+      gap: 50px;
+      margin-top: 20px;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      width: 300px;
+    }
+    img, svg {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Map Icon Visual Comparison</h1>
+  <div class="comparison-container">
+    <div class="card">
+      <h3>Original Image (worlds_icon.png)</h3>
+      <img src="worlds_icon.png" style="width: 250px; height: auto; object-fit: contain;">
+    </div>
+    
+    <div class="card">
+      <h3>Our Custom SVG</h3>
+      <!-- Inline SVG code -->
+      <svg viewBox="0 0 512 512" style="width: 250px; height: 250px;" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="worldMapParchmentGrad-test" cx="50%" cy="50%" r="70%">
+            <stop offset="0%" stop-color="#fff7e6" />
+            <stop offset="65%" stop-color="#eadaaf" />
+            <stop offset="100%" stop-color="#c5af7a" />
+          </radialGradient>
+
+          <linearGradient id="worldMapWoodGrad-test" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#3a1d11" />
+            <stop offset="25%" stop-color="#5c321d" />
+            <stop offset="60%" stop-color="#844d2d" />
+            <stop offset="85%" stop-color="#5c321d" />
+            <stop offset="100%" stop-color="#2d150b" />
+          </linearGradient>
+
+          <radialGradient id="worldMapWoodKnobGrad-test" cx="35%" cy="35%" r="65%">
+            <stop offset="0%" stop-color="#a2653e" />
+            <stop offset="55%" stop-color="#5c321d" />
+            <stop offset="100%" stop-color="#25120a" />
+          </radialGradient>
+
+          <linearGradient id="worldMapIslandGrad-test" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#99c262" />
+            <stop offset="100%" stop-color="#649133" />
+          </linearGradient>
+
+          <filter id="worldMapShadowFilter-test" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#000000" flood-opacity="0.4" />
+          </filter>
+          
+          <filter id="worldMapElementShadowFilter-test" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity="0.15" />
+          </filter>
+        </defs>
+
+        <g filter="url(#worldMapShadowFilter-test)">
+          <!-- Left Wooden Roller Cylinder Back -->
+          <rect x="74" y="90" width="22" height="332" rx="4" fill="url(#worldMapWoodGrad-test)" stroke="#1a0b05" stroke-width="3" />
+          
+          <!-- Right Wooden Roller Cylinder Back -->
+          <rect x="416" y="90" width="22" height="332" rx="4" fill="url(#worldMapWoodGrad-test)" stroke="#1a0b05" stroke-width="3" />
+
+          <!-- Parchment Paper -->
+          <path d="M 85 120 C 190 108, 322 108, 427 120 L 427 392 C 322 404, 190 404, 85 392 Z" 
+                fill="url(#worldMapParchmentGrad-test)" stroke="#4e2c16" stroke-width="5" stroke-linejoin="round" />
+
+          <!-- Outer/Inner Borders on Parchment -->
+          <path d="M 97 131 C 190 120, 322 120, 415 131 L 415 381 C 322 392, 190 392, 97 381 Z" 
+                fill="none" stroke="#875633" stroke-width="2.5" stroke-opacity="0.7" />
+          
+          <path d="M 103 136 C 190 126, 322 126, 409 136 L 409 376 C 322 386, 190 386, 103 376 Z" 
+                fill="none" stroke="#875633" stroke-width="1" stroke-dasharray="6,4" stroke-opacity="0.5" />
+
+          <!-- Map Elements Group -->
+          <g filter="url(#worldMapElementShadowFilter-test)">
+            <!-- Island 1 (Left) -->
+            <path d="M 125 180 C 145 170, 160 160, 185 175 C 210 190, 225 210, 215 235 C 205 260, 220 280, 195 290 C 170 300, 145 285, 135 265 C 125 245, 110 230, 115 210 C 120 190, 115 185, 125 180 Z" 
+                  fill="url(#worldMapIslandGrad-test)" stroke="#4c7020" stroke-width="2" />
+            
+            <!-- Island 2 (Top Right) -->
+            <path d="M 320 165 C 340 155, 365 145, 385 160 C 400 175, 395 195, 380 205 C 365 215, 350 225, 330 215 C 310 205, 305 185, 315 175 C 320 170, 315 170, 320 165 Z" 
+                  fill="url(#worldMapIslandGrad-test)" stroke="#4c7020" stroke-width="2" />
+
+            <!-- Island 3 (Bottom Right) -->
+            <path d="M 285 305 C 300 295, 320 290, 335 300 C 350 310, 355 330, 340 345 C 325 360, 305 355, 290 345 C 275 335, 275 315, 285 305 Z" 
+                  fill="url(#worldMapIslandGrad-test)" stroke="#4c7020" stroke-width="2" />
+
+            <!-- Dashed Red Route Line -->
+            <path d="M 165 230 Q 230 290 310 325" 
+                  fill="none" stroke="#b22222" stroke-width="4.5" stroke-dasharray="10,8" stroke-linecap="round" />
+
+            <!-- Red X Mark -->
+            <path d="M 300 315 L 320 335 M 320 315 L 300 335" 
+                  fill="none" stroke="#b22222" stroke-width="6" stroke-linecap="round" />
+
+            <!-- Compass Rose (Top Center-Left) -->
+            <g transform="translate(260, 160) scale(0.95)">
+              <!-- Points (Dark Faces) -->
+              <path d="M 0 -24 L 0 0 L 6 -6 Z" fill="#3a1d11" />
+              <path d="M 0 24 L 0 0 L -6 6 Z" fill="#3a1d11" />
+              <path d="M 24 0 L 0 0 L 6 6 Z" fill="#3a1d11" />
+              <path d="M -24 0 L 0 0 L -6 -6 Z" fill="#3a1d11" />
+              
+              <!-- Points (Light Faces) -->
+              <path d="M 0 -24 L 0 0 L -6 -6 Z" fill="#844d2d" />
+              <path d="M 0 24 L 0 0 L 6 6 Z" fill="#844d2d" />
+              <path d="M 24 0 L 0 0 L 6 -6 Z" fill="#844d2d" />
+              <path d="M -24 0 L 0 0 L -6 6 Z" fill="#844d2d" />
+
+              <!-- Minor Diagonal Points (Dark) -->
+              <path d="M 0 0 L 12 -12 L 4 -12 Z" fill="#3a1d11" />
+              <path d="M 0 0 L -12 12 L -4 12 Z" fill="#3a1d11" />
+              <path d="M 0 0 L 12 12 L 12 4 Z" fill="#3a1d11" />
+              <path d="M 0 0 L -12 -12 L -12 -4 Z" fill="#3a1d11" />
+
+              <!-- Minor Diagonal Points (Light) -->
+              <path d="M 0 0 L 12 -12 L 12 -4 Z" fill="#844d2d" />
+              <path d="M 0 0 L -12 12 L -12 4 Z" fill="#844d2d" />
+              <path d="M 0 0 L 12 12 L 4 12 Z" fill="#844d2d" />
+              <path d="M 0 0 L -12 -12 L -4 -12 Z" fill="#844d2d" />
+              
+              <!-- Center Core Pin -->
+              <circle cx="0" cy="0" r="3.5" fill="#eadaaf" stroke="#3a1d11" stroke-width="1.5" />
+            </g>
+          </g>
+
+          <!-- Left Roller Handles/Knobs -->
+          <!-- Top Knob -->
+          <ellipse cx="85" cy="88" rx="15" ry="10" fill="url(#worldMapWoodKnobGrad-test)" stroke="#1a0b05" stroke-width="2.5" />
+          <path d="M 80 78 C 80 73, 90 73, 90 78 Z" fill="url(#worldMapWoodGrad-test)" stroke="#1a0b05" stroke-width="2" />
+          <circle cx="85" cy="74" r="4" fill="url(#worldMapWoodKnobGrad-test)" stroke="#1a0b05" stroke-width="1.5" />
+          
+          <!-- Bottom Knob -->
+          <ellipse cx="85" cy="424" rx="15" ry="10" fill="url(#worldMapWoodKnobGrad-test)" stroke="#1a0b05" stroke-width="2.5" />
+          <path d="M 80 434 C 80 439, 90 439, 90 434 Z" fill="url(#worldMapWoodGrad-test)" stroke="#1a0b05" stroke-width="2" />
+          <circle cx="85" cy="438" r="4" fill="url(#worldMapWoodKnobGrad-test)" stroke="#1a0b05" stroke-width="1.5" />
+
+          <!-- Right Roller Handles/Knobs -->
+          <!-- Top Knob -->
+          <ellipse cx="427" cy="88" rx="15" ry="10" fill="url(#worldMapWoodKnobGrad-test)" stroke="#1a0b05" stroke-width="2.5" />
+          <path d="M 422 78 C 422 73, 432 73, 432 78 Z" fill="url(#worldMapWoodGrad-test)" stroke="#1a0b05" stroke-width="2" />
+          <circle cx="427" cy="74" r="4" fill="url(#worldMapWoodKnobGrad-test)" stroke="#1a0b05" stroke-width="1.5" />
+          
+          <!-- Bottom Knob -->
+          <ellipse cx="427" cy="424" rx="15" ry="10" fill="url(#worldMapWoodKnobGrad-test)" stroke="#1a0b05" stroke-width="2.5" />
+          <path d="M 422 434 C 422 439, 432 439, 432 434 Z" fill="url(#worldMapWoodGrad-test)" stroke="#1a0b05" stroke-width="2" />
+          <circle cx="427" cy="438" r="4" fill="url(#worldMapWoodKnobGrad-test)" stroke="#1a0b05" stroke-width="1.5" />
+        </g>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

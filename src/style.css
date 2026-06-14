@@ -223,8 +223,9 @@ body, html {
 
 /* Top Bar */
 .menu-top-bar {
-  position: relative;
-  z-index: 10;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 50;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -327,6 +328,48 @@ body, html {
   display: inline-block;
 }
 
+/* Settings button 3D look & size */
+.top-bar-settings-btn {
+  background: linear-gradient(180deg, #4e5564 0%, #292e38 100%);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  font-size: 24px;
+  cursor: pointer;
+  color: white;
+  width: 44px;
+  height: 44px;
+  margin-left: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  position: relative;
+  transition: all 0.1s ease;
+  box-shadow: 
+    0 4px 0 #1b1e25,
+    0 6px 12px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+@media (hover: hover) {
+  .top-bar-settings-btn:hover {
+    background: linear-gradient(180deg, #5c6475 0%, #313743 100%);
+    box-shadow: 
+      0 4px 0 #1b1e25,
+      0 8px 16px rgba(0, 243, 255, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+  }
+}
+
+.top-bar-settings-btn:active {
+  transform: translateY(3px);
+  box-shadow: 
+    0 1px 0 #1b1e25,
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
 .top-bar-add {
   font-size: 13px;
   color: rgba(255,255,255,0.5);
@@ -351,6 +394,11 @@ body, html {
 }
 
 @media (hover: hover) {
+  .top-bar-coin:hover, .top-bar-gem:hover {
+    transform: scale(1.05);
+    filter: brightness(1.15);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+  }
   .btn-dev-cheat:hover {
     transform: scale(1.08);
     background: linear-gradient(135deg, rgba(0, 243, 255, 0.4), rgba(255, 0, 255, 0.4));
@@ -569,16 +617,10 @@ body, html {
   font-size: 80px;
   z-index: 2;
   animation: floatBird 3.2s ease-in-out infinite;
-  filter: drop-shadow(0 8px 20px rgba(50,100,255,0.6)) drop-shadow(0 0 30px rgba(100,0,255,0.3));
   cursor: pointer;
-  transition: filter 0.3s ease;
 }
 
-@media (hover: hover) {
-  .bird-mascot:hover {
-    filter: drop-shadow(0 8px 30px rgba(100,180,255,0.8)) drop-shadow(0 0 40px rgba(150,0,255,0.5));
-  }
-}
+
 
 /* Floating collectibles around bird */
 .bird-floaties {
@@ -603,6 +645,7 @@ body, html {
   align-items: center;
   padding: 0 16px 8px;
   width: 100%;
+  transform: translateY(-120px);
 }
 
 .platform-base {

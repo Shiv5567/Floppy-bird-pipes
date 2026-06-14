@@ -406,7 +406,7 @@ export class Bird {
   }
 
   // Renders a high-fidelity static preview of the character skin for UI menus/cards
-  public renderPreview(ctx: CanvasRenderingContext2D, width: number, height: number, skin: Skin) {
+  public renderPreview(ctx: CanvasRenderingContext2D, width: number, height: number, skin: Skin, hideAura = false) {
     ctx.save();
     ctx.clearRect(0, 0, width, height);
     
@@ -436,7 +436,9 @@ export class Bird {
     ctx.scale(scale, scale);
 
     // Render the beautiful rotating Magic Aura
-    this.drawMagicAura(ctx);
+    if (!hideAura) {
+      this.drawMagicAura(ctx);
+    }
 
     // Draw the corresponding character skin geometry
     const skinId = skin.id;
