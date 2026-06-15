@@ -783,6 +783,7 @@ export class UIManager {
             <span class="tab-back-arrow">‹</span>
             <span class="tab-back-label">BACK</span>
           </button>
+          ${this.activeTab !== 'rewards' ? `
           <div class="tab-hero-title-row">
             <span class="tab-hero-icon">${meta.icon}</span>
             <div>
@@ -790,6 +791,7 @@ export class UIManager {
               <div class="tab-hero-subtitle">${meta.heroSubtitle}</div>
             </div>
           </div>
+          ` : ''}
           <div class="tab-hero-spacer"></div>
         </div>
         ` : ''}
