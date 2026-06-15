@@ -77,6 +77,7 @@ export class ObstacleManager {
   private endlessPatternQueue: { centerYOffset: number, isMoving?: boolean, gapScale?: number, distScale?: number, isLaser?: boolean }[] = [];
   private currentEndlessDistScale = 1.0;
   private endlessObstacleCount = 0;
+  private flockPatternIndices: number[] = [];
 
   constructor() { }
 
@@ -158,6 +159,7 @@ export class ObstacleManager {
     this.endlessPatternQueue = [];
     this.currentEndlessDistScale = 1.0;
     this.endlessObstacleCount = 0;
+    this.flockPatternIndices = []; // Reset the flock pattern cycle
   }
 
   public update(
@@ -1887,7 +1889,7 @@ export class ObstacleManager {
         }
 
         if (gameMode === 'flock') {
-          dist = Math.max(400, Math.min(900, dist)); // Clamp horizontal gap between 400px and 900px
+          dist = Math.max(350, Math.min(550, dist)); // Clamp horizontal gap between 350px and 550px
         }
 
         this.nextSpawnDistance = dist;
@@ -3378,8 +3380,24 @@ export class ObstacleManager {
       ];
     }
 
-    // Pick a random pattern
-    const randPattern = patterns[Math.floor(Math.random() * patterns.length)];
+    // Pick a pattern using a shuffled cycle for flock mode, or random selection for classic
+    let randPattern;
+    if (gameMode === 'flock') {
+      if (this.flockPatternIndices.length === 0) {
+        this.flockPatternIndices = [0, 1, 2, 3, 4, 5, 6];
+        // Fisher-Yates shuffle
+        for (let i = this.flockPatternIndices.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const temp = this.flockPatternIndices[i];
+          this.flockPatternIndices[i] = this.flockPatternIndices[j];
+          this.flockPatternIndices[j] = temp;
+        }
+      }
+      const nextIdx = this.flockPatternIndices.pop()!;
+      randPattern = patterns[nextIdx];
+    } else {
+      randPattern = patterns[Math.floor(Math.random() * patterns.length)];
+    }
 
     // Procedural variation: vertical height scale multiplier (0.85 to 1.15)
     const heightScale = 0.85 + Math.random() * 0.30;

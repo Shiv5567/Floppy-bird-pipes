@@ -158,35 +158,44 @@ export class Bird {
     }
     
     if (isPlaying) {
-      // Apply gravity or keep velocity constant during ultimate
-      if (
-        engine &&
-        engine.ultimateActive &&
-        this.activeSkin.id !== 'default' &&
-        this.activeSkin.id !== 'jade_lotus' &&
-        this.activeSkin.id !== 'articuno' &&
-        this.activeSkin.id !== 'neon_crow' &&
-        this.activeSkin.id !== 'angry_red'
-      ) {
-        // Controllable: smoothly return to starting velocity after a jump
-        this.vy += (this.ultimateStartVy - this.vy) * 0.10 * dtCoeff;
-      } else {
-        this.vy += currentGravity * dtCoeff;
-      }
-      if (this.vy > currentMaxFallSpeed) this.vy = currentMaxFallSpeed;
-      if (this.vy < currentMaxRiseSpeed) this.vy = currentMaxRiseSpeed; // Synced upward rise cap
-
-      this.y += this.vy * dtCoeff;
-
-      // Dynamic orientation angle based on vertical speed
-      if (!this.isCrashing) {
-        // Snappier and more expressive tilting responding directly to the new velocity thresholds
-        const targetAngle = Math.max(-0.55, Math.min(0.8, this.vy * 0.045));
+      const isFirstTapWaiting = engine && !engine.firstTapDone && engine.state === 'PLAYING';
+      
+      if (isFirstTapWaiting) {
+        this.vy = 0;
+        this.y = 300 + Math.sin(performance.now() * 0.005) * 8;
+        const targetAngle = 0;
         this.angle += (targetAngle - this.angle) * 0.22 * dtCoeff;
       } else {
-        // Crashing spin animation
-        this.crashSpinAngle += 0.3 * dtCoeff;
-        this.angle = this.crashSpinAngle;
+        // Apply gravity or keep velocity constant during ultimate
+        if (
+          engine &&
+          engine.ultimateActive &&
+          this.activeSkin.id !== 'default' &&
+          this.activeSkin.id !== 'jade_lotus' &&
+          this.activeSkin.id !== 'articuno' &&
+          this.activeSkin.id !== 'neon_crow' &&
+          this.activeSkin.id !== 'angry_red'
+        ) {
+          // Controllable: smoothly return to starting velocity after a jump
+          this.vy += (this.ultimateStartVy - this.vy) * 0.10 * dtCoeff;
+        } else {
+          this.vy += currentGravity * dtCoeff;
+        }
+        if (this.vy > currentMaxFallSpeed) this.vy = currentMaxFallSpeed;
+        if (this.vy < currentMaxRiseSpeed) this.vy = currentMaxRiseSpeed; // Synced upward rise cap
+
+        this.y += this.vy * dtCoeff;
+
+        // Dynamic orientation angle based on vertical speed
+        if (!this.isCrashing) {
+          // Snappier and more expressive tilting responding directly to the new velocity thresholds
+          const targetAngle = Math.max(-0.55, Math.min(0.8, this.vy * 0.045));
+          this.angle += (targetAngle - this.angle) * 0.22 * dtCoeff;
+        } else {
+          // Crashing spin animation
+          this.crashSpinAngle += 0.3 * dtCoeff;
+          this.angle = this.crashSpinAngle;
+        }
       }
     }
 
@@ -557,6 +566,10 @@ export class Bird {
 
 
 
+
+      case 'default':
+      case 'neon_crow':
+        break;
 
       default: {
         // Gold celestial wing shield (Default Eagle)

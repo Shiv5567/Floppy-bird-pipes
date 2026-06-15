@@ -861,9 +861,9 @@ body, html {
   background: rgba(4, 2, 14, 0.95);
 }
 
-/* Slide-in animation from the right */
-.slide-in-right {
-  animation: slideInRight 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+/* Premium fade-and-scale transition for tabs and screens */
+.tab-transition {
+  animation: tabFadeScale 0.18s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
 /* ---- Hero Header (back + title) ---- */
@@ -1844,9 +1844,15 @@ body, html {
   to   { transform: translateY(0); opacity: 1; }
 }
 
-@keyframes slideInRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to   { transform: translateX(0);    opacity: 1; }
+@keyframes tabFadeScale {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .pop-scale { animation: popScale 0.15s ease-out; }
@@ -2259,6 +2265,42 @@ body, html {
 }
 
 .btn-quest-claim.locked {
+  background: rgba(255,255,255,0.1);
+  color: var(--text-secondary);
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.btn-ach-claim {
+  background: linear-gradient(135deg, #ffd700, #ff9900);
+  border: none;
+  border-radius: 12px;
+  color: #000000;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 6px 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(255, 215, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+@media (hover: hover) {
+  .btn-ach-claim:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(255, 215, 0, 0.5);
+  }
+}
+
+.btn-ach-claim.claimed {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.btn-ach-claim.locked {
   background: rgba(255,255,255,0.1);
   color: var(--text-secondary);
   box-shadow: none;
@@ -3316,6 +3358,109 @@ body.mobile-performance .glass-card {
   margin-bottom: 24px;
   animation: heartbeat 1.3s infinite ease-in-out;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Chest Styling */
+.chests-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.chest-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 8px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.chest-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), transparent);
+  pointer-events: none;
+}
+
+/* Float Animation for Chest Icon */
+@keyframes chestFloat {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-6px) rotate(2deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
+/* Shake Animation when Opening Chest */
+@keyframes chestShake {
+  0% { transform: translate(1px, 1px) rotate(0deg); }
+  10% { transform: translate(-1px, -2px) rotate(-1deg); }
+  20% { transform: translate(-3px, 0px) rotate(1deg); }
+  30% { transform: translate(0px, 2px) rotate(0deg); }
+  40% { transform: translate(1px, -1px) rotate(1deg); }
+  50% { transform: translate(-1px, 2px) rotate(-1deg); }
+  60% { transform: translate(-3px, 1px) rotate(0deg); }
+  70% { transform: translate(2px, 1px) rotate(-1deg); }
+  80% { transform: translate(-1px, -1px) rotate(1deg); }
+  90% { transform: translate(2px, 2px) rotate(0deg); }
+  100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+
+.chest-opening-shake {
+  animation: chestShake 0.15s infinite !important;
+  border-color: #ffd700 !important;
+  box-shadow: 0 0 25px rgba(255, 215, 0, 0.75) !important;
+}
+
+/* Pulse Glow when Ready */
+@keyframes readyPulse {
+  0% { transform: scale(1); box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1); }
+  50% { transform: scale(1.02); box-shadow: 0 4px 25px rgba(255, 255, 255, 0.25); }
+  100% { transform: scale(1); box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1); }
+}
+
+.ready-pulse {
+  animation: readyPulse 2s infinite ease-in-out;
+}
+
+/* Chest Open Bounce for Popup */
+@keyframes chestOpenBounce {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.1); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* BP Mission Card specific styling */
+.bp-mission-card {
+  transition: all 0.2s ease;
+}
+.bp-mission-card:hover {
+  background: rgba(255, 0, 127, 0.08) !important;
+  border-color: rgba(255, 0, 127, 0.3) !important;
+  transform: translateY(-1px);
+}
+
+/* Snappy sub-tab content area transition */
+.subtab-transition {
+  animation: subtabFadeScale 0.16s ease-out forwards;
+}
+
+@keyframes subtabFadeScale {
+  from {
+    opacity: 0;
+    transform: scale(0.985) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 

@@ -1,15 +1,16 @@
 import { GameEngine } from '../engine/GameEngine.ts';
 import type { GameState } from '../engine/GameEngine.ts';
-import type { Skin, BattlePassTier, Achievement } from '../systems/ProgressManager.ts';
+import type { Skin, Achievement } from '../systems/ProgressManager.ts';
 import { LevelManager } from '../systems/LevelManager.ts';
 import { AdManager } from '../systems/AdManager.ts';
 
 export class UIManager {
   private engine: GameEngine;
   private container: HTMLElement;
-  private activeTab: 'main' | 'skins' | 'worlds' | 'bp' | 'achievements' | 'photo' | 'rewards' | 'settings' | 'levels' | 'powerups' = 'main';
+  private activeTab: 'main' | 'skins' | 'worlds' | 'photo' | 'rewards' | 'settings' | 'levels' | 'powerups' | 'achievements' = 'main';
   private lastEngineState: GameState = 'MENU';
-  private activeRewardsSubTab: 'daily' | 'trophies' | 'bp' = 'daily';
+  private activeRewardsSubTab: 'daily' | 'trophies' = 'daily';
+  private lastRenderedTab: string = 'main';
 
   // Cached HUD DOM element references
   private scoreEl: HTMLElement | null = null;
@@ -546,6 +547,8 @@ export class UIManager {
       return;
     }
 
+    this.lastRenderedTab = 'main';
+
 
 
 
@@ -697,6 +700,42 @@ export class UIManager {
         this.engine.bird.renderPreview(ctx, canvas.width, canvas.height, skin);
       });
     }
+
+    // 5. Update chest countdown timers dynamically if they are on screen
+    if (this.activeTab === 'rewards') {
+      const now = Date.now();
+      const chests = [
+        { id: 1, name: 'Bronze Chest', cooldown: 1 * 60 * 60 * 1000 },
+        { id: 2, name: 'Silver Chest', cooldown: 4 * 60 * 60 * 1000 },
+        { id: 3, name: 'Golden Chest', cooldown: 8 * 60 * 60 * 1000 }
+      ];
+      chests.forEach(ch => {
+        const card = this.container.querySelector(`.chest-card[data-chest-id="${ch.id}"]`) as HTMLElement | null;
+        if (!card) return;
+        
+        const lastOpen = parseInt(localStorage.getItem(`flight_of_legends_chest_${ch.id}_time`) || '0');
+        const timePassed = now - lastOpen;
+        const isReady = timePassed >= ch.cooldown;
+        
+        const statusEl = card.querySelector('.chest-status') as HTMLElement | null;
+        
+        if (!isReady) {
+          const msLeft = ch.cooldown - timePassed;
+          const hours = Math.floor(msLeft / (3600 * 1000));
+          const minutes = Math.floor((msLeft % (3600 * 1000)) / (60 * 1000));
+          const seconds = Math.floor((msLeft % (60 * 1000)) / 1000);
+          
+          if (statusEl) {
+            statusEl.textContent = `⏳ ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+          }
+        } else {
+          // If it is ready, check if we need to transition it to READY state
+          if (statusEl && statusEl.textContent && statusEl.textContent.trim().startsWith('⏳')) {
+            this.render();
+          }
+        }
+      });
+    }
   }
 
   private renderTabPage(worldId: string): string {
@@ -727,9 +766,11 @@ export class UIManager {
     }
 
     const innerContent = this.renderTabInnerContent(progress);
+    const isFirstTime = this.activeTab !== this.lastRenderedTab;
+    this.lastRenderedTab = this.activeTab;
 
     return `
-      <div class="screen tab-hero-screen slide-in-right">
+      <div class="screen tab-hero-screen ${isFirstTime ? 'tab-transition' : ''}">
 
         <!-- World background -->
         <div class="menu-world-bg world-bg-${worldId}"></div>
@@ -755,33 +796,43 @@ export class UIManager {
 
         <!-- ===== HERO FEATURE SPOTLIGHT ===== -->
         ${(this.activeTab !== 'levels' && this.activeTab !== 'settings') ? `
-        <div class="tab-hero-spotlight">
+        <div class="tab-hero-spotlight" style="${this.activeTab === 'rewards' ? 'max-height: none; padding: 10px 0;' : ''}">
           <div class="tab-spotlight-glow" style="background:radial-gradient(circle,${meta.color}33 0%,transparent 70%)"></div>
           ${this.activeTab === 'skins' ? 
             `<canvas id="spotlight-skin-canvas" width="100" height="100" style="width: 100px; height: 100px; z-index: 1; filter: drop-shadow(0 0 12px ${meta.color}55);"></canvas>` : 
-            `<div class="tab-spotlight-icon">${meta.heroIcon}</div>`
+            (this.activeTab === 'rewards' ?
+              // Render mysterious chests directly in the spotlight area
+              `<div class="common-chests-container glass-card" style="
+                margin: 0 12px; padding: 10px; border-radius: 16px; width: calc(100% - 24px); box-sizing: border-box;
+                border: 1px solid rgba(255, 170, 0, 0.2); background: rgba(13, 10, 28, 0.7);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 6;
+              ">
+                <div class="hangar-section-title" style="margin: 0 0 6px 0; font-size: 10px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; color: #ffaa00; text-shadow: 0 0 5px rgba(255,170,0,0.3);">🔮 MYSTERIOUS CHESTS</div>
+                <div class="chests-row" style="display: flex; gap: 8px; width: 100%;">
+                  ${this.getChestsHtml()}
+                </div>
+              </div>`
+              : `<div class="tab-spotlight-icon">${meta.heroIcon}</div>`
+            )
           }
-          <div class="tab-spotlight-label" style="color:${meta.color}">${meta.title}</div>
+          ${this.activeTab !== 'rewards' ? `<div class="tab-spotlight-label" style="color:${meta.color}">${meta.title}</div>` : ''}
         </div>
         ` : ''}
 
         ${this.activeTab === 'rewards' ? `
         <!-- ===== REWARDS HUB PILL NAVIGATION ===== -->
-        <div class="rewards-hub-nav glass-card">
+        <div class="rewards-hub-nav glass-card" style="margin-bottom: 8px;">
           <button class="rewards-sub-btn ${this.activeRewardsSubTab === 'daily' ? 'active' : ''}" data-sub-tab="daily">
-            <span class="sub-tab-icon">📅</span> Daily Rewards
+            <span class="sub-tab-icon">🏆</span> Achievements
           </button>
           <button class="rewards-sub-btn ${this.activeRewardsSubTab === 'trophies' ? 'active' : ''}" data-sub-tab="trophies">
-            <span class="sub-tab-icon">🏆</span> Trophies
-          </button>
-          <button class="rewards-sub-btn ${this.activeRewardsSubTab === 'bp' ? 'active' : ''}" data-sub-tab="bp">
-            <span class="sub-tab-icon">🎫</span> Battle Pass
+            <span class="sub-tab-icon">📅</span> Missions
           </button>
         </div>
         ` : ''}
 
         <!-- ===== CONTENT SCROLL AREA ===== -->
-        <div class="tab-content-area">
+        <div class="tab-content-area subtab-transition">
           ${innerContent}
         </div>
 
@@ -883,63 +934,59 @@ export class UIManager {
         `;
       }
 
-      case 'bp': {
-        // Fallback safety redirect
-        this.activeTab = 'rewards';
-        this.activeRewardsSubTab = 'bp';
-        return this.renderTabInnerContent(progress);
-      }
       case 'achievements': {
         // Fallback safety redirect
         this.activeTab = 'rewards';
-        this.activeRewardsSubTab = 'trophies';
+        this.activeRewardsSubTab = 'daily';
         return this.renderTabInnerContent(progress);
       }
       case 'rewards': {
         if (this.activeRewardsSubTab === 'daily') {
-          const currentDay = parseInt(localStorage.getItem('flight_of_legends_daily_day') || '1');
-          const now = Date.now();
-          const cooldown = 24 * 60 * 60 * 1000;
-          const alreadyClaimedToday = (now - progress.lastDailyClaimTime < cooldown);
+          const achievements = this.engine.progressManager.getAchievements();
+          const claimedAchievements = (progress as any).claimedAchievements || [];
+          const achCards = achievements.map((a: Achievement) => {
+            const progressPercent = Math.min(100, (a.currentValue / a.targetValue) * 100);
+            const isClaimed = claimedAchievements.includes(a.id);
+            const isCompleted = a.unlocked;
 
-          const dailyRewards = [
-            { coins: 500, gems: 5 },   // Day 1
-            { coins: 1000, gems: 10 }, // Day 2
-            { coins: 1500, gems: 15 }, // Day 3
-            { coins: 2000, gems: 20 }, // Day 4
-            { coins: 2500, gems: 25 }, // Day 5
-            { coins: 3000, gems: 30 }, // Day 6
-            { coins: 5000, gems: 50 }  // Day 7
-          ];
+            let claimBtnClass = '';
+            let claimBtnText = 'CLAIM 🎁';
+            let claimDisabled = '';
 
-          let calendarHtml = '';
-          for (let d = 1; d <= 7; d++) {
-            const reward = dailyRewards[d - 1];
-            let isClaimed = false;
-            let isActive = false;
-
-            if (d < currentDay) {
-              isClaimed = true;
-            } else if (d === currentDay) {
-              if (alreadyClaimedToday) {
-                isClaimed = true;
-              } else {
-                isActive = true;
-              }
+            if (isClaimed) {
+              claimBtnClass = 'claimed';
+              claimBtnText = 'CLAIMED';
+              claimDisabled = 'disabled';
+            } else if (!isCompleted) {
+              claimBtnClass = 'locked';
+              claimBtnText = 'LOCKED';
+              claimDisabled = 'disabled';
             }
 
-            const classes = `calendar-day ${isClaimed ? 'claimed' : ''} ${isActive ? 'active-day' : ''}`;
-            const rewardText = `+${reward.coins}🟡<br>+${reward.gems}💎`;
-
-            calendarHtml += `
-              <div class="${classes}" data-day="${d}">
-                <span class="day-label">Day ${d}</span>
-                <span class="day-icon">${d === 7 ? this.getRewardBoxSvg('38px', '38px', 'vertical-align: middle;', 'day7') : '📅'}</span>
-                <span class="day-reward-value">${rewardText}</span>
+            return `
+              <div class="achievement-card glass-card ${isClaimed ? '' : (isCompleted ? 'unlocked-border' : '')}">
+                <div class="ach-info">
+                  <div class="ach-name">${a.name} ${isCompleted ? '🏆' : ''}</div>
+                  <div class="ach-desc">${a.desc}</div>
+                  <div class="ach-bar-outer"><div class="ach-bar-inner" style="width:${progressPercent}%"></div></div>
+                  <div class="ach-progress-text">${a.currentValue} / ${a.targetValue}</div>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; margin-left: 15px;">
+                  <div class="ach-reward" style="margin-left: 0; text-align: right; color: gold;">
+                    💰+${a.rewardCoins}<br>💎+${a.rewardGems}
+                  </div>
+                  <button class="btn-ach-claim ${claimBtnClass}" data-ach-id="${a.id}" ${claimDisabled}>
+                    ${claimBtnText}
+                  </button>
+                </div>
               </div>
             `;
-          }
-
+          }).join('');
+          return `
+            <div class="tab-sheet-title">🏆 HALL OF TROPHIES</div>
+            <div class="vertical-scroll">${achCards}</div>
+          `;
+        } else {
           const quests = progress.dailyQuests || this.engine.progressManager.initDefaultQuests();
           const questsHtml = quests.map(q => {
             const progressPct = Math.min(100, Math.round((q.current / q.target) * 100));
@@ -989,12 +1036,7 @@ export class UIManager {
 
           return `
             <div class="daily-rewards-container" style="padding-bottom: 20px;">
-              <div class="hangar-section-title">📅 7-DAY LOGIN REWARDS</div>
-              <div class="daily-calendar">
-                ${calendarHtml}
-              </div>
-              
-              <div class="hangar-section-title">⚔️ DAILY CHALLENGES</div>
+              <div class="hangar-section-title" style="margin-top: 0;">⚔️ DAILY MISSIONS</div>
               <div class="quests-list">
                 ${questsHtml}
                 
@@ -1014,56 +1056,6 @@ export class UIManager {
                 </div>
               </div>
             </div>
-          `;
-        } else if (this.activeRewardsSubTab === 'trophies') {
-          const achievements = this.engine.progressManager.getAchievements();
-          const achCards = achievements.map((a: Achievement) => {
-            const progressPercent = Math.min(100, (a.currentValue / a.targetValue) * 100);
-            return `
-              <div class="achievement-card glass-card ${a.unlocked ? 'unlocked-border' : ''}">
-                <div class="ach-info">
-                  <div class="ach-name">${a.name} ${a.unlocked ? '🏆' : ''}</div>
-                  <div class="ach-desc">${a.desc}</div>
-                  <div class="ach-bar-outer"><div class="ach-bar-inner" style="width:${progressPercent}%"></div></div>
-                  <div class="ach-progress-text">${a.currentValue} / ${a.targetValue}</div>
-                </div>
-                <div class="ach-reward">💰+${a.rewardCoins}<br>💎+${a.rewardGems}</div>
-              </div>
-            `;
-          }).join('');
-          return `
-            <div class="tab-sheet-title">🏆 HALL OF TROPHIES</div>
-            <div class="vertical-scroll">${achCards}</div>
-          `;
-        } else {
-          const bp = this.engine.progressManager.getBattlePass();
-          const activeTier = bp.find((t: BattlePassTier) => t.tier === progress.battlePassTier) || bp[bp.length - 1];
-          const bpItems = bp.slice(0, 15).map((t: BattlePassTier) => {
-            const isUnlocked = t.tier < progress.battlePassTier;
-            const isClaimed = progress.claimedBPTiers.includes(t.tier);
-            const claimable = isUnlocked && !isClaimed;
-            return `
-              <div class="bp-tier-card glass-card ${claimable ? 'claimable-border' : ''}">
-                <div class="bp-tier-num">Tier ${t.tier}</div>
-                <div class="bp-tier-reward">${t.rewardName}</div>
-                <div>
-                  ${isClaimed
-                    ? '<span class="claimed-tag">✓ Claimed</span>'
-                    : (claimable
-                        ? `<button class="btn-claim-bp" data-tier="${t.tier}">CLAIM 🎁</button>`
-                        : '<span class="locked-tag">🔒 Locked</span>')}
-                </div>
-              </div>
-            `;
-          }).join('');
-          return `
-            <div class="tab-sheet-title">🎫 SEASON 1 BATTLE PASS</div>
-            <div class="bp-progress-bar-container glass-card">
-              <div class="bp-level-indicator">Tier ${progress.battlePassTier}</div>
-              <div class="bp-bar-outer"><div class="bp-bar-inner" style="width:${(progress.battlePassXp / activeTier.xpRequired) * 100}%"></div></div>
-              <div class="bp-xp-text">${progress.battlePassXp} / ${activeTier.xpRequired} PTS</div>
-            </div>
-            <div class="vertical-scroll bp-scroll">${bpItems}</div>
           `;
         }
       }
@@ -1525,34 +1517,76 @@ export class UIManager {
       });
     }
 
-    // Daily login calendar claim
-    const calendarDays = this.container.querySelectorAll('.calendar-day[data-day]');
-    calendarDays.forEach(dayEl => {
-      dayEl.addEventListener('click', () => {
-        const day = parseInt((dayEl as HTMLElement).getAttribute('data-day') || '1');
-        const currentDay = parseInt(localStorage.getItem('flight_of_legends_daily_day') || '1');
+    // Mysterious chests opening
+    const chestBtns = this.container.querySelectorAll('.btn-open-chest[data-chest-id]');
+    chestBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const chestId = parseInt((btn as HTMLElement).getAttribute('data-chest-id') || '0');
+        if (!chestId) return;
+
         const now = Date.now();
-        const cooldown = 24 * 60 * 60 * 1000;
-        const progress = this.engine.progressManager.getState();
-        const alreadyClaimedToday = (now - progress.lastDailyClaimTime < cooldown);
+        const chests = [
+          { id: 1, name: 'Bronze Chest', icon: '📦', cooldown: 1 * 60 * 60 * 1000, minCoins: 250, maxCoins: 600, minGems: 2, maxGems: 6 },
+          { id: 2, name: 'Silver Chest', icon: '🧰', cooldown: 4 * 60 * 60 * 1000, minCoins: 800, maxCoins: 1800, minGems: 8, maxGems: 16 },
+          { id: 3, name: 'Golden Chest', icon: '🎁', cooldown: 8 * 60 * 60 * 1000, minCoins: 2000, maxCoins: 4500, minGems: 20, maxGems: 45 }
+        ];
+        const ch = chests.find(c => c.id === chestId);
+        if (!ch) return;
 
-        if (day !== currentDay) {
-          this.showToastNotification('DAILY CALENDAR', day < currentDay ? 'You already claimed this day!' : 'This reward is locked until future days.');
+        const lastOpen = parseInt(localStorage.getItem(`flight_of_legends_chest_${ch.id}_time`) || '0');
+        const timePassed = now - lastOpen;
+        if (timePassed < ch.cooldown) {
+          const msLeft = ch.cooldown - timePassed;
+          const hours = Math.floor(msLeft / (3600 * 1000));
+          const minutes = Math.floor((msLeft % (3600 * 1000)) / (60 * 1000));
+          const seconds = Math.floor((msLeft % (60 * 1000)) / 1000);
+          this.showToastNotification('CHEST LOCKED', `Chest is on cooldown! Try again in ${hours}:${minutes}:${seconds}.`);
           return;
         }
 
-        if (alreadyClaimedToday) {
-          const hoursLeft = Math.ceil((cooldown - (now - progress.lastDailyClaimTime)) / (1000 * 60 * 60));
-          this.showToastNotification('DAILY CALENDAR', `You already claimed today! Next reward in ${hoursLeft} hours.`);
-          return;
+        // Trigger shake/opening animation!
+        const card = this.container.querySelector(`.chest-card[data-chest-id="${ch.id}"]`) as HTMLElement | null;
+        if (card) {
+          card.classList.add('chest-opening-shake');
         }
+        
+        btn.textContent = 'OPENING...';
+        (btn as HTMLButtonElement).disabled = true;
 
-        const res = this.engine.progressManager.claimDailyLoginReward(day);
+        this.engine.soundManager.playCrateUnlock();
+
+        setTimeout(() => {
+          // Calculate rewards
+          const gainedCoins = Math.floor(Math.random() * (ch.maxCoins - ch.minCoins + 1)) + ch.minCoins;
+          const gainedGems = Math.floor(Math.random() * (ch.maxGems - ch.minGems + 1)) + ch.minGems;
+
+          // Save timestamp
+          localStorage.setItem(`flight_of_legends_chest_${ch.id}_time`, Date.now().toString());
+
+          // Apply rewards
+          this.engine.progressManager.addCoins(gainedCoins);
+          this.engine.progressManager.addGems(gainedGems);
+          this.engine.progressManager.save();
+
+          // Rerender and show reward popup
+          this.render();
+          this.showChestRewardPopup(ch.name, gainedCoins, gainedGems);
+        }, 1200); // 1.2 seconds shake animation
+      });
+    });
+
+    // Battle Pass Missions Claim removed
+
+    // Achievement claim buttons
+    const achClaimBtns = this.container.querySelectorAll('.btn-ach-claim[data-ach-id]');
+    achClaimBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const achId = (btn as HTMLElement).getAttribute('data-ach-id') || '';
+        const res = this.engine.progressManager.claimAchievementReward(achId);
         if (res.success) {
-          this.showToastNotification('CLAIM SUCCESSFUL 🎉', res.msg);
-          // Save next day
-          const nextDay = (day % 7) + 1;
-          localStorage.setItem('flight_of_legends_daily_day', nextDay.toString());
+          this.showToastNotification('ACHIEVEMENT CLAIMED! 🏆', res.msg);
           this.render();
         } else {
           this.showToastNotification('CLAIM FAILED', res.msg);
@@ -1728,22 +1762,11 @@ export class UIManager {
       });
     });
 
-    // Battle pass claim
-    const claimBtns = this.container.querySelectorAll('.btn-claim-bp');
-    claimBtns.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const tier = parseInt((e.target as HTMLElement).getAttribute('data-tier') || '0');
-        const res = this.engine.progressManager.claimBattlePassTier(tier);
-        this.showToastNotification(res.success ? 'REWARD CLAIMED' : 'CLAIM FAILED', res.msg);
-        this.render();
-      });
-    });
-
     // Rewards Hub sub-tabs click events
     const subTabBtns = this.container.querySelectorAll('.rewards-hub-nav [data-sub-tab]');
     subTabBtns.forEach(btn => {
       btn.addEventListener('click', () => {
-        const sub = (btn as HTMLElement).getAttribute('data-sub-tab') as 'daily' | 'trophies' | 'bp';
+        const sub = (btn as HTMLElement).getAttribute('data-sub-tab') as 'daily' | 'trophies';
         if (sub) {
           this.activeRewardsSubTab = sub;
           this.render();
@@ -2811,6 +2834,353 @@ export class UIManager {
     `;
   }
 
+  private getChestsHtml(): string {
+    const now = Date.now();
+    const chests = [
+      { id: 1, name: 'Bronze Chest', icon: '📦', cooldown: 1 * 60 * 60 * 1000, color: '#cd7f32', glow: 'rgba(205, 127, 50, 0.45)', minCoins: 250, maxCoins: 600, minGems: 2, maxGems: 6 },
+      { id: 2, name: 'Silver Chest', icon: '🧰', cooldown: 4 * 60 * 60 * 1000, color: '#c0c0c0', glow: 'rgba(192, 192, 192, 0.45)', minCoins: 800, maxCoins: 1800, minGems: 8, maxGems: 16 },
+      { id: 3, name: 'Golden Chest', icon: '🎁', cooldown: 8 * 60 * 60 * 1000, color: '#ffd700', glow: 'rgba(255, 215, 0, 0.45)', minCoins: 2000, maxCoins: 4500, minGems: 20, maxGems: 45 }
+    ];
+
+    let chestsHtml = '';
+    chests.forEach(ch => {
+      const lastOpen = parseInt(localStorage.getItem(`flight_of_legends_chest_${ch.id}_time`) || '0');
+      const timePassed = now - lastOpen;
+      const isReady = timePassed >= ch.cooldown;
+      
+      let statusText = '';
+      let btnText = 'OPEN 🎁';
+      let btnClass = 'btn-open-chest';
+      let btnDisabled = '';
+      
+      if (!isReady) {
+        const msLeft = ch.cooldown - timePassed;
+        const hours = Math.floor(msLeft / (3600 * 1000));
+        const minutes = Math.floor((msLeft % (3600 * 1000)) / (60 * 1000));
+        const seconds = Math.floor((msLeft % (60 * 1000)) / 1000);
+        statusText = `⏳ ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        btnText = 'LOCKED 🔒';
+        btnClass = 'btn-open-chest locked';
+        btnDisabled = 'disabled';
+      } else {
+        statusText = '✨ READY!';
+      }
+
+      chestsHtml += `
+        <div class="chest-card glass-card ${isReady ? 'ready-pulse' : ''}" data-chest-id="${ch.id}" style="
+          flex: 1; min-width: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+          padding: 10px 4px; border-radius: 16px; border: 1.5px solid ${ch.color}; background: rgba(255, 255, 255, 0.02);
+          box-shadow: 0 4px 15px ${ch.glow}; transition: all 0.3s ease; position: relative;
+        ">
+          <div class="chest-icon-wrapper" style="
+            width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; filter: drop-shadow(0 0 6px ${ch.color});
+            animation: ${isReady ? 'chestFloat 2s ease-in-out infinite' : 'none'};
+          ">
+            ${this.getChestSvg(ch.id, '50px', '50px', '', 'tab-chest-' + ch.id)}
+          </div>
+          <div class="chest-name" style="font-size: 8px; font-weight: 900; color: ${ch.color}; letter-spacing: 0.5px; text-shadow: 0 0 5px ${ch.glow}; margin-bottom: 2px;">${ch.name.toUpperCase()}</div>
+          <div class="chest-rewards-preview" style="font-size: 7px; color: rgba(255,255,255,0.5); line-height: 1.2; text-align: center; margin-bottom: 4px;">
+            🪙 ${ch.minCoins}-${ch.maxCoins}<br>💎 ${ch.minGems}-${ch.maxGems}
+          </div>
+          <div class="chest-status" style="font-size: 8px; font-weight: 800; color: ${isReady ? '#00ffaa' : '#ff3366'}; text-shadow: ${isReady ? '0 0 5px rgba(0,255,170,0.5)' : 'none'}; margin-bottom: 6px;">
+            ${statusText}
+          </div>
+          <button class="${btnClass}" data-chest-id="${ch.id}" ${btnDisabled} style="
+            width: 90%; max-width: 80px; border: none; padding: 4px 0; border-radius: 8px; font-family: inherit; font-size: 8px; font-weight: 900;
+            color: ${isReady ? '#030c17' : 'rgba(255,255,255,0.35)'}; background: ${isReady ? `linear-gradient(180deg, ${ch.color} 0%, #ffffff 100%)` : 'rgba(255,255,255,0.06)'};
+            cursor: ${isReady ? 'pointer' : 'not-allowed'}; box-shadow: ${isReady ? `0 4px 10px ${ch.glow}` : 'none'}; transition: all 0.2s;
+          ">
+            ${btnText}
+          </button>
+        </div>
+      `;
+    });
+
+    return chestsHtml;
+  }
+
+  private getChestSvg(chestId: number, width: string, height: string, extraStyle: string = '', idSuffix: string = 'chest'): string {
+    // Configure gradient colors based on chestId
+    let woodLeftStart = '#E2B770', woodLeftEnd = '#A57038';
+    let woodRightStart = '#B28247', woodRightEnd = '#72451C';
+    let woodLidTopStart = '#F3D19E', woodLidTopEnd = '#D29A4E';
+    let woodRecessedStart = '#8E5623', woodRecessedEnd = '#2A1608';
+    
+    let ribbonLeft1 = '#FF5555', ribbonLeft2 = '#D61A1A', ribbonLeft3 = '#800000';
+    let ribbonRight1 = '#D61A1A', ribbonRight2 = '#9E0C0C', ribbonRight3 = '#5E0000';
+    let ribbonTopLeft1 = '#FF5555', ribbonTopLeft2 = '#9E0C0C';
+    
+    let metalGold1 = '#FCE69B', metalGold2 = '#D4A034', metalGold3 = '#7B4B17';
+    let metalHighlight1 = '#FFFFFF', metalHighlight2 = '#FFE580';
+    let shieldCenterFill = '#D61A1A';
+
+    if (chestId === 1) {
+      // Bronze Chest: Bronze/coppery metal, brownish wood, dark orange ribbons
+      woodLeftStart = '#7A4A28'; woodLeftEnd = '#4D2C15';
+      woodRightStart = '#5C361D'; woodRightEnd = '#331D0E';
+      woodLidTopStart = '#9E673E'; woodLidTopEnd = '#6B4122';
+      woodRecessedStart = '#4D2C15'; woodRecessedEnd = '#1C0D05';
+      
+      ribbonLeft1 = '#D97736'; ribbonLeft2 = '#A65321'; ribbonLeft3 = '#5E2B0E';
+      ribbonRight1 = '#A65321'; ribbonRight2 = '#803B14'; ribbonRight3 = '#401A05';
+      ribbonTopLeft1 = '#D97736'; ribbonTopLeft2 = '#803B14';
+      
+      metalGold1 = '#E3905D'; metalGold2 = '#A05A32'; metalGold3 = '#593019';
+      metalHighlight1 = '#FAD5C0'; metalHighlight2 = '#C4774B';
+      shieldCenterFill = '#5C361D';
+    } else if (chestId === 2) {
+      // Silver Chest: Steel/slate wood, bright silver metal, blue ribbons
+      woodLeftStart = '#5A6B7C'; woodLeftEnd = '#333E4A';
+      woodRightStart = '#465362'; woodRightEnd = '#242C35';
+      woodLidTopStart = '#7D92A6'; woodLidTopEnd = '#4E5D6F';
+      woodRecessedStart = '#333E4A'; woodRecessedEnd = '#12171D';
+      
+      ribbonLeft1 = '#00B4D8'; ribbonLeft2 = '#0077B6'; ribbonLeft3 = '#03045E';
+      ribbonRight1 = '#0077B6'; ribbonRight2 = '#0096C7'; ribbonRight3 = '#023E8A';
+      ribbonTopLeft1 = '#00B4D8'; ribbonTopLeft2 = '#03045E';
+      
+      metalGold1 = '#E2E8F0'; metalGold2 = '#94A3B8'; metalGold3 = '#475569';
+      metalHighlight1 = '#FFFFFF'; metalHighlight2 = '#CBD5E1';
+      shieldCenterFill = '#0077B6';
+    } else {
+      // Golden Chest (chestId === 3): Rich mahogany wood, shiny gold metal, ruby red ribbons
+      woodLeftStart = '#A25B1F'; woodLeftEnd = '#663300';
+      woodRightStart = '#8F4D18'; woodRightEnd = '#4C2300';
+      woodLidTopStart = '#C37D3B'; woodLidTopEnd = '#8A4A1C';
+      woodRecessedStart = '#663300'; woodRecessedEnd = '#241000';
+      
+      ribbonLeft1 = '#D90429'; ribbonLeft2 = '#9B001C'; ribbonLeft3 = '#4A000A';
+      ribbonRight1 = '#9B001C'; ribbonRight2 = '#EF233C'; ribbonRight3 = '#3D0005';
+      ribbonTopLeft1 = '#EF233C'; ribbonTopLeft2 = '#4A000A';
+      
+      metalGold1 = '#FCE69B'; metalGold2 = '#D4A034'; metalGold3 = '#7B4B17';
+      metalHighlight1 = '#FFFFFF'; metalHighlight2 = '#FFE580';
+      shieldCenterFill = '#EF233C';
+    }
+
+    // Metal Corners
+    let cornersHtml = '';
+  if (chestId === 3) {
+    cornersHtml = `
+      <!-- Bottom Left -->
+      <path d="M 120,315 C 120,325 125,335 135,340 C 145,335 150,325 150,315 L 120,315 Z" transform="rotate(-15, 135, 327)" fill="url(#gold-grad-${idSuffix})" stroke="#2A1608" stroke-width="5" stroke-linejoin="round" />
+      <circle cx="120" cy="340" r="10" fill="url(#gold-grad-${idSuffix})" stroke="#2A1608" stroke-width="5" />
+
+      <!-- Bottom Middle -->
+      <path d="M 256,395 C 270,395 281,405 281,410 C 270,418 242,418 231,410 C 231,405 242,395 256,395 Z" fill="url(#gold-grad-${idSuffix})" stroke="#2A1608" stroke-width="5" stroke-linejoin="round" />
+      <circle cx="256" cy="420" r="12" fill="url(#gold-grad-${idSuffix})" stroke="#2A1608" stroke-width="5" />
+
+      <!-- Bottom Right -->
+      <path d="M 392,315 C 392,325 387,335 377,340 C 367,335 362,325 362,315 L 392,315 Z" transform="rotate(15, 377, 327)" fill="url(#gold-grad-${idSuffix})" stroke="#2A1608" stroke-width="5" stroke-linejoin="round" />
+      <circle cx="392" cy="340" r="10" fill="url(#gold-grad-${idSuffix})" stroke="#2A1608" stroke-width="5" />
+
+      <!-- Lid corners (Top-Left, Top-Middle, Top-Right) -->
+      <circle cx="110" cy="135" r="12" fill="url(#gold-grad-${idSuffix})" stroke="#2A1608" stroke-width="5" />
+      <circle cx="256" cy="225" r="14" fill="url(#gold-grad-${idSuffix})" stroke="#2A1608" stroke-width="5" />
+      <circle cx="402" cy="135" r="12" fill="url(#gold-grad-${idSuffix})" stroke="#2A1608" stroke-width="5" />
+      <circle cx="256" cy="45" r="10" fill="url(#gold-grad-${idSuffix})" stroke="#2A1608" stroke-width="5" />
+    `;
+  } else if (chestId === 2) {
+    cornersHtml = `
+      <!-- Bottom Left -->
+      <path d="M 120,315 C 120,325 125,335 135,340 C 145,335 150,325 150,315 L 120,315 Z" transform="rotate(-15, 135, 327)" fill="url(#gold-grad-${idSuffix})" stroke="#2A1608" stroke-width="5" stroke-linejoin="round" />
+      <circle cx="120" cy="340" r="9" fill="url(#gold-grad-${idSuffix})" stroke="#2A1608" stroke-width="5" />
+
+      <!-- Bottom Right -->
+      <path d="M 392,315 C 392,325 387,335 377,340 C 367,335 362,325 362,315 L 392,315 Z" transform="rotate(15, 377, 327)" fill="url(#gold-grad-${idSuffix})" stroke="#2A1608" stroke-width="5" stroke-linejoin="round" />
+      <circle cx="392" cy="340" r="9" fill="url(#gold-grad-${idSuffix})" stroke="#2A1608" stroke-width="5" />
+
+      <!-- Lid corners (only left and right) -->
+      <circle cx="110" cy="135" r="10" fill="url(#gold-grad-${idSuffix})" stroke="#2A1608" stroke-width="5" />
+      <circle cx="402" cy="135" r="10" fill="url(#gold-grad-${idSuffix})" stroke="#2A1608" stroke-width="5" />
+    `;
+  } else {
+    cornersHtml = `
+      <!-- Bottom Left -->
+      <path d="M 120,315 C 120,325 125,335 135,340 C 145,335 150,325 150,315 L 120,315 Z" transform="rotate(-15, 135, 327)" fill="url(#gold-grad-${idSuffix})" stroke="#2A1608" stroke-width="5" stroke-linejoin="round" />
+
+      <!-- Bottom Right -->
+      <path d="M 392,315 C 392,325 387,335 377,340 C 367,335 362,325 362,315 L 392,315 Z" transform="rotate(15, 377, 327)" fill="url(#gold-grad-${idSuffix})" stroke="#2A1608" stroke-width="5" stroke-linejoin="round" />
+    `;
+  }
+
+  // Lock Html
+  let lockHtml = '';
+  if (chestId === 1) {
+    lockHtml = `
+    <g stroke="#2A1608" stroke-width="4" stroke-linejoin="round">
+      <rect x="312" y="240" width="24" height="30" rx="4" fill="url(#gold-grad-${idSuffix})" />
+      <circle cx="324" cy="252" r="4" fill="#2A1608" />
+      <polygon points="322,254 326,254 327,264 321,264" fill="#2A1608" />
+    </g>
+    `;
+  } else {
+    lockHtml = `
+    <g stroke="#2A1608" stroke-width="5" stroke-linejoin="round">
+      <!-- Golden Escutcheon Badge -->
+      <path d="M 324,225 C 342,225 352,238 349,252 C 345,268 324,285 324,285 C 324,285 303,268 299,252 C 296,238 306,225 324,225 Z" fill="url(#gold-grad-${idSuffix})" />
+      
+      <!-- Center Shield -->
+      <path d="M 324,233 C 334,233 340,240 338,250 C 335,260 324,272 324,272 C 324,272 313,260 310,250 C 308,240 314,233 324,233 Z" fill="${shieldCenterFill}" />
+      
+      <!-- Keyhole -->
+      <circle cx="324" cy="248" r="5" fill="#2A1608" />
+      <polygon points="321,250 327,250 329,263 319,263" fill="#2A1608" />
+    </g>
+    `;
+  }
+
+  // Bow Html
+  let bowHtml = '';
+  if (chestId === 3) {
+    bowHtml = `
+    <g stroke="#2A1608" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+      <!-- Ribbon Tails -->
+      <path d="M 245,130 C 225,160 190,195 200,210 C 210,210 235,180 249,145 Z" fill="url(#ribbon-left-${idSuffix})" />
+      <path d="M 267,130 C 287,160 322,195 312,210 C 302,210 277,180 263,145 Z" fill="url(#ribbon-right-${idSuffix})" />
+
+      <!-- Left Loop -->
+      <path d="M 246,128 C 210,85 140,95 165,140 C 185,165 230,145 246,128 Z" fill="url(#ribbon-left-${idSuffix})" />
+      <!-- Left Loop Inner Shadow -->
+      <path d="M 230,135 C 205,145 185,148 178,137 C 168,122 210,105 238,126 Z" fill="#5E0000" opacity="0.4" stroke="none" />
+
+      <!-- Right Loop -->
+      <path d="M 266,128 C 302,85 372,95 347,140 C 327,165 282,145 266,128 Z" fill="url(#ribbon-right-${idSuffix})" />
+      <!-- Right Loop Inner Shadow -->
+      <path d="M 282,135 C 307,145 327,148 334,137 C 344,122 302,105 274,126 Z" fill="#5E0000" opacity="0.4" stroke="none" />
+
+      <!-- Center Knot -->
+      <rect x="242" y="116" width="28" height="24" rx="8" ry="8" fill="url(#ribbon-left-${idSuffix})" />
+    </g>
+    `;
+  } else if (chestId === 2) {
+    bowHtml = `
+    <g stroke="#2A1608" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+      <!-- Left Loop -->
+      <path d="M 246,128 C 210,85 140,95 165,140 C 185,165 230,145 246,128 Z" fill="url(#ribbon-left-${idSuffix})" />
+      <!-- Left Loop Inner Shadow -->
+      <path d="M 230,135 C 205,145 185,148 178,137 C 168,122 210,105 238,126 Z" fill="#5E0000" opacity="0.4" stroke="none" />
+
+      <!-- Right Loop -->
+      <path d="M 266,128 C 302,85 372,95 347,140 C 327,165 282,145 266,128 Z" fill="url(#ribbon-right-${idSuffix})" />
+      <!-- Right Loop Inner Shadow -->
+      <path d="M 282,135 C 307,145 327,148 334,137 C 344,122 302,105 274,126 Z" fill="#5E0000" opacity="0.4" stroke="none" />
+
+      <!-- Center Knot -->
+      <rect x="242" y="116" width="28" height="24" rx="8" ry="8" fill="url(#ribbon-left-${idSuffix})" />
+    </g>
+    `;
+  }
+
+  return `
+<svg viewBox="0 0 512 512" style="width: ${width}; height: ${height}; ${extraStyle}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Wood Gradients -->
+    <linearGradient id="wood-left-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${woodLeftStart}" />
+      <stop offset="100%" stop-color="${woodLeftEnd}" />
+    </linearGradient>
+    <linearGradient id="wood-right-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${woodRightStart}" />
+      <stop offset="100%" stop-color="${woodRightEnd}" />
+    </linearGradient>
+    <linearGradient id="wood-lid-top-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${woodLidTopStart}" />
+      <stop offset="100%" stop-color="${woodLidTopEnd}" />
+    </linearGradient>
+    <linearGradient id="wood-recessed-${idSuffix}" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="${woodRecessedStart}" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="${woodRecessedEnd}" stop-opacity="0.6" />
+    </linearGradient>
+
+    <!-- Ribbon Gradients -->
+    <linearGradient id="ribbon-left-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="${ribbonLeft1}" />
+      <stop offset="30%" stop-color="${ribbonLeft2}" />
+      <stop offset="100%" stop-color="${ribbonLeft3}" />
+    </linearGradient>
+    <linearGradient id="ribbon-right-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="${ribbonRight1}" />
+      <stop offset="70%" stop-color="${ribbonRight2}" />
+      <stop offset="100%" stop-color="${ribbonRight3}" />
+    </linearGradient>
+    <linearGradient id="ribbon-top-left-${idSuffix}" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="${ribbonTopLeft1}" />
+      <stop offset="100%" stop-color="${ribbonTopLeft2}" />
+    </linearGradient>
+
+    <!-- Metal Gold Gradients -->
+    <linearGradient id="gold-grad-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${metalGold1}" />
+      <stop offset="50%" stop-color="${metalGold2}" />
+      <stop offset="100%" stop-color="${metalGold3}" />
+    </linearGradient>
+    <linearGradient id="gold-highlight-${idSuffix}" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="${metalHighlight1}" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="${metalHighlight2}" stop-opacity="0.1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Drop Shadow -->
+  <ellipse cx="256" cy="425" rx="160" ry="40" fill="rgba(0, 0, 0, 0.3)" filter="blur(8px)" />
+
+  <g stroke="#2A1608" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Left Wall Base -->
+    <polygon points="120,180 256,260 256,420 120,340" fill="url(#wood-left-${idSuffix})" />
+    <!-- Recessed Left Panel -->
+    <polygon points="135,200 241,262 241,400 135,338" fill="url(#wood-left-${idSuffix})" />
+    <polygon points="135,200 241,262 241,400 135,338" fill="url(#wood-recessed-${idSuffix})" />
+
+    <!-- Right Wall Base -->
+    <polygon points="256,260 392,180 392,340 256,420" fill="url(#wood-right-${idSuffix})" />
+    <!-- Recessed Right Panel -->
+    <polygon points="271,262 377,200 377,338 271,400" fill="url(#wood-right-${idSuffix})" />
+    <polygon points="271,262 377,200 377,338 271,400" fill="url(#wood-recessed-${idSuffix})" />
+
+    <!-- Lid Overhang Rim -->
+    <!-- Left Lid Rim -->
+    <polygon points="110,135 256,225 256,265 110,175" fill="url(#wood-left-${idSuffix})" />
+    <!-- Right Lid Rim -->
+    <polygon points="256,225 402,135 402,175 256,265" fill="url(#wood-right-${idSuffix})" />
+    
+    <!-- Top Lid Face -->
+    <polygon points="110,135 256,45 402,135 256,225" fill="url(#wood-lid-top-${idSuffix})" />
+    <!-- Top Lid Recessed Panel -->
+    <polygon points="125,135 256,58 387,135 256,212" fill="url(#wood-lid-top-${idSuffix})" />
+    <polygon points="125,135 256,58 387,135 256,212" fill="url(#wood-recessed-${idSuffix})" />
+  </g>
+
+  <!-- Ribbons -->
+  <g stroke="#2A1608" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Top Face Ribbons -->
+    <polygon points="163,168 256,113 296,137 203,192" fill="url(#ribbon-top-left-${idSuffix})" />
+    <polygon points="309,192 216,137 256,113 349,168" fill="url(#ribbon-top-left-${idSuffix})" />
+
+    <!-- Left Wall Ribbon -->
+    <polygon points="168,208 208,232 208,392 168,368" fill="url(#ribbon-left-${idSuffix})" />
+    <!-- Left Lid Overhang Ribbon -->
+    <polygon points="163,168 203,192 203,232 163,208" fill="url(#ribbon-left-${idSuffix})" />
+
+    <!-- Right Wall Ribbon -->
+    <polygon points="304,232 344,208 344,368 304,392" fill="url(#ribbon-right-${idSuffix})" />
+    <!-- Right Lid Overhang Ribbon -->
+    <polygon points="309,192 349,168 349,208 309,232" fill="url(#ribbon-right-${idSuffix})" />
+  </g>
+
+  <!-- Metal Corners -->
+  <g fill="url(#gold-grad-${idSuffix})" stroke="#2A1608" stroke-width="5" stroke-linejoin="round">
+    ${cornersHtml}
+  </g>
+
+  <!-- Lock Plate -->
+  ${lockHtml}
+
+  <!-- Bow (Top Center of Lid) -->
+  ${bowHtml}
+</svg>
+    `;
+  }
+
   private getWorldsIconSvg(width: string, height: string, extraStyle: string = '', idSuffix: string = 'main'): string {
     return `
 <svg viewBox="0 0 600 400" style="width: ${width}; height: ${height}; ${extraStyle}" xmlns="http://www.w3.org/2000/svg">
@@ -3328,6 +3698,118 @@ export class UIManager {
   </g>
 </svg>
     `;
+  }
+
+  public showChestRewardPopup(chestName: string, coins: number, gems: number) {
+    // Remove any existing reward popup
+    const existing = document.getElementById('chest-reward-modal-overlay');
+    if (existing) existing.remove();
+
+    let chestId = 3;
+    let chestColor = '#ffd700';
+    if (chestName.includes('Bronze')) {
+      chestId = 1;
+      chestColor = '#cd7f32';
+    } else if (chestName.includes('Silver')) {
+      chestId = 2;
+      chestColor = '#c0c0c0';
+    }
+
+    const overlay = document.createElement('div');
+    overlay.id = 'chest-reward-modal-overlay';
+    overlay.className = 'topup-modal-overlay fade-in';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999999;
+      font-family: 'Outfit', sans-serif;
+    `;
+
+    overlay.innerHTML = `
+      <div class="topup-modal-card glass-card" style="
+        width: 85%;
+        max-width: 320px;
+        background: linear-gradient(135deg, rgba(28, 10, 24, 0.96), rgba(15, 5, 12, 0.98));
+        border: 2.5px solid #ffd700;
+        border-radius: 24px;
+        padding: 26px 20px;
+        color: white;
+        box-shadow: 0 0 35px rgba(255, 215, 0, 0.35);
+        text-align: center;
+        position: relative;
+        font-family: inherit;
+        animation: modalSlideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      ">
+        <div style="width: 100px; height: 100px; margin: 0 auto 12px auto; display: flex; align-items: center; justify-content: center; filter: drop-shadow(0 0 10px ${chestColor}); animation: chestOpenBounce 0.6s ease-out;">
+          ${this.getChestSvg(chestId, '100px', '100px', '', 'modal-chest')}
+        </div>
+        
+        <div style="font-size: 20px; font-weight: 900; letter-spacing: 1.5px; color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.5); margin-bottom: 4px; text-transform: uppercase;">
+          CHEST UNLOCKED!
+        </div>
+        <div style="font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.6); margin-bottom: 24px;">
+          You successfully opened a <span style="color: #ffd700; font-weight: 900;">${chestName}</span>!
+        </div>
+
+        <div style="display: flex; justify-content: center; gap: 16px; margin-bottom: 26px;">
+          <!-- Coins Reward -->
+          <div style="
+            flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.25);
+            border-radius: 16px; padding: 12px 6px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+            box-shadow: 0 4px 12px rgba(212,175,55,0.1);
+          ">
+            <span style="font-size: 24px; filter: drop-shadow(0 0 4px rgba(212,175,55,0.5));">🟡</span>
+            <span style="font-size: 14px; font-weight: 900; color: #ffe47a;">+${coins}</span>
+            <span style="font-size: 7px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase;">Gold Coins</span>
+          </div>
+
+          <!-- Gems Reward -->
+          <div style="
+            flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(0,168,255,0.25);
+            border-radius: 16px; padding: 12px 6px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+            box-shadow: 0 4px 12px rgba(0,168,255,0.1);
+          ">
+            <span style="font-size: 24px; filter: drop-shadow(0 0 4px rgba(0,168,255,0.5));">💎</span>
+            <span style="font-size: 14px; font-weight: 900; color: #a8e5ff;">+${gems}</span>
+            <span style="font-size: 7px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase;">Cosmic Gems</span>
+          </div>
+        </div>
+
+        <button id="chest-reward-claim-btn" style="
+          width: 100%;
+          background: linear-gradient(180deg, #ffd700 0%, #ff8800 100%);
+          border: none;
+          padding: 12px;
+          border-radius: 14px;
+          color: black;
+          font-weight: 900;
+          font-size: 12px;
+          font-family: inherit;
+          cursor: pointer;
+          box-shadow: 0 4px 15px rgba(255,136,0,0.3);
+          transition: all 0.2s;
+        ">
+          CLAIM TREASURE 🎉
+        </button>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Play coin collect sounds on claim button click
+    const claimBtn = overlay.querySelector('#chest-reward-claim-btn');
+    if (claimBtn) {
+      claimBtn.addEventListener('click', () => {
+        this.engine.soundManager.playCoin();
+        overlay.remove();
+      });
+    }
   }
 
 }

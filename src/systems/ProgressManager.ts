@@ -13,14 +13,6 @@ export interface Skin {
   abilityDesc?: string;
 }
 
-export interface BattlePassTier {
-  tier: number;
-  xpRequired: number;
-  rewardName: string;
-  rewardType: 'coins' | 'gems' | 'skin';
-  rewardValue: any;
-}
-
 export interface Achievement {
   id: string;
   name: string;
@@ -33,20 +25,16 @@ export interface Achievement {
 }
 
 export interface PlayerProgressState {
-  level: number;
-  xp: number;
   coins: number;
   gems: number;
   highscore: number;
   activeSkin: string;
   activeWorld: string;
-  battlePassTier: number;
-  battlePassXp: number;
-  claimedBPTiers: number[];
   unlockedSkins: string[];
   skinUpgrades: Record<string, number>; // skinId -> level
   achievements: Record<string, number>; // achievementId -> progress value
   unlockedAchievements: string[]; // list of unlocked achievement IDs
+  claimedAchievements?: string[]; // list of claimed achievement IDs
   selectedZone: 'classic' | 'wave';
   selectedDifficulty: 'easy' | 'medium' | 'hard';
   lastDailyClaimTime: number;
@@ -61,13 +49,11 @@ export class ProgressManager {
   private state!: PlayerProgressState;
   private skins: Skin[] = [];
   private achievements: Achievement[] = [];
-  private battlePass: BattlePassTier[] = [];
   private storageKey = 'flight_of_legends_progression_save';
 
   constructor() {
     this.initDefaultSkins();
     this.initDefaultAchievements();
-    this.initDefaultBattlePass();
     this.load();
   }
 
@@ -266,53 +252,38 @@ export class ProgressManager {
         rewardCoins: 400,
         rewardGems: 12,
         unlocked: false
+      },
+      {
+        id: 'survival_legend',
+        name: 'Survival Legend',
+        desc: 'Survive for 100 seconds in Squad Survival mode.',
+        targetValue: 100,
+        currentValue: 0,
+        rewardCoins: 1000,
+        rewardGems: 30,
+        unlocked: false
+      },
+      {
+        id: 'hyper_speeder',
+        name: 'Hyper Speeder',
+        desc: 'Activate Hyper Boost 20 times.',
+        targetValue: 20,
+        currentValue: 0,
+        rewardCoins: 600,
+        rewardGems: 15,
+        unlocked: false
+      },
+      {
+        id: 'bird_savior',
+        name: 'Bird Savior',
+        desc: 'Rescue 30 birds from cages.',
+        targetValue: 30,
+        currentValue: 0,
+        rewardCoins: 800,
+        rewardGems: 20,
+        unlocked: false
       }
     ];
-  }
-
-  private initDefaultBattlePass() {
-    // Generate 50 tiers of rewards
-    for (let i = 1; i <= 50; i++) {
-      let rewardName = '';
-      let rewardType: 'coins' | 'gems' | 'skin' = 'coins';
-      let rewardValue: any = 0;
-
-      if (i % 10 === 0) {
-        rewardType = 'skin';
-        if (i === 10) {
-          rewardName = 'Seto Drake';
-          rewardValue = 'white_dragon';
-        } else if (i === 20) {
-          rewardName = 'Neon Raven';
-          rewardValue = 'neon_crow';
-        } else if (i === 30) {
-          rewardName = 'Charan Falcon';
-          rewardValue = 'dread_falcon';
-        } else if (i === 40) {
-          rewardName = 'Ice Phoenix';
-          rewardValue = 'articuno';
-        } else {
-          rewardName = 'Legendary Eagle King';
-          rewardValue = 'legendary_eagle_king';
-        }
-      } else if (i % 2 === 0) {
-        rewardType = 'gems';
-        rewardValue = i * 2;
-        rewardName = `${rewardValue} Cosmic Gems`;
-      } else {
-        rewardType = 'coins';
-        rewardValue = i * 150;
-        rewardName = `${rewardValue} Gold Coins`;
-      }
-
-      this.battlePass.push({
-        tier: i,
-        xpRequired: 800 + i * 200,
-        rewardName,
-        rewardType,
-        rewardValue
-      });
-    }
   }
 
   public getState(): PlayerProgressState {
@@ -325,10 +296,6 @@ export class ProgressManager {
 
   public getAchievements(): Achievement[] {
     return this.achievements;
-  }
-
-  public getBattlePass(): BattlePassTier[] {
-    return this.battlePass;
   }
 
   public getActiveSkinInfo(): Skin {
@@ -352,31 +319,6 @@ export class ProgressManager {
       this.state.highscore = score;
     }
     this.save();
-  }
-
-  public addXp(amount: number): { leveledUp: boolean } {
-    this.state.xp += amount;
-    this.state.battlePassXp += amount;
-
-    // Check if player levels up
-    const xpForNextLevel = this.state.level * 1000;
-    let leveledUp = false;
-    if (this.state.xp >= xpForNextLevel) {
-      this.state.xp -= xpForNextLevel;
-      this.state.level += 1;
-      leveledUp = true;
-    }
-
-    // Check Battle Pass progression
-    let currentTierData = this.battlePass.find(t => t.tier === this.state.battlePassTier);
-    while (currentTierData && this.state.battlePassXp >= currentTierData.xpRequired) {
-      this.state.battlePassXp -= currentTierData.xpRequired;
-      this.state.battlePassTier += 1;
-      currentTierData = this.battlePass.find(t => t.tier === this.state.battlePassTier);
-    }
-
-    this.save();
-    return { leveledUp };
   }
 
   public buySkin(id: string): { success: boolean; msg: string } {
@@ -464,8 +406,6 @@ export class ProgressManager {
     if (ach.currentValue >= ach.targetValue && !ach.unlocked) {
       ach.unlocked = true;
       this.state.unlockedAchievements.push(id);
-      this.state.coins += ach.rewardCoins;
-      this.state.gems += ach.rewardGems;
       
       // Dispatch toast notification event to window
       window.dispatchEvent(new CustomEvent('achievement_unlocked', {
@@ -475,32 +415,26 @@ export class ProgressManager {
     this.save();
   }
 
-  public claimBattlePassTier(tier: number): { success: boolean; msg: string } {
-    if (tier >= this.state.battlePassTier) return { success: false, msg: 'This tier is locked!' };
-    if (this.state.claimedBPTiers.includes(tier)) return { success: false, msg: 'Reward already claimed.' };
-
-    const bpTier = this.battlePass.find(t => t.tier === tier);
-    if (!bpTier) return { success: false, msg: 'Tier rewards data missing.' };
-
-    this.state.claimedBPTiers.push(tier);
-
-    if (bpTier.rewardType === 'coins') {
-      this.state.coins += bpTier.rewardValue;
-    } else if (bpTier.rewardType === 'gems') {
-      this.state.gems += bpTier.rewardValue;
-    } else if (bpTier.rewardType === 'skin') {
-      const skinId = bpTier.rewardValue as string;
-      const skin = this.skins.find(s => s.id === skinId);
-      if (skin) {
-        skin.unlocked = true;
-        if (!this.state.unlockedSkins.includes(skinId)) {
-          this.state.unlockedSkins.push(skinId);
-        }
-      }
+  public claimAchievementReward(id: string): { success: boolean; msg: string } {
+    if (!this.state.claimedAchievements) {
+      this.state.claimedAchievements = [];
+    }
+    if (this.state.claimedAchievements.includes(id)) {
+      return { success: false, msg: 'Reward already claimed.' };
+    }
+    const ach = this.achievements.find(a => a.id === id);
+    if (!ach) {
+      return { success: false, msg: 'Achievement not found.' };
+    }
+    if (!this.state.unlockedAchievements.includes(id)) {
+      return { success: false, msg: 'Achievement is not unlocked yet!' };
     }
 
+    this.state.claimedAchievements.push(id);
+    this.addCoins(ach.rewardCoins);
+    this.addGems(ach.rewardGems);
     this.save();
-    return { success: true, msg: `Claimed ${bpTier.rewardName}!` };
+    return { success: true, msg: `Claimed +${ach.rewardCoins}🟡 and +${ach.rewardGems}💎!` };
   }
 
   public load() {
@@ -511,20 +445,16 @@ export class ProgressManager {
         
         // Setup initial structure defaults to handle back-compat updates
         this.state = {
-          level: loadedState.level || 1,
-          xp: loadedState.xp || 0,
           coins: Math.max(loadedState.coins || 0, 100000), // Auto grant 100,000 coins for testing
           gems: Math.max(loadedState.gems || 0, 5000),     // Auto grant 5,000 gems for testing
           highscore: loadedState.highscore || 0,
           activeSkin: loadedState.activeSkin || 'default',
           activeWorld: loadedState.activeWorld || 'jungle',
-          battlePassTier: loadedState.battlePassTier || 1,
-          battlePassXp: loadedState.battlePassXp || 0,
-          claimedBPTiers: loadedState.claimedBPTiers || [],
           unlockedSkins: loadedState.unlockedSkins || ['default'],
           skinUpgrades: loadedState.skinUpgrades || {},
           achievements: loadedState.achievements || {},
           unlockedAchievements: loadedState.unlockedAchievements || [],
+          claimedAchievements: loadedState.claimedAchievements || [],
           selectedZone: (loadedState.selectedZone as any) === 'vertical' ? 'classic' : (loadedState.selectedZone || 'classic'),
           selectedDifficulty: loadedState.selectedDifficulty || 'medium',
           lastDailyClaimTime: loadedState.lastDailyClaimTime || 0,
@@ -562,20 +492,16 @@ export class ProgressManager {
 
   private resetState() {
     this.state = {
-      level: 1,
-      xp: 0,
       coins: 100000, // starting gold for testing
       gems: 5000,    // starting gems for testing
       highscore: 0,
       activeSkin: 'default',
       activeWorld: 'jungle',
-      battlePassTier: 1,
-      battlePassXp: 0,
-      claimedBPTiers: [],
       unlockedSkins: ['default'],
       skinUpgrades: {},
       achievements: {},
       unlockedAchievements: [],
+      claimedAchievements: [],
       selectedZone: 'classic',
       selectedDifficulty: 'medium',
       lastDailyClaimTime: 0,

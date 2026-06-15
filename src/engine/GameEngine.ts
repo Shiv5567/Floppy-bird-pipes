@@ -19,6 +19,7 @@ export interface ActivePowerup {
 
 export class GameEngine {
   public state: GameState = 'MENU';
+  public firstTapDone = false;
   public hasRevivedThisRun = false;
   public revivesUsedThisRun = 0;
   public reviveCountdown = 5.0;
@@ -73,6 +74,7 @@ export class GameEngine {
   public score = 0;
   public coinsCollectedThisRun = 0;
   public gemsCollectedThisRun = 0;
+  public squadSurvivalTime = 0.0;
   public scrollSpeed = 4.2;
   private baseScrollSpeed = 4.2;
 
@@ -146,6 +148,7 @@ export class GameEngine {
   public startGame() {
     this.state = 'PRELOADING';
     this.preloadingTimer = 0.4;
+    this.firstTapDone = false;
     this.soundManager.init(); // Warm up Web Audio context on user gesture
     this.hasRevivedThisRun = false;
     this.revivesUsedThisRun = 0;
@@ -153,6 +156,7 @@ export class GameEngine {
     this.score = 0;
     this.coinsCollectedThisRun = 0;
     this.gemsCollectedThisRun = 0;
+    this.squadSurvivalTime = 0.0;
 
     if (this.gameMode === 'level') {
       const levelConfig = LevelManager.getLevel(this.currentLevelNum);
@@ -340,6 +344,9 @@ export class GameEngine {
 
     // 2. Update state machine
     if (this.state === 'PLAYING' || this.state === 'BOSS_FIGHT') {
+      if (this.gameMode === 'flock') {
+        this.squadSurvivalTime += dt;
+      }
 
       let activeTimeScale = this.timeScale;
       let birdTimeScale = (this.ultimateActive && this.bird.getSkin().id === 'jade_lotus') ? 1.0 : activeTimeScale;
@@ -558,6 +565,10 @@ export class GameEngine {
         // Ice Phoenix passive Blizzard Chill 20% slow-down removed
       }
 
+      if (!this.firstTapDone) {
+        this.scrollSpeed = 0.0;
+      }
+
       // Booster overrides scroll speed and active effects
       if (this.boosterActive) {
         this.boosterTimer -= dt;
@@ -695,8 +706,9 @@ export class GameEngine {
                 // Play sound
                 this.soundManager.playCoin();
                 
-                // 3. Update Quest Progress
+                // 3. Update Quest & Achievement Progress
                 this.progressManager.updateQuestProgress('graze', 1);
+                this.progressManager.incrementAchievement('near_miss', 1);
                 
                 // Reward Ultimate energy for high skill near-miss grazes (Option 2)
                 if (!this.ultimateActive) {
@@ -1124,18 +1136,19 @@ export class GameEngine {
     this.state = 'GAMEOVER';
     this.soundManager.stopMusic();
 
-    // Process highscores, Battle pass progression
+    // Process highscores
     this.progressManager.addScore(this.score);
-    const xpReward = Math.floor(this.score * 50 + this.coinsCollectedThisRun * 5);
     
-    // Award progress
-    const BPInfo = this.progressManager.addXp(xpReward);
+    // Progress Squad Survival time achievement on game over
+    if (this.gameMode === 'flock') {
+      this.progressManager.incrementAchievement('survival_legend', Math.floor(this.squadSurvivalTime));
+    }
 
     // Save
     this.progressManager.save();
 
     // Custom UI trigger
-    window.dispatchEvent(new CustomEvent('game_over_state', { detail: { score: this.score, xpGained: xpReward, leveledUp: BPInfo.leveledUp } }));
+    window.dispatchEvent(new CustomEvent('game_over_state', { detail: { score: this.score } }));
   }
 
   public attemptRevive(): boolean {
@@ -1352,7 +1365,11 @@ export class GameEngine {
         this.soundManager.playLevelUp();
         
         this.birdsJoinedThisRun++;
+        this.rescuedBirdsTotal++;
         this.mergeReadyCount = this.flock.length;
+
+        // Progress achievements
+        this.progressManager.incrementAchievement('bird_savior', 1);
       }
       return;
     }
@@ -1366,6 +1383,9 @@ export class GameEngine {
     if (type === 'booster') {
       this.boosterActive = true;
       this.boosterTapsThisRun++;
+
+      // Progress achievements
+      this.progressManager.incrementAchievement('hyper_speeder', 1);
       
       // Every tap/activation should add exactly 20 points (cross 20 score/obstacles).
       this.boosterTimer = 1.0; // 1 second * 20 score/sec = 20 score points/obstacles on every action/tap
@@ -1512,6 +1532,9 @@ export class GameEngine {
 
   public jump() {
     if (this.boosterActive) return;
+    if (this.state === 'PLAYING' && !this.firstTapDone) {
+      this.firstTapDone = true;
+    }
     this.bird.jump(this.soundManager, this.score);
   }
 
