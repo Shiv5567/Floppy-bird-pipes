@@ -823,7 +823,7 @@ export class UIManager {
         <!-- ===== REWARDS HUB PILL NAVIGATION ===== -->
         <div class="rewards-hub-nav glass-card" style="margin-bottom: 8px;">
           <button class="rewards-sub-btn ${this.activeRewardsSubTab === 'daily' ? 'active' : ''}" data-sub-tab="daily">
-            <span class="sub-tab-icon">🏆</span> Achievements
+            <span class="sub-tab-icon">🏆</span> Challenges
           </button>
           <button class="rewards-sub-btn ${this.activeRewardsSubTab === 'trophies' ? 'active' : ''}" data-sub-tab="trophies">
             <span class="sub-tab-icon">📅</span> Missions
@@ -983,7 +983,7 @@ export class UIManager {
             `;
           }).join('');
           return `
-            <div class="tab-sheet-title">🏆 HALL OF TROPHIES</div>
+            <div class="tab-sheet-title">🏆 CHALLENGES</div>
             <div class="vertical-scroll">${achCards}</div>
           `;
         } else {
