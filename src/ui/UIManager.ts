@@ -825,10 +825,10 @@ export class UIManager {
         <!-- ===== REWARDS HUB PILL NAVIGATION ===== -->
         <div class="rewards-hub-nav glass-card" style="margin-bottom: 8px;">
           <button class="rewards-sub-btn ${this.activeRewardsSubTab === 'daily' ? 'active' : ''}" data-sub-tab="daily">
-            <span class="sub-tab-icon">🏆</span> Challenges
+            Challenges
           </button>
           <button class="rewards-sub-btn ${this.activeRewardsSubTab === 'trophies' ? 'active' : ''}" data-sub-tab="trophies">
-            <span class="sub-tab-icon">📅</span> Missions
+            Missions
           </button>
         </div>
         ` : ''}
@@ -968,9 +968,8 @@ export class UIManager {
             return `
               <div class="achievement-card glass-card ${isClaimed ? '' : (isCompleted ? 'unlocked-border' : '')}">
                 <div class="ach-info">
-                  <div class="ach-name">${a.name} ${isCompleted ? '🏆' : ''}</div>
-                  <div class="ach-desc">${a.desc}</div>
-                  <div class="ach-bar-outer"><div class="ach-bar-inner" style="width:${progressPercent}%"></div></div>
+                  <div class="ach-desc" style="font-weight: 800; font-size: 11px; color: #fff;">${a.desc}</div>
+                  <div class="ach-bar-outer" style="margin-top: 8px;"><div class="ach-bar-inner" style="width:${progressPercent}%"></div></div>
                   <div class="ach-progress-text">${a.currentValue} / ${a.targetValue}</div>
                 </div>
                 <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; margin-left: 15px;">
@@ -985,7 +984,7 @@ export class UIManager {
             `;
           }).join('');
           return `
-            <div class="tab-sheet-title">🏆 CHALLENGES</div>
+            <div class="tab-sheet-title">CHALLENGES</div>
             <div class="vertical-scroll">${achCards}</div>
           `;
         } else {
@@ -1012,11 +1011,8 @@ export class UIManager {
             return `
               <div class="quest-card">
                 <div class="quest-details">
-                  <div class="quest-name-row">
-                    <span class="quest-name">${q.name}</span>
-                  </div>
-                  <div class="quest-desc">${q.desc}</div>
-                  <div class="quest-progress-container">
+                  <div class="quest-desc" style="font-weight: 800; font-size: 11px; color: #fff;">${q.desc}</div>
+                  <div class="quest-progress-container" style="margin-top: 8px;">
                     <div class="quest-progress-bar">
                       <div class="quest-progress-fill" style="width: ${progressPct}%"></div>
                     </div>
@@ -1038,17 +1034,14 @@ export class UIManager {
 
           return `
             <div class="daily-rewards-container" style="padding-bottom: 20px;">
-              <div class="hangar-section-title" style="margin-top: 0;">⚔️ DAILY MISSIONS</div>
+              <div class="hangar-section-title" style="margin-top: 0;">DAILY MISSIONS</div>
               <div class="quests-list">
                 ${questsHtml}
                 
                 <!-- WATCH AD FOR EXTRA COINS & GEMS -->
                 <div class="quest-card" style="margin-top: 15px; background: rgba(255, 170, 0, 0.08); border: 1px solid rgba(255, 170, 0, 0.2);">
                   <div class="quest-details">
-                    <div class="quest-name-row">
-                      <span class="quest-name">🎞️ FREE COINS & GEMS</span>
-                    </div>
-                    <div class="quest-desc">Watch an ad to get 500 Coins & 10 Gems instantly!</div>
+                    <div class="quest-desc" style="font-weight: 800; font-size: 11px; color: #fff;">Watch an ad to get 500 Coins & 10 Gems instantly!</div>
                   </div>
                   <div style="display: flex; align-items: center; justify-content: flex-end;">
                     <button class="btn-quest-claim" id="btn-extra-rewards" style="background: linear-gradient(135deg, #ffaa00, #ff7700); border: none; font-size: 10px; font-weight: 800; padding: 6px 12px; border-radius: 8px; cursor: pointer; color: white;">
