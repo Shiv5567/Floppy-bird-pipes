@@ -167,6 +167,7 @@ export class GameEngine {
         this.progressManager.setWorld(levelConfig.worldId);
         this.renderer.setWeather(levelConfig.worldId);
         this.renderer.activeLevelNum = this.currentLevelNum;
+        this.progressManager.trackLevelPlay(this.currentLevelNum);
       }
     } else {
       this.activeLevelConfig = null;
@@ -741,6 +742,7 @@ export class GameEngine {
           if (!obs.passed && obs.x + obs.width < this.bird.x) {
             obs.passed = true;
             this.incrementScore();
+            this.progressManager.updateQuestProgress('obstacles', 1);
             
             // If the state changes from PLAYING (e.g., entered BOSS_WARNING), break out of the loop immediately
             if (this.state !== 'PLAYING') {
@@ -875,7 +877,7 @@ export class GameEngine {
             this.triggerLevelComplete();
           } else {
             this.progressManager.incrementAchievement('boss_slayer', 1);
-            this.progressManager.updateQuestProgress('slayer', 1);
+            this.progressManager.updateQuestProgress('boss', 1);
             this.soundManager.playLevelUp();
             this.particleEngine.emitRing(width * 0.7, height * 0.5, '#ffd700', 40);
 
@@ -1278,7 +1280,7 @@ export class GameEngine {
     this.progressManager.incrementAchievement('first_flight', this.score);
 
     // Quest progression for high score pass
-    this.progressManager.updateQuestProgress('fly_high', this.score);
+    this.progressManager.updateQuestProgress('score', this.score, true);
     
     // Play subtle chime on score pass
     this.soundManager.playCoin();
@@ -1314,6 +1316,7 @@ export class GameEngine {
     }
     this.gemsCollectedThisRun += bossGems;
     this.progressManager.addGems(bossGems);
+    this.progressManager.updateQuestProgress('gems', bossGems);
 
     // Play chime / sounds and register completion stats
     this.soundManager.playLevelUp();
@@ -1370,6 +1373,7 @@ export class GameEngine {
 
         // Progress achievements
         this.progressManager.incrementAchievement('bird_savior', 1);
+        this.progressManager.updateQuestProgress('rescue', 1);
       }
       return;
     }
@@ -1416,7 +1420,7 @@ export class GameEngine {
       }
       this.coinsCollectedThisRun += coinVal;
       this.progressManager.addCoins(coinVal);
-      this.progressManager.updateQuestProgress('coin_grab', coinVal);
+      this.progressManager.updateQuestProgress('coins', coinVal);
       // Reward Ultimate energy
       if (!this.ultimateActive) {
         this.ultimateEnergy = Math.min(100, this.ultimateEnergy + 8 * coinVal);
@@ -1431,11 +1435,16 @@ export class GameEngine {
       }
       this.gemsCollectedThisRun += gemVal;
       this.progressManager.addGems(gemVal);
+      this.progressManager.updateQuestProgress('gems', gemVal);
       // Reward Ultimate energy (Option 2)
       if (!this.ultimateActive) {
         this.ultimateEnergy = Math.min(100, this.ultimateEnergy + 15);
       }
       return;
+    }
+
+    if (['shield', 'slowmo', 'magnet', 'double', 'turbo', 'ghost', 'mini'].includes(type)) {
+      this.progressManager.updateQuestProgress('collect_powerups', 1);
     }
 
     if (type === 'shield') {
@@ -1546,6 +1555,7 @@ export class GameEngine {
     this.ultimateActive = true;
     this.ultimateEnergy = 0;
     this.bird.ultimateStartVy = this.bird.vy;
+    this.progressManager.updateQuestProgress('use_ultimate', 1);
 
     const skin = this.bird.getSkin();
     let duration = 5.0; // Default duration in seconds

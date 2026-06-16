@@ -42,6 +42,7 @@ export interface PlayerProgressState {
   levelModeUnlockedLevel?: number;
   levelModeStars?: Record<number, number>;
   powerupUpgrades?: Record<string, number>; // powerupType -> level (1-5)
+  levelPlayCounts?: Record<number, number>; // levelNum -> playCount
 }
 
 export class ProgressManager {
@@ -331,6 +332,7 @@ export class ProgressManager {
         this.state.coins -= skin.costCoins;
         skin.unlocked = true;
         this.state.unlockedSkins.push(id);
+        this.updateQuestProgress('unlock_chars', this.state.unlockedSkins.length, true);
         this.save();
         return { success: true, msg: `Unlocked ${skin.name} successfully!` };
       } else {
@@ -341,6 +343,7 @@ export class ProgressManager {
         this.state.gems -= skin.costGems;
         skin.unlocked = true;
         this.state.unlockedSkins.push(id);
+        this.updateQuestProgress('unlock_chars', this.state.unlockedSkins.length, true);
         this.save();
         return { success: true, msg: `Unlocked ${skin.name} successfully!` };
       } else {
@@ -392,6 +395,8 @@ export class ProgressManager {
       this.state.achievements['world_explorer'] = playedArray.length;
       this.incrementAchievement('world_explorer', 0);
     }
+    
+    this.updateQuestProgress('unlock_worlds', playedArray.length, true);
     
     this.save();
   }
@@ -458,10 +463,11 @@ export class ProgressManager {
           selectedZone: (loadedState.selectedZone as any) === 'vertical' ? 'classic' : (loadedState.selectedZone || 'classic'),
           selectedDifficulty: loadedState.selectedDifficulty || 'medium',
           lastDailyClaimTime: loadedState.lastDailyClaimTime || 0,
-          dailyQuests: loadedState.dailyQuests || this.initDefaultQuests(),
+          dailyQuests: (loadedState.dailyQuests && loadedState.dailyQuests.length === 20) ? loadedState.dailyQuests : this.initDefaultQuests(),
           levelModeUnlockedLevel: loadedState.levelModeUnlockedLevel || 1,
           levelModeStars: loadedState.levelModeStars || {},
-          powerupUpgrades: loadedState.powerupUpgrades || { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1 }
+          powerupUpgrades: loadedState.powerupUpgrades || { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1 },
+          levelPlayCounts: loadedState.levelPlayCounts || {}
         };
 
         // Sync skins unlocked state and levels
@@ -481,6 +487,17 @@ export class ProgressManager {
             a.unlocked = true;
           }
         });
+
+        // Sync static/dynamic milestones on load
+        this.updateQuestProgress('unlock_chars', this.state.unlockedSkins.length, true);
+        const currentWorldsStr = localStorage.getItem('flight_of_legends_worlds_played') || 'jungle';
+        this.updateQuestProgress('unlock_worlds', currentWorldsStr.split(',').length, true);
+        if (this.state.levelPlayCounts) {
+          const vals = Object.values(this.state.levelPlayCounts);
+          if (vals.length > 0) {
+            this.updateQuestProgress('play_level_10', Math.max(...vals), true);
+          }
+        }
       } else {
         this.resetState();
       }
@@ -508,7 +525,8 @@ export class ProgressManager {
       dailyQuests: this.initDefaultQuests(),
       levelModeUnlockedLevel: 1,
       levelModeStars: {},
-      powerupUpgrades: { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1 }
+      powerupUpgrades: { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1 },
+      levelPlayCounts: {}
     };
     
     // Reset skins
@@ -521,29 +539,53 @@ export class ProgressManager {
 
   public initDefaultQuests() {
     return [
-      { id: 'graze', name: 'Grazing Ace', desc: 'Perform 3 near-miss grazes close to obstacles', target: 3, current: 0, rewardCoins: 400, rewardGems: 10, claimed: false },
-      { id: 'fly_high', name: 'Legendary Flight', desc: 'Reach a score of 15 in a single campaign', target: 15, current: 0, rewardCoins: 600, rewardGems: 15, claimed: false },
-      { id: 'coin_grab', name: 'Gold Rush', desc: 'Collect 40 gold coins from your flights', target: 40, current: 0, rewardCoins: 300, rewardGems: 5, claimed: false },
-      { id: 'slayer', name: 'Titan Duelist', desc: 'Defeat 1 Titan boss in battle', target: 1, current: 0, rewardCoins: 800, rewardGems: 20, claimed: false }
+      // Short-term (10)
+      { id: 'short_rescue', name: 'Rescue birds', desc: 'Rescue 20 birds', target: 20, current: 0, rewardCoins: 1500, rewardGems: 30, claimed: false },
+      { id: 'short_obstacles', name: 'Pass obstacles', desc: 'Pass 100 obstacles', target: 100, current: 0, rewardCoins: 1500, rewardGems: 30, claimed: false },
+      { id: 'short_score', name: 'Reach score', desc: 'Reach score 50', target: 50, current: 0, rewardCoins: 1500, rewardGems: 30, claimed: false },
+      { id: 'short_boss', name: 'Defeat bosses', desc: 'Defeat 3 bosses', target: 3, current: 0, rewardCoins: 1500, rewardGems: 30, claimed: false },
+      { id: 'short_unlock_chars', name: 'Unlock characters', desc: 'Unlock 3 birds', target: 3, current: 0, rewardCoins: 1500, rewardGems: 30, claimed: false },
+      { id: 'short_unlock_worlds', name: 'Unlock worlds', desc: 'Unlock 2 worlds', target: 2, current: 0, rewardCoins: 1500, rewardGems: 30, claimed: false },
+      { id: 'short_play_level_10', name: 'Replay levels', desc: 'Replay level 5 times', target: 5, current: 0, rewardCoins: 1500, rewardGems: 30, claimed: false },
+      { id: 'short_watch_ads', name: 'Watch ads', desc: 'Watch 5 ads', target: 5, current: 0, rewardCoins: 1500, rewardGems: 30, claimed: false },
+      { id: 'short_use_ultimate', name: 'Use ultimate', desc: 'Use ultimate 10 times', target: 10, current: 0, rewardCoins: 1500, rewardGems: 30, claimed: false },
+      { id: 'short_collect_powerups', name: 'Collect powerups', desc: 'Collect 30 powerups', target: 30, current: 0, rewardCoins: 1500, rewardGems: 30, claimed: false },
+
+      // Long-term (10)
+      { id: 'long_rescue', name: 'Rescue birds', desc: 'Rescue 150 birds', target: 150, current: 0, rewardCoins: 6000, rewardGems: 120, claimed: false },
+      { id: 'long_obstacles', name: 'Pass obstacles', desc: 'Pass 1000 obstacles', target: 1000, current: 0, rewardCoins: 6000, rewardGems: 120, claimed: false },
+      { id: 'long_score', name: 'Reach score', desc: 'Reach score 200', target: 200, current: 0, rewardCoins: 6000, rewardGems: 120, claimed: false },
+      { id: 'long_boss', name: 'Defeat bosses', desc: 'Defeat 15 bosses', target: 15, current: 0, rewardCoins: 6000, rewardGems: 120, claimed: false },
+      { id: 'long_unlock_chars', name: 'Unlock characters', desc: 'Unlock 8 birds', target: 8, current: 0, rewardCoins: 6000, rewardGems: 120, claimed: false },
+      { id: 'long_unlock_worlds', name: 'Unlock worlds', desc: 'Unlock 5 worlds', target: 5, current: 0, rewardCoins: 6000, rewardGems: 120, claimed: false },
+      { id: 'long_play_level_10', name: 'Replay levels', desc: 'Replay level 20 times', target: 20, current: 0, rewardCoins: 6000, rewardGems: 120, claimed: false },
+      { id: 'long_watch_ads', name: 'Watch ads', desc: 'Watch 25 ads', target: 25, current: 0, rewardCoins: 6000, rewardGems: 120, claimed: false },
+      { id: 'long_use_ultimate', name: 'Use ultimate', desc: 'Use ultimate 50 times', target: 50, current: 0, rewardCoins: 6000, rewardGems: 120, claimed: false },
+      { id: 'long_collect_powerups', name: 'Collect powerups', desc: 'Collect 150 powerups', target: 150, current: 0, rewardCoins: 6000, rewardGems: 120, claimed: false }
     ];
   }
 
-  public updateQuestProgress(id: string, amt: number) {
-    if (!this.state.dailyQuests) {
+  public updateQuestProgress(category: string, amt: number, isMax = false) {
+    if (!this.state.dailyQuests || this.state.dailyQuests.length !== 20) {
       this.state.dailyQuests = this.initDefaultQuests();
     }
-    const quest = this.state.dailyQuests.find(q => q.id === id);
-    if (quest && !quest.claimed) {
-      const oldProgress = quest.current;
-      quest.current = Math.min(quest.target, quest.current + amt);
-      if (quest.current >= quest.target && oldProgress < quest.target) {
-        // Quest completed notification
-        window.dispatchEvent(new CustomEvent('achievement_unlocked', {
-          detail: { name: `QUEST COMPLETED: ${quest.name}`, desc: `Claim rewards at home menu!` }
-        }));
+    this.state.dailyQuests.forEach(quest => {
+      if (quest.id.includes(category) && !quest.claimed) {
+        const oldProgress = quest.current;
+        if (isMax) {
+          quest.current = Math.min(quest.target, Math.max(quest.current, amt));
+        } else {
+          quest.current = Math.min(quest.target, quest.current + amt);
+        }
+        if (quest.current >= quest.target && oldProgress < quest.target) {
+          // Quest completed notification
+          window.dispatchEvent(new CustomEvent('achievement_unlocked', {
+            detail: { name: `MISSION COMPLETED: ${quest.name}`, desc: `Claim rewards under Missions!` }
+          }));
+        }
       }
-      this.save();
-    }
+    });
+    this.save();
   }
 
   public claimQuestReward(id: string): { success: boolean; msg: string } {
@@ -585,6 +627,21 @@ export class ProgressManager {
     this.state.lastDailyClaimTime = now;
     this.save();
     return { success: true, msg: `Day ${day} Claimed! Received +${reward.coins}🟡 and +${reward.gems}💎!` };
+  }
+
+  public trackLevelPlay(levelNum: number) {
+    if (!this.state.levelPlayCounts) {
+      this.state.levelPlayCounts = {};
+    }
+    this.state.levelPlayCounts[levelNum] = (this.state.levelPlayCounts[levelNum] || 0) + 1;
+    
+    // Find the maximum plays of any single level
+    const maxPlays = Math.max(...Object.values(this.state.levelPlayCounts));
+    
+    // Update the play_level_10 mission progress!
+    this.updateQuestProgress('play_level_10', maxPlays, true);
+    
+    this.save();
   }
 
   public setLevelComplete(levelNum: number, stars: number) {

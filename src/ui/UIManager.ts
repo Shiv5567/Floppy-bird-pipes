@@ -989,7 +989,8 @@ export class UIManager {
           `;
         } else {
           const quests = progress.dailyQuests || this.engine.progressManager.initDefaultQuests();
-          const questsHtml = quests.map(q => {
+          
+          const renderQuestCard = (q: any) => {
             const progressPct = Math.min(100, Math.round((q.current / q.target) * 100));
             const isCompleted = q.current >= q.target;
             const isClaimed = q.claimed;
@@ -1030,16 +1031,30 @@ export class UIManager {
                 </div>
               </div>
             `;
-          }).join('');
+          };
+
+          const shortMissions = quests.filter(q => q.id.startsWith('short_'));
+          const longMissions = quests.filter(q => q.id.startsWith('long_'));
+
+          const shortHtml = shortMissions.map(renderQuestCard).join('');
+          const longHtml = longMissions.map(renderQuestCard).join('');
 
           return `
             <div class="daily-rewards-container" style="padding-bottom: 20px;">
-              <div class="hangar-section-title" style="margin-top: 0;">DAILY MISSIONS</div>
+              <div class="hangar-section-title" style="margin-top: 0; color: #00f3ff; border-left: 3px solid #00f3ff; padding-left: 8px;">SHORT-TERM MISSIONS</div>
+              <div class="quests-list" style="margin-bottom: 20px;">
+                ${shortHtml}
+              </div>
+
+              <div class="hangar-section-title" style="margin-top: 15px; color: #ffd700; border-left: 3px solid #ffd700; padding-left: 8px;">LONG-TERM MISSIONS</div>
+              <div class="quests-list" style="margin-bottom: 20px;">
+                ${longHtml}
+              </div>
+
+              <div class="hangar-section-title" style="margin-top: 15px; color: #ffaa00; border-left: 3px solid #ffaa00; padding-left: 8px;">SPECIAL OFFERS</div>
               <div class="quests-list">
-                ${questsHtml}
-                
                 <!-- WATCH AD FOR EXTRA COINS & GEMS -->
-                <div class="quest-card" style="margin-top: 15px; background: rgba(255, 170, 0, 0.08); border: 1px solid rgba(255, 170, 0, 0.2);">
+                <div class="quest-card" style="background: rgba(255, 170, 0, 0.08); border: 1px solid rgba(255, 170, 0, 0.2);">
                   <div class="quest-details">
                     <div class="quest-desc" style="font-weight: 800; font-size: 11px; color: #fff;">Watch an ad to get 500 Coins & 10 Gems instantly!</div>
                   </div>
@@ -1404,6 +1419,7 @@ export class UIManager {
         AdManager.showEconomyRewarded((success) => {
           if (success) {
             this.engine.progressManager.addCoins(500);
+            this.engine.progressManager.updateQuestProgress('watch_ads', 1);
             this.engine.progressManager.save();
             this.render();
             this.showToastNotification('COINS CLAIMED! 🪙', 'You received 500 Coins!');
@@ -1422,6 +1438,7 @@ export class UIManager {
         AdManager.showEconomyRewarded((success) => {
           if (success) {
             this.engine.progressManager.addGems(10);
+            this.engine.progressManager.updateQuestProgress('watch_ads', 1);
             this.engine.progressManager.save();
             this.render();
             this.showToastNotification('GEMS CLAIMED! 💎', 'You received 10 Gems!');
@@ -1778,6 +1795,7 @@ export class UIManager {
           if (success) {
             this.engine.progressManager.addCoins(500);
             this.engine.progressManager.addGems(10);
+            this.engine.progressManager.updateQuestProgress('watch_ads', 1);
             this.engine.progressManager.save();
             this.render();
             this.showToastNotification('REWARD CLAIMED! 🎁', 'You received 500 Coins & 10 Gems!');
@@ -2306,6 +2324,7 @@ export class UIManager {
       AdManager.showReviveRewarded((success) => {
         if (success) {
           this.engine.attemptReviveFree();
+          this.engine.progressManager.updateQuestProgress('watch_ads', 1);
           this.render();
         } else {
           alert("Ad failed to load or play. Please try again or use diamonds.");
