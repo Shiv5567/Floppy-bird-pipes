@@ -4141,27 +4141,27 @@ export class ObstacleManager {
     ctx.save();
     const botY = height - rBottom;
 
-    // A. Main Front Trunk
+    // A. Main Front Trunk (Starts below Cap and Collar)
     ctx.fillStyle = botTrunkGrad;
     ctx.strokeStyle = strokeColor;
     ctx.lineWidth = 1.5;
-    ctx.fillRect(rx, botY, rw - depth, rBottom + 1000);
-    ctx.strokeRect(rx, botY, rw - depth, rBottom + 1000);
+    ctx.fillRect(rx, botY + depth + collarH, rw - depth, rBottom + 1000 - depth - collarH);
+    ctx.strokeRect(rx, botY + depth + collarH, rw - depth, rBottom + 1000 - depth - collarH);
 
-    // B. Right Side Extrusion (from y=botY to y=height+1000)
-    drawExtrusionSide(rx + rw - depth, botY, rx + rw - depth, height + 1000, depth, depth);
+    // B. Right Side Extrusion (from y=botY+depth+collarH to y=height+1000)
+    drawExtrusionSide(rx + rw - depth, botY + depth + collarH, rx + rw - depth, height + 1000, depth, depth);
 
-    // C. 3D Edge / Surface Cap (Collar Lip) at the gap surface
-    // Front Collar Cap
-    ctx.fillStyle = capColor;
-    ctx.fillRect(rx, botY, rw - depth, collarH);
-    ctx.strokeRect(rx, botY, rw - depth, collarH);
-
-    // Right Collar Cap Extrusion
-    drawExtrusionSide(rx + rw - depth, botY, rx + rw - depth, botY + collarH, depth, depth);
-
+    // C. 3D Edge / Surface Cap (Collar Lip & Cap Surface)
     // Top Cap Surface facing the gap
     drawCapSurface(rx, botY, rw - depth, depth);
+
+    // Front Collar Cap (sits directly below Cap Surface)
+    ctx.fillStyle = capColor;
+    ctx.fillRect(rx, botY + depth, rw - depth, collarH);
+    ctx.strokeRect(rx, botY + depth, rw - depth, collarH);
+
+    // Right Collar Cap Extrusion
+    drawExtrusionSide(rx + rw - depth, botY + depth, rx + rw - depth, botY + depth + collarH, depth, depth);
     ctx.restore();
   }
 
