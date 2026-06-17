@@ -855,6 +855,10 @@ export class Renderer {
   }
 
   private drawParallaxHills(worldId: string, width: number, height: number) {
+    if (worldId === 'cyberpunk') {
+      this.drawCyberpunkCity(width, height);
+      return;
+    }
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     // 3 separate layers of hills / city silhouettes
@@ -909,6 +913,196 @@ export class Renderer {
       this.ctx.lineTo(width, height);
       this.ctx.closePath();
       this.ctx.fill();
+      this.ctx.restore();
+    }
+  }
+
+  private drawCyberpunkCity(width: number, height: number) {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    // Deterministic hash function for building properties
+    const hash = (val: number): number => {
+      const x = Math.sin(val) * 12345.6789;
+      return x - Math.floor(x);
+    };
+
+    // 3 separate layers of skyscrapers
+    for (let layer = 1; layer <= 3; layer++) {
+      this.ctx.save();
+      const offset = this.offsets[layer];
+      const color = this.getLayerColor('cyberpunk', layer);
+      
+      const buildingWidth = 50 + layer * 25; // Layer 1: 75px, Layer 2: 100px, Layer 3: 125px
+      const spacing = 6 + layer * 3;          // spacing between buildings
+      const step = buildingWidth + spacing;
+      
+      // Calculate starting x position based on scrolling offset
+      const startX = -Math.floor(offset % step);
+      
+      // Determine height parameters for buildings in this layer
+      const baseHeightY = height * 0.45 + layer * 55; // larger y value means lower baseline
+      const minBuildingH = 80 + (4 - layer) * 50;
+      const maxBuildingH = 180 + (4 - layer) * 85;
+      
+      // Draw all buildings currently visible on screen
+      for (let x = startX - step; x < width + step; x += step) {
+        const absoluteIndex = Math.floor((x + offset) / step);
+        const randHeight = hash(absoluteIndex * 13);
+        const buildingHeight = minBuildingH + randHeight * (maxBuildingH - minBuildingH);
+        
+        // Calculate vertical bounds with camera tracking
+        const topY = Math.round(baseHeightY - buildingHeight - this.cameraY * (layer * 0.18));
+        const finalX = Math.round(x);
+        const finalW = Math.round(buildingWidth);
+        const finalH = Math.round(height - topY + 100); // extends past the bottom
+        
+        // Draw building silhouette body
+        this.ctx.fillStyle = color;
+        this.ctx.fillRect(finalX, topY, finalW, finalH);
+        
+        // --- Layer-Specific Details ---
+        
+        // Layer 1 (Furthest) only gets silhouettes for clean performance and atmospheric depth
+        if (layer === 1) {
+          continue;
+        }
+
+        // Determine building theme color (Cyan, Magenta/Pink, Yellow)
+        const themeRoll = hash(absoluteIndex * 19);
+        let themeColor = 'rgba(0, 243, 255, 0.45)'; // Neon Cyan
+        let themeRaw = '#00f3ff';
+        if (themeRoll > 0.66) {
+          themeColor = 'rgba(255, 0, 243, 0.45)'; // Neon Pink
+          themeRaw = '#ff00f3';
+        } else if (themeRoll > 0.33) {
+          themeColor = 'rgba(255, 235, 0, 0.45)'; // Neon Yellow
+          themeRaw = '#ffeb00';
+        }
+        
+        // 1. Antennas (Layer 2 & 3)
+        const hasAntenna = hash(absoluteIndex * 29) > 0.4;
+        if (hasAntenna) {
+          const antennaX = Math.round(finalX + finalW / 2);
+          const antennaHeight = 15 + hash(absoluteIndex * 31) * (layer === 3 ? 30 : 15);
+          const antennaTopY = topY - antennaHeight;
+          
+          this.ctx.strokeStyle = color;
+          this.ctx.lineWidth = layer === 3 ? 2 : 1;
+          this.ctx.beginPath();
+          this.ctx.moveTo(antennaX, topY);
+          this.ctx.lineTo(antennaX, antennaTopY);
+          this.ctx.stroke();
+          
+          // Blinking light at the tip
+          const lightColor = hash(absoluteIndex * 37) > 0.5 ? '#ff0055' : themeRaw;
+          const blink = Math.sin(this.weatherTime * 8.0 + absoluteIndex) > 0;
+          if (blink) {
+            this.ctx.fillStyle = lightColor;
+            this.ctx.beginPath();
+            this.ctx.arc(antennaX, antennaTopY, layer === 3 ? 2.5 : 1.5, 0, Math.PI * 2);
+            this.ctx.fill();
+          }
+        }
+        
+        // 2. Neon vertical/top trims (Layer 3 only)
+        if (layer === 3) {
+          const hasTrim = hash(absoluteIndex * 41) > 0.5;
+          if (hasTrim) {
+            this.ctx.strokeStyle = themeColor;
+            this.ctx.lineWidth = 1.5;
+            this.ctx.beginPath();
+            // Roof trim
+            this.ctx.moveTo(finalX, topY);
+            this.ctx.lineTo(finalX + finalW, topY);
+            // Right-side vertical trim
+            this.ctx.moveTo(finalX + finalW, topY);
+            this.ctx.lineTo(finalX + finalW, height);
+            this.ctx.stroke();
+          }
+        }
+        
+        // 3. Glowing Window Grids (Layer 2 & 3)
+        // Adjust window grid sizing based on layer distance
+        const winW = layer === 3 ? 3 : 2;
+        const winH = layer === 3 ? 5 : 3;
+        const gapX = layer === 3 ? 5 : 4;
+        const gapY = layer === 3 ? 8 : 6;
+        
+        const marginX = 8;
+        const marginY = 12;
+        
+        const windowAreaW = finalW - marginX * 2;
+        const windowAreaH = Math.min(buildingHeight - marginY * 2, height * 0.4); // limit drawing range
+        
+        const cols = Math.floor(windowAreaW / (winW + gapX));
+        const rows = Math.floor(windowAreaH / (winH + gapY));
+        
+        if (cols > 0 && rows > 0) {
+          const actualMarginX = marginX + (windowAreaW - cols * (winW + gapX) + gapX) / 2;
+          
+          this.ctx.fillStyle = themeColor;
+          for (let r = 0; r < rows; r++) {
+            const winY = topY + marginY + r * (winH + gapY);
+            // Don't draw windows offscreen
+            if (winY > height - 10) break;
+            
+            for (let c = 0; c < cols; c++) {
+              const winX = finalX + actualMarginX + c * (winW + gapX);
+              
+              // Use hash to randomize lit windows
+              const winSeed = absoluteIndex * 17 + r * 31 + c * 97;
+              const isLit = hash(winSeed) > (layer === 3 ? 0.65 : 0.75); // closer buildings have more lit windows
+              
+              if (isLit) {
+                // Micro-animation: make some windows blink/flicker
+                const isBlinker = hash(winSeed * 7) > 0.92;
+                if (isBlinker && Math.sin(this.weatherTime * 5 + r + c) < -0.4) {
+                  continue; // flicker out
+                }
+                this.ctx.fillRect(Math.round(winX), Math.round(winY), winW, winH);
+              }
+            }
+          }
+        }
+        
+        // 4. Roof Holographic Ads / Billboards (Layer 3 only)
+        if (layer === 3 && !isMobile) {
+          const hasBillboard = hash(absoluteIndex * 47) > 0.85;
+          if (hasBillboard && topY > 150) {
+            const boardW = 32;
+            const boardH = 18;
+            const boardX = Math.round(finalX + (finalW - boardW) / 2);
+            const boardY = Math.round(topY - boardH - 6);
+            
+            // Draw support legs
+            this.ctx.strokeStyle = color;
+            this.ctx.lineWidth = 2;
+            this.ctx.beginPath();
+            this.ctx.moveTo(boardX + 5, topY);
+            this.ctx.lineTo(boardX + 5, boardY + boardH);
+            this.ctx.moveTo(boardX + boardW - 5, topY);
+            this.ctx.lineTo(boardX + boardW - 5, boardY + boardH);
+            this.ctx.stroke();
+            
+            // Draw dark screen backing
+            this.ctx.fillStyle = '#050012';
+            this.ctx.fillRect(boardX, boardY, boardW, boardH);
+            
+            // Bright neon pink outline border
+            this.ctx.strokeStyle = '#ff007f';
+            this.ctx.lineWidth = 1;
+            this.ctx.strokeRect(boardX, boardY, boardW, boardH);
+            
+            // Inner pulsing holographic symbol
+            const adBlink = Math.sin(this.weatherTime * 3.5) > -0.5;
+            if (adBlink) {
+              this.ctx.fillStyle = '#00f3ff'; // neon cyan logo
+              // Draw a tiny digital cross/square pattern representing futuristic ads
+              this.ctx.fillRect(boardX + 8, boardY + 5, boardW - 16, boardH - 10);
+            }
+          }
+        }
+      }
       this.ctx.restore();
     }
   }
