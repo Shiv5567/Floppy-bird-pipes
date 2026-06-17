@@ -3687,6 +3687,8 @@ export class ObstacleManager {
           }
 
           this.drawCavernObstacle(ctx, obs, height, colorTop, colorBottom, outlineColor);
+        } else if (this.currentScore >= 50 && this.currentScore <= 75) {
+          this.draw3DPillars(ctx, obs, height);
         } else {
           const styleIdx = Math.floor(this.currentScore / 25) % 4;
           switch (obs.worldId) {
@@ -3981,6 +3983,186 @@ export class ObstacleManager {
       obs.bottomHeight = origBottomHeight;
       obs.width = origWidth;
     }
+  }
+
+  private draw3DPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+    const rx = obs.x;
+    const rw = obs.width;
+    const rTop = obs.topHeight;
+    const rBottom = obs.bottomHeight;
+    const depth = 12; // 3D depth offset
+    const collarH = 24; // height of the 3D collar cap
+
+    // 1. Get colors based on active world environment
+    let tStop0 = '#4caf50', tStop3 = '#81c784', tStop5 = '#ffffff', tStop7 = '#1b5e20', tStop1 = '#0f3813'; // Trunk stops
+    let sideColor = '#0f3813'; // Shadow side
+    let capColor = '#ffd700';  // Cap/Surface color
+    let strokeColor = '#000000';
+
+    switch (obs.worldId) {
+      case 'jungle':
+        tStop0 = '#36180b'; tStop3 = '#5c2c16'; tStop5 = '#d84315'; tStop7 = '#271005'; tStop1 = '#150802';
+        sideColor = '#150802';
+        capColor = '#22c55e';
+        strokeColor = '#1b110a';
+        break;
+      case 'jungle_temple':
+        tStop0 = '#2d3a30'; tStop3 = '#4a5d4e'; tStop5 = '#81c784'; tStop7 = '#1c241e'; tStop1 = '#0d120f';
+        sideColor = '#0d120f';
+        capColor = '#ffd700';
+        strokeColor = '#0b130c';
+        break;
+      case 'cyberpunk':
+        tStop0 = '#150020'; tStop3 = '#2b003a'; tStop5 = '#ff007f'; tStop7 = '#0d0014'; tStop1 = '#050008';
+        sideColor = '#050008';
+        capColor = '#00f3ff';
+        strokeColor = '#0b001a';
+        break;
+      case 'ice':
+        tStop0 = '#00363a'; tStop3 = '#006064'; tStop5 = '#00acc1'; tStop7 = '#001d20'; tStop1 = '#000a0b';
+        sideColor = '#000a0b';
+        capColor = '#e0f7fa';
+        strokeColor = '#004d40';
+        break;
+      case 'desert':
+        tStop0 = '#5d3e1d'; tStop3 = '#a76f35'; tStop5 = '#f5b041'; tStop7 = '#3e2813'; tStop1 = '#1f1307';
+        sideColor = '#1f1307';
+        capColor = '#ffc107';
+        strokeColor = '#3e2723';
+        break;
+      case 'volcano':
+        tStop0 = '#0d0e10'; tStop3 = '#1c1d21'; tStop5 = '#ff3d00'; tStop7 = '#08090a'; tStop1 = '#030404';
+        sideColor = '#030404';
+        capColor = '#ff3d00';
+        strokeColor = '#ff1a00';
+        break;
+      case 'space':
+        tStop0 = '#1a237e'; tStop3 = '#3f51b5'; tStop5 = '#e040fb'; tStop7 = '#0f1337'; tStop1 = '#05071a';
+        sideColor = '#05071a';
+        capColor = '#e040fb';
+        strokeColor = '#0a0a23';
+        break;
+      case 'underwater':
+        tStop0 = '#001f3f'; tStop3 = '#0f3057'; tStop5 = '#008891'; tStop7 = '#001428'; tStop1 = '#000a14';
+        sideColor = '#000a14';
+        capColor = '#00ffd2';
+        strokeColor = '#001e35';
+        break;
+      case 'heaven':
+        tStop0 = '#bbdefb'; tStop3 = '#e3f2fd'; tStop5 = '#ffffff'; tStop7 = '#90caf9'; tStop1 = '#64b5f6';
+        sideColor = '#64b5f6';
+        capColor = '#ffd700';
+        strokeColor = '#3f51b5';
+        break;
+      default:
+        tStop0 = '#1b5e20'; tStop3 = '#4caf50'; tStop5 = '#81c784'; tStop7 = '#0f3813'; tStop1 = '#051807';
+        sideColor = '#051807';
+        capColor = '#ffd700';
+        strokeColor = '#000000';
+    }
+
+    // 2. Trunk Gradients
+    const topTrunkGrad = ctx.createLinearGradient(rx, 0, rx + rw - depth, 0);
+    topTrunkGrad.addColorStop(0, tStop0);
+    topTrunkGrad.addColorStop(0.3, tStop3);
+    topTrunkGrad.addColorStop(0.5, tStop5);
+    topTrunkGrad.addColorStop(0.8, tStop7);
+    topTrunkGrad.addColorStop(1, tStop1);
+
+    const botTrunkGrad = ctx.createLinearGradient(rx, 0, rx + rw - depth, 0);
+    botTrunkGrad.addColorStop(0, tStop0);
+    botTrunkGrad.addColorStop(0.3, tStop3);
+    botTrunkGrad.addColorStop(0.5, tStop5);
+    botTrunkGrad.addColorStop(0.8, tStop7);
+    botTrunkGrad.addColorStop(1, tStop1);
+
+    // Helper to draw 3D extruded side
+    const drawExtrusionSide = (x1: number, y1: number, x2: number, y2: number, wExt: number, hExt: number) => {
+      ctx.fillStyle = sideColor;
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x1 + wExt, y1 + hExt);
+      ctx.lineTo(x2 + wExt, y2 + hExt);
+      ctx.lineTo(x2, y2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    };
+
+    // Helper to draw 3D cap surface
+    const drawCapSurface = (x: number, y: number, w: number, d: number) => {
+      ctx.fillStyle = capColor;
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + w, y);
+      ctx.lineTo(x + w + d, y + d);
+      ctx.lineTo(x + d, y + d);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    };
+
+    // ==========================================
+    // 3. DRAW TOP PILLAR (spans -1000 to rTop)
+    // ==========================================
+    ctx.save();
+    // A. Main Front Trunk
+    ctx.fillStyle = topTrunkGrad;
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 1.5;
+    ctx.fillRect(rx, -1000, rw - depth, rTop + 1000);
+    ctx.strokeRect(rx, -1000, rw - depth, rTop + 1000);
+
+    // B. Right Side Extrusion (from y=-1000 to y=rTop)
+    drawExtrusionSide(rx + rw - depth, -1000, rx + rw - depth, rTop, depth, depth);
+
+    // C. 3D Edge / Surface Cap (Collar Lip) at the gap surface
+    const capY1 = rTop - collarH;
+    
+    // Front Collar Cap
+    ctx.fillStyle = capColor;
+    ctx.fillRect(rx, capY1, rw - depth, collarH);
+    ctx.strokeRect(rx, capY1, rw - depth, collarH);
+
+    // Right Collar Cap Extrusion
+    drawExtrusionSide(rx + rw - depth, capY1, rx + rw - depth, rTop, depth, depth);
+
+    // Bottom Cap Surface facing the gap
+    drawCapSurface(rx, rTop, rw - depth, depth);
+    ctx.restore();
+
+    // ==========================================
+    // 4. DRAW BOTTOM PILLAR (spans height-rBottom to height+1000)
+    // ==========================================
+    ctx.save();
+    const botY = height - rBottom;
+
+    // A. Main Front Trunk
+    ctx.fillStyle = botTrunkGrad;
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 1.5;
+    ctx.fillRect(rx, botY, rw - depth, rBottom + 1000);
+    ctx.strokeRect(rx, botY, rw - depth, rBottom + 1000);
+
+    // B. Right Side Extrusion (from y=botY to y=height+1000)
+    drawExtrusionSide(rx + rw - depth, botY, rx + rw - depth, height + 1000, depth, depth);
+
+    // C. 3D Edge / Surface Cap (Collar Lip) at the gap surface
+    // Front Collar Cap
+    ctx.fillStyle = capColor;
+    ctx.fillRect(rx, botY, rw - depth, collarH);
+    ctx.strokeRect(rx, botY, rw - depth, collarH);
+
+    // Right Collar Cap Extrusion
+    drawExtrusionSide(rx + rw - depth, botY, rx + rw - depth, botY + collarH, depth, depth);
+
+    // Top Cap Surface facing the gap
+    drawCapSurface(rx, botY, rw - depth, depth);
+    ctx.restore();
   }
 
   // Visual Pillar Painters
