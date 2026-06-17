@@ -569,8 +569,8 @@ export class Renderer {
         skyGrad.addColorStop(1, '#3b0a00');
         break;
       case 'space':
-        skyGrad.addColorStop(0, '#010006');
-        skyGrad.addColorStop(1, '#0e0114');
+        skyGrad.addColorStop(0, '#00040a');
+        skyGrad.addColorStop(1, '#091830');
         break;
       case 'underwater':
         skyGrad.addColorStop(0, '#00132b');
@@ -659,25 +659,51 @@ export class Renderer {
     }
 
     switch (worldId) {
-      case 'space':
-        // Nebula gradient shapes
-        const nebulaGrad = this.ctx.createRadialGradient(width * 0.7, height * 0.3, 20, width * 0.7, height * 0.3, 300);
-        nebulaGrad.addColorStop(0, 'rgba(255, 20, 147, 0.25)');
-        nebulaGrad.addColorStop(0.5, 'rgba(128, 0, 128, 0.15)');
-        nebulaGrad.addColorStop(1, 'rgba(0,0,0,0)');
-        this.ctx.fillStyle = nebulaGrad;
-        this.ctx.fillRect(0, 0, width, height);
+      case 'space': {
+        const moonX = width * 0.75;
+        const moonY = height * 0.2;
 
-        // Draw twinkling stars procedurally
+        // Moonlight Halo
+        const moonHalo = this.ctx.createRadialGradient(moonX, moonY, 10, moonX, moonY, 80);
+        moonHalo.addColorStop(0, 'rgba(255, 253, 235, 0.22)');
+        moonHalo.addColorStop(0.4, 'rgba(255, 253, 235, 0.08)');
+        moonHalo.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        this.ctx.fillStyle = moonHalo;
+        this.ctx.beginPath();
+        this.ctx.arc(moonX, moonY, 80, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Crescent Moon Base Circle
+        this.ctx.fillStyle = '#fffce0';
+        this.ctx.beginPath();
+        this.ctx.arc(moonX, moonY, 25, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Mask Circle to make it crescent (blended with background colors)
+        const maskX = moonX - 8;
+        const maskY = moonY - 4;
+        const maskGrad = this.ctx.createRadialGradient(maskX, maskY, 5, maskX, maskY, 40);
+        maskGrad.addColorStop(0, '#000818');
+        maskGrad.addColorStop(1, '#061226');
+        this.ctx.fillStyle = maskGrad;
+        this.ctx.beginPath();
+        this.ctx.arc(maskX, maskY, 24, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Draw 80 twinkling stars procedurally with variable sizes and speeds
         this.ctx.fillStyle = '#ffffff';
-        for (let i = 0; i < 30; i++) {
+        for (let i = 0; i < 80; i++) {
           const x = (Math.sin(i * 1421.3) * 0.5 + 0.5) * width;
-          const y = (Math.cos(i * 842.1) * 0.5 + 0.5) * (height * 0.7);
-          const alpha = 0.3 + (Math.sin(this.weatherTime * 2 + i) * 0.5 + 0.5) * 0.7;
+          const y = (Math.cos(i * 842.1) * 0.5 + 0.5) * (height * 0.85);
+          const size = 1.0 + (Math.sin(i * 77.3) * 0.5 + 0.5) * 1.5; // size 1px to 2.5px
+          const speed = 1.5 + (Math.sin(i * 33.3) * 0.5 + 0.5) * 2.0;
+          const alpha = 0.25 + (Math.sin(this.weatherTime * speed + i) * 0.5 + 0.5) * 0.75;
           this.ctx.globalAlpha = alpha;
-          this.ctx.fillRect(x, y, 1.5, 1.5);
+          this.ctx.fillRect(x, y, size, size);
         }
+        this.ctx.globalAlpha = 1.0;
         break;
+      }
 
       case 'cyberpunk':
         // Giant digital hologram neon grid in the distant background
