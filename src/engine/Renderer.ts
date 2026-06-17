@@ -78,7 +78,7 @@ export class Renderer {
     this.lightningFlash = 0;
     switch (worldId) {
       case 'jungle':
-        this.weather = { type: 'rain', windSpeed: 1, density: 40, lightning: true };
+        this.weather = { type: 'rain', windSpeed: 1, density: 56, lightning: true };
         break;
       case 'jungle_temple':
         this.weather = { type: 'jungle_fog', windSpeed: 0.1, density: 30, lightning: false };
