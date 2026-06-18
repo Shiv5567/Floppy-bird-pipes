@@ -300,7 +300,7 @@ export class LevelManager {
     }
     const lvl2 = this.levels.find(l => l.levelNum === 2);
     if (lvl2) {
-      lvl2.gapHeight = Math.round(lvl2.gapHeight * 1.18272); // Net: 1.056 × 1.12 (12% increased)
+      lvl2.gapHeight = Math.round(lvl2.gapHeight * 1.360128); // Increased by additional 15% (1.18272 * 1.15)
     }
     const lvl3 = this.levels.find(l => l.levelNum === 3);
     if (lvl3) {
