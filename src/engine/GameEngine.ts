@@ -1125,9 +1125,7 @@ export class GameEngine {
       return;
     }
 
-    // Stop music and proceed to check manual continue system
-    this.soundManager.stopMusic();
-
+    // Keep world music playing during revive screen (music continues, Glass Alibi suppressed)
     // Unlimited revives allowed!
     this.preReviveState = this.state === 'BOSS_WARNING' || this.state === 'BOSS_FIGHT' ? this.state : 'PLAYING';
     this.state = 'REVIVE_CHOICE';
@@ -1253,7 +1251,7 @@ export class GameEngine {
   }
 
   // private transitionToNextWorld() {
-  //   const worlds = ['jungle', 'cyberpunk', 'ice', 'desert', 'volcano', 'space', 'underwater', 'heaven'];
+  //   const worlds = ['jungle', 'ice', 'desert', 'volcano', 'space', 'underwater', 'heaven'];
   //   const currentIdx = worlds.indexOf(this.progressManager.getState().activeWorld);
   //   const nextIdx = (currentIdx + 1) % worlds.length;
   //   const nextWorld = worlds[nextIdx];

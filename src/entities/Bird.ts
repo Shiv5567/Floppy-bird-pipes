@@ -106,11 +106,21 @@ export class Bird {
     const jumpReduction = isLevel2 ? 0.78 : isLevel8 ? (0.80 * 1.18) : isLevelMode ? 0.80 : 1.0;
     
     let impulse = this.jumpLift * (1 + levelBonus) * jumpScale * jumpReduction;
-    
-    
-    // Scale velocity impulse in squad/flock mode:
-    // Disabled to keep upward flying/jump per tap velocity exactly like classic endless mode
-    
+
+    // ── Squad Survival: progressive flap velocity boost by score tier ──────
+    // Cumulative stacking: each tier adjusts on top of the previous
+    // 0–100:   1.00x (base)
+    // 100–200: +3%  → up to 1.03x
+    // 200–500: +10% → up to 1.13x
+    // 500+:    -10% → down to 1.03x (harder to control at high scores)
+    if (engine && engine.gameMode === 'flock') {
+      let flockVelMult = 1.0;
+      if (score > 100) flockVelMult += 0.03;  // +3% from score 100
+      if (score > 200) flockVelMult += 0.10;  // +10% from score 200 (total 1.13x)
+      if (score > 500) flockVelMult -= 0.10;  // -10% from score 500 (total 1.03x)
+      impulse *= flockVelMult;
+    }
+
     // Instant, sharp, predictable and completely constant jump:
     // Instantly set vertical velocity to the jump impulse to give an immediate constant response on every tap.
     this.vy = impulse;

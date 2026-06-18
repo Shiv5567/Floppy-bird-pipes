@@ -454,7 +454,7 @@ export class ProgressManager {
           gems: Math.max(loadedState.gems || 0, 5000),     // Auto grant 5,000 gems for testing
           highscore: loadedState.highscore || 0,
           activeSkin: loadedState.activeSkin || 'default',
-          activeWorld: loadedState.activeWorld || 'jungle',
+          activeWorld: (loadedState.activeWorld && loadedState.activeWorld !== 'cyberpunk') ? loadedState.activeWorld : 'jungle',
           unlockedSkins: loadedState.unlockedSkins || ['default'],
           skinUpgrades: loadedState.skinUpgrades || {},
           achievements: loadedState.achievements || {},

@@ -347,7 +347,7 @@ export class ObstacleManager {
                 for (let k = 0; k < particleCount; k++) {
                   const px = obs.x + Math.random() * obs.width;
                   const py = height / 2 + (Math.random() - 0.5) * 40;
-                  const pColor = obs.worldId === 'cyberpunk' ? '#ff007f' : obs.worldId === 'ice' ? '#e0ffff' : '#ffaa00';
+                  const pColor = obs.worldId === 'ice' ? '#e0ffff' : '#ffaa00';
                   _particleEngine.spawn(
                     px, py,
                     -scrollSpeed * 0.5 + (Math.random() - 0.5) * 2,
@@ -1391,11 +1391,6 @@ export class ObstacleManager {
             } else if (obs.worldId === 'jungle' || obs.worldId === 'jungle_temple') {
               pColor = Math.random() < 0.5 ? '#228b22' : '#39ff14';
               pShape = 'spark';
-            } else if (obs.worldId === 'cyberpunk') {
-              pColor = Math.random() < 0.5 ? '#ff007f' : '#00f3ff';
-              pShape = 'spark';
-              pGlow = true;
-              pGlowColor = 'rgba(255, 0, 127, 0.4)';
             } else if (obs.worldId === 'ice') {
               pColor = '#ffffff';
               pShape = 'snowflake';
@@ -1767,7 +1762,7 @@ export class ObstacleManager {
             if (Math.random() < 0.08) {
               const pxTop = obs.x + Math.random() * obs.width;
               const pyTop = obs.topHeight;
-              let pColor = obs.worldId === 'cyberpunk' ? '#ff007f' : '#39ff14';
+              let pColor = '#39ff14';
               _particleEngine.spawn(
                 pxTop, pyTop,
                 -scrollSpeed * 0.4 + (Math.random() - 0.5) * 1.0,
@@ -3591,18 +3586,6 @@ export class ObstacleManager {
 
         return obs;
       }
-
-      // Special Cyberpunk dynamic central laser beam check
-      if (obs.worldId === 'cyberpunk' && obs.isLaser && obs.laserActive) {
-        const laserLeft = obs.x + obs.width * 0.42;
-        const laserRight = obs.x + obs.width * 0.58;
-        if (bird.x + effectiveRadius >= laserLeft && bird.x - effectiveRadius <= laserRight) {
-          // Check if bird is within the vertical gap of the laser
-          if (bird.y + effectiveRadius > topPipeBottom && bird.y - effectiveRadius < bottomPipeTop) {
-            return obs;
-          }
-        }
-      }
     }
 
     return null;
@@ -3643,11 +3626,6 @@ export class ObstacleManager {
               colorTop = '#3a533c';
               colorBottom = '#243325';
               outlineColor = '#0b130c';
-              break;
-            case 'cyberpunk':
-              colorTop = '#ff007f';
-              colorBottom = '#00f3ff';
-              outlineColor = '#0b001a';
               break;
             case 'ice':
               colorTop = '#e0ffff';
@@ -3697,9 +3675,6 @@ export class ObstacleManager {
               break;
             case 'jungle_temple':
               this.drawJungleTemplePillars(ctx, obs, height, styleIdx);
-              break;
-            case 'cyberpunk':
-              this.drawCyberpunkPillars(ctx, obs, height, styleIdx);
               break;
             case 'ice':
               this.drawIcePillars(ctx, obs, height, styleIdx);
@@ -3775,8 +3750,7 @@ export class ObstacleManager {
         const isPerformance = (window as any).gameDisableShadows;
 
         let glowColor = '#39ff14';
-        if (obs.worldId === 'cyberpunk') glowColor = '#ff007f';
-        else if (obs.worldId === 'ice') glowColor = '#00f3ff';
+        if (obs.worldId === 'ice') glowColor = '#00f3ff';
         else if (obs.worldId === 'desert') glowColor = '#fbbf24';
         else if (obs.worldId === 'volcano') glowColor = '#ff4500';
         else if (obs.worldId === 'space') glowColor = '#da70d6';
@@ -3925,7 +3899,7 @@ export class ObstacleManager {
           colorGlow = '#ff4500'; // Fire orange
         } else if (obs.worldId === 'ice') {
           colorGlow = '#00f3ff'; // Ice blue
-        } else if (obs.worldId === 'space' || obs.worldId === 'cyberpunk') {
+        } else if (obs.worldId === 'space') {
           colorGlow = '#a200ff'; // Quantum purple
         } else if (obs.worldId === 'heaven') {
           colorGlow = '#ffd700'; // Heavenly gold
@@ -4011,12 +3985,6 @@ export class ObstacleManager {
         sideColor = '#0d120f';
         capColor = '#ffd700';
         strokeColor = '#0b130c';
-        break;
-      case 'cyberpunk':
-        tStop0 = '#150020'; tStop3 = '#2b003a'; tStop5 = '#ff007f'; tStop7 = '#0d0014'; tStop1 = '#050008';
-        sideColor = '#050008';
-        capColor = '#00f3ff';
-        strokeColor = '#0b001a';
         break;
       case 'ice':
         tStop0 = '#00363a'; tStop3 = '#006064'; tStop5 = '#00acc1'; tStop7 = '#001d20'; tStop1 = '#000a0b';
@@ -4452,117 +4420,6 @@ export class ObstacleManager {
     ctx.fillStyle = 'rgba(34, 197, 94, 0.18)';
     ctx.fillRect(x + 2, y + 2, w - 4, 15);
     ctx.fillRect(x + w - 15, y + 10, 13, h - 20);
-  }
-
-  private drawCyberpunkPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number, styleIdx = 0) {
-    const rx = obs.x;
-    const rw = obs.width;
-    const rTop = obs.topHeight;
-    const rBottom = obs.bottomHeight;
-
-    if (styleIdx === 2) {
-      this.drawStructuredCyberpunkPillars(ctx, obs, height);
-      return;
-    }
-
-    let stop0 = '#090714', stop3 = '#1e1b4b', stop5 = '#ff007f', stop7 = '#0f172a', stop1 = '#050308'; // Style 0: Pink/Cyan
-    let outlineCol = '#00f3ff';
-    let lineGrad0 = '#020617', lineGrad5 = '#00f3ff', lineGrad1 = '#020617';
-    let beaconCol = '#00f3ff';
-
-    if (styleIdx === 1) {
-      // Style 1: Scaffold Cyan
-      stop0 = '#0c4a6e'; stop3 = '#0284c7'; stop5 = '#38bdf8'; stop7 = '#0369a1'; stop1 = '#082f49';
-      outlineCol = '#ff007f'; // neon pink
-      lineGrad0 = '#020617'; lineGrad5 = '#ff007f'; lineGrad1 = '#020617';
-      beaconCol = '#ff007f';
-    } else if (styleIdx === 3) {
-      // Style 3: Acid Poison Green
-      stop0 = '#090d16'; stop3 = '#1e293b'; stop5 = '#4ade80'; stop7 = '#0f172a'; stop1 = '#020617';
-      outlineCol = '#22c55e'; // toxic green
-      lineGrad0 = '#020617'; lineGrad5 = '#eab308'; lineGrad1 = '#020617'; // warning yellow beacons
-      beaconCol = '#eab308';
-    }
-
-    const bodyGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    bodyGrad.addColorStop(0, stop0);
-    bodyGrad.addColorStop(0.3, stop3);
-    bodyGrad.addColorStop(0.5, stop5);
-    bodyGrad.addColorStop(0.7, stop7);
-    bodyGrad.addColorStop(1, stop1);
-
-    ctx.fillStyle = bodyGrad;
-    ctx.strokeStyle = outlineCol;
-    ctx.lineWidth = 3.0;
-
-    ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-    ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-
-    // Tech vertical circuits
-    ctx.strokeStyle = 'rgba(0, 243, 255, 0.4)';
-    if (styleIdx === 1) ctx.strokeStyle = 'rgba(255, 0, 127, 0.4)';
-    else if (styleIdx === 3) ctx.strokeStyle = 'rgba(34, 197, 94, 0.4)';
-    ctx.lineWidth = 2.0;
-    ctx.beginPath();
-    ctx.moveTo(rx + rw * 0.35, -1000);
-    ctx.lineTo(rx + rw * 0.35, rTop - 24);
-    ctx.moveTo(rx + rw * 0.65, -1000);
-    ctx.lineTo(rx + rw * 0.65, rTop - 24);
-    ctx.moveTo(rx + rw * 0.35, height - rBottom + 24);
-    ctx.lineTo(rx + rw * 0.35, height + 1000);
-    ctx.moveTo(rx + rw * 0.65, height - rBottom + 24);
-    ctx.lineTo(rx + rw * 0.65, height + 1000);
-    ctx.stroke();
-
-    // High-tech glowing carbon-fiber cap brackets
-    const capY1 = rTop - 24;
-    const capY2 = height - rBottom;
-
-    const techCapGrad = ctx.createLinearGradient(rx - 6, 0, rx + rw + 6, 0);
-    techCapGrad.addColorStop(0, lineGrad0);
-    techCapGrad.addColorStop(0.5, lineGrad5);
-    techCapGrad.addColorStop(1, lineGrad1);
-
-    ctx.fillStyle = techCapGrad;
-    ctx.strokeStyle = styleIdx === 1 ? '#00f3ff' : '#ff007f';
-    ctx.lineWidth = 3.0;
-
-    ctx.fillRect(rx - 6, capY1, rw + 12, 24);
-    ctx.strokeRect(rx - 6, capY1, rw + 12, 24);
-    ctx.fillRect(rx - 6, capY2, rw + 12, 24);
-    ctx.strokeRect(rx - 6, capY2, rw + 12, 24);
-
-    // Cyan neon nodes on tech caps
-    ctx.fillStyle = beaconCol;
-    if (!(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 6;
-      ctx.shadowColor = beaconCol;
-    }
-    ctx.fillRect(rx + 8, capY1 + 10, 4, 4);
-    ctx.fillRect(rx + rw - 12, capY1 + 10, 4, 4);
-    ctx.fillRect(rx + 8, capY2 + 10, 4, 4);
-    ctx.fillRect(rx + rw - 12, capY2 + 10, 4, 4);
-    ctx.shadowBlur = 0;
-
-    // Render Laser warning beam if active
-    if (obs.isLaser) {
-      if (obs.laserActive) {
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(rx + rw * 0.45, rTop, rw * 0.1, height - rTop - rBottom);
-        ctx.fillStyle = styleIdx === 3 ? 'rgba(34, 197, 94, 0.9)' : 'rgba(255, 0, 85, 0.85)';
-        ctx.fillRect(rx + rw * 0.42, rTop, rw * 0.16, height - rTop - rBottom);
-      } else {
-        ctx.strokeStyle = styleIdx === 3 ? 'rgba(34, 197, 94, 0.35)' : 'rgba(255, 0, 50, 0.35)';
-        ctx.setLineDash([5, 5]);
-        ctx.beginPath();
-        ctx.moveTo(rx + rw * 0.5, rTop);
-        ctx.lineTo(rx + rw * 0.5, height - rBottom);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      }
-    }
   }
 
   private drawIcePillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number, styleIdx = 0) {
@@ -5407,117 +5264,6 @@ export class ObstacleManager {
 
     drawJungleBlock(-1000, rTop + 1000, true);
     drawJungleBlock(height - rBottom, rBottom + 1000, false);
-  }
-
-  private drawStructuredCyberpunkPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const rx = obs.x;
-    const rw = obs.width;
-    const rTop = obs.topHeight;
-    const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
-    if (isPerformance) {
-      ctx.fillStyle = '#0e0b1c';
-      ctx.strokeStyle = '#8a2be2';
-      ctx.lineWidth = 2.0;
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-      if (obs.isLaser) {
-        if (obs.laserActive) {
-          ctx.fillStyle = 'rgba(255, 0, 127, 0.85)';
-          ctx.fillRect(rx + rw * 0.42, rTop, rw * 0.16, height - rTop - rBottom);
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(rx + rw * 0.46, rTop, rw * 0.08, height - rTop - rBottom);
-        } else {
-          ctx.strokeStyle = 'rgba(255, 0, 127, 0.45)';
-          ctx.lineWidth = 1.5;
-          ctx.setLineDash([5, 5]);
-          ctx.beginPath();
-          ctx.moveTo(rx + rw * 0.5, rTop);
-          ctx.lineTo(rx + rw * 0.5, height - rBottom);
-          ctx.stroke();
-          ctx.setLineDash([]);
-        }
-      }
-      return;
-    }
-
-    const drawCyberBlock = (yStart: number, h: number, _isTop: boolean) => {
-      // 1. Cyberpunk Holographic neon gradient body
-      const holoGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      holoGrad.addColorStop(0, 'rgba(0, 243, 255, 0.15)'); // Electric cyan
-      holoGrad.addColorStop(0.5, 'rgba(213, 0, 249, 0.35)'); // Hot purple
-      holoGrad.addColorStop(1, 'rgba(255, 0, 127, 0.20)'); // Bright pink
-      ctx.fillStyle = holoGrad;
-      ctx.fillRect(rx, yStart, rw, h);
-
-      // Cyber corner frames/brackets
-      ctx.strokeStyle = '#00f3ff';
-      ctx.lineWidth = 2.5;
-      ctx.strokeRect(rx, yStart, rw, h);
-
-      // 2. Vertical glowing binary circuit/data stream lines
-      ctx.strokeStyle = 'rgba(0, 243, 255, 0.55)';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(rx + rw * 0.3, yStart);
-      ctx.lineTo(rx + rw * 0.3, yStart + h);
-      ctx.moveTo(rx + rw * 0.7, yStart);
-      ctx.lineTo(rx + rw * 0.7, yStart + h);
-      ctx.stroke();
-
-      // Glowing pink nodes
-      ctx.fillStyle = '#ff007f';
-      ctx.beginPath();
-      for (let y = yStart + 20; y < yStart + h; y += 40) {
-        ctx.arc(rx + rw * 0.3, y, 3, 0, Math.PI * 2);
-        ctx.arc(rx + rw * 0.7, y + 20, 3, 0, Math.PI * 2);
-      }
-      ctx.fill();
-
-      // Pulsing central holographic core
-      ctx.save();
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      const isPerfCore = (window as any).gameDisableShadows;
-      const corePulse = isPerfCore ? 4 : (4 + Math.sin((obs.x || 0) * 0.05) * 1.5);
-      ctx.fillRect(rx + rw / 2 - corePulse / 2, yStart, corePulse, h);
-      ctx.restore();
-
-      // 3. Gorgeous glowing neon cap bracket on surface
-      const capY = _isTop ? yStart + h - 20 : yStart;
-      const bracketGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      bracketGrad.addColorStop(0, '#d500f9');
-      bracketGrad.addColorStop(0.5, '#00f3ff');
-      bracketGrad.addColorStop(1, '#ff007f');
-      ctx.fillStyle = bracketGrad;
-      ctx.fillRect(rx - 2, capY, rw + 4, 20);
-      ctx.strokeStyle = '#ffffff';
-      ctx.strokeRect(rx - 2, capY, rw + 4, 20);
-    };
-
-    drawCyberBlock(-1000, rTop + 1000, true);
-    drawCyberBlock(height - rBottom, rBottom + 1000, false);
-
-    // Standard Cyberpunk Laser
-    if (obs.isLaser) {
-      if (obs.laserActive) {
-        ctx.fillStyle = 'rgba(255, 0, 127, 0.85)'; // Solid pink laser
-        ctx.fillRect(rx + rw * 0.42, rTop, rw * 0.16, height - rTop - rBottom);
-        ctx.fillStyle = '#ffffff'; // White core
-        ctx.fillRect(rx + rw * 0.46, rTop, rw * 0.08, height - rTop - rBottom);
-      } else {
-        // Dotted warning line
-        ctx.strokeStyle = 'rgba(255, 0, 127, 0.45)';
-        ctx.lineWidth = 1.5;
-        ctx.setLineDash([5, 5]);
-        ctx.beginPath();
-        ctx.moveTo(rx + rw * 0.5, rTop);
-        ctx.lineTo(rx + rw * 0.5, height - rBottom);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      }
-    }
   }
 
   private drawStructuredIcePillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {

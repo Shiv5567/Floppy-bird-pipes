@@ -9,7 +9,6 @@ export class UIManager {
   private container: HTMLElement;
   private activeTab: 'main' | 'skins' | 'worlds' | 'photo' | 'rewards' | 'settings' | 'levels' | 'powerups' | 'achievements' = 'main';
   private lastEngineState: GameState = 'MENU';
-  private activeRewardsSubTab: 'daily' | 'trophies' = 'daily';
   private lastRenderedTab: string = 'main';
 
   // Cached HUD DOM element references
@@ -475,7 +474,6 @@ export class UIManager {
     const worldNames: Record<string, string> = {
       jungle:     'TROPICAL JUNGLE',
       jungle_temple: 'JUNGLE TEMPLE',
-      cyberpunk:  'NEON CYBERPUNK',
       ice:        'FROZEN KINGDOM',
       desert:     'DESERT RUINS',
       volcano:    'VOLCANIC ABYSS',
@@ -822,15 +820,6 @@ export class UIManager {
         ` : ''}
 
         ${this.activeTab === 'rewards' ? `
-        <!-- ===== REWARDS HUB PILL NAVIGATION ===== -->
-        <div class="rewards-hub-nav glass-card" style="margin-bottom: 8px;">
-          <button class="rewards-sub-btn ${this.activeRewardsSubTab === 'daily' ? 'active' : ''}" data-sub-tab="daily">
-            Challenges
-          </button>
-          <button class="rewards-sub-btn ${this.activeRewardsSubTab === 'trophies' ? 'active' : ''}" data-sub-tab="trophies">
-            Missions
-          </button>
-        </div>
         ` : ''}
 
         <!-- ===== CONTENT SCROLL AREA ===== -->
@@ -897,14 +886,13 @@ export class UIManager {
 
       case 'worlds': {
         const worldColors: Record<string, string> = {
-          jungle: '#00c853', jungle_temple: '#2e7d32', cyberpunk: '#7c4dff', ice: '#40c4ff',
+          jungle: '#00c853', jungle_temple: '#2e7d32', ice: '#40c4ff',
           desert: '#ffab40', volcano: '#ff3d00', space: '#651fff',
           heaven: '#ffd740'
         };
         const worlds = [
           { id: 'jungle',     name: 'Tropical Rainforest', emoji: '🌴', desc: 'Lush greenery, cascades & ancient ruins' },
           { id: 'jungle_temple', name: 'Jungle Temple Ruins', emoji: '🛕', desc: 'Lost ancient civilization, mossy ruins & sacred golden light' },
-          { id: 'cyberpunk',  name: 'Cyberpunk Neon City',  emoji: '🏙️', desc: 'Neon lights, hover roads & laser grids' },
           { id: 'ice',        name: 'Frozen Ice Kingdom',   emoji: '❄️', desc: 'Sub-zero snowstorms & giant icicles' },
           { id: 'desert',     name: 'Ancient Desert Ruins', emoji: '🏜️', desc: 'Swirling dust & golden sandstone obelisks' },
           { id: 'volcano',    name: 'Volcano Hell World',   emoji: '🌋', desc: 'Magma rivers, lightning & basalt spires' },
@@ -939,55 +927,9 @@ export class UIManager {
       case 'achievements': {
         // Fallback safety redirect
         this.activeTab = 'rewards';
-        this.activeRewardsSubTab = 'daily';
         return this.renderTabInnerContent(progress);
       }
       case 'rewards': {
-        if (this.activeRewardsSubTab === 'daily') {
-          const achievements = this.engine.progressManager.getAchievements();
-          const claimedAchievements = (progress as any).claimedAchievements || [];
-          const achCards = achievements.map((a: Achievement) => {
-            const progressPercent = Math.min(100, (a.currentValue / a.targetValue) * 100);
-            const isClaimed = claimedAchievements.includes(a.id);
-            const isCompleted = a.unlocked;
-
-            let claimBtnClass = '';
-            let claimBtnText = 'CLAIM 🎁';
-            let claimDisabled = '';
-
-            if (isClaimed) {
-              claimBtnClass = 'claimed';
-              claimBtnText = 'CLAIMED';
-              claimDisabled = 'disabled';
-            } else if (!isCompleted) {
-              claimBtnClass = 'locked';
-              claimBtnText = 'LOCKED';
-              claimDisabled = 'disabled';
-            }
-
-            return `
-              <div class="achievement-card glass-card ${isClaimed ? '' : (isCompleted ? 'unlocked-border' : '')}">
-                <div class="ach-info">
-                  <div class="ach-desc" style="font-weight: 800; font-size: 11px; color: #fff;">${a.desc}</div>
-                  <div class="ach-bar-outer" style="margin-top: 8px;"><div class="ach-bar-inner" style="width:${progressPercent}%"></div></div>
-                  <div class="ach-progress-text">${a.currentValue} / ${a.targetValue}</div>
-                </div>
-                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; margin-left: 15px;">
-                  <div class="ach-reward" style="margin-left: 0; text-align: right; color: gold;">
-                    💰+${a.rewardCoins}<br>💎+${a.rewardGems}
-                  </div>
-                  <button class="btn-ach-claim ${claimBtnClass}" data-ach-id="${a.id}" ${claimDisabled}>
-                    ${claimBtnText}
-                  </button>
-                </div>
-              </div>
-            `;
-          }).join('');
-          return `
-            <div class="tab-sheet-title">CHALLENGES</div>
-            <div class="vertical-scroll">${achCards}</div>
-          `;
-        } else {
           const quests = progress.dailyQuests || this.engine.progressManager.initDefaultQuests();
           
           const renderQuestCard = (q: any) => {
@@ -1067,7 +1009,6 @@ export class UIManager {
               </div>
             </div>
           `;
-        }
       }
 
       case 'levels': {
@@ -1099,7 +1040,7 @@ export class UIManager {
             }
 
             const worldEmojis: Record<string, string> = {
-              jungle: '🌴', jungle_temple: '🛕', ice: '❄️', cyberpunk: '🏙️', volcano: '🌋'
+              jungle: '🌴', jungle_temple: '🛕', ice: '❄️', volcano: '🌋'
             };
             const emoji = worldEmojis[lvl.worldId] || '🐦';
 
@@ -1451,6 +1392,7 @@ export class UIManager {
   }
 
   private bindMenuEvents() {
+    const sm = this.engine.soundManager;
     const bindClick = (id: string, action: () => void) => {
       const el = document.getElementById(id);
       if (el) el.addEventListener('click', action);
@@ -1458,37 +1400,41 @@ export class UIManager {
 
     // Back to main landing page
     bindClick('btn-back-main', () => {
+      sm.playUIBack();
       this.activeTab = 'main';
       this.render();
     });
 
     bindClick('btn-settings-back', () => {
+      sm.playUIBack();
       this.activeTab = 'main';
       this.render();
     });
     bindClick('btn-settings-back-icon', () => {
+      sm.playUIBack();
       this.activeTab = 'main';
       this.render();
     });
 
     // Side panel quick-access buttons → open dedicated tab page
-    bindClick('side-btn-rewards',      () => { this.activeTab = 'rewards';      this.render(); });
-    bindClick('side-btn-powerups',     () => { this.activeTab = 'powerups';     this.render(); });
-    bindClick('side-btn-skins',        () => { this.activeTab = 'skins';        this.render(); });
-    bindClick('side-btn-worlds',       () => { this.activeTab = 'worlds';       this.render(); });
-    bindClick('btn-open-settings',     () => { this.activeTab = 'settings';     this.render(); });
-    bindClick('btn-coin-topup',         () => { this.showTopupPopup(); });
-    bindClick('btn-gem-topup',          () => { this.showTopupPopup(); });
+    bindClick('side-btn-rewards',      () => { sm.playUISelect(); this.activeTab = 'rewards';      this.render(); });
+    bindClick('side-btn-powerups',     () => { sm.playUISelect(); this.activeTab = 'powerups';     this.render(); });
+    bindClick('side-btn-skins',        () => { sm.playUISelect(); this.activeTab = 'skins';        this.render(); });
+    bindClick('side-btn-worlds',       () => { sm.playUISelect(); this.activeTab = 'worlds';       this.render(); });
+    bindClick('btn-open-settings',     () => { sm.playUISelect(); this.activeTab = 'settings';     this.render(); });
+    bindClick('btn-coin-topup',         () => { sm.playUIClick(); this.showTopupPopup(); });
+    bindClick('btn-gem-topup',          () => { sm.playUIClick(); this.showTopupPopup(); });
     // Also bind the + buttons directly (stopPropagation so they don't bubble to parent div)
     const btnPlusCoinsEl = document.getElementById('btn-plus-coins');
-    if (btnPlusCoinsEl) btnPlusCoinsEl.addEventListener('click', (e) => { e.stopPropagation(); this.showTopupPopup(); });
+    if (btnPlusCoinsEl) btnPlusCoinsEl.addEventListener('click', (e) => { e.stopPropagation(); sm.playUIClick(); this.showTopupPopup(); });
     const btnPlusGemsEl = document.getElementById('btn-plus-gems');
-    if (btnPlusGemsEl) btnPlusGemsEl.addEventListener('click', (e) => { e.stopPropagation(); this.showTopupPopup(); });
+    if (btnPlusGemsEl) btnPlusGemsEl.addEventListener('click', (e) => { e.stopPropagation(); sm.playUIClick(); this.showTopupPopup(); });
 
     // Difficulty selection buttons
     const diffBtns = this.container.querySelectorAll('.segmented-control [data-diff]');
     diffBtns.forEach(btn => {
       btn.addEventListener('click', () => {
+        sm.playUISelect();
         const diff = (btn as HTMLElement).getAttribute('data-diff') as 'easy' | 'medium' | 'hard';
         if (diff) {
           this.engine.progressManager.getState().selectedDifficulty = diff;
@@ -1598,9 +1544,11 @@ export class UIManager {
         const achId = (btn as HTMLElement).getAttribute('data-ach-id') || '';
         const res = this.engine.progressManager.claimAchievementReward(achId);
         if (res.success) {
+          sm.playUIClaim();
           this.showToastNotification('ACHIEVEMENT CLAIMED! 🏆', res.msg);
           this.render();
         } else {
+          sm.playUIClick();
           this.showToastNotification('CLAIM FAILED', res.msg);
         }
       });
@@ -1614,9 +1562,11 @@ export class UIManager {
         const questId = (btn as HTMLElement).getAttribute('data-quest-id') || '';
         const res = this.engine.progressManager.claimQuestReward(questId);
         if (res.success) {
+          sm.playUIClaim();
           this.showToastNotification('QUEST COMPLETED! 🏆', res.msg);
           this.render();
         } else {
+          sm.playUIClick();
           this.showToastNotification('CLAIM FAILED', res.msg);
         }
       });
@@ -1630,9 +1580,11 @@ export class UIManager {
         const id = (btn as HTMLElement).getAttribute('data-id') || '';
         const res = this.engine.progressManager.upgradePowerup(id);
         if (res.success) {
+          sm.playUIUpgrade();
           this.showToastNotification('UPGRADE SUCCESSFUL 🧪', res.msg);
           this.render();
         } else {
+          sm.playUIClick();
           this.showToastNotification('UPGRADE FAILED', res.msg);
         }
       });
@@ -1640,19 +1592,23 @@ export class UIManager {
 
     // Bird mascot tap opens Skins hangar directly!
     bindClick('bird-mascot-tap', () => {
+      sm.playUISelect();
       this.activeTab = 'skins';
       this.render();
     });
 
     // Game start & spectator
     bindClick('btn-start-game', () => {
+      sm.playUISelect();
       this.showEndlessModeSelection();
     });
     bindClick('btn-open-levels', () => {
+      sm.playUISelect();
       this.activeTab = 'levels';
       this.render();
     });
     bindClick('btn-spectator', () => {
+      sm.playUIClick();
       this.engine.gameMode = 'endless';
       this.engine.isSpectatorMode = true;
       this.engine.startGame();
@@ -1663,6 +1619,7 @@ export class UIManager {
     const unlockedLevelCards = this.container.querySelectorAll('.level-select-card.unlocked');
     unlockedLevelCards.forEach(card => {
       card.addEventListener('click', () => {
+        sm.playUISelect();
         const lvlNum = parseInt(card.getAttribute('data-level-num') || '1');
         this.engine.gameMode = 'level';
         this.engine.currentLevelNum = lvlNum;
@@ -1693,11 +1650,13 @@ export class UIManager {
         if (!skin) return;
 
         if (skin.unlocked) {
+          sm.playUISelect();
           this.engine.progressManager.selectSkin(skinId);
           this.showToastNotification('BIRD SELECTED! ✨', `${skin.name} is now your active bird!`);
           setTimeout(() => { this.activeTab = 'main'; this.render(); }, 400);
         } else {
           // Attempt auto-buy when tapping a locked card
+          sm.playUIClick();
           const res = this.engine.progressManager.buySkin(skinId);
           if (res.success) {
             this.showToastNotification('PURCHASE SUCCESSFUL 🎉', `${skin.name} unlocked and selected!`);
@@ -1714,6 +1673,7 @@ export class UIManager {
     buyBtns.forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
+        sm.playUIClick();
         const id = (btn as HTMLElement).getAttribute('data-id') || '';
         const res = this.engine.progressManager.buySkin(id);
         this.showToastNotification(res.success ? 'PURCHASE SUCCESSFUL 🎉' : 'PURCHASE FAILED', res.msg);
@@ -1728,6 +1688,7 @@ export class UIManager {
     equipBtns.forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
+        sm.playUISelect();
         const id = (btn as HTMLElement).getAttribute('data-id') || '';
         this.engine.progressManager.selectSkin(id);
         const skin = this.engine.progressManager.getSkins().find((s: Skin) => s.id === id);
@@ -1741,6 +1702,11 @@ export class UIManager {
         e.stopPropagation();
         const id = (btn as HTMLElement).getAttribute('data-id') || '';
         const res = this.engine.progressManager.upgradeSkin(id);
+        if (res.success) {
+          sm.playUIUpgrade();
+        } else {
+          sm.playUIClick();
+        }
         this.showToastNotification(res.success ? 'UPGRADE SUCCESSFUL ⬆' : 'UPGRADE FAILED', res.msg);
         this.render();
       });
@@ -1764,6 +1730,7 @@ export class UIManager {
     const worldCards = this.container.querySelectorAll('.world-card[data-world-id]');
     worldCards.forEach(card => {
       card.addEventListener('click', () => {
+        sm.playUISelect();
         const id = (card as HTMLElement).getAttribute('data-world-id') || '';
         if (!id) return;
         this.engine.progressManager.setWorld(id);
@@ -1771,18 +1738,6 @@ export class UIManager {
         const worldName = (card.querySelector('.world-name') as HTMLElement)?.textContent?.trim() || id;
         this.showToastNotification('🌍 WORLD SELECTED!', `${worldName.replace('● ACTIVE', '').trim()} is now your battlefield!`);
         setTimeout(() => { this.activeTab = 'main'; this.render(); }, 450);
-      });
-    });
-
-    // Rewards Hub sub-tabs click events
-    const subTabBtns = this.container.querySelectorAll('.rewards-hub-nav [data-sub-tab]');
-    subTabBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const sub = (btn as HTMLElement).getAttribute('data-sub-tab') as 'daily' | 'trophies';
-        if (sub) {
-          this.activeRewardsSubTab = sub;
-          this.render();
-        }
       });
     });
 
@@ -1840,7 +1795,6 @@ export class UIManager {
     const bossNames: Record<string, string> = {
       jungle: 'Canopy Harpy',
       jungle_temple: 'Sentinel Golem Mask',
-      cyberpunk: 'Nexus Interceptor',
       ice: 'Glacial Frost Wyrm',
       desert: 'Obelisk Sphinx',
       volcano: 'Volcanic Lava Dragon',
@@ -2165,17 +2119,20 @@ export class UIManager {
     this.container.innerHTML = pauseHTML;
 
     document.getElementById('btn-resume')?.addEventListener('click', () => {
+      this.engine.soundManager.playUIClick();
       this.engine.togglePause();
       this.render();
     });
 
     document.getElementById('btn-restart-paused')?.addEventListener('click', () => {
+      this.engine.soundManager.playUIClick();
       AdManager.onTransitionPoint();
       this.engine.startGame();
       this.render();
     });
 
     document.getElementById('btn-quit')?.addEventListener('click', () => {
+      this.engine.soundManager.playUIBack();
       AdManager.onTransitionPoint();
       this.engine.state = 'MENU';
       this.engine.soundManager.stopMusic();
@@ -2224,12 +2181,14 @@ export class UIManager {
     this.container.innerHTML = goHTML;
 
     document.getElementById('btn-retry')?.addEventListener('click', () => {
+      this.engine.soundManager.playUISelect();
       AdManager.onTransitionPoint();
       this.engine.startGame();
       this.render();
     });
 
     document.getElementById('btn-hangar')?.addEventListener('click', () => {
+      this.engine.soundManager.playUIBack();
       AdManager.onTransitionPoint();
       this.engine.state = 'MENU';
       if (this.engine.gameMode === 'level') {
@@ -2315,12 +2274,14 @@ export class UIManager {
 
     document.getElementById('btn-confirm-revive')?.addEventListener('click', () => {
       if (canAfford) {
+        this.engine.soundManager.playUIClick();
         this.engine.attemptRevive();
         this.render();
       }
     });
 
     document.getElementById('btn-ad-revive')?.addEventListener('click', () => {
+      this.engine.soundManager.playUIClick();
       AdManager.showReviveRewarded((success) => {
         if (success) {
           this.engine.attemptReviveFree();
@@ -2333,6 +2294,7 @@ export class UIManager {
     });
 
     document.getElementById('btn-skip-revive')?.addEventListener('click', () => {
+      this.engine.soundManager.playUISelect();
       this.engine.confirmGameOver(); // Save progress
       AdManager.onTransitionPoint();
       this.engine.startGame(); // Immediate restart
@@ -2340,6 +2302,7 @@ export class UIManager {
     });
 
     document.getElementById('btn-home-revive')?.addEventListener('click', () => {
+      this.engine.soundManager.playUIBack();
       this.engine.confirmGameOver(); // Save progress
       AdManager.onTransitionPoint();
       this.engine.state = 'MENU';
@@ -2398,17 +2361,20 @@ export class UIManager {
     this.container.innerHTML = winHTML;
 
     document.getElementById('btn-next-level')?.addEventListener('click', () => {
+      this.engine.soundManager.playUISelect();
       this.engine.currentLevelNum++;
       this.engine.startGame();
       this.render();
     });
 
     document.getElementById('btn-retry-level')?.addEventListener('click', () => {
+      this.engine.soundManager.playUIClick();
       this.engine.startGame();
       this.render();
     });
 
     document.getElementById('btn-quit-levels')?.addEventListener('click', () => {
+      this.engine.soundManager.playUIBack();
       this.engine.state = 'MENU';
       this.activeTab = 'levels';
       this.render();

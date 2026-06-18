@@ -278,9 +278,6 @@ export class BossManager {
       if (this.worldId === 'jungle' || this.worldId === 'jungle_temple') {
         color = '#ffd700';
         glowColor = '#ffaa00';
-      } else if (this.worldId === 'cyberpunk') {
-        color = '#00f3ff';
-        glowColor = '#00f3ff';
       } else if (this.worldId === 'ice') {
         color = '#80d8ff';
         glowColor = '#80d8ff';
@@ -427,9 +424,7 @@ export class BossManager {
       }
     }
 
-    if (this.worldId === 'cyberpunk') {
-      this.drawCyberBoss(ctx);
-    } else if (this.worldId === 'jungle_temple') {
+    if (this.worldId === 'jungle_temple') {
       this.drawJungleTempleBoss(ctx);
     } else if (this.worldId === 'volcano') {
       this.drawLavaBoss(ctx);
@@ -489,62 +484,6 @@ export class BossManager {
     ctx.fillRect(-35, -15, 40, 30);
     ctx.strokeRect(-35, -15, 40, 30);
     ctx.restore();
-  }
-
-  private drawCyberBoss(ctx: CanvasRenderingContext2D) {
-    if (!(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 18;
-      ctx.shadowColor = '#00f3ff';
-    }
-
-    // Core chassis body frame
-    ctx.fillStyle = '#22222a';
-    ctx.strokeStyle = '#00f3ff';
-    ctx.lineWidth = 3.0;
-
-    ctx.beginPath();
-    ctx.moveTo(35, -20);
-    ctx.lineTo(15, -45);
-    ctx.lineTo(-45, -30);
-    ctx.lineTo(-35, 30);
-    ctx.lineTo(15, 45);
-    ctx.lineTo(35, 20);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Cyber robotic mechanical wing drawing
-    ctx.save();
-    ctx.translate(-20, -10);
-    const flap = Math.sin(this.timer * 4) * 0.4;
-    ctx.rotate(flap);
-    
-    ctx.fillStyle = '#111116';
-    ctx.strokeStyle = '#ff007f';
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(-50, -45);
-    ctx.lineTo(-80, -35);
-    ctx.lineTo(-45, 10);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
-
-    // Giant digital laser cannon beak
-    ctx.fillStyle = '#ffaa00';
-    ctx.beginPath();
-    ctx.moveTo(25, -12);
-    ctx.lineTo(55, 0);
-    ctx.lineTo(25, 12);
-    ctx.closePath();
-    ctx.fill();
-
-    // Glowing cyber eye visor
-    ctx.fillStyle = '#ff0055';
-    ctx.beginPath();
-    ctx.arc(20, -12, 5, 0, Math.PI * 2);
-    ctx.fill();
   }
 
   private drawLavaBoss(ctx: CanvasRenderingContext2D) {

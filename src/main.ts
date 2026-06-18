@@ -54,6 +54,7 @@ let lastState = '';
 let lastBossHealth = 0;
 let lastUltPercent = 0;
 let hudFrameCount = 0;
+let isMenuMusicActive = false; // Track menu music state to avoid redundant calls
 
 
 function init() {
@@ -86,6 +87,15 @@ function init() {
   // Kick off the loop
   lastTime = performance.now();
   requestAnimationFrame(loop);
+
+  // Start Glass Alibi menu music on first user gesture (autoplay policy workaround)
+  const startMenuMusicOnce = () => {
+    soundManager.startMenuMusic();
+    window.removeEventListener('pointerdown', startMenuMusicOnce);
+    window.removeEventListener('keydown', startMenuMusicOnce);
+  };
+  window.addEventListener('pointerdown', startMenuMusicOnce);
+  window.addEventListener('keydown', startMenuMusicOnce);
 }
 
 function setupInputs() {
@@ -270,6 +280,21 @@ function loop(time: number) {
     }
     // Animate character previews continuously in hangar/menus when not actively playing
     uiManager.drawSkinPreviews();
+  }
+
+  // ── Menu music: play on all non-gameplay screens, stop during gameplay ────
+  const isPlaying = gameEngine.state === 'PLAYING' ||
+                    gameEngine.state === 'BOSS_FIGHT' ||
+                    gameEngine.state === 'BOSS_WARNING' ||
+                    gameEngine.state === 'PRELOADING' ||
+                    gameEngine.state === 'REVIVE_CHOICE'; // world music plays here
+
+  if (isPlaying && isMenuMusicActive) {
+    soundManager.stopMenuMusic();
+    isMenuMusicActive = false;
+  } else if (!isPlaying && !isMenuMusicActive) {
+    soundManager.startMenuMusic();
+    isMenuMusicActive = true;
   }
 
   requestAnimationFrame(loop);
