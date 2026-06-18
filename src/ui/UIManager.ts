@@ -1,6 +1,6 @@
 import { GameEngine } from '../engine/GameEngine.ts';
 import type { GameState } from '../engine/GameEngine.ts';
-import type { Skin, Achievement } from '../systems/ProgressManager.ts';
+import type { Skin } from '../systems/ProgressManager.ts';
 import { LevelManager } from '../systems/LevelManager.ts';
 import { AdManager } from '../systems/AdManager.ts';
 
