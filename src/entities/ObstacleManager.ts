@@ -1598,10 +1598,18 @@ export class ObstacleManager {
               if (effectiveScore >= 100 && effectiveScore < 200) {
                 // Simple up-down (elevator) animation keeping gap constant for other zones
                 const ampIncrease = effectiveScore < 150 ? 1.15 : 1.25; // 15% increase for score 100-150, 25% increase for score 150-200
-                verticalShift = Math.sin(this.waveTime * 1.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.4) * (32 * ampIncrease) * motionAmpMult;
+                let flockMult = 1.0;
+                if (gameMode === 'flock') {
+                  flockMult = 1.10; // 10% increase
+                }
+                verticalShift = Math.sin(this.waveTime * 1.5 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.4) * (32 * ampIncrease) * motionAmpMult * flockMult;
               } else if (effectiveScore >= 200 && effectiveScore < 300) {
                 // Added 8% difficulty: increase base amplitude from 50px to 54px
-                verticalShift = Math.sin(this.waveTime * 2.2 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 54 * motionAmpMult;
+                let flockMult = 1.0;
+                if (gameMode === 'flock') {
+                  flockMult = 0.87; // 13% less
+                }
+                verticalShift = Math.sin(this.waveTime * 2.2 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.5) * 54 * motionAmpMult * flockMult;
               } else if (effectiveScore >= 300) {
                 if (gameMode === 'flock') {
                   // Smooth up-down and zigzag animations with dynamic difficulty scaling (up to 20% increase at score 500, and additional 60% increase from 500 to 1000)
@@ -1612,8 +1620,13 @@ export class ObstacleManager {
                     diffScale = 1.20 * (1.0 + progress500to1000 * 0.60); // 60% increase at score 1000, kept constant above 1000
                   }
                   
+                  let flockMult = 1.0;
+                  if (effectiveScore < 400) {
+                    flockMult = 0.92; // 8% reduction (85 typo for 8% on Nepali/Shift-5 layout)
+                  }
+                  
                   const speed = 2.0 * motionSpeedMult * diffScale;
-                  const amp = 50 * motionAmpMult * diffScale;
+                  const amp = 50 * motionAmpMult * diffScale * flockMult;
                   
                   const style = (obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0) % 2;
                   if (style === 0) {
