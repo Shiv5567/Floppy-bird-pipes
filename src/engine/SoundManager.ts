@@ -672,7 +672,8 @@ export class SoundManager {
       }
 
       // --- LAYER 2: DRUMS & PERCUSSION (isMusic = true) ---
-      if (score >= 5 || isBossFight) {
+      const elapsedSeconds = (this.beatStep * intervalTime) / 1000;
+      if (elapsedSeconds >= 30 || isBossFight) {
         if (barStep === 0 || barStep === 8) {
           this.playSynthNote(55, 0.12, 'sine', 0.45, { type: 'lowpass', startFreq: 120, endFreq: 10, q: 1 }, false, undefined, true);
         }
@@ -709,7 +710,7 @@ export class SoundManager {
       }
 
       // --- LAYER 3: DYNAMIC CELESTIAL CHORD PAD (isMusic = true) ---
-      if (score >= 12 || isBossFight) {
+      if (elapsedSeconds >= 60 || isBossFight) {
         if (barStep === 0 || barStep === 8) {
           const chordFreq1 = baseFreq * 2.0;
           const chordFreq2 = baseFreq * 3.0;
@@ -738,7 +739,7 @@ export class SoundManager {
       }
 
       // --- LAYER 4: MELODIC LEADS (isMusic = true) ---
-      if (score >= 22 || isBossFight) {
+      if (elapsedSeconds >= 90 || isBossFight) {
         const melodyPattern = [0, 2, 4, 3, 5, 4, 2, 1, 3, 2, 4, 5, 3, 1, 0, 2];
         const currentMelodyIndex = melodyPattern[barStep % melodyPattern.length];
         const melodyFreq = config.melodyNotes[currentMelodyIndex % config.melodyNotes.length];
@@ -780,8 +781,8 @@ export class SoundManager {
         }
       }
 
-      // --- LAYER 6: PIANO ARPEGGIOS (Time-based expansion: ~30 seconds in) ---
-      if (this.beatStep >= 128) {
+      // --- LAYER 6: PIANO ARPEGGIOS (Time-based expansion: ~120 seconds in) ---
+      if (elapsedSeconds >= 120) {
         const pianoPattern = [0, 2, 1, 3, 2, 4, 3, 5];
         if (barStep % 2 === 1) { // Upbeat rhythms
           const pIndex = pianoPattern[Math.floor(this.beatStep / 2) % pianoPattern.length];
@@ -865,8 +866,8 @@ export class SoundManager {
       }
 
 
-      // ── LAYER 3: PIANO ARPEGGIO (every 2 ticks — upbeat feel) ────────────
-      if (bar % 2 === 1) {
+      // ── LAYER 3: PIANO ARPEGGIO (every 2 ticks — upbeat feel, unlocks after 30s) ────────────
+      if (bar % 2 === 1 && this.beatStep >= 60) {
         const pIdx   = arpPattern[Math.floor(this.beatStep / 2) % arpPattern.length];
         const pFreq  = heavenMelody[pIdx % heavenMelody.length];
 
@@ -886,8 +887,8 @@ export class SoundManager {
         osc.start(t); osc.stop(t + 0.6);
       }
 
-      // ── LAYER 4: CELESTIAL SHIMMER (bell overtone — bar beat 4) ──────────
-      if (bar === 4) {
+      // ── LAYER 4: CELESTIAL SHIMMER (bell overtone — bar beat 4, unlocks after 60s) ──────────
+      if (bar === 4 && this.beatStep >= 120) {
         const shimFreqs = [chord[2] * 4, chord[2] * 6]; // High overtones
         shimFreqs.forEach((freq, i) => {
           const osc = this.ctx!.createOscillator();
@@ -902,8 +903,8 @@ export class SoundManager {
         });
       }
 
-      // ── LAYER 5 (TIME-BASED): AMBIENT DRONE PAD (unlocks after ~24 sec) ──
-      if (this.beatStep >= 48 && bar === 0) {
+      // ── LAYER 5 (TIME-BASED): AMBIENT DRONE PAD (unlocks after 90 sec) ──
+      if (this.beatStep >= 180 && bar === 0) {
         const drones = [chord[0] * 0.5, chord[1] * 0.5];
         drones.forEach(freq => {
           const osc  = this.ctx!.createOscillator();
