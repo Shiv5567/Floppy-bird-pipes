@@ -634,11 +634,21 @@ export class SoundManager {
 
     const intervalTime = (60 / config.tempo) * 1000 / 2;
 
-    this.musicInterval = setInterval(() => {
-      if (this.isMuted || !this.ctx || this.ctx.state === 'suspended') return;
-
+    const playNextBeat = () => {
       const engine = (window as any).gameEngine;
       const score = engine ? engine.score : 0;
+      const gameMode = engine ? engine.gameMode : 'endless';
+
+      let currentInterval = intervalTime;
+      if (gameMode !== 'level' && score >= 100) {
+        const speedBoostMultiplier = Math.pow(1.03, Math.floor(score / 100));
+        currentInterval = intervalTime / speedBoostMultiplier;
+      }
+
+      this.musicInterval = setTimeout(playNextBeat, currentInterval);
+
+      if (this.isMuted || !this.ctx || this.ctx.state === 'suspended') return;
+
       const isUltimate = engine ? engine.ultimateActive : false;
       const isBossFight = engine ? (engine.state === 'BOSS_FIGHT' || engine.state === 'BOSS_WARNING') : false;
 
@@ -805,7 +815,8 @@ export class SoundManager {
       */
 
       this.beatStep++;
-    }, intervalTime);
+    };
+    this.musicInterval = setTimeout(playNextBeat, intervalTime);
   }
 
   // ─── HEAVEN FANTASY REALM: DEDICATED PREMIUM PIANO AMBIENT MUSIC ──────────
@@ -836,7 +847,19 @@ export class SoundManager {
     const tickMs = 500; // 60 BPM eighth-notes
     let chordIndex = 0;
 
-    this.musicInterval = setInterval(() => {
+    const playNextTick = () => {
+      const engine = (window as any).gameEngine;
+      const score = engine ? engine.score : 0;
+      const gameMode = engine ? engine.gameMode : 'endless';
+
+      let currentTickMs = tickMs;
+      if (gameMode !== 'level' && score >= 100) {
+        const speedBoostMultiplier = Math.pow(1.03, Math.floor(score / 100));
+        currentTickMs = tickMs / speedBoostMultiplier;
+      }
+
+      this.musicInterval = setTimeout(playNextTick, currentTickMs);
+
       if (this.isMuted || !this.ctx || this.ctx.state === 'suspended') return;
 
       const t   = this.ctx.currentTime;
@@ -956,7 +979,8 @@ export class SoundManager {
       */
 
       this.beatStep++;
-    }, tickMs);
+    };
+    this.musicInterval = setTimeout(playNextTick, tickMs);
   }
 
   public stopMusic() {
@@ -966,7 +990,7 @@ export class SoundManager {
       this.customAudioElement = null;
     }
     if (this.musicInterval) {
-      clearInterval(this.musicInterval);
+      clearTimeout(this.musicInterval);
       this.musicInterval = null;
     }
     this.isMusicPlaying = false;
