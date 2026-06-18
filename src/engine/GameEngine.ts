@@ -1125,7 +1125,8 @@ export class GameEngine {
       return;
     }
 
-    // Keep world music playing during revive screen (music continues, Glass Alibi suppressed)
+    // Stop world music during revive screen as per user request
+    this.soundManager.stopMusic();
     // Unlimited revives allowed!
     this.preReviveState = this.state === 'BOSS_WARNING' || this.state === 'BOSS_FIGHT' ? this.state : 'PLAYING';
     this.state = 'REVIVE_CHOICE';

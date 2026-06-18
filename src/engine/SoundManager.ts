@@ -48,6 +48,13 @@ export class SoundManager {
   public setMusicVolume(vol: number) {
     this.musicVolume = Math.max(0.0, Math.min(1.0, vol));
     localStorage.setItem('flight_of_legends_music_vol_v2', this.musicVolume.toString());
+    
+    if (this.menuAudioElement) {
+      this.menuAudioElement.volume = this.isMuted ? 0 : 0.45 * this.musicVolume;
+    }
+    if (this.customAudioElement) {
+      this.customAudioElement.volume = this.isMuted ? 0 : 0.45 * this.musicVolume;
+    }
   }
 
   public getSfxVolume(): number {
