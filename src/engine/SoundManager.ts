@@ -791,6 +791,8 @@ export class SoundManager {
       }
 
       // --- LAYER 7: FLUTE COUNTER-MELODY (Time-based expansion: ~60 seconds in) ---
+      // Removed as per user request
+      /*
       if (this.beatStep >= 256) {
         const flutePattern = [4, 5, 3, 4, 2, 3];
         if (barStep % 8 === 0) { // Long flowing notes
@@ -799,6 +801,7 @@ export class SoundManager {
           this.playFluteNote(fFreq, 1.2, true);
         }
       }
+      */
 
       this.beatStep++;
     }, intervalTime);
@@ -920,6 +923,8 @@ export class SoundManager {
       }
 
       // ── LAYER 6 (TIME-BASED): SOFT GENTLE NOTE PAD (after ~48 sec) ──────
+      // Removed as per user request
+      /*
       if (this.beatStep >= 96 && bar === 0) {
         const softPattern = [0, 3, 5, 4, 6, 5, 7, 4];
         const sIdx  = softPattern[Math.floor(this.beatStep / 8) % softPattern.length];
@@ -947,6 +952,7 @@ export class SoundManager {
         osc.connect(filt); filt.connect(g); g.connect(dest);
         osc.start(t); osc.stop(t + 4.3);
       }
+      */
 
       this.beatStep++;
     }, tickMs);
