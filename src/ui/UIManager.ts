@@ -1816,11 +1816,29 @@ export class UIManager {
 
     // Share Game System click bindings
     const handleShareClick = (platform: string) => {
-      // Since manual typing of targets is removed, generate a unique random token automatically to track progress count correctly
-      const autoTargetToken = `auto_share_${platform.toLowerCase()}_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-      this.engine.progressManager.recordShareTarget(autoTargetToken);
+      // Ensure unique device/fingerprint ID for referrals exists
+      let myDeviceId = localStorage.getItem('legends_device_id');
+      if (!myDeviceId) {
+        myDeviceId = `dev_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+        localStorage.setItem('legends_device_id', myDeviceId);
+      }
 
-      const gameUrl = window.location.href;
+      // Generate unique referral token containing sender's device ID
+      const shareToken = `ref_${myDeviceId}_${Date.now()}_${Math.floor(Math.random() * 1000000)}`;
+      
+      // Store in pending shares list
+      const pending = JSON.parse(localStorage.getItem('pending_shares') || '[]');
+      pending.push(shareToken);
+      localStorage.setItem('pending_shares', JSON.stringify(pending));
+
+      // Initialize status as empty array "[]" on public KV database (url encoded as %5B%5D)
+      fetch(`https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/7cantavq/${shareToken}/%5B%5D`, { 
+        method: 'POST',
+        headers: { 'Content-Length': '0' }
+      })
+        .catch(err => console.error("KV initialize failed:", err));
+
+      const gameUrl = window.location.origin + window.location.pathname + `?ref=${shareToken}`;
       const text = `Hey! Play Floppy Bird Pipes: Flight of Legends with me here: ${gameUrl}`;
       
       let shareUrl = '';
@@ -1854,7 +1872,7 @@ export class UIManager {
         window.open(shareUrl, '_blank');
       }
 
-      this.showToastNotification('SHARE SUCCESSFUL 🎉', 'You earned share mission progress!');
+      this.showToastNotification('PENDING VERIFICATION ⏳', 'Shared! Mission counts when a friend opens the link!');
       this.render();
     };
 

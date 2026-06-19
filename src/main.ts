@@ -76,6 +76,133 @@ function init() {
   gameEngine = new GameEngine(canvas, progressManager, soundManager);
   uiManager = new UIManager('uiContainer', gameEngine);
 
+  // Initialize unique device/fingerprint ID for referrals
+  let myDeviceId = localStorage.getItem('legends_device_id');
+  if (!myDeviceId) {
+    myDeviceId = `dev_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+    localStorage.setItem('legends_device_id', myDeviceId);
+  }
+
+  // Check if page was loaded via a referral link
+  const urlParams = new URLSearchParams(window.location.search);
+  const refToken = urlParams.get('ref');
+  if (refToken) {
+    const parts = refToken.split('_');
+    const referrerId = parts.length >= 2 ? parts[1] : '';
+    
+    // Only activate if not self-referral and we haven't already marked this link as opened
+    if (myDeviceId && referrerId && myDeviceId !== referrerId) {
+      const storageKey = `opened_ref_${refToken}`;
+      if (!localStorage.getItem(storageKey)) {
+        // Fetch current list of openers
+        fetch(`https://keyvalue.immanuel.co/api/KeyVal/GetValue/7cantavq/${refToken}`)
+          .then(res => res.json())
+          .then(rawVal => {
+            let list: string[] = [];
+            try {
+              let parsed = rawVal;
+              if (typeof parsed === 'string') parsed = JSON.parse(parsed);
+              if (typeof parsed === 'string') parsed = JSON.parse(parsed); // Double parse for double serialization
+              if (Array.isArray(parsed)) {
+                list = parsed;
+              } else if (parsed === "0" || parsed === 0 || parsed === "1" || parsed === 1) {
+                list = [];
+              }
+            } catch (e) {
+              list = [];
+            }
+
+            if (!list.includes(myDeviceId)) {
+              list.push(myDeviceId);
+              const valStr = encodeURIComponent(JSON.stringify(list));
+              fetch(`https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/7cantavq/${refToken}/${valStr}`, { 
+                method: 'POST',
+                headers: { 'Content-Length': '0' }
+              })
+              .then(() => {
+                localStorage.setItem(storageKey, 'true');
+                console.log("Referral link activated successfully!");
+              })
+              .catch(err => console.error("Referral activation save failed:", err));
+            }
+          })
+          .catch(err => console.error("Referral activation check failed:", err));
+      }
+    } else {
+      console.log("Self-referral or missing/invalid device ID; ignoring referral link activation.");
+    }
+  }
+
+  // Set up background checker to check if pending shared links were opened
+  setInterval(() => {
+    let pending = JSON.parse(localStorage.getItem('pending_shares') || '[]');
+    if (pending.length === 0) return;
+
+    const currentDeviceId = localStorage.getItem('legends_device_id') || '';
+    const creditedDevices = JSON.parse(localStorage.getItem('credited_referral_devices') || '[]');
+    let pendingUpdated = [...pending];
+
+    // Filter out expired pending shares (older than 24 hours) to avoid endless polling
+    const now = Date.now();
+    pending = pending.filter((token: string) => {
+      const parts = token.split('_');
+      const timestamp = parts.length >= 3 ? parseInt(parts[2]) : 0;
+      if (timestamp && now - timestamp > 24 * 60 * 60 * 1000) {
+        pendingUpdated = pendingUpdated.filter(t => t !== token);
+        return false;
+      }
+      return true;
+    });
+
+    localStorage.setItem('pending_shares', JSON.stringify(pendingUpdated));
+    if (pending.length === 0) return;
+
+    pending.forEach((token: string) => {
+      fetch(`https://keyvalue.immanuel.co/api/KeyVal/GetValue/7cantavq/${token}`)
+        .then(res => res.json())
+        .then(rawVal => {
+          let list: string[] = [];
+          try {
+            let parsed = rawVal;
+            if (typeof parsed === 'string') parsed = JSON.parse(parsed);
+            if (typeof parsed === 'string') parsed = JSON.parse(parsed);
+            if (Array.isArray(parsed)) {
+              list = parsed;
+            } else if (parsed === "1" || parsed === 1) {
+              list = ['legacy_friend'];
+            }
+          } catch (e) {
+            list = [];
+          }
+
+          // Filter out our own device ID and already credited devices
+          const newDevices = list.filter(devId => devId !== currentDeviceId && !creditedDevices.includes(devId));
+
+          if (newDevices.length > 0) {
+            newDevices.forEach(devId => {
+              creditedDevices.push(devId);
+              // Grant quest progress reward
+              progressManager.updateQuestProgress('share_game', 1);
+            });
+            
+            // Save updated credited devices
+            localStorage.setItem('credited_referral_devices', JSON.stringify(creditedDevices));
+
+            // Notify player with a toast using existing event
+            window.dispatchEvent(new CustomEvent('achievement_unlocked', {
+              detail: { 
+                name: "REFERRAL COMPLETED! 🚀", 
+                desc: `${newDevices.length} friend(s) opened your shared link! Share progress +${newDevices.length}` 
+              }
+            }));
+            
+            uiManager.render();
+          }
+        })
+        .catch(err => console.error("Referral check failed:", err));
+    });
+  }, 10000); // Check every 10 seconds
+
   // Resize handling
   window.addEventListener('resize', () => {
     gameEngine.renderer.resize();
