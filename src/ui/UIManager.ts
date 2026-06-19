@@ -3587,9 +3587,16 @@ export class UIManager {
 
   <!-- Inside Content Clipped to Circle -->
   <g clip-path="url(#circleClip)">
-    <!-- Distant Mountains/Jungle Silhouette -->
-    <path d="M 0,60 Q 25,45 50,60 T 100,55 L 100,100 L 0,100 Z" fill="#0f3d24" opacity="0.6" />
-    <path d="M 0,70 Q 35,55 70,70 T 100,75 L 100,100 L 0,100 Z" fill="#0b301a" />
+    <!-- Distant Mountains Silhouette -->
+    <!-- Peak 1: Left Peak -->
+    <path d="M -10,80 L 25,25 L 60,80 Z" fill="#0f3d24" opacity="0.7" />
+    <path d="M 25,25 L 25,80 L 60,80 Z" fill="#0c321d" opacity="0.5" />
+    <!-- Peak 2: Right Peak (Taller) -->
+    <path d="M 35,80 L 70,20 L 105,80 Z" fill="#0d351f" opacity="0.8" />
+    <path d="M 70,20 L 70,80 L 105,80 Z" fill="#092716" opacity="0.5" />
+    
+    <!-- Foothills / Jungle Ridge in front -->
+    <path d="M 0,70 Q 25,60 50,75 T 100,70 L 100,100 L 0,100 Z" fill="#0b301a" />
 
     <!-- Waterfall coming from the top center -->
     <path d="M 42,40 L 58,40 L 62,90 L 38,90 Z" fill="url(#waterfallGrad)" />
