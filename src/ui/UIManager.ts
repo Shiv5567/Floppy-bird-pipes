@@ -901,7 +901,6 @@ export class UIManager {
           `;
         }).join('');
         return `
-          <div class="tab-sheet-title">🪐 TAP A WORLD TO ENTER</div>
           <div class="vertical-scroll">${worldsCards}</div>
         `;
       }
