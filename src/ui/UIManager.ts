@@ -772,8 +772,8 @@ export class UIManager {
                 border: 1px solid rgba(255, 170, 0, 0.2); background: rgba(13, 10, 28, 0.7);
                 box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 6;
               ">
-                <div class="hangar-section-title" style="margin: 0 0 6px 0; font-size: 10px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; color: #ffaa00; text-shadow: 0 0 5px rgba(255,170,0,0.3);">🔮 MYSTERIOUS CHESTS</div>
-                <div class="chests-row" style="display: flex; gap: 8px; width: 100%; justify-content: center;">
+                <div class="hangar-section-title" style="margin: 0 0 6px 0; font-size: 10px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; color: #ffaa00; text-shadow: 0 0 5px rgba(255,170,0,0.3);">🔮 MYSTERIOUS BOXES</div>
+                <div class="chests-row" style="display: flex; gap: 16px; width: 100%; justify-content: center;">
                   ${this.getChestsHtml()}
                 </div>
               </div>`
@@ -2916,9 +2916,9 @@ export class UIManager {
 
   private getChestsHtml(): string {
     const chests = [
-      { id: 1, name: 'Bronze Chest', icon: '📦', color: '#cd7f32', glow: 'rgba(205, 127, 50, 0.45)', minCoins: 250, maxCoins: 600, minGems: 2, maxGems: 6 },
-      { id: 2, name: 'Silver Chest', icon: '🧰', color: '#c0c0c0', glow: 'rgba(192, 192, 192, 0.45)', minCoins: 800, maxCoins: 1800, minGems: 8, maxGems: 16 },
-      { id: 3, name: 'Golden Chest', icon: '🎁', color: '#ffd700', glow: 'rgba(255, 215, 0, 0.45)', minCoins: 2000, maxCoins: 4500, minGems: 20, maxGems: 45 }
+      { id: 1, name: 'Bronze Box', icon: '📦', color: '#cd7f32', glow: 'rgba(205, 127, 50, 0.45)', minCoins: 250, maxCoins: 600, minGems: 2, maxGems: 6 },
+      { id: 2, name: 'Silver Box', icon: '🧰', color: '#c0c0c0', glow: 'rgba(192, 192, 192, 0.45)', minCoins: 800, maxCoins: 1800, minGems: 8, maxGems: 16 },
+      { id: 3, name: 'Golden Box', icon: '🎁', color: '#ffd700', glow: 'rgba(255, 215, 0, 0.45)', minCoins: 2000, maxCoins: 4500, minGems: 20, maxGems: 45 }
     ];
 
     let chestsHtml = '';
@@ -2945,7 +2945,7 @@ export class UIManager {
         btnClass = 'btn-open-chest completed';
         btnDisabled = 'disabled';
       } else if (!isReady) {
-        statusText = `🔒 ${status.claimedMissions}/${status.requiredMissions} QUESTS`;
+        statusText = `🔒 ${status.claimedMissions}/${status.requiredMissions}`;
         btnText = 'LOCKED';
         btnClass = 'btn-open-chest locked';
         btnDisabled = 'disabled';
