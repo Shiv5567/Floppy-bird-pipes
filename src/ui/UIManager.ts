@@ -2656,17 +2656,35 @@ export class UIManager {
              <!-- Option 1: Classic -->
             <div class="glass-card" style="padding: 12px 14px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; display: flex; align-items: center; gap: 12px;">
               <div style="flex-shrink: 0; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
-                <svg width="45" height="45" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5));">
-                  <path d="M15,50 C25,45 35,35 50,38 C60,40 70,30 85,32 C75,45 65,48 55,46 C45,45 30,55 15,50 Z" fill="url(#classic-grad-body)" />
-                  <path d="M40,40 C35,25 45,15 55,25 C52,32 48,38 40,40 Z" fill="#ffffff" opacity="0.9" />
-                  <circle cx="70" cy="36" r="3.5" fill="#111111" />
-                  <circle cx="71" cy="35" r="1.5" fill="#ffffff" />
-                  <path d="M85,32 C82,35 80,38 78,36 Z" fill="#ff7700" />
-                  <path d="M10,60 L25,60 M5,45 L18,45 M8,32 L20,32" stroke="#ffd700" stroke-width="3" stroke-linecap="round" opacity="0.6" />
+                <svg width="45" height="45" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));">
+                  <circle cx="50" cy="50" r="42" fill="rgba(255, 215, 0, 0.05)" stroke="rgba(255, 215, 0, 0.15)" stroke-width="1.5" stroke-dasharray="4 4" />
+                  <g transform="translate(10, 15)">
+                    <path d="M12,40 C5,38 2,42 0,47 C3,52 8,50 15,46 Z" fill="#ff8800" />
+                    <path d="M15,44 C10,40 6,43 5,48 C8,52 12,50 17,46 Z" fill="#ffaa00" />
+                    <circle cx="40" cy="38" r="24" fill="url(#gold-body-grad)" stroke="#9c6300" stroke-width="2" />
+                    <ellipse cx="50" cy="28" rx="8" ry="11" fill="#ffffff" stroke="#111" stroke-width="2" />
+                    <ellipse cx="51" cy="28" rx="4" ry="6" fill="#000000" />
+                    <circle cx="49" cy="25" r="2.2" fill="#ffffff" />
+                    <circle cx="53" cy="31" r="1" fill="#ffffff" />
+                    <path d="M60,34 C72,34 78,38 72,44 C66,48 60,42 60,34 Z" fill="url(#beak-grad)" stroke="#b34000" stroke-width="1.5" />
+                    <path d="M58,40 C68,42 70,46 64,48 C58,50 56,43 58,40 Z" fill="url(#beak-grad)" stroke="#b34000" stroke-width="1.5" />
+                    <path d="M22,46 C28,58 52,58 58,46 C48,50 32,50 22,46 Z" fill="#fff9d4" opacity="0.8" />
+                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#gold-wing-grad)" stroke="#9c6300" stroke-width="1.8" />
+                    <path d="M28,36 C24,27 36,18 40,26 C43,33 36,41 28,36 Z" fill="#ffe066" opacity="0.9" />
+                  </g>
                   <defs>
-                    <linearGradient id="classic-grad-body" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#ffd700" />
-                      <stop offset="100%" stop-color="#ffaa00" />
+                    <linearGradient id="gold-body-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#fff099" />
+                      <stop offset="40%" stop-color="#ffd700" />
+                      <stop offset="100%" stop-color="#e69d00" />
+                    </linearGradient>
+                    <linearGradient id="gold-wing-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#fff5cc" />
+                      <stop offset="100%" stop-color="#ffa600" />
+                    </linearGradient>
+                    <linearGradient id="beak-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ff9900" />
+                      <stop offset="100%" stop-color="#ff3300" />
                     </linearGradient>
                   </defs>
                 </svg>
@@ -2682,24 +2700,44 @@ export class UIManager {
             <!-- Option 2: Squad Survival -->
             <div class="glass-card" style="padding: 12px 14px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; display: flex; align-items: center; gap: 12px;">
               <div style="flex-shrink: 0; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
-                <svg width="45" height="45" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 8px rgba(0, 243, 255, 0.5));">
-                  <g transform="translate(15, 5) scale(0.85)">
-                    <path d="M15,50 C25,45 35,35 50,38 C60,40 70,30 85,32 C75,45 65,48 55,46 C45,45 30,55 15,50 Z" fill="url(#squad-grad-cyan)" />
-                    <path d="M40,40 C35,25 45,15 55,25 C52,32 48,38 40,40 Z" fill="#ffffff" opacity="0.9" />
-                    <circle cx="70" cy="36" r="3.5" fill="#111111" />
+                <svg width="45" height="45" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 8px rgba(0, 243, 255, 0.6));">
+                  <circle cx="50" cy="50" r="42" fill="rgba(0, 243, 255, 0.04)" stroke="rgba(0, 243, 255, 0.15)" stroke-width="1.5" stroke-dasharray="4 4" />
+                  <g transform="translate(10, 52) scale(0.42)">
+                    <path d="M12,40 C5,38 2,42 0,47 C3,52 8,50 15,46 Z" fill="#005588" />
+                    <circle cx="40" cy="38" r="24" fill="url(#squad-blue-grad)" stroke="#003366" stroke-width="2" />
+                    <ellipse cx="50" cy="28" rx="8" ry="11" fill="#ffffff" stroke="#111" stroke-width="2" />
+                    <ellipse cx="51" cy="28" rx="4" ry="6" fill="#000000" />
+                    <path d="M60,34 C72,34 78,38 72,44 C66,48 60,42 60,34 Z" fill="#ff7700" />
+                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#squad-cyan-grad)" stroke="#005588" stroke-width="1.8" />
                   </g>
-                  <g transform="translate(-5, -8) scale(0.6)">
-                    <path d="M15,50 C25,45 35,35 50,38 C60,40 70,30 85,32 C75,45 65,48 55,46 C45,45 30,55 15,50 Z" fill="url(#squad-grad-cyan)" opacity="0.75" />
-                    <path d="M40,40 C35,25 45,15 55,25 C52,32 48,38 40,40 Z" fill="#ffffff" opacity="0.85" />
+                  <g transform="translate(15, 12) scale(0.5)">
+                    <path d="M12,40 C5,38 2,42 0,47 C3,52 8,50 15,46 Z" fill="#005588" />
+                    <circle cx="40" cy="38" r="24" fill="url(#squad-blue-grad)" stroke="#003366" stroke-width="2" />
+                    <ellipse cx="50" cy="28" rx="8" ry="11" fill="#ffffff" stroke="#111" stroke-width="2" />
+                    <ellipse cx="51" cy="28" rx="4" ry="6" fill="#000000" />
+                    <path d="M60,34 C72,34 78,38 72,44 C66,48 60,42 60,34 Z" fill="#ff7700" />
+                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#squad-cyan-grad)" stroke="#005588" stroke-width="1.8" />
                   </g>
-                  <g transform="translate(-2, 22) scale(0.6)">
-                    <path d="M15,50 C25,45 35,35 50,38 C60,40 70,30 85,32 C75,45 65,48 55,46 C45,45 30,55 15,50 Z" fill="url(#squad-grad-cyan)" opacity="0.75" />
-                    <path d="M40,40 C35,25 45,15 55,25 C52,32 48,38 40,40 Z" fill="#ffffff" opacity="0.85" />
+                  <g transform="translate(42, 26) scale(0.65)">
+                    <path d="M12,40 C5,38 2,42 0,47 C3,52 8,50 15,46 Z" fill="#005588" />
+                    <circle cx="40" cy="38" r="24" fill="url(#squad-cyan-grad)" stroke="#005588" stroke-width="2" />
+                    <ellipse cx="50" cy="28" rx="8" ry="11" fill="#ffffff" stroke="#111" stroke-width="2" />
+                    <ellipse cx="51" cy="28" rx="4" ry="6" fill="#000000" />
+                    <circle cx="49" cy="25" r="2.2" fill="#ffffff" />
+                    <path d="M60,34 C72,34 78,38 72,44 C66,48 60,42 60,34 Z" fill="#ff7700" stroke="#b34000" stroke-width="1" />
+                    <path d="M58,40 C68,42 70,46 64,48 C58,50 56,43 58,40 Z" fill="#ff5500" stroke="#b34000" stroke-width="1" />
+                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#squad-blue-grad)" stroke="#003366" stroke-width="1.8" />
+                    <path d="M28,36 C24,27 36,18 40,26 C43,33 36,41 28,36 Z" fill="#a3f5ff" opacity="0.9" />
                   </g>
                   <defs>
-                    <linearGradient id="squad-grad-cyan" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#00f3ff" />
-                      <stop offset="100%" stop-color="#0088ff" />
+                    <linearGradient id="squad-cyan-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#b3f5ff" />
+                      <stop offset="50%" stop-color="#00f3ff" />
+                      <stop offset="100%" stop-color="#00aaff" />
+                    </linearGradient>
+                    <linearGradient id="squad-blue-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#80d5ff" />
+                      <stop offset="100%" stop-color="#0055ff" />
                     </linearGradient>
                   </defs>
                 </svg>
