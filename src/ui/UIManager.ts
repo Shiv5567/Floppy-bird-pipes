@@ -2655,7 +2655,22 @@ export class UIManager {
           <div style="display: flex; flex-direction: column; gap: 12px; text-align: left; width: 100%;">
              <!-- Option 1: Classic -->
             <div class="glass-card" style="padding: 12px 14px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; display: flex; align-items: center; gap: 12px;">
-              <div style="font-size: 32px; filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5)); flex-shrink: 0; width: 45px; text-align: center;">🐦</div>
+              <div style="flex-shrink: 0; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                <svg width="45" height="45" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5));">
+                  <path d="M15,50 C25,45 35,35 50,38 C60,40 70,30 85,32 C75,45 65,48 55,46 C45,45 30,55 15,50 Z" fill="url(#classic-grad-body)" />
+                  <path d="M40,40 C35,25 45,15 55,25 C52,32 48,38 40,40 Z" fill="#ffffff" opacity="0.9" />
+                  <circle cx="70" cy="36" r="3.5" fill="#111111" />
+                  <circle cx="71" cy="35" r="1.5" fill="#ffffff" />
+                  <path d="M85,32 C82,35 80,38 78,36 Z" fill="#ff7700" />
+                  <path d="M10,60 L25,60 M5,45 L18,45 M8,32 L20,32" stroke="#ffd700" stroke-width="3" stroke-linecap="round" opacity="0.6" />
+                  <defs>
+                    <linearGradient id="classic-grad-body" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffd700" />
+                      <stop offset="100%" stop-color="#ffaa00" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
               <div style="flex: 1;">
                 <div style="font-size: 13.5px; font-weight: 800; color: #ffd700; display: flex; align-items: center; gap: 6px;">
                   CLASSIC
@@ -2666,7 +2681,29 @@ export class UIManager {
 
             <!-- Option 2: Squad Survival -->
             <div class="glass-card" style="padding: 12px 14px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; display: flex; align-items: center; gap: 12px;">
-              <div style="font-size: 32px; filter: drop-shadow(0 0 8px rgba(0, 243, 255, 0.5)); flex-shrink: 0; width: 45px; text-align: center;">🪽</div>
+              <div style="flex-shrink: 0; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                <svg width="45" height="45" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 8px rgba(0, 243, 255, 0.5));">
+                  <g transform="translate(15, 5) scale(0.85)">
+                    <path d="M15,50 C25,45 35,35 50,38 C60,40 70,30 85,32 C75,45 65,48 55,46 C45,45 30,55 15,50 Z" fill="url(#squad-grad-cyan)" />
+                    <path d="M40,40 C35,25 45,15 55,25 C52,32 48,38 40,40 Z" fill="#ffffff" opacity="0.9" />
+                    <circle cx="70" cy="36" r="3.5" fill="#111111" />
+                  </g>
+                  <g transform="translate(-5, -8) scale(0.6)">
+                    <path d="M15,50 C25,45 35,35 50,38 C60,40 70,30 85,32 C75,45 65,48 55,46 C45,45 30,55 15,50 Z" fill="url(#squad-grad-cyan)" opacity="0.75" />
+                    <path d="M40,40 C35,25 45,15 55,25 C52,32 48,38 40,40 Z" fill="#ffffff" opacity="0.85" />
+                  </g>
+                  <g transform="translate(-2, 22) scale(0.6)">
+                    <path d="M15,50 C25,45 35,35 50,38 C60,40 70,30 85,32 C75,45 65,48 55,46 C45,45 30,55 15,50 Z" fill="url(#squad-grad-cyan)" opacity="0.75" />
+                    <path d="M40,40 C35,25 45,15 55,25 C52,32 48,38 40,40 Z" fill="#ffffff" opacity="0.85" />
+                  </g>
+                  <defs>
+                    <linearGradient id="squad-grad-cyan" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#00f3ff" />
+                      <stop offset="100%" stop-color="#0088ff" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
               <div style="flex: 1;">
                 <div style="font-size: 13.5px; font-weight: 800; color: #00f3ff; display: flex; align-items: center; gap: 6px;">
                   SQUAD
