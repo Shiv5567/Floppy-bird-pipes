@@ -8,7 +8,8 @@ export class SoundManager {
   private customAudioElement: HTMLAudioElement | null = null;
   private explosionBuffer: AudioBuffer | null = null;
   private menuAudioElement: HTMLAudioElement | null = null; // Glass Alibi menu BGM
-  private isMenuMusicPlaying = false;
+  private wasMenuMusicPlayingBeforeTabHide = false;
+  private wasWorldMusicPlayingBeforeTabHide = false;
 
   // Add individual volume controls (Music and System SFX)
   private musicVolume = 0.6; // 0.0 to 1.0 (60% default)
@@ -85,8 +86,17 @@ export class SoundManager {
 
   // ── MENU MUSIC: Glass Alibi (plays on all non-gameplay screens) ──────────
   public startMenuMusic() {
-    if (this.isMenuMusicPlaying) return; // Already running — don't restart
-    this.isMenuMusicPlaying = true;
+    // If already playing, don't restart
+    if (this.menuAudioElement && !this.menuAudioElement.paused) {
+      return;
+    }
+
+    if (this.menuAudioElement) {
+      this.menuAudioElement.play().catch(() => {
+        // Keep menuAudioElement to retry playing on user gesture
+      });
+      return;
+    }
 
     const audio = new Audio('/Glass Alibi_102453106.mp3');
     audio.loop = true;
@@ -94,9 +104,7 @@ export class SoundManager {
     this.menuAudioElement = audio;
 
     audio.play().catch(() => {
-      // Autoplay blocked — will retry on next user gesture
-      this.isMenuMusicPlaying = false;
-      this.menuAudioElement = null;
+      // We keep the menuAudioElement so we can try playing it again on user gesture
     });
   }
 
@@ -106,7 +114,40 @@ export class SoundManager {
       this.menuAudioElement.currentTime = 0;
       this.menuAudioElement = null;
     }
-    this.isMenuMusicPlaying = false;
+  }
+
+  public handleVisibilityChange(hidden: boolean) {
+    if (hidden) {
+      // Temporarily pause menu music if playing
+      if (this.menuAudioElement && !this.menuAudioElement.paused) {
+        this.menuAudioElement.pause();
+        this.wasMenuMusicPlayingBeforeTabHide = true;
+      } else {
+        this.wasMenuMusicPlayingBeforeTabHide = false;
+      }
+
+      // Temporarily pause world music if playing
+      if (this.isMusicPlaying) {
+        this.wasWorldMusicPlayingBeforeTabHide = true;
+        if (this.ctx && this.ctx.state === 'running') {
+          this.ctx.suspend();
+        }
+      } else {
+        this.wasWorldMusicPlayingBeforeTabHide = false;
+      }
+    } else {
+      // Resume AudioContext if we were playing world music
+      if (this.wasWorldMusicPlayingBeforeTabHide) {
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      // Resume menu music if it was playing before
+      if (this.wasMenuMusicPlayingBeforeTabHide && this.menuAudioElement) {
+        this.menuAudioElement.play().catch(e => console.warn("Failed to resume menu music:", e));
+      }
+    }
   }
 
   private playTone(
@@ -119,6 +160,7 @@ export class SoundManager {
     isMusic = false // Category selection
   ) {
     this.init();
+    if (document.hidden) return;
     if (!this.ctx || this.isMuted) return;
 
     // Resume context if suspended
@@ -164,6 +206,7 @@ export class SoundManager {
     isMusic = false // Category selection
   ) {
     this.init();
+    if (document.hidden) return;
     if (!this.ctx || this.isMuted) return;
 
     if (this.ctx.state === 'suspended') {
@@ -654,7 +697,7 @@ export class SoundManager {
 
       this.musicInterval = setTimeout(playNextBeat, currentInterval);
 
-      if (this.isMuted || !this.ctx || this.ctx.state === 'suspended') return;
+      if (document.hidden || this.isMuted || !this.ctx || this.ctx.state === 'suspended') return;
 
       const isUltimate = engine ? engine.ultimateActive : false;
       const isBossFight = engine ? (engine.state === 'BOSS_FIGHT' || engine.state === 'BOSS_WARNING') : false;
@@ -867,7 +910,7 @@ export class SoundManager {
 
       this.musicInterval = setTimeout(playNextTick, currentTickMs);
 
-      if (this.isMuted || !this.ctx || this.ctx.state === 'suspended') return;
+      if (document.hidden || this.isMuted || !this.ctx || this.ctx.state === 'suspended') return;
 
       const t   = this.ctx.currentTime;
       const bar = this.beatStep % 8; // 8 ticks per chord

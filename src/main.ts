@@ -215,14 +215,22 @@ function init() {
   lastTime = performance.now();
   requestAnimationFrame(loop);
 
-  // Start Glass Alibi menu music on first user gesture (autoplay policy workaround)
-  const startMenuMusicOnce = () => {
-    soundManager.startMenuMusic();
-    window.removeEventListener('pointerdown', startMenuMusicOnce);
-    window.removeEventListener('keydown', startMenuMusicOnce);
+  // Handle page visibility changes (mute/pause music when backgrounded/hidden)
+  document.addEventListener('visibilitychange', () => {
+    soundManager.handleVisibilityChange(document.hidden);
+  });
+
+  // Start/resume menu music on any user gesture (browser autoplay policy workaround)
+  const playMenuMusicOnGesture = () => {
+    const shouldPlayMenuMusic = gameEngine.state === 'MENU' ||
+                                gameEngine.state === 'GAMEOVER' ||
+                                gameEngine.state === 'DEMO_COMPLETE';
+    if (shouldPlayMenuMusic) {
+      soundManager.startMenuMusic();
+    }
   };
-  window.addEventListener('pointerdown', startMenuMusicOnce);
-  window.addEventListener('keydown', startMenuMusicOnce);
+  window.addEventListener('pointerdown', playMenuMusicOnGesture);
+  window.addEventListener('keydown', playMenuMusicOnGesture);
 }
 
 function setupInputs() {
@@ -411,19 +419,17 @@ function loop(time: number) {
     uiManager.drawSkinPreviews();
   }
 
-  // ── Menu music: play on all non-gameplay screens, stop during gameplay ────
-  const isPlaying = gameEngine.state === 'PLAYING' ||
-                    gameEngine.state === 'BOSS_FIGHT' ||
-                    gameEngine.state === 'BOSS_WARNING' ||
-                    gameEngine.state === 'PRELOADING' ||
-                    gameEngine.state === 'REVIVE_CHOICE'; // world music plays here
+  // ── Menu music BGM state control ────
+  const shouldPlayMenuMusic = gameEngine.state === 'MENU' ||
+                              gameEngine.state === 'GAMEOVER' ||
+                              gameEngine.state === 'DEMO_COMPLETE';
 
-  if (isPlaying && isMenuMusicActive) {
-    soundManager.stopMenuMusic();
-    isMenuMusicActive = false;
-  } else if (!isPlaying && !isMenuMusicActive) {
+  if (shouldPlayMenuMusic && !isMenuMusicActive) {
     soundManager.startMenuMusic();
     isMenuMusicActive = true;
+  } else if (!shouldPlayMenuMusic && isMenuMusicActive) {
+    soundManager.stopMenuMusic();
+    isMenuMusicActive = false;
   }
 
   requestAnimationFrame(loop);
