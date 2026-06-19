@@ -2660,9 +2660,6 @@ export class UIManager {
                 <div style="font-size: 13.5px; font-weight: 800; color: #ffd700; display: flex; align-items: center; gap: 6px;">
                   CLASSIC
                 </div>
-                <div style="font-size: 10px; color: rgba(255, 255, 255, 0.7); margin-top: 3px; line-height: 1.4;">
-                  Original single bird gameplay. Pure skill, classic physics, and infinite highscore chase.
-                </div>
               </div>
               <button id="btn-select-classic" class="btn" style="width: auto; padding: 8px 14px; font-size: 11px; font-weight: 800; background: linear-gradient(180deg, #ffd700 0%, #ffaa00 100%); color: #3d2c00; border-radius: 10px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(255, 215, 0, 0.25);">FLY</button>
             </div>
@@ -2673,9 +2670,6 @@ export class UIManager {
               <div style="flex: 1;">
                 <div style="font-size: 13.5px; font-weight: 800; color: #00f3ff; display: flex; align-items: center; gap: 6px;">
                   SQUAD
-                </div>
-                <div style="font-size: 10px; color: rgba(255, 255, 255, 0.7); margin-top: 3px; line-height: 1.4;">
-                  Fly with a flock! A new bird joins your squad every 10 to 20 points. Survives if at least one bird is alive.
                 </div>
               </div>
               <button id="btn-select-flock" class="btn" style="width: auto; padding: 8px 14px; font-size: 11px; font-weight: 800; background: linear-gradient(180deg, #00f3ff 0%, #0088ff 100%); color: #002233; border-radius: 10px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0, 243, 255, 0.25);">FLY</button>
