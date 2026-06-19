@@ -966,7 +966,7 @@ export class UIManager {
 
           return `
             <div class="daily-rewards-container" style="padding-bottom: 20px;">
-              <div class="hangar-section-title" style="margin: 0 0 15px 0; font-size: 18px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; color: #fff; text-shadow: 0 0 8px rgba(255,255,255,0.4); text-align: center;">🎯 MISSIONS</div>
+              <div class="hangar-section-title" style="margin: 0 0 15px 0; font-size: 18px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; color: #fff; text-shadow: 0 0 8px rgba(255,255,255,0.4); text-align: center;">🦅 MISSIONS</div>
               <div class="hangar-section-title" style="margin-top: 0; color: #00f3ff; border-left: 3px solid #00f3ff; padding-left: 8px;">SHORT-TERM MISSIONS</div>
               <div class="quests-list" style="margin-bottom: 20px;">
                 ${shortHtml}
