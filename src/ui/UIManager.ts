@@ -2644,113 +2644,252 @@ export class UIManager {
 
   private showEndlessModeSelection() {
     this.container.innerHTML = `
-      <div class="overlay-screen fade-in glass-modal" style="background: rgba(10, 5, 20, 0.88); display: flex; align-items: center; justify-content: center;">
-        <div class="modal-card animate-slide-up" style="max-width: 440px; padding: 25px 20px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6); position: relative;">
+      <style>
+        .mode-3d-overlay {
+          background: rgba(8, 4, 18, 0.92);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 9999;
+          font-family: 'Outfit', sans-serif;
+        }
+        .mode-3d-card-wrapper {
+          background: rgba(18, 12, 30, 0.7);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 28px;
+          padding: 30px 25px;
+          max-width: 500px;
+          width: 90%;
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+          position: relative;
+          backdrop-filter: blur(16px);
+          text-align: center;
+        }
+        .mode-3d-container {
+          display: flex;
+          gap: 20px;
+          width: 100%;
+          justify-content: center;
+          perspective: 1000px;
+          padding: 15px 5px;
+          margin-top: 15px;
+        }
+        .mode-3d-card {
+          flex: 1;
+          background: linear-gradient(135deg, rgba(28, 22, 40, 0.9) 0%, rgba(14, 10, 22, 0.95) 100%);
+          border-radius: 20px;
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: space-between;
+          padding: 24px 16px;
+          transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+          transform-style: preserve-3d;
+          cursor: pointer;
+        }
+        
+        /* Classic 3D Theme */
+        .mode-3d-card.classic-3d {
+          border: 2px solid #ffd700;
+          border-bottom: 8px solid #c59b00;
+          box-shadow: 0 10px 25px rgba(255, 215, 0, 0.15), 0 15px 30px rgba(0, 0, 0, 0.5);
+        }
+        .mode-3d-card.classic-3d:hover {
+          transform: translateY(-10px) rotateX(12deg) rotateY(-5deg);
+          box-shadow: 0 20px 35px rgba(255, 215, 0, 0.35), 0 25px 40px rgba(0, 0, 0, 0.6);
+          border-bottom-width: 8px;
+        }
+        .mode-3d-card.classic-3d:active {
+          transform: translateY(2px) rotateX(2deg) rotateY(0deg);
+          border-bottom-width: 3px;
+          box-shadow: 0 4px 10px rgba(255, 215, 0, 0.2), 0 8px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Squad 3D Theme */
+        .mode-3d-card.squad-3d {
+          border: 2px solid #00f3ff;
+          border-bottom: 8px solid #00a2ac;
+          box-shadow: 0 10px 25px rgba(0, 243, 255, 0.15), 0 15px 30px rgba(0, 0, 0, 0.5);
+        }
+        .mode-3d-card.squad-3d:hover {
+          transform: translateY(-10px) rotateX(12deg) rotateY(5deg);
+          box-shadow: 0 20px 35px rgba(0, 243, 255, 0.35), 0 25px 40px rgba(0, 0, 0, 0.6);
+          border-bottom-width: 8px;
+        }
+        .mode-3d-card.squad-3d:active {
+          transform: translateY(2px) rotateX(2deg) rotateY(0deg);
+          border-bottom-width: 3px;
+          box-shadow: 0 4px 10px rgba(0, 243, 255, 0.2), 0 8px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Inner elements 3D pop-out */
+        .mode-3d-icon {
+          transform: translateZ(35px);
+          transition: transform 0.3s ease;
+          margin-bottom: 12px;
+          width: 50px;
+          height: 50px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .mode-3d-card:hover .mode-3d-icon {
+          transform: translateZ(50px) scale(1.15);
+        }
+        .mode-3d-label {
+          font-family: 'Outfit', sans-serif;
+          font-size: 16px;
+          font-weight: 900;
+          letter-spacing: 1.5px;
+          margin-bottom: 18px;
+          text-transform: uppercase;
+          transform: translateZ(20px);
+        }
+        .mode-3d-card.classic-3d .mode-3d-label {
+          color: #ffd700;
+          text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+        }
+        .mode-3d-card.squad-3d .mode-3d-label {
+          color: #00f3ff;
+          text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+        }
+
+        /* 3D arcade buttons */
+        .mode-3d-btn {
+          width: 100%;
+          padding: 10px 8px;
+          font-size: 12px;
+          font-weight: 900;
+          text-transform: uppercase;
+          border-radius: 12px;
+          border: none;
+          transform: translateZ(25px);
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .classic-3d-btn {
+          background: linear-gradient(180deg, #ffd700 0%, #ff8800 100%);
+          color: #301f00;
+          box-shadow: 0 4px 0 #9c6300, 0 6px 15px rgba(255, 170, 0, 0.3);
+        }
+        .classic-3d-btn:hover {
+          background: linear-gradient(180deg, #ffe54d 0%, #ff9900 100%);
+          box-shadow: 0 5px 0 #9c6300, 0 8px 18px rgba(255, 170, 0, 0.4);
+        }
+        .squad-3d-btn {
+          background: linear-gradient(180deg, #00f3ff 0%, #0066ff 100%);
+          color: #001f30;
+          box-shadow: 0 4px 0 #004da8, 0 6px 15px rgba(0, 136, 255, 0.3);
+        }
+        .squad-3d-btn:hover {
+          background: linear-gradient(180deg, #4df7ff 0%, #1a80ff 100%);
+          box-shadow: 0 5px 0 #004da8, 0 8px 18px rgba(0, 136, 255, 0.4);
+        }
+      </style>
+
+      <div class="mode-3d-overlay fade-in">
+        <div class="mode-3d-card-wrapper animate-slide-up">
           <!-- Close button in corner -->
           <button id="btn-close-mode-selector" style="position: absolute; right: 15px; top: 15px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50%; color: white; width: 32px; height: 32px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">×</button>
           
-          <h2 class="modal-title" style="color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 900; margin-bottom: 5px;">SELECT GAME MODE</h2>
-          <p class="modal-subtitle" style="color: rgba(255, 255, 255, 0.6); font-size: 11px; margin-bottom: 20px;">Choose your endless adventure</p>
+          <h2 style="color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); font-size: 24px; font-weight: 900; margin-bottom: 5px; text-transform: uppercase;">SELECT GAME MODE</h2>
+          <p style="color: rgba(255, 255, 255, 0.6); font-size: 11px; margin-bottom: 5px;">Choose your endless adventure</p>
           
-          <div style="display: flex; flex-direction: column; gap: 12px; text-align: left; width: 100%;">
-             <!-- Option 1: Classic -->
-            <div class="glass-card" style="padding: 12px 14px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; display: flex; align-items: center; gap: 12px;">
-              <div style="flex-shrink: 0; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
-                <svg width="45" height="45" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));">
+          <div class="mode-3d-container">
+            <!-- Option 1: Classic Card -->
+            <div class="mode-3d-card classic-3d" id="card-select-classic">
+              <div class="mode-3d-icon">
+                <svg width="50" height="50" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="50" cy="50" r="42" fill="rgba(255, 215, 0, 0.05)" stroke="rgba(255, 215, 0, 0.15)" stroke-width="1.5" stroke-dasharray="4 4" />
                   <g transform="translate(10, 15)">
                     <path d="M12,40 C5,38 2,42 0,47 C3,52 8,50 15,46 Z" fill="#ff8800" />
                     <path d="M15,44 C10,40 6,43 5,48 C8,52 12,50 17,46 Z" fill="#ffaa00" />
-                    <circle cx="40" cy="38" r="24" fill="url(#gold-body-grad)" stroke="#9c6300" stroke-width="2" />
+                    <circle cx="40" cy="38" r="24" fill="url(#gold-body-grad-3d)" stroke="#9c6300" stroke-width="2" />
                     <ellipse cx="50" cy="28" rx="8" ry="11" fill="#ffffff" stroke="#111" stroke-width="2" />
                     <ellipse cx="51" cy="28" rx="4" ry="6" fill="#000000" />
                     <circle cx="49" cy="25" r="2.2" fill="#ffffff" />
                     <circle cx="53" cy="31" r="1" fill="#ffffff" />
-                    <path d="M60,34 C72,34 78,38 72,44 C66,48 60,42 60,34 Z" fill="url(#beak-grad)" stroke="#b34000" stroke-width="1.5" />
-                    <path d="M58,40 C68,42 70,46 64,48 C58,50 56,43 58,40 Z" fill="url(#beak-grad)" stroke="#b34000" stroke-width="1.5" />
+                    <path d="M60,34 C72,34 78,38 72,44 C66,48 60,42 60,34 Z" fill="url(#beak-grad-3d)" stroke="#b34000" stroke-width="1.5" />
+                    <path d="M58,40 C68,42 70,46 64,48 C58,50 56,43 58,40 Z" fill="url(#beak-grad-3d)" stroke="#b34000" stroke-width="1.5" />
                     <path d="M22,46 C28,58 52,58 58,46 C48,50 32,50 22,46 Z" fill="#fff9d4" opacity="0.8" />
-                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#gold-wing-grad)" stroke="#9c6300" stroke-width="1.8" />
+                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#gold-wing-grad-3d)" stroke="#9c6300" stroke-width="1.8" />
                     <path d="M28,36 C24,27 36,18 40,26 C43,33 36,41 28,36 Z" fill="#ffe066" opacity="0.9" />
                   </g>
                   <defs>
-                    <linearGradient id="gold-body-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <linearGradient id="gold-body-grad-3d" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stop-color="#fff099" />
                       <stop offset="40%" stop-color="#ffd700" />
                       <stop offset="100%" stop-color="#e69d00" />
                     </linearGradient>
-                    <linearGradient id="gold-wing-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <linearGradient id="gold-wing-grad-3d" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stop-color="#fff5cc" />
                       <stop offset="100%" stop-color="#ffa600" />
                     </linearGradient>
-                    <linearGradient id="beak-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <linearGradient id="beak-grad-3d" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stop-color="#ff9900" />
                       <stop offset="100%" stop-color="#ff3300" />
                     </linearGradient>
                   </defs>
                 </svg>
               </div>
-              <div style="flex: 1;">
-                <div style="font-size: 13.5px; font-weight: 800; color: #ffd700; display: flex; align-items: center; gap: 6px;">
-                  CLASSIC
-                </div>
-              </div>
-              <button id="btn-select-classic" class="btn" style="width: auto; padding: 8px 14px; font-size: 11px; font-weight: 800; background: linear-gradient(180deg, #ffd700 0%, #ffaa00 100%); color: #3d2c00; border-radius: 10px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(255, 215, 0, 0.25);">FLY</button>
+              <div class="mode-3d-label">Classic</div>
+              <button id="btn-select-classic" class="mode-3d-btn classic-3d-btn">Fly</button>
             </div>
 
-            <!-- Option 2: Squad Survival -->
-            <div class="glass-card" style="padding: 12px 14px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; display: flex; align-items: center; gap: 12px;">
-              <div style="flex-shrink: 0; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
-                <svg width="45" height="45" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 8px rgba(0, 243, 255, 0.6));">
+            <!-- Option 2: Squad Card -->
+            <div class="mode-3d-card squad-3d" id="card-select-flock">
+              <div class="mode-3d-icon">
+                <svg width="50" height="50" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="50" cy="50" r="42" fill="rgba(0, 243, 255, 0.04)" stroke="rgba(0, 243, 255, 0.15)" stroke-width="1.5" stroke-dasharray="4 4" />
                   <g transform="translate(10, 52) scale(0.42)">
                     <path d="M12,40 C5,38 2,42 0,47 C3,52 8,50 15,46 Z" fill="#005588" />
-                    <circle cx="40" cy="38" r="24" fill="url(#squad-blue-grad)" stroke="#003366" stroke-width="2" />
+                    <circle cx="40" cy="38" r="24" fill="url(#squad-blue-grad-3d)" stroke="#003366" stroke-width="2" />
                     <ellipse cx="50" cy="28" rx="8" ry="11" fill="#ffffff" stroke="#111" stroke-width="2" />
                     <ellipse cx="51" cy="28" rx="4" ry="6" fill="#000000" />
                     <path d="M60,34 C72,34 78,38 72,44 C66,48 60,42 60,34 Z" fill="#ff7700" />
-                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#squad-cyan-grad)" stroke="#005588" stroke-width="1.8" />
+                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#squad-cyan-grad-3d)" stroke="#005588" stroke-width="1.8" />
                   </g>
                   <g transform="translate(15, 12) scale(0.5)">
                     <path d="M12,40 C5,38 2,42 0,47 C3,52 8,50 15,46 Z" fill="#005588" />
-                    <circle cx="40" cy="38" r="24" fill="url(#squad-blue-grad)" stroke="#003366" stroke-width="2" />
+                    <circle cx="40" cy="38" r="24" fill="url(#squad-blue-grad-3d)" stroke="#003366" stroke-width="2" />
                     <ellipse cx="50" cy="28" rx="8" ry="11" fill="#ffffff" stroke="#111" stroke-width="2" />
                     <ellipse cx="51" cy="28" rx="4" ry="6" fill="#000000" />
                     <path d="M60,34 C72,34 78,38 72,44 C66,48 60,42 60,34 Z" fill="#ff7700" />
-                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#squad-cyan-grad)" stroke="#005588" stroke-width="1.8" />
+                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#squad-cyan-grad-3d)" stroke="#005588" stroke-width="1.8" />
                   </g>
                   <g transform="translate(42, 26) scale(0.65)">
                     <path d="M12,40 C5,38 2,42 0,47 C3,52 8,50 15,46 Z" fill="#005588" />
-                    <circle cx="40" cy="38" r="24" fill="url(#squad-cyan-grad)" stroke="#005588" stroke-width="2" />
+                    <circle cx="40" cy="38" r="24" fill="url(#squad-cyan-grad-3d)" stroke="#005588" stroke-width="2" />
                     <ellipse cx="50" cy="28" rx="8" ry="11" fill="#ffffff" stroke="#111" stroke-width="2" />
                     <ellipse cx="51" cy="28" rx="4" ry="6" fill="#000000" />
                     <circle cx="49" cy="25" r="2.2" fill="#ffffff" />
                     <path d="M60,34 C72,34 78,38 72,44 C66,48 60,42 60,34 Z" fill="#ff7700" stroke="#b34000" stroke-width="1" />
                     <path d="M58,40 C68,42 70,46 64,48 C58,50 56,43 58,40 Z" fill="#ff5500" stroke="#b34000" stroke-width="1" />
-                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#squad-blue-grad)" stroke="#003366" stroke-width="1.8" />
+                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#squad-blue-grad-3d)" stroke="#003366" stroke-width="1.8" />
                     <path d="M28,36 C24,27 36,18 40,26 C43,33 36,41 28,36 Z" fill="#a3f5ff" opacity="0.9" />
                   </g>
                   <defs>
-                    <linearGradient id="squad-cyan-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <linearGradient id="squad-cyan-grad-3d" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stop-color="#b3f5ff" />
                       <stop offset="50%" stop-color="#00f3ff" />
                       <stop offset="100%" stop-color="#00aaff" />
                     </linearGradient>
-                    <linearGradient id="squad-blue-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <linearGradient id="squad-blue-grad-3d" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stop-color="#80d5ff" />
                       <stop offset="100%" stop-color="#0055ff" />
                     </linearGradient>
                   </defs>
                 </svg>
               </div>
-              <div style="flex: 1;">
-                <div style="font-size: 13.5px; font-weight: 800; color: #00f3ff; display: flex; align-items: center; gap: 6px;">
-                  SQUAD
-                </div>
-              </div>
-              <button id="btn-select-flock" class="btn" style="width: auto; padding: 8px 14px; font-size: 11px; font-weight: 800; background: linear-gradient(180deg, #00f3ff 0%, #0088ff 100%); color: #002233; border-radius: 10px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0, 243, 255, 0.25);">FLY</button>
+              <div class="mode-3d-label">Squad</div>
+              <button id="btn-select-flock" class="mode-3d-btn squad-3d-btn">Fly</button>
             </div>
-
-            <!-- Option 3 and 4 were removed to make the game lightweight and focus on classic/survival modes -->
           </div>
         </div>
       </div>
@@ -2760,18 +2899,28 @@ export class UIManager {
       this.renderMenu();
     });
 
-    document.getElementById('btn-select-classic')?.addEventListener('click', () => {
+    document.getElementById('btn-select-classic')?.addEventListener('click', (e) => {
+      e.stopPropagation();
       this.engine.gameMode = 'endless';
       this.engine.isSpectatorMode = false;
       this.engine.startGame();
       this.render();
     });
 
-    document.getElementById('btn-select-flock')?.addEventListener('click', () => {
+    document.getElementById('btn-select-flock')?.addEventListener('click', (e) => {
+      e.stopPropagation();
       this.engine.gameMode = 'flock';
       this.engine.isSpectatorMode = false;
       this.engine.startGame();
       this.render();
+    });
+
+    document.getElementById('card-select-classic')?.addEventListener('click', () => {
+      document.getElementById('btn-select-classic')?.click();
+    });
+
+    document.getElementById('card-select-flock')?.addEventListener('click', () => {
+      document.getElementById('btn-select-flock')?.click();
     });
   }
 
