@@ -741,7 +741,7 @@ export class UIManager {
 
     const tabMeta: Record<string, { icon: string; title: string; color: string; heroIcon: string; heroSubtitle: string }> = {
       skins:        { icon: this.getCharacterIconSvg('32px', '32px', 'vertical-align: middle; display: inline-block;', 'tab'), title: 'SELECT YOUR CHARACTER',  color: '#00f3ff', heroIcon: this.getCharacterIconSvg('72px', '72px', 'animation: floatBird 4s ease-in-out infinite;', 'hero'), heroSubtitle: '' },
-      worlds:       { icon: this.getWorldsIconSvg('32px', '32px', 'vertical-align: middle; display: inline-block;', 'tab'), title: 'SELECT BATTLEFIELD',   color: '#7b2fff', heroIcon: this.getWorldsIconSvg('72px', '72px', 'animation: floatBird 4s ease-in-out infinite;', 'hero'), heroSubtitle: 'Choose your flying world' },
+      worlds:       { icon: this.getWorldsIconSvg('32px', '32px', 'vertical-align: middle; display: inline-block;', 'tab'), title: 'CHOOSE YOUR FLYING LOCATION',   color: '#7b2fff', heroIcon: this.getWorldsIconSvg('72px', '72px', 'animation: floatBird 4s ease-in-out infinite;', 'hero'), heroSubtitle: '' },
       bp:           { icon: '🎫', title: 'SEASON 1 BATTLE PASS', color: '#ff007f', heroIcon: '⚔️', heroSubtitle: 'Unlock exclusive rewards' },
       achievements: { icon: '🏆', title: 'HALL OF TROPHIES',     color: '#ffd700', heroIcon: '🏅', heroSubtitle: 'Track your legendary feats' },
       rewards:      { icon: this.getRewardBoxSvg('32px', '32px', 'vertical-align: middle; display: inline-block;', 'tab'), title: 'REWARDS & PROGRESSION HUB', color: '#ffaa00', heroIcon: this.getRewardBoxSvg('72px', '72px', 'animation: floatBird 4s ease-in-out infinite;', 'hero'), heroSubtitle: 'Claim your daily logs, trophies, and battle pass!' },
@@ -795,7 +795,7 @@ export class UIManager {
         ` : ''}
 
         <!-- ===== HERO FEATURE SPOTLIGHT ===== -->
-        ${(this.activeTab !== 'levels' && this.activeTab !== 'settings') ? `
+        ${(this.activeTab !== 'levels' && this.activeTab !== 'settings' && this.activeTab !== 'worlds') ? `
         <div class="tab-hero-spotlight" style="${this.activeTab === 'rewards' ? 'max-height: none; padding: 10px 0;' : ''}">
           <div class="tab-spotlight-glow" style="background:radial-gradient(circle,${meta.color}33 0%,transparent 70%)"></div>
           ${this.activeTab === 'skins' ? 
@@ -902,11 +902,29 @@ export class UIManager {
         const worldsCards = worlds.map(w => {
           const isActive = progress.activeWorld === w.id;
           const wc = worldColors[w.id] || '#fff';
+          
+          let iconHtml = `<div class="world-icon" style="font-size:50px">${w.emoji}</div>`;
+          if (w.id === 'jungle') {
+            iconHtml = this.getJungleWorldIconSvg('58px', '58px');
+          } else if (w.id === 'jungle_temple') {
+            iconHtml = this.getJungleTempleWorldIconSvg('58px', '58px');
+          } else if (w.id === 'ice') {
+            iconHtml = this.getIceWorldIconSvg('58px', '58px');
+          } else if (w.id === 'volcano') {
+            iconHtml = this.getVolcanoWorldIconSvg('58px', '58px');
+          } else if (w.id === 'space') {
+            iconHtml = this.getSpaceWorldIconSvg('58px', '58px');
+          } else if (w.id === 'heaven') {
+            iconHtml = this.getHeavenWorldIconSvg('58px', '58px');
+          } else if (w.id === 'desert') {
+            iconHtml = this.getDesertWorldIconSvg('58px', '58px');
+          }
+
           return `
             <div class="world-card glass-card ${isActive ? 'selected-border' : ''}" data-world-id="${w.id}"
                  style="${isActive ? `box-shadow: 0 0 0 2px ${wc}, 0 0 18px ${wc}44; background:${wc}12;` : ''}"
             >
-              <div class="world-icon" style="font-size:36px">${w.emoji}</div>
+              ${iconHtml}
               <div style="flex:1;min-width:0">
                 <div class="world-name">
                   ${w.name}
@@ -1040,9 +1058,25 @@ export class UIManager {
             }
 
             const worldEmojis: Record<string, string> = {
-              jungle: '🌴', jungle_temple: '🛕', ice: '❄️', volcano: '🌋'
+              jungle: '🌴', jungle_temple: '🛕', ice: '❄️', volcano: '🌋', space: '🌌', heaven: '🌤️', desert: '🏜️'
             };
-            const emoji = worldEmojis[lvl.worldId] || '🐦';
+            
+            let emojiHtml = `<div class="level-emoji-label" style="font-size:20px; margin:2px 0;">${worldEmojis[lvl.worldId] || '🐦'}</div>`;
+            if (lvl.worldId === 'jungle') {
+              emojiHtml = `<div class="level-emoji-label" style="display:flex; justify-content:center; align-items:center; height:25px; margin:2px 0;">${this.getJungleWorldIconSvg('25px', '25px')}</div>`;
+            } else if (lvl.worldId === 'jungle_temple') {
+              emojiHtml = `<div class="level-emoji-label" style="display:flex; justify-content:center; align-items:center; height:25px; margin:2px 0;">${this.getJungleTempleWorldIconSvg('25px', '25px')}</div>`;
+            } else if (lvl.worldId === 'ice') {
+              emojiHtml = `<div class="level-emoji-label" style="display:flex; justify-content:center; align-items:center; height:25px; margin:2px 0;">${this.getIceWorldIconSvg('25px', '25px')}</div>`;
+            } else if (lvl.worldId === 'volcano') {
+              emojiHtml = `<div class="level-emoji-label" style="display:flex; justify-content:center; align-items:center; height:25px; margin:2px 0;">${this.getVolcanoWorldIconSvg('25px', '25px')}</div>`;
+            } else if (lvl.worldId === 'space') {
+              emojiHtml = `<div class="level-emoji-label" style="display:flex; justify-content:center; align-items:center; height:25px; margin:2px 0;">${this.getSpaceWorldIconSvg('25px', '25px')}</div>`;
+            } else if (lvl.worldId === 'heaven') {
+              emojiHtml = `<div class="level-emoji-label" style="display:flex; justify-content:center; align-items:center; height:25px; margin:2px 0;">${this.getHeavenWorldIconSvg('25px', '25px')}</div>`;
+            } else if (lvl.worldId === 'desert') {
+              emojiHtml = `<div class="level-emoji-label" style="display:flex; justify-content:center; align-items:center; height:25px; margin:2px 0;">${this.getDesertWorldIconSvg('25px', '25px')}</div>`;
+            }
 
             return `
               <div class="level-select-card glass-card ${isLocked ? 'locked' : 'unlocked'}" 
@@ -1052,7 +1086,7 @@ export class UIManager {
                   ? `<div class="level-lock-icon">🔒</div>`
                   : `
                     <div class="level-num-label">${lvl.levelNum}</div>
-                    <div class="level-emoji-label">${emoji}</div>
+                    ${emojiHtml}
                     <div class="level-select-stars">${starHtml}</div>
                   `
                 }
@@ -1179,9 +1213,29 @@ export class UIManager {
               </div>
             </div>
 
+            <!-- Game Share System -->
+            <div class="control-group" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px; margin-top: 20px;">
+              <div class="segment-label" style="font-size: 11px; font-weight: 800; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 12px; text-transform: uppercase;">SHARE GAME & EARN REWARDS</div>
+              <div style="display: flex; gap: 8px; justify-content: space-between;">
+                <button class="share-btn-platform" id="btn-share-whatsapp" style="flex: 1; padding: 10px 6px; border: none; border-radius: 12px; font-family: var(--font-family); font-weight: 800; font-size: 11px; cursor: pointer; color: #fff; background: linear-gradient(135deg, #25D366, #128C7E); display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.2);">
+                  <span style="font-size: 18px;">💬</span>
+                  <span>WhatsApp</span>
+                </button>
+                <button class="share-btn-platform" id="btn-share-messenger" style="flex: 1; padding: 10px 6px; border: none; border-radius: 12px; font-family: var(--font-family); font-weight: 800; font-size: 11px; cursor: pointer; color: #fff; background: linear-gradient(135deg, #006AFF, #00B2FF); display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 4px 10px rgba(0, 106, 255, 0.2);">
+                  <span style="font-size: 18px;">⚡</span>
+                  <span>Messenger</span>
+                </button>
+                <button class="share-btn-platform" id="btn-share-imo" style="flex: 1; padding: 10px 6px; border: none; border-radius: 12px; font-family: var(--font-family); font-weight: 800; font-size: 11px; cursor: pointer; color: #fff; background: linear-gradient(135deg, #1062F4, #00A3FF); display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 4px 10px rgba(16, 98, 244, 0.2);">
+                  <span style="font-size: 18px;">📱</span>
+                  <span>IMO</span>
+                </button>
+              </div>
+            </div>
+
             <!-- Back Button at bottom -->
             <div style="margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px;">
               <button class="btn btn-secondary" id="btn-settings-back" style="width: 100%; padding: 12px; border-radius: 12px; font-weight: 800; cursor: pointer;">BACK TO MENU</button>
+            </div>
           </div>
         `;
       }
@@ -1753,13 +1807,139 @@ export class UIManager {
             this.engine.progressManager.updateQuestProgress('watch_ads', 1);
             this.engine.progressManager.save();
             this.render();
-            this.showToastNotification('REWARD CLAIMED! 🎁', 'You received 500 Coins & 10 Gems!');
           } else {
             this.showToastNotification('AD FAILED', 'Failed to play or watch ad.');
           }
         });
       });
     }
+
+    // Share Game System click bindings
+    const handleShareClick = (platform: string) => {
+      this.showSharePopup(platform);
+    };
+
+    const btnShareWhatsapp = document.getElementById('btn-share-whatsapp');
+    if (btnShareWhatsapp) btnShareWhatsapp.addEventListener('click', () => handleShareClick('WhatsApp'));
+
+    const btnShareMessenger = document.getElementById('btn-share-messenger');
+    if (btnShareMessenger) btnShareMessenger.addEventListener('click', () => handleShareClick('Messenger'));
+
+    const btnShareImo = document.getElementById('btn-share-imo');
+    if (btnShareImo) btnShareImo.addEventListener('click', () => handleShareClick('IMO'));
+  }
+
+  private showSharePopup(platform: string) {
+    const existing = document.getElementById('share-modal-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'share-modal-overlay';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999999;
+      font-family: 'Outfit', sans-serif;
+    `;
+
+    overlay.innerHTML = `
+      <div class="glass-card fade-in" style="
+        background: rgba(20, 16, 38, 0.95);
+        border: 1.5px solid rgba(0, 255, 136, 0.25);
+        padding: 24px;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 340px;
+        text-align: center;
+        box-shadow: 0 15px 35px rgba(0, 255, 136, 0.1), 0 5px 15px rgba(0,0,0,0.5);
+      ">
+        <div style="font-size: 18px; font-weight: 900; color: #ffd700; margin-bottom: 8px;">
+          SHARE VIA ${platform.toUpperCase()} 🚀
+        </div>
+        <div style="font-size: 11px; color: rgba(255,255,255,0.7); margin-bottom: 16px;">
+          Enter friend's WhatsApp/IMO number or Messenger username/email to share the game link and claim rewards.
+        </div>
+        
+        <input type="text" id="share-target-input" placeholder="e.g. +9779812345678 or user@mail.com" style="
+          width: 100%;
+          padding: 12px;
+          border-radius: 10px;
+          border: 1px solid rgba(255,255,255,0.15);
+          background: rgba(0,0,0,0.25);
+          color: white;
+          font-family: inherit;
+          font-size: 12px;
+          margin-bottom: 16px;
+          box-sizing: border-box;
+          outline: none;
+        ">
+        
+        <div style="display: flex; gap: 10px; justify-content: center;">
+          <button id="share-cancel-btn" class="btn btn-secondary" style="flex: 1; padding: 10px; border-radius: 10px; font-weight: 800; font-size: 12px;">CANCEL</button>
+          <button id="share-send-btn" class="btn" style="flex: 1; padding: 10px; border-radius: 10px; font-weight: 800; font-size: 12px; background: linear-gradient(135deg, #00ff88, #00b3ff); color: #0b071e;">SHARE & SEND</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const closePopup = () => overlay.remove();
+    document.getElementById('share-cancel-btn')?.addEventListener('click', closePopup);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closePopup();
+    });
+
+    document.getElementById('share-send-btn')?.addEventListener('click', () => {
+      const inputEl = document.getElementById('share-target-input') as HTMLInputElement | null;
+      const targetVal = inputEl ? inputEl.value.trim() : '';
+
+      if (!targetVal) {
+        this.showToastNotification('INPUT REQUIRED', 'Please enter a valid number, username, or email.');
+        return;
+      }
+
+      // Check validation
+      const result = this.engine.progressManager.recordShareTarget(targetVal);
+      if (result.success) {
+        // Trigger sharing intent (mocked/native Web Share API or platform deep link redirects)
+        const gameUrl = window.location.href;
+        const text = `Hey! Play Floppy Bird Pipes: Flight of Legends with me here: ${gameUrl}`;
+        
+        let shareUrl = '';
+        if (platform === 'WhatsApp') {
+          shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+        } else if (platform === 'Messenger') {
+          // Messenger doesn't support custom text prefix directly without app ID, so we use facebook share
+          shareUrl = `https://www.facebook.com/dialog/send?link=${encodeURIComponent(gameUrl)}&app_id=123456789&redirect_uri=${encodeURIComponent(gameUrl)}`;
+        } else if (platform === 'IMO') {
+          // IMO doesn't have a public web API link scheme, so we can fall back to standard navigator share or clipboard copy
+          shareUrl = `https://imo.im/`;
+        }
+
+        // Open window for redirect
+        if (shareUrl && platform !== 'IMO') {
+          window.open(shareUrl, '_blank');
+        } else {
+          // Fallback Clipboard copy
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(text);
+            this.showToastNotification('LINK COPIED 📋', 'Share link copied to clipboard for IMO!');
+          }
+        }
+
+        this.showToastNotification('SHARE SUCCESSFUL 🎉', 'You earned share mission progress!');
+        closePopup();
+        this.render();
+      } else {
+        this.showToastNotification('DUPLICATE SHARE 🔒', result.msg);
+      }
+    });
 
   }
 
@@ -3436,6 +3616,583 @@ export class UIManager {
       <circle cx="0" cy="-4" r="3.5" fill="#d50000" opacity="0.15" />
     </g>
 
+  </g>
+</svg>
+    `;
+  }
+
+  private getJungleWorldIconSvg(width: string, height: string): string {
+    return `
+<svg viewBox="0 0 100 100" style="width: ${width}; height: ${height}; display: inline-block; vertical-align: middle; filter: drop-shadow(0 0 8px rgba(0,200,83,0.6));" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="jungleBgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#052e16" />
+      <stop offset="100%" stop-color="#022c22" />
+    </linearGradient>
+    <!-- Waterfall Gradient -->
+    <linearGradient id="waterfallGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#a5f3fc" />
+      <stop offset="100%" stop-color="#0ea5e9" />
+    </linearGradient>
+    <!-- Leaves Gradient -->
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4ade80" />
+      <stop offset="100%" stop-color="#15803d" />
+    </linearGradient>
+    <linearGradient id="leafGradDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e" />
+      <stop offset="100%" stop-color="#14532d" />
+    </linearGradient>
+  </defs>
+
+  <!-- Mask for circular boundary -->
+  <clipPath id="circleClip">
+    <circle cx="50" cy="50" r="46" />
+  </clipPath>
+
+  <!-- Base Glow Shadow Outer Ring -->
+  <circle cx="50" cy="50" r="48" fill="none" stroke="#22c55e" stroke-width="2.5" opacity="0.8" />
+  <circle cx="50" cy="50" r="46" fill="url(#jungleBgGrad)" />
+
+  <!-- Inside Content Clipped to Circle -->
+  <g clip-path="url(#circleClip)">
+    <!-- Distant Mountains/Jungle Silhouette -->
+    <path d="M 0,60 Q 25,45 50,60 T 100,55 L 100,100 L 0,100 Z" fill="#0f3d24" opacity="0.6" />
+    <path d="M 0,70 Q 35,55 70,70 T 100,75 L 100,100 L 0,100 Z" fill="#0b301a" />
+
+    <!-- Waterfall coming from the top center -->
+    <path d="M 42,40 L 58,40 L 62,90 L 38,90 Z" fill="url(#waterfallGrad)" />
+    <!-- Waterfall stream details -->
+    <path d="M 46,40 L 48,90" stroke="#ffffff" stroke-width="0.8" opacity="0.7" stroke-dasharray="8 4" />
+    <path d="M 52,40 L 50,90" stroke="#ffffff" stroke-width="0.8" opacity="0.7" stroke-dasharray="10 5" />
+    <path d="M 54,45 L 53,90" stroke="#e0f2fe" stroke-width="0.6" opacity="0.8" />
+    
+    <!-- Water Splash Foam at bottom -->
+    <ellipse cx="50" cy="88" rx="15" ry="5" fill="#e0f2fe" opacity="0.9" />
+    <ellipse cx="50" cy="91" rx="18" ry="4" fill="#ffffff" opacity="0.8" />
+
+    <!-- Tropical Leaves Left Side -->
+    <!-- Monstera leaf 1 -->
+    <g transform="translate(18, 62) rotate(-20) scale(0.6)">
+      <path d="M 0,0 C 15,-15 30,-5 30,15 C 30,35 10,40 0,40 C -10,40 -30,35 -30,15 C -30,-5 -15,-15 0,0 Z" fill="url(#leafGradDark)" />
+      <!-- Leaf cuts -->
+      <path d="M 0,0 L 0,40" stroke="#14532d" stroke-width="1.5" />
+      <path d="M 5,10 L 25,5" stroke="#052e16" stroke-width="1.2" />
+      <path d="M -5,10 L -25,5" stroke="#052e16" stroke-width="1.2" />
+      <path d="M 8,20 L 28,18" stroke="#052e16" stroke-width="1.2" />
+      <path stroke="#052e16" stroke-width="1.2" d="M -8,20 L -28,18" />
+    </g>
+    <!-- Fern/Palm Leaf 1 -->
+    <g transform="translate(10, 80) rotate(35) scale(0.7)">
+      <path d="M -2,40 Q 15,10 30,-10 Q 15,20 -2,40 Z" fill="url(#leafGrad)" />
+      <path d="M 0,40 L 20,0" stroke="#15803d" stroke-width="1" />
+    </g>
+
+    <!-- Tropical Leaves Right Side -->
+    <!-- Monstera leaf 2 -->
+    <g transform="translate(82, 60) rotate(15) scale(0.65)">
+      <path d="M 0,0 C 15,-15 30,-5 30,15 C 30,35 10,40 0,40 C -10,40 -30,35 -30,15 C -30,-5 -15,-15 0,0 Z" fill="url(#leafGrad)" />
+      <path d="M 0,0 L 0,40" stroke="#166534" stroke-width="1.5" />
+      <path d="M 5,10 L 25,5" stroke="#14532d" stroke-width="1" />
+      <path d="M -5,10 L -25,5" stroke="#14532d" stroke-width="1" />
+      <path d="M 8,20 L 28,18" stroke="#14532d" stroke-width="1" />
+      <path d="M -8,20 L -28,18" stroke="#14532d" stroke-width="1" />
+    </g>
+    <!-- Fern/Palm Leaf 2 -->
+    <g transform="translate(90, 78) rotate(-30) scale(0.7)">
+      <path d="M 2,40 Q -15,10 -30,-10 Q -15,20 2,40 Z" fill="url(#leafGradDark)" />
+      <path d="M 0,40 L -20,0" stroke="#14532d" stroke-width="1" />
+    </g>
+
+    <!-- Vines hanging from the top -->
+    <path d="M 15,0 Q 20,20 18,35" fill="none" stroke="#166534" stroke-width="1" />
+    <path d="M 18,35 L 15,38 L 21,38 Z" fill="#22c55e" />
+    <path d="M 85,0 Q 80,18 82,30" fill="none" stroke="#166534" stroke-width="1" />
+    <path d="M 82,30 L 79,33 L 85,33 Z" fill="#22c55e" />
+
+    <!-- Rain drops falling diagonally (express environment!) -->
+    <path d="M 30,15 L 28,22" stroke="#38bdf8" stroke-width="1" opacity="0.6" stroke-linecap="round" />
+    <path d="M 70,20 L 68,27" stroke="#38bdf8" stroke-width="1" opacity="0.6" stroke-linecap="round" />
+    <path d="M 48,10 L 46,17" stroke="#38bdf8" stroke-width="1" opacity="0.6" stroke-linecap="round" />
+    <path d="M 20,40 L 18,47" stroke="#38bdf8" stroke-width="1" opacity="0.4" stroke-linecap="round" />
+    <path d="M 82,42 L 80,49" stroke="#38bdf8" stroke-width="1" opacity="0.4" stroke-linecap="round" />
+  </g>
+</svg>
+    `;
+  }
+
+  private getJungleTempleWorldIconSvg(width: string, height: string): string {
+    return `
+<svg viewBox="0 0 100 100" style="width: ${width}; height: ${height}; display: inline-block; vertical-align: middle; filter: drop-shadow(0 0 8px rgba(255,215,0,0.6));" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background Sunset/Sacred Sky Gradient -->
+    <linearGradient id="templeBgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b" />
+      <stop offset="50%" stop-color="#451a03" />
+      <stop offset="100%" stop-color="#14532d" />
+    </linearGradient>
+    <!-- Gold/Light Rays Radial Gradient -->
+    <radialGradient id="sunGlow" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#fef08a" stop-opacity="1" />
+      <stop offset="40%" stop-color="#eab308" stop-opacity="0.8" />
+      <stop offset="70%" stop-color="#ca8a04" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#ca8a04" stop-opacity="0" />
+    </radialGradient>
+    <!-- Ancient Stone Gradients -->
+    <linearGradient id="stoneGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#94a3b8" />
+      <stop offset="100%" stop-color="#475569" />
+    </linearGradient>
+    <linearGradient id="stoneGradMossy" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6b7280" />
+      <stop offset="100%" stop-color="#1e3a1e" />
+    </linearGradient>
+  </defs>
+
+  <clipPath id="circleClipTemple">
+    <circle cx="50" cy="50" r="46" />
+  </clipPath>
+
+  <!-- Base Glow Shadow Outer Ring -->
+  <circle cx="50" cy="50" r="48" fill="none" stroke="#eab308" stroke-width="2.5" opacity="0.8" />
+  <circle cx="50" cy="50" r="46" fill="url(#templeBgGrad)" />
+
+  <g clip-path="url(#circleClipTemple)">
+    <!-- Sun Glow Behind the Temple -->
+    <circle cx="50" cy="45" r="40" fill="url(#sunGlow)" />
+    
+    <!-- Lightrays shooting outwards -->
+    <polygon points="50,45 25,-10 35,-10" fill="#fef08a" opacity="0.25" />
+    <polygon points="50,45 65,-10 75,-10" fill="#fef08a" opacity="0.25" />
+    <polygon points="50,45 -10,25 -10,35" fill="#fef08a" opacity="0.2" />
+    <polygon points="50,45 110,25 110,35" fill="#fef08a" opacity="0.2" />
+    <polygon points="50,45 10,85 18,90" fill="#fef08a" opacity="0.15" />
+    <polygon points="50,45 90,85 82,90" fill="#fef08a" opacity="0.15" />
+
+    <!-- Distant Forest/Jungle silhouette behind temple -->
+    <path d="M 0,65 Q 20,55 40,65 T 80,60 T 100,65 L 100,100 L 0,100 Z" fill="#14532d" opacity="0.75" />
+
+    <!-- Mayan/Aztec Temple Step Pyramid (Mossy Stone) -->
+    <!-- Base Layer (Bottom Step) -->
+    <polygon points="20,85 80,85 74,74 26,74" fill="url(#stoneGradMossy)" stroke="#0f172a" stroke-width="1" />
+    <!-- Middle Layer (Second Step) -->
+    <polygon points="28,74 72,74 67,63 33,63" fill="url(#stoneGrad)" stroke="#0f172a" stroke-width="1" />
+    <!-- Top Layer (Third Step / Sanctuary) -->
+    <polygon points="36,63 64,63 60,50 40,50" fill="url(#stoneGrad)" stroke="#0f172a" stroke-width="1" />
+    
+    <!-- Temple Door / Portal (leads to mystery, glows slightly) -->
+    <path d="M 45,63 L 45,54 C 45,51 55,51 55,54 L 55,63 Z" fill="#020617" />
+    <path d="M 47,63 L 47,56 C 47,54 53,54 53,56 L 53,63 Z" fill="#fef08a" opacity="0.45" />
+
+    <!-- Temple steps detail (center steps going up) -->
+    <polygon points="42,85 58,85 55,50 45,50" fill="#334155" opacity="0.5" />
+    <!-- Step line indicators -->
+    <line x1="44" y1="74" x2="56" y2="74" stroke="#0f172a" stroke-width="0.8" />
+    <line x1="45" y1="63" x2="55" y2="63" stroke="#0f172a" stroke-width="0.8" />
+    <line x1="46" y1="56" x2="54" y2="56" stroke="#0f172a" stroke-width="0.8" />
+
+    <!-- Moss and Vines hanging over the temple -->
+    <!-- Vines hanging on left of temple -->
+    <path d="M 25,74 Q 22,80 23,85" fill="none" stroke="#22c55e" stroke-width="1" />
+    <circle cx="23" cy="80" r="1.5" fill="#4ade80" />
+    <circle cx="24" cy="84" r="1.2" fill="#15803d" />
+    
+    <!-- Vines hanging on top right -->
+    <path d="M 62,50 Q 65,58 63,63" fill="none" stroke="#22c55e" stroke-width="0.8" />
+    <circle cx="64" cy="56" r="1.2" fill="#4ade80" />
+    
+    <!-- Foliage framing the bottom left/right corners -->
+    <path d="M -5,95 Q 15,80 30,105 Z" fill="#15803d" />
+    <path d="M 105,95 Q 85,80 70,105 Z" fill="#166534" />
+    <path d="M 5,105 Q 20,90 35,105 Z" fill="#22c55e" />
+    
+    <!-- Sacred golden magic particles rising around temple -->
+    <circle cx="28" cy="48" r="1.2" fill="#fef08a" opacity="0.9" />
+    <circle cx="72" cy="40" r="0.9" fill="#fef08a" opacity="0.8" />
+    <circle cx="50" cy="30" r="1.5" fill="#fef08a" opacity="0.95" />
+    <circle cx="40" cy="42" r="1.0" fill="#fef08a" opacity="0.75" />
+    <circle cx="58" cy="46" r="0.8" fill="#fef08a" opacity="0.8" />
+  </g>
+</svg>
+    `;
+  }
+
+  private getIceWorldIconSvg(width: string, height: string): string {
+    return `
+<svg viewBox="0 0 100 100" style="width: ${width}; height: ${height}; display: inline-block; vertical-align: middle; filter: drop-shadow(0 0 8px rgba(0,243,255,0.6));" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="iceBgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0b132b" />
+      <stop offset="100%" stop-color="#1c2541" />
+    </linearGradient>
+    <linearGradient id="crystalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e0f7fa" />
+      <stop offset="100%" stop-color="#00e5ff" />
+    </linearGradient>
+    <linearGradient id="mountainGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#48cae4" />
+    </linearGradient>
+  </defs>
+
+  <clipPath id="circleClipIce">
+    <circle cx="50" cy="50" r="46" />
+  </clipPath>
+
+  <!-- Glow Ring -->
+  <circle cx="50" cy="50" r="48" fill="none" stroke="#00e5ff" stroke-width="2.5" opacity="0.8" />
+  <circle cx="50" cy="50" r="46" fill="url(#iceBgGrad)" />
+
+  <g clip-path="url(#circleClipIce)">
+    <!-- Snow mountain peaks -->
+    <polygon points="10,85 50,30 90,85" fill="url(#mountainGrad)" opacity="0.4" />
+    <polygon points="30,85 65,45 100,85" fill="url(#mountainGrad)" opacity="0.25" />
+    <polygon points="-10,85 25,50 60,85" fill="url(#mountainGrad)" opacity="0.25" />
+
+    <!-- Shadows on mountains -->
+    <polygon points="50,30 50,85 90,85" fill="#0077b6" opacity="0.2" />
+
+    <!-- Snow drift ground at bottom -->
+    <path d="M -5,80 Q 25,72 50,80 T 105,78 L 105,105 L -5,105 Z" fill="#ffffff" />
+    <path d="M -5,86 Q 35,80 75,88 T 105,85 L 105,105 L -5,105 Z" fill="#caf0f8" opacity="0.6" />
+
+    <!-- Hanging Ice Spikes/Icicles from top -->
+    <polygon points="15,0 20,0 17,22" fill="#e0f7fa" opacity="0.8" />
+    <polygon points="28,0 36,0 32,32" fill="#caf0f8" opacity="0.9" />
+    <polygon points="32,32 36,0 32,0" fill="#90e0ef" opacity="0.4" />
+    <polygon points="60,0 66,0 63,18" fill="#e0f7fa" opacity="0.8" />
+    <polygon points="75,0 85,0 80,28" fill="#caf0f8" opacity="0.9" />
+
+    <!-- Giant Ice Crystal Snowflake in center -->
+    <g transform="translate(50, 56) scale(0.85)">
+      <!-- Central core -->
+      <circle cx="0" cy="0" r="4" fill="#ffffff" />
+      <!-- Spikes (6 axes) -->
+      <g id="crystalSpike">
+        <line x1="0" y1="0" x2="0" y2="-20" stroke="#ffffff" stroke-width="2" stroke-linecap="round" />
+        <path d="M -4,-12 L 0,-16 L 4,-12" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" />
+        <path d="M -2,-6 L 0,-9 L 2,-6" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" />
+      </g>
+      <g transform="rotate(60)">
+        <use href="#crystalSpike" />
+      </g>
+      <g transform="rotate(120)">
+        <use href="#crystalSpike" />
+      </g>
+      <g transform="rotate(180)">
+        <use href="#crystalSpike" />
+      </g>
+      <g transform="rotate(240)">
+        <use href="#crystalSpike" />
+      </g>
+      <g transform="rotate(300)">
+        <use href="#crystalSpike" />
+      </g>
+    </g>
+
+    <!-- Twinkling snow particles -->
+    <circle cx="22" cy="35" r="1.5" fill="#ffffff" opacity="0.9" />
+    <circle cx="78" cy="42" r="1.2" fill="#ffffff" opacity="0.8" />
+    <circle cx="35" cy="50" r="1.0" fill="#ffffff" opacity="0.75" />
+    <circle cx="65" cy="65" r="1.5" fill="#ffffff" opacity="0.85" />
+  </g>
+</svg>
+    `;
+  }
+
+  private getVolcanoWorldIconSvg(width: string, height: string): string {
+    return `
+<svg viewBox="0 0 100 100" style="width: ${width}; height: ${height}; display: inline-block; vertical-align: middle; filter: drop-shadow(0 0 8px rgba(255,69,0,0.6));" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="volcanoBgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#140505" />
+      <stop offset="100%" stop-color="#3a0808" />
+    </linearGradient>
+    <linearGradient id="lavaRiverGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff3d00" />
+      <stop offset="50%" stop-color="#ffd600" />
+      <stop offset="100%" stop-color="#ff3d00" />
+    </linearGradient>
+    <linearGradient id="eruptionGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#ff3d00" />
+      <stop offset="60%" stop-color="#ff9100" />
+      <stop offset="100%" stop-color="#ffd600" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <clipPath id="circleClipVolcano">
+    <circle cx="50" cy="50" r="46" />
+  </clipPath>
+
+  <!-- Glow Ring -->
+  <circle cx="50" cy="50" r="48" fill="none" stroke="#ff3d00" stroke-width="2.5" opacity="0.8" />
+  <circle cx="50" cy="50" r="46" fill="url(#volcanoBgGrad)" />
+
+  <g clip-path="url(#circleClipVolcano)">
+    <!-- Volcanic Peak Silhouette in center background -->
+    <polygon points="15,85 50,35 85,85" fill="#1e0b0b" stroke="#000000" stroke-width="1" />
+    <!-- Crag highlight / shadow split -->
+    <polygon points="50,35 50,85 85,85" fill="#0d0404" />
+
+    <!-- Lava Eruption plume -->
+    <path d="M 46,36 Q 50,15 42,12 Q 50,22 50,35" fill="none" stroke="url(#eruptionGrad)" stroke-width="3" stroke-linecap="round" />
+    <path d="M 54,36 Q 50,15 58,12 Q 50,22 50,35" fill="none" stroke="url(#eruptionGrad)" stroke-width="3" stroke-linecap="round" />
+    <!-- Exploding sparks from eruption -->
+    <circle cx="42" cy="12" r="1.5" fill="#ffd600" />
+    <circle cx="58" cy="12" r="1.2" fill="#ffd600" />
+    <circle cx="50" cy="8" r="1.8" fill="#ff9100" />
+
+    <!-- Lava flow channels down the mountain face -->
+    <path d="M 50,38 L 47,55 L 40,70 L 35,85" fill="none" stroke="#ff3d00" stroke-width="2" stroke-linecap="round" opacity="0.85" />
+    <path d="M 50,38 L 53,52 L 60,68 L 65,85" fill="none" stroke="#ff9100" stroke-width="1.8" stroke-linecap="round" opacity="0.85" />
+
+    <!-- Basalt Ground / Lava River at bottom -->
+    <rect x="-5" y="80" width="110" height="25" fill="#1c0707" />
+    <path d="M -5,82 Q 25,74 50,82 T 105,80" fill="none" stroke="url(#lavaRiverGrad)" stroke-width="4.5" />
+    <path d="M -5,82 Q 25,74 50,82 T 105,80" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.6" />
+
+    <!-- Sharp basalt rocky spires in foreground -->
+    <polygon points="2,85 10,65 18,85" fill="#0c0303" />
+    <polygon points="82,85 90,62 98,85" fill="#0c0303" />
+
+    <!-- Flying burning embers rising up -->
+    <circle cx="20" cy="45" r="1.2" fill="#ff3d00" opacity="0.9" />
+    <circle cx="28" cy="30" r="0.9" fill="#ff9100" opacity="0.8" />
+    <circle cx="75" cy="50" r="1.5" fill="#ff3d00" opacity="0.85" />
+    <circle cx="82" cy="35" r="1.0" fill="#ffd600" opacity="0.75" />
+  </g>
+</svg>
+    `;
+  }
+
+  private getSpaceWorldIconSvg(width: string, height: string): string {
+    return `
+<svg viewBox="0 0 100 100" style="width: ${width}; height: ${height}; display: inline-block; vertical-align: middle; filter: drop-shadow(0 0 8px rgba(101,31,255,0.6));" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="spaceBgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#02000a" />
+      <stop offset="60%" stop-color="#090518" />
+      <stop offset="100%" stop-color="#140a2b" />
+    </linearGradient>
+    <radialGradient id="nebulaGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.6" />
+      <stop offset="60%" stop-color="#ec4899" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="planetGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4" />
+      <stop offset="70%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#1d4ed8" />
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.9" />
+      <stop offset="50%" stop-color="#a855f7" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <clipPath id="circleClipSpace">
+    <circle cx="50" cy="50" r="46" />
+  </clipPath>
+
+  <!-- Glow Ring -->
+  <circle cx="50" cy="50" r="48" fill="none" stroke="#a855f7" stroke-width="2.5" opacity="0.8" />
+  <circle cx="50" cy="50" r="46" fill="url(#spaceBgGrad)" />
+
+  <g clip-path="url(#circleClipSpace)">
+    <!-- Swirling Nebula background -->
+    <circle cx="60" cy="40" r="45" fill="url(#nebulaGlow)" />
+    <circle cx="35" cy="65" r="35" fill="url(#nebulaGlow)" opacity="0.7" />
+
+    <!-- Distant Stars (Twinkling dots) -->
+    <circle cx="15" cy="25" r="0.8" fill="#ffffff" opacity="0.9" />
+    <circle cx="85" cy="20" r="1.2" fill="#ffffff" opacity="0.95" />
+    <circle cx="28" cy="75" r="0.6" fill="#ffffff" opacity="0.6" />
+    <circle cx="78" cy="72" r="1.0" fill="#ffffff" opacity="0.8" />
+    <circle cx="48" cy="18" r="0.7" fill="#ffffff" opacity="0.85" />
+    <circle cx="18" cy="58" r="1.0" fill="#ffffff" opacity="0.75" />
+
+    <!-- Planet with rings in center -->
+    <g transform="translate(50, 50)">
+      <!-- Back ring section -->
+      <ellipse cx="0" cy="0" rx="34" ry="10" fill="none" stroke="url(#ringGrad)" stroke-width="5" transform="rotate(-15)" opacity="0.5" />
+      
+      <!-- Planet Sphere -->
+      <circle cx="0" cy="0" r="18" fill="url(#planetGrad)" stroke="#1e3a8a" stroke-width="0.8" />
+      <!-- Shadow overlay on planet -->
+      <path d="M 0,-18 A 18,18 0 0,1 18,0 A 18,18 0 0,1 0,18 A 18,18 0 0,0 0,-18 Z" fill="#030712" opacity="0.45" />
+
+      <!-- Front ring section -->
+      <path d="M -32.8, 8.5 C -15.5, 17.5 15.5, 17.5 32.8, 8.5" fill="none" stroke="url(#ringGrad)" stroke-width="5" transform="rotate(-15)" />
+      
+      <!-- Tiny Moon orbiting planet -->
+      <circle cx="-25" cy="-10" r="3" fill="#cbd5e1" stroke="#475569" stroke-width="0.5" />
+    </g>
+
+    <!-- Drifting Asteroid Silhouettes -->
+    <polygon points="12,78 18,74 20,80 15,84 10,81" fill="#334155" opacity="0.8" />
+    <polygon points="84,35 88,31 92,34 90,40 85,38" fill="#475569" opacity="0.85" />
+  </g>
+</svg>
+    `;
+  }
+
+  private getHeavenWorldIconSvg(width: string, height: string): string {
+    return `
+<svg viewBox="0 0 100 100" style="width: ${width}; height: ${height}; display: inline-block; vertical-align: middle; filter: drop-shadow(0 0 8px rgba(255,223,128,0.6));" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="heavenBgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#bae6fd" />
+      <stop offset="60%" stop-color="#e0f2fe" />
+      <stop offset="100%" stop-color="#fef08a" />
+    </linearGradient>
+    <linearGradient id="pillarGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="50%" stop-color="#f8fafc" />
+      <stop offset="100%" stop-color="#cbd5e1" />
+    </linearGradient>
+    <linearGradient id="goldTrimGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="100%" stop-color="#ca8a04" />
+    </linearGradient>
+  </defs>
+
+  <clipPath id="circleClipHeaven">
+    <circle cx="50" cy="50" r="46" />
+  </clipPath>
+
+  <!-- Glow Ring -->
+  <circle cx="50" cy="50" r="48" fill="none" stroke="#fef08a" stroke-width="2.5" opacity="0.8" />
+  <circle cx="50" cy="50" r="46" fill="url(#heavenBgGrad)" />
+
+  <g clip-path="url(#circleClipHeaven)">
+    <!-- Divine light rays coming from top-right -->
+    <polygon points="100,0 -20,60 -20,100 100,50" fill="#ffffff" opacity="0.35" />
+    <polygon points="100,0 20,100 60,100" fill="#ffffff" opacity="0.25" />
+
+    <!-- Fluffy Heavenly Clouds -->
+    <!-- Distant clouds -->
+    <ellipse cx="25" cy="80" rx="30" ry="15" fill="#ffffff" opacity="0.7" />
+    <ellipse cx="75" cy="82" rx="35" ry="16" fill="#ffffff" opacity="0.7" />
+    <!-- Center pillar pedestal clouds -->
+    <circle cx="50" cy="90" r="22" fill="#ffffff" />
+    <circle cx="32" cy="88" r="15" fill="#ffffff" />
+    <circle cx="68" cy="88" r="16" fill="#ffffff" />
+
+    <!-- Ancient Greek Marble Pillar in center -->
+    <g transform="translate(40, 30) scale(0.9)">
+      <!-- Pillar Base Pedestal -->
+      <rect x="0" y="52" width="22" height="6" rx="1" fill="url(#pillarGrad)" stroke="#94a3b8" stroke-width="0.8" />
+      <rect x="2" y="48" width="18" height="4" fill="url(#pillarGrad)" stroke="#94a3b8" stroke-width="0.8" />
+      <rect x="1" y="52" width="20" height="1.5" fill="url(#goldTrimGrad)" />
+
+      <!-- Pillar Shaft -->
+      <rect x="4" y="8" width="14" height="40" fill="url(#pillarGrad)" stroke="#94a3b8" stroke-width="0.8" />
+      <!-- Flute line details on shaft -->
+      <line x1="7" y1="8" x2="7" y2="48" stroke="#cbd5e1" stroke-width="1.2" />
+      <line x1="11" y1="8" x2="11" y2="48" stroke="#cbd5e1" stroke-width="1.2" />
+      <line x1="15" y1="8" x2="15" y2="48" stroke="#cbd5e1" stroke-width="1.2" />
+
+      <!-- Pillar Capital (Top) -->
+      <rect x="2" y="4" width="18" height="4" fill="url(#pillarGrad)" stroke="#94a3b8" stroke-width="0.8" />
+      <path d="M 0,2 C 2,2 4,4 4,6 L 18,6 C 18,4 20,2 22,2 Z" fill="url(#pillarGrad)" stroke="#94a3b8" stroke-width="0.8" />
+      <rect x="1" y="4.5" width="20" height="1.5" fill="url(#goldTrimGrad)" />
+    </g>
+
+    <!-- Foreground fluffy clouds to wrap the pillar base -->
+    <ellipse cx="50" cy="95" rx="35" ry="12" fill="#f8fafc" />
+    <ellipse cx="20" cy="92" rx="20" ry="10" fill="#ffffff" opacity="0.9" />
+    <ellipse cx="80" cy="92" rx="20" ry="10" fill="#ffffff" opacity="0.9" />
+
+    <!-- Golden sparkles rising up -->
+    <circle cx="18" cy="45" r="1.5" fill="#fef08a" opacity="0.95" />
+    <circle cx="28" cy="22" r="1.0" fill="#fef08a" opacity="0.8" />
+    <circle cx="82" cy="52" r="1.5" fill="#fef08a" opacity="0.9" />
+    <circle cx="72" cy="28" r="1.2" fill="#fef08a" opacity="0.8" />
+    <circle cx="50" cy="15" r="1.8" fill="#fef08a" opacity="0.95" />
+  </g>
+</svg>
+    `;
+  }
+
+  private getDesertWorldIconSvg(width: string, height: string): string {
+    return `
+<svg viewBox="0 0 100 100" style="width: ${width}; height: ${height}; display: inline-block; vertical-align: middle; filter: drop-shadow(0 0 8px rgba(251,146,60,0.6));" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background desert sky gradient -->
+    <linearGradient id="desertBgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#b45309" />
+      <stop offset="60%" stop-color="#d97706" />
+      <stop offset="100%" stop-color="#78350f" />
+    </linearGradient>
+    <!-- Scorching sun radial gradient -->
+    <radialGradient id="desertSun" cx="50%" cy="40%" r="40%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#f59e0b" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#b45309" stop-opacity="0" />
+    </radialGradient>
+    <!-- Dune sandstone gradient -->
+    <linearGradient id="duneGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fef3c7" />
+      <stop offset="100%" stop-color="#92400e" />
+    </linearGradient>
+    <!-- Obelisk shadow gradient -->
+    <linearGradient id="obeliskShadow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#78350f" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#78350f" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <clipPath id="circleClipDesert">
+    <circle cx="50" cy="50" r="46" />
+  </clipPath>
+
+  <!-- Glow Ring -->
+  <circle cx="50" cy="50" r="48" fill="none" stroke="#f59e0b" stroke-width="2.5" opacity="0.8" />
+  <circle cx="50" cy="50" r="46" fill="url(#desertBgGrad)" />
+
+  <g clip-path="url(#circleClipDesert)">
+    <!-- Scorching Desert Sun -->
+    <circle cx="50" cy="40" r="30" fill="url(#desertSun)" />
+
+    <!-- Distant Dunes -->
+    <path d="M -10,75 Q 20,60 50,72 T 110,68 L 110,105 L -10,105 Z" fill="#b45309" opacity="0.7" />
+
+    <!-- Ancient Sandstone Obelisk / Pyramid in center -->
+    <g transform="translate(42, 32) scale(0.9)">
+      <!-- Base step -->
+      <polygon points="0,48 18,48 16,45 2,45" fill="url(#duneGrad)" stroke="#451a03" stroke-width="0.8" />
+      <!-- Main column -->
+      <polygon points="4,45 14,45 12,5 6,5" fill="url(#duneGrad)" stroke="#451a03" stroke-width="0.8" />
+      <!-- Top pyramidion cap -->
+      <polygon points="6,5 12,5 9,0" fill="#fef08a" stroke="#ca8a04" stroke-width="0.8" />
+      
+      <!-- Highlight/Shadow line down the center of the obelisk -->
+      <polygon points="9,0 9,45 12,45 12,5" fill="url(#obeliskShadow)" />
+      
+      <!-- Ancient Hieroglyphic etchings (simple patterns) -->
+      <line x1="9" y1="12" x2="9" y2="40" stroke="#78350f" stroke-width="0.8" stroke-dasharray="2 3" />
+    </g>
+
+    <!-- Foreground Dunes -->
+    <path d="M -10,84 Q 30,72 65,82 T 110,80 L 110,105 L -10,105 Z" fill="url(#duneGrad)" />
+    <path d="M -10,90 Q 25,82 60,92 T 110,88 L 110,105 L -10,105 Z" fill="#92400e" opacity="0.5" />
+
+    <!-- Cactus silhouette on the right side -->
+    <g transform="translate(72, 60) scale(0.7)">
+      <!-- Main trunk -->
+      <rect x="6" y="0" width="5" height="28" rx="2.5" fill="#451a03" />
+      <!-- Left arm -->
+      <path d="M 6,12 H 1 C -0.5,12 -1,11 -1,9.5 V 4 H 2 V 9.5 H 6 Z" fill="#451a03" />
+      <!-- Right arm -->
+      <path d="M 11,16 H 16 C 17.5,16 18,15 18,13.5 V 8 H 15 V 13.5 H 11 Z" fill="#451a03" />
+    </g>
+
+    <!-- Swirling sand storm gusts (sandstorm weather) -->
+    <path d="M 15,30 Q 30,22 45,28" fill="none" stroke="#fef3c7" stroke-width="1.2" opacity="0.35" stroke-linecap="round" />
+    <path d="M 55,25 Q 70,30 85,22" fill="none" stroke="#fef3c7" stroke-width="1.2" opacity="0.35" stroke-linecap="round" />
+    <path d="M 30,52 Q 45,45 60,48" fill="none" stroke="#fef3c7" stroke-width="1.0" opacity="0.25" stroke-linecap="round" />
   </g>
 </svg>
     `;

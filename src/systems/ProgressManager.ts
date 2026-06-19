@@ -43,6 +43,7 @@ export interface PlayerProgressState {
   levelModeStars?: Record<number, number>;
   powerupUpgrades?: Record<string, number>; // powerupType -> level (1-5)
   levelPlayCounts?: Record<number, number>; // levelNum -> playCount
+  sharedTargets?: string[]; // list of shared target identifiers (emails or phone numbers) to prevent abuse
 }
 
 export class ProgressManager {
@@ -463,11 +464,12 @@ export class ProgressManager {
           selectedZone: (loadedState.selectedZone as any) === 'vertical' ? 'classic' : (loadedState.selectedZone || 'classic'),
           selectedDifficulty: loadedState.selectedDifficulty || 'medium',
           lastDailyClaimTime: loadedState.lastDailyClaimTime || 0,
-          dailyQuests: (loadedState.dailyQuests && loadedState.dailyQuests.length === 20) ? loadedState.dailyQuests : this.initDefaultQuests(),
+        dailyQuests: (loadedState.dailyQuests && loadedState.dailyQuests.length === 27) ? loadedState.dailyQuests : this.initDefaultQuests(),
           levelModeUnlockedLevel: loadedState.levelModeUnlockedLevel || 1,
           levelModeStars: loadedState.levelModeStars || {},
           powerupUpgrades: loadedState.powerupUpgrades || { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1 },
-          levelPlayCounts: loadedState.levelPlayCounts || {}
+          levelPlayCounts: loadedState.levelPlayCounts || {},
+          sharedTargets: loadedState.sharedTargets || []
         };
 
         // Sync skins unlocked state and levels
@@ -526,7 +528,8 @@ export class ProgressManager {
       levelModeUnlockedLevel: 1,
       levelModeStars: {},
       powerupUpgrades: { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1 },
-      levelPlayCounts: {}
+      levelPlayCounts: {},
+      sharedTargets: []
     };
     
     // Reset skins
@@ -539,34 +542,41 @@ export class ProgressManager {
 
   public initDefaultQuests() {
     return [
-      // Short-term (10)
-      { id: 'short_rescue', name: 'Rescue birds', desc: 'Rescue 20 birds', target: 20, current: 0, rewardCoins: 1500, rewardGems: 30, claimed: false },
-      { id: 'short_obstacles', name: 'Pass obstacles', desc: 'Pass 100 obstacles', target: 100, current: 0, rewardCoins: 1500, rewardGems: 30, claimed: false },
-      { id: 'short_score', name: 'Reach score', desc: 'Reach score 50', target: 50, current: 0, rewardCoins: 1500, rewardGems: 30, claimed: false },
-      { id: 'short_boss', name: 'Defeat bosses', desc: 'Defeat 3 bosses', target: 3, current: 0, rewardCoins: 1500, rewardGems: 30, claimed: false },
-      { id: 'short_unlock_chars', name: 'Unlock characters', desc: 'Unlock 3 birds', target: 3, current: 0, rewardCoins: 1500, rewardGems: 30, claimed: false },
-      { id: 'short_unlock_worlds', name: 'Unlock worlds', desc: 'Unlock 2 worlds', target: 2, current: 0, rewardCoins: 1500, rewardGems: 30, claimed: false },
-      { id: 'short_play_level_10', name: 'Replay levels', desc: 'Replay level 5 times', target: 5, current: 0, rewardCoins: 1500, rewardGems: 30, claimed: false },
-      { id: 'short_watch_ads', name: 'Watch ads', desc: 'Watch 5 ads', target: 5, current: 0, rewardCoins: 1500, rewardGems: 30, claimed: false },
-      { id: 'short_use_ultimate', name: 'Use ultimate', desc: 'Use ultimate 10 times', target: 10, current: 0, rewardCoins: 1500, rewardGems: 30, claimed: false },
-      { id: 'short_collect_powerups', name: 'Collect powerups', desc: 'Collect 30 powerups', target: 30, current: 0, rewardCoins: 1500, rewardGems: 30, claimed: false },
+      // Short-Term Missions (15)
+      { id: 'short_obstacles_1', name: 'Pass Obstacles', desc: 'Pass 5,000 Obstacles', target: 5000, current: 0, rewardCoins: 5000, rewardGems: 10, claimed: false },
+      { id: 'short_rescue_1', name: 'Rescue Birds', desc: 'Rescue 100 Birds', target: 100, current: 0, rewardCoins: 6000, rewardGems: 10, claimed: false },
+      { id: 'short_score_1', name: 'Reach Score', desc: 'Reach a Score of 100', target: 100, current: 0, rewardCoins: 4000, rewardGems: 10, claimed: false },
+      { id: 'short_boss_1', name: 'Defeat Bosses', desc: 'Defeat 20 Bosses', target: 20, current: 0, rewardCoins: 5000, rewardGems: 15, claimed: false },
+      { id: 'short_unlock_chars_1', name: 'Unlock Characters', desc: 'Unlock 3 Characters', target: 3, current: 0, rewardCoins: 4000, rewardGems: 10, claimed: false },
+      { id: 'short_use_ultimate_1', name: 'Use Ultimate', desc: 'Use Ultimate Power 50 Times', target: 50, current: 0, rewardCoins: 4000, rewardGems: 10, claimed: false },
+      { id: 'short_obstacles_2', name: 'Pass Obstacles', desc: 'Pass 25,000 Obstacles', target: 25000, current: 0, rewardCoins: 8000, rewardGems: 15, claimed: false },
+      { id: 'short_collect_powerups_1', name: 'Collect Power-Ups', desc: 'Collect 150 Power-Ups', target: 150, current: 0, rewardCoins: 6000, rewardGems: 10, claimed: false },
+      { id: 'short_rescue_2', name: 'Rescue Birds', desc: 'Rescue 900 Birds', target: 900, current: 0, rewardCoins: 10000, rewardGems: 15, claimed: false },
+      { id: 'short_boss_2', name: 'Defeat Bosses', desc: 'Defeat 100 Bosses', target: 100, current: 0, rewardCoins: 8000, rewardGems: 15, claimed: false },
+      { id: 'short_unlock_worlds_1', name: 'Unlock Worlds', desc: 'Unlock 2 Worlds', target: 2, current: 0, rewardCoins: 6000, rewardGems: 15, claimed: false },
+      { id: 'short_score_2', name: 'Reach Score', desc: 'Reach a Score of 300', target: 300, current: 0, rewardCoins: 5000, rewardGems: 10, claimed: false },
+      { id: 'short_play_level_10_1', name: 'Replay Levels', desc: 'Replay Any 3 Levels 5 Times', target: 5, current: 0, rewardCoins: 6000, rewardGems: 10, claimed: false },
+      { id: 'short_watch_ads_1', name: 'Watch Ads', desc: 'Watch 25 Ads', target: 25, current: 0, rewardCoins: 6000, rewardGems: 15, claimed: false },
+      { id: 'short_share_game_1', name: 'Share Game', desc: 'Share the Game with 5 Friends', target: 5, current: 0, rewardCoins: 8000, rewardGems: 20, claimed: false },
 
-      // Long-term (10)
-      { id: 'long_rescue', name: 'Rescue birds', desc: 'Rescue 150 birds', target: 150, current: 0, rewardCoins: 6000, rewardGems: 120, claimed: false },
-      { id: 'long_obstacles', name: 'Pass obstacles', desc: 'Pass 1000 obstacles', target: 1000, current: 0, rewardCoins: 6000, rewardGems: 120, claimed: false },
-      { id: 'long_score', name: 'Reach score', desc: 'Reach score 200', target: 200, current: 0, rewardCoins: 6000, rewardGems: 120, claimed: false },
-      { id: 'long_boss', name: 'Defeat bosses', desc: 'Defeat 15 bosses', target: 15, current: 0, rewardCoins: 6000, rewardGems: 120, claimed: false },
-      { id: 'long_unlock_chars', name: 'Unlock characters', desc: 'Unlock 8 birds', target: 8, current: 0, rewardCoins: 6000, rewardGems: 120, claimed: false },
-      { id: 'long_unlock_worlds', name: 'Unlock worlds', desc: 'Unlock 5 worlds', target: 5, current: 0, rewardCoins: 6000, rewardGems: 120, claimed: false },
-      { id: 'long_play_level_10', name: 'Replay levels', desc: 'Replay level 20 times', target: 20, current: 0, rewardCoins: 6000, rewardGems: 120, claimed: false },
-      { id: 'long_watch_ads', name: 'Watch ads', desc: 'Watch 25 ads', target: 25, current: 0, rewardCoins: 6000, rewardGems: 120, claimed: false },
-      { id: 'long_use_ultimate', name: 'Use ultimate', desc: 'Use ultimate 50 times', target: 50, current: 0, rewardCoins: 6000, rewardGems: 120, claimed: false },
-      { id: 'long_collect_powerups', name: 'Collect powerups', desc: 'Collect 150 powerups', target: 150, current: 0, rewardCoins: 6000, rewardGems: 120, claimed: false }
+      // Long-Term Missions (12)
+      { id: 'long_rescue_1', name: 'Rescue Birds', desc: 'Rescue 2,200 Birds', target: 2200, current: 0, rewardCoins: 16000, rewardGems: 30, claimed: false },
+      { id: 'long_obstacles_1', name: 'Pass Obstacles', desc: 'Pass 60,000 Obstacles', target: 60000, current: 0, rewardCoins: 14000, rewardGems: 20, claimed: false },
+      { id: 'long_score_1', name: 'Reach Score', desc: 'Reach a Score of 500', target: 500, current: 0, rewardCoins: 12000, rewardGems: 15, claimed: false },
+      { id: 'long_obstacles_classic_1', name: 'Pass Obstacles Classic', desc: 'Pass 3,500 Obstacles in Classic Mode', target: 3500, current: 0, rewardCoins: 12000, rewardGems: 20, claimed: false },
+      { id: 'long_boss_1', name: 'Defeat Bosses', desc: 'Defeat 2,500 Bosses', target: 2500, current: 0, rewardCoins: 18000, rewardGems: 25, claimed: false },
+      { id: 'long_use_ultimate_1', name: 'Use Ultimate', desc: 'Use Ultimate Power 200 Times', target: 200, current: 0, rewardCoins: 15000, rewardGems: 15, claimed: false },
+      { id: 'long_collect_powerups_1', name: 'Collect Power-Ups', desc: 'Collect 500 Power-Ups', target: 500, current: 0, rewardCoins: 15000, rewardGems: 15, claimed: false },
+      { id: 'long_obstacles_2', name: 'Pass Obstacles', desc: 'Pass 100,000 Obstacles', target: 100000, current: 0, rewardCoins: 20000, rewardGems: 30, claimed: false },
+      { id: 'long_watch_ads_1', name: 'Watch Ads', desc: 'Watch 100 Ads', target: 100, current: 0, rewardCoins: 15000, rewardGems: 15, claimed: false },
+      { id: 'long_unlock_chars_1', name: 'Unlock Characters', desc: 'Unlock 6 Characters', target: 6, current: 0, rewardCoins: 15000, rewardGems: 20, claimed: false },
+      { id: 'long_unlock_worlds_1', name: 'Unlock Worlds', desc: 'Unlock 5 Worlds', target: 5, current: 0, rewardCoins: 18000, rewardGems: 20, claimed: false },
+      { id: 'long_share_game_1', name: 'Share Game', desc: 'Share the Game with 15 Friends', target: 15, current: 0, rewardCoins: 25000, rewardGems: 30, claimed: false }
     ];
   }
 
   public updateQuestProgress(category: string, amt: number, isMax = false) {
-    if (!this.state.dailyQuests || this.state.dailyQuests.length !== 20) {
+    if (!this.state.dailyQuests || this.state.dailyQuests.length !== 27) {
       this.state.dailyQuests = this.initDefaultQuests();
     }
     this.state.dailyQuests.forEach(quest => {
@@ -627,6 +637,27 @@ export class ProgressManager {
     this.state.lastDailyClaimTime = now;
     this.save();
     return { success: true, msg: `Day ${day} Claimed! Received +${reward.coins}🟡 and +${reward.gems}💎!` };
+  }
+
+  public recordShareTarget(target: string): { success: boolean; msg: string } {
+    if (!this.state.sharedTargets) {
+      this.state.sharedTargets = [];
+    }
+    
+    // Normalize target (lowercase/trim)
+    const normalized = target.trim().toLowerCase();
+    
+    if (this.state.sharedTargets.includes(normalized)) {
+      return { success: false, msg: 'Already shared to this contact/account! No rewards earned.' };
+    }
+    
+    this.state.sharedTargets.push(normalized);
+    
+    // Increment both short-term & long-term share quests/missions
+    this.updateQuestProgress('share_game', 1);
+    
+    this.save();
+    return { success: true, msg: 'Share recorded! Progress updated.' };
   }
 
   public trackLevelPlay(levelNum: number) {

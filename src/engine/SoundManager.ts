@@ -1153,7 +1153,7 @@ export class SoundManager {
     osc.stop(this.ctx.currentTime + 1.1);
   }
 
-  private playFluteNote(freq: number, duration: number, isMusic = true) {
+  public playFluteNote(freq: number, duration: number, isMusic = true) {
     if (!this.ctx || this.isMuted) return;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();

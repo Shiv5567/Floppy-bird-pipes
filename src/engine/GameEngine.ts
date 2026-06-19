@@ -743,6 +743,9 @@ export class GameEngine {
             obs.passed = true;
             this.incrementScore();
             this.progressManager.updateQuestProgress('obstacles', 1);
+            if (this.progressManager.getState().selectedZone === 'classic') {
+              this.progressManager.updateQuestProgress('obstacles_classic', 1);
+            }
             
             // If the state changes from PLAYING (e.g., entered BOSS_WARNING), break out of the loop immediately
             if (this.state !== 'PLAYING') {
