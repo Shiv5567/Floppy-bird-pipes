@@ -621,14 +621,14 @@ export class UIManager {
 
           <!-- Right side panel -->
           <div class="side-panel-right">
-            <button class="side-btn" id="side-btn-rewards" style="width: 106px !important; height: 103px !important; margin-bottom: 8px; border-radius: 24px;">
+            <button class="side-btn" id="side-btn-rewards" style="width: 98px !important; height: 95px !important; margin-bottom: 8px; border-radius: 22px;">
               <div class="side-btn-badge">!</div>
-              ${this.getRewardBoxSvg('66px', '66px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(255, 170, 0, 0.5));', 'home')}
-              <span class="side-btn-label" style="font-size: 11.5px;">REWARDS</span>
+              ${this.getRewardBoxSvg('61px', '61px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(255, 170, 0, 0.5));', 'home')}
+              <span class="side-btn-label" style="font-size: 10.5px;">REWARDS</span>
             </button>
-            <button class="side-btn" id="side-btn-powerups" style="width: 106px !important; height: 103px !important; border-radius: 24px;">
-              <div style="font-size: 46px; line-height: 66px; height: 66px; margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.6)); display: flex; align-items: center; justify-content: center;">🔮</div>
-              <span class="side-btn-label" style="font-size: 11.5px;">UPGRADES</span>
+            <button class="side-btn" id="side-btn-powerups" style="width: 98px !important; height: 95px !important; border-radius: 22px;">
+              <div style="font-size: 42px; line-height: 61px; height: 61px; margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.6)); display: flex; align-items: center; justify-content: center;">🔮</div>
+              <span class="side-btn-label" style="font-size: 10.5px;">UPGRADES</span>
             </button>
           </div>
         </div>
