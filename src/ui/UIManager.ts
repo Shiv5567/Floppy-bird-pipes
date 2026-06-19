@@ -4129,130 +4129,57 @@ export class UIManager {
     return `
 <svg viewBox="0 0 100 100" style="width: ${width}; height: ${height}; ${extraStyle}" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="redBaseGrad-${idSuffix}" x1="40%" y1="10%" x2="60%" y2="90%">
-      <stop offset="0%" stop-color="#ff3b30" />
-      <stop offset="50%" stop-color="#d61a1a" />
-      <stop offset="100%" stop-color="#800000" />
-    </linearGradient>
-
-    <linearGradient id="beakUpperGrad-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fff176" />
-      <stop offset="50%" stop-color="#ffb300" />
-      <stop offset="100%" stop-color="#ff6f00" />
-    </linearGradient>
-
-    <linearGradient id="beakLowerGrad-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffa000" />
-      <stop offset="100%" stop-color="#e65100" />
-    </linearGradient>
-
-    <linearGradient id="throatGrad-${idSuffix}" x1="0%" y1="0%" x2="0%" y2="100%">
+    <!-- Head Radial Gradient -->
+    <radialGradient id="headGrad-${idSuffix}" cx="45%" cy="45%" r="60%">
       <stop offset="0%" stop-color="#ffffff" />
-      <stop offset="70%" stop-color="#f5f2eb" />
-      <stop offset="100%" stop-color="#dfdcd6" />
+      <stop offset="70%" stop-color="#f9fafb" />
+      <stop offset="100%" stop-color="#e5e7eb" />
+    </radialGradient>
+
+    <!-- Hooked Gold Beak Gradient -->
+    <linearGradient id="beakGrad-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffd54f" /> <!-- Golden yellow -->
+      <stop offset="60%" stop-color="#ff8f00" /> <!-- Deep gold -->
+      <stop offset="100%" stop-color="#c084fc" /> <!-- Lavender tip -->
+    </linearGradient>
+
+    <!-- Gold Tips Gradient -->
+    <linearGradient id="goldTipGrad-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffd700" />
+      <stop offset="100%" stop-color="#ffaa00" />
     </linearGradient>
   </defs>
 
-  <g stroke="#1a0a05" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round">
-    <!-- 1. BASE HEAD AND SHARP CREST/BACK SPIKES (EXPANDED TO LEFT) -->
-    <path d="
-      M 66,20
-      C 76,30 78,45 74,60
-      C 70,72 64,80 50,82
-      C 38,82 28,80 20,76
-      Q 8,74 6,76
-      Q 16,70 16,68
-      Q 4,66 2,64
-      Q 12,58 14,56
-      Q 3,52 1,50
-      Q 10,44 12,42
-      Q 4,36 2,34
-      Q 12,30 14,28
-      Q 6,22 4,20
-      Q 16,18 18,16
-      Q 12,8 10,6
-      Q 22,8 24,10
-      Q 28,0 30,2
-      Q 36,10 38,12
-      Q 48,4 50,5
-      Q 52,12 52,14
-      C 58,16 62,18 66,20 Z" 
-      fill="url(#redBaseGrad-${idSuffix})" />
+  <g stroke="#3d2503" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round">
+    <!-- 1. BACKWARDS CREST FEATHERS (White with Gold tips) -->
+    <!-- Upper Feather -->
+    <path d="M 23,33 L 3,40 L 18,47 Z" fill="#ffffff" />
+    <path d="M 10,36.5 L 3,40 L 9,43.5 Z" fill="url(#goldTipGrad-${idSuffix})" />
 
-    <!-- Overlapping red spikes for volume (middle layers) -->
-    <path d="
-      M 38,24
-      L 28,16
-      Q 32,22 33,24
-      L 20,19
-      Q 25,27 27,29
-      L 14,27
-      Q 19,33 21,35
-      L 8,38
-      Q 14,43 16,45
-      L 8,48
-      Q 13,53 15,55
-      L 8,60
-      Q 14,63 16,65
-      C 20,55 24,43 30,31 Z"
-      fill="#a61212" stroke="none" />
+    <!-- Lower Feather -->
+    <path d="M 23,43 L 3,50 L 18,57 Z" fill="#ffffff" />
+    <path d="M 10,46.5 L 3,50 L 9,53.5 Z" fill="url(#goldTipGrad-${idSuffix})" />
 
-    <!-- 2. WHITE THROAT FEATHERS -->
-    <path d="
-      M 56,54
-      C 48,56 42,60 38,65
-      Q 34,71 39,73
-      Q 34,78 40,81
-      Q 36,87 44,87
-      Q 42,93 50,91
-      Q 56,87 60,84
-      C 66,77 69,68 67,58
-      C 64,54 60,53 56,54 Z"
-      fill="url(#throatGrad-${idSuffix})" />
+    <!-- 2. COLLAR BASE -->
+    <path d="M 13,65 Q 23,75 32,70 Q 42,75 52,67 L 32,56 Z" fill="#ffffff" />
 
-    <!-- Shading/Texture lines on white throat -->
-    <path d="M 44,70 C 42,75 44,79 46,83" fill="none" stroke="#cfcbc2" stroke-width="1.5" />
-    <path d="M 50,68 C 49,74 51,78 53,82" fill="none" stroke="#cfcbc2" stroke-width="1.5" />
+    <!-- 3. MAIN CROWN/HEAD PLUMAGE -->
+    <circle cx="45" cy="50" r="21" fill="url(#headGrad-${idSuffix})" />
 
-    <!-- 3. LOWER BEAK -->
-    <path d="
-      M 60,54
-      Q 68,62 76,58
-      Q 82,56 83,51
-      Q 72,51 60,54 Z"
-      fill="url(#beakLowerGrad-${idSuffix})" />
+    <!-- 4. WARRIOR EYE & BROW -->
+    <!-- Iris (Vibrant Purple) -->
+    <circle cx="50" cy="48.5" r="7" fill="#7c3aed" stroke="none" />
+    <!-- Pupil (Dark Violet-Black) -->
+    <circle cx="50" cy="48.5" r="3" fill="#1e1b29" stroke="none" />
+    <!-- Reflection -->
+    <circle cx="51.5" cy="47" r="1.2" fill="#ffffff" stroke="none" />
+    <!-- Warrior Brow -->
+    <path d="M 40,42 L 59,45.5" stroke="#5b21b6" stroke-width="4.5" stroke-linecap="round" />
 
-    <!-- 4. UPPER BEAK -->
-    <path d="
-      M 64,38
-      C 72,36 82,38 88,43
-      C 94,48 96,56 92,61
-      Q 89,64 87,59
-      C 83,54 76,52 66,52
-      C 62,52 61,47 62,44
-      C 63,40 63,38 64,38 Z"
-      fill="url(#beakUpperGrad-${idSuffix})" />
-    
-    <!-- Nostril -->
-    <ellipse cx="70" cy="43" rx="1.2" ry="1.8" fill="#4d1a00" stroke="none" transform="rotate(-20, 70, 43)" />
-
-    <!-- 5. EYE -->
-    <ellipse cx="54" cy="45" rx="10" ry="9.5" fill="#ffffff" />
-    <ellipse cx="58" cy="46" rx="5.5" ry="5.3" fill="#121212" />
-    <circle cx="60" cy="44" r="1.6" fill="#ffffff" stroke="none" />
-
-    <!-- 6. ANGRY EYEBROW -->
-    <path d="M 44,27 Q 49,23 54,26 Q 50,29 44,30 Z" fill="#121212" />
-    <path d="
-      M 40,36
-      Q 36,31 41,27
-      Q 40,35 43,37
-      Q 48,36 54,36
-      L 70,37
-      Q 67,44 65,43
-      Q 56,39 48,40
-      Q 43,40 40,36 Z"
-      fill="#121212" />
+    <!-- 5. MAJESTIC HOOKED GOLD BEAK -->
+    <path d="M 57.3,45.1 Q 82,47.5 74.5,67.2 L 67.1,63.6 Q 62.2,59.4 56.1,56.2 Z" fill="url(#beakGrad-${idSuffix})" />
+    <!-- Beak mouth line -->
+    <path d="M 57.3,57.8 Q 66,61.8 72.6,63.9" stroke="#3d2503" stroke-width="2.2" />
   </g>
 </svg>
     `;
