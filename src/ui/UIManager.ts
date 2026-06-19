@@ -602,7 +602,10 @@ export class UIManager {
           <!-- Left side panel -->
           <div class="side-panel-left">
             <button class="side-btn" id="side-btn-skins">
-              ${this.getCharacterIconSvg('55px', '55px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.5));', 'home')}
+              <div style="position: relative; display: inline-block;">
+                ${this.getCharacterIconSvg('55px', '55px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.5));', 'home')}
+                <span style="position: absolute; right: 0; bottom: 8px; font-size: 16.5px; filter: drop-shadow(0 0 3px rgba(0,0,0,0.5));">🦅</span>
+              </div>
               <span class="side-btn-label">CHARACTERS</span>
             </button>
             <button class="side-btn" id="side-btn-worlds">
