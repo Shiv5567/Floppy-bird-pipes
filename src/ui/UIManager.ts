@@ -1216,19 +1216,9 @@ export class UIManager {
             <!-- Game Share System -->
             <div class="control-group" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px; margin-top: 20px;">
               <div class="segment-label" style="font-size: 11px; font-weight: 800; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 12px; text-transform: uppercase;">SHARE GAME & EARN REWARDS</div>
-              <div style="display: flex; gap: 8px; justify-content: space-between; margin-bottom: 10px;">
-                <button class="share-btn-platform" id="btn-share-whatsapp" style="flex: 1; padding: 12px 6px; border: none; border-radius: 12px; font-family: var(--font-family); font-weight: 800; font-size: 11px; cursor: pointer; color: #fff; background: linear-gradient(135deg, #25D366, #128C7E); display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.2);">
-                  <span style="font-size: 18px;">💬</span>
-                  <span>WhatsApp</span>
-                </button>
-                <button class="share-btn-platform" id="btn-share-messenger" style="flex: 1; padding: 12px 6px; border: none; border-radius: 12px; font-family: var(--font-family); font-weight: 800; font-size: 11px; cursor: pointer; color: #fff; background: linear-gradient(135deg, #006AFF, #00B2FF); display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 4px 10px rgba(0, 106, 255, 0.2);">
-                  <span style="font-size: 18px;">⚡</span>
-                  <span>Messenger</span>
-                </button>
-              </div>
-              <button class="share-btn-platform" id="btn-share-system" style="width: 100%; padding: 12px; border: none; border-radius: 12px; font-family: var(--font-family); font-weight: 800; font-size: 12px; cursor: pointer; color: #fff; background: linear-gradient(135deg, #a855f7, #6366f1); display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);">
+              <button class="share-btn-platform" id="btn-share-system" style="width: 100%; padding: 14px; border: none; border-radius: 12px; font-family: var(--font-family); font-weight: 800; font-size: 12px; cursor: pointer; color: #fff; background: linear-gradient(135deg, #a855f7, #6366f1); display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);">
                 <span style="font-size: 16px;">📤</span>
-                <span>SYSTEM SHARE</span>
+                <span>SHARE GAME LINK</span>
               </button>
             </div>
 
@@ -1875,12 +1865,6 @@ export class UIManager {
       this.showToastNotification('PENDING VERIFICATION ⏳', 'Shared! Mission counts when a friend opens the link!');
       this.render();
     };
-
-    const btnShareWhatsapp = document.getElementById('btn-share-whatsapp');
-    if (btnShareWhatsapp) btnShareWhatsapp.addEventListener('click', () => handleShareClick('WhatsApp'));
-
-    const btnShareMessenger = document.getElementById('btn-share-messenger');
-    if (btnShareMessenger) btnShareMessenger.addEventListener('click', () => handleShareClick('Messenger'));
 
     const btnShareSystem = document.getElementById('btn-share-system');
     if (btnShareSystem) btnShareSystem.addEventListener('click', () => handleShareClick('System'));
