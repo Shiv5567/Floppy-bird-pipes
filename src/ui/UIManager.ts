@@ -2653,12 +2653,12 @@ export class UIManager {
           <p class="modal-subtitle" style="color: rgba(255, 255, 255, 0.6); font-size: 11px; margin-bottom: 20px;">Choose your endless adventure</p>
           
           <div style="display: flex; flex-direction: column; gap: 12px; text-align: left; width: 100%;">
-            <!-- Option 1: Classic -->
+             <!-- Option 1: Classic -->
             <div class="glass-card" style="padding: 12px 14px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; display: flex; align-items: center; gap: 12px;">
               <div style="font-size: 32px; filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5)); flex-shrink: 0; width: 45px; text-align: center;">🐦</div>
               <div style="flex: 1;">
                 <div style="font-size: 13.5px; font-weight: 800; color: #ffd700; display: flex; align-items: center; gap: 6px;">
-                  CLASSIC ENDLESS
+                  CLASSIC
                 </div>
                 <div style="font-size: 10px; color: rgba(255, 255, 255, 0.7); margin-top: 3px; line-height: 1.4;">
                   Original single bird gameplay. Pure skill, classic physics, and infinite highscore chase.
@@ -2672,7 +2672,7 @@ export class UIManager {
               <div style="font-size: 32px; filter: drop-shadow(0 0 8px rgba(0, 243, 255, 0.5)); flex-shrink: 0; width: 45px; text-align: center;">🪽</div>
               <div style="flex: 1;">
                 <div style="font-size: 13.5px; font-weight: 800; color: #00f3ff; display: flex; align-items: center; gap: 6px;">
-                  SQUAD SURVIVAL
+                  SQUAD
                 </div>
                 <div style="font-size: 10px; color: rgba(255, 255, 255, 0.7); margin-top: 3px; line-height: 1.4;">
                   Fly with a flock! A new bird joins your squad every 10 to 20 points. Survives if at least one bird is alive.
