@@ -1816,7 +1816,46 @@ export class UIManager {
 
     // Share Game System click bindings
     const handleShareClick = (platform: string) => {
-      this.showSharePopup(platform);
+      // Since manual typing of targets is removed, generate a unique random token automatically to track progress count correctly
+      const autoTargetToken = `auto_share_${platform.toLowerCase()}_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+      this.engine.progressManager.recordShareTarget(autoTargetToken);
+
+      const gameUrl = window.location.href;
+      const text = `Hey! Play Floppy Bird Pipes: Flight of Legends with me here: ${gameUrl}`;
+      
+      let shareUrl = '';
+      let needsClipboard = false;
+      
+      if (platform === 'WhatsApp') {
+        shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      } else if (platform === 'Messenger') {
+        shareUrl = `https://www.facebook.com/dialog/send?link=${encodeURIComponent(gameUrl)}&app_id=123456789&redirect_uri=${encodeURIComponent(gameUrl)}`;
+      } else if (platform === 'System') {
+        if (navigator.share) {
+          navigator.share({
+            title: 'Flight of Legends',
+            text: text,
+            url: gameUrl
+          }).catch(err => {
+            console.log("System Share cancelled/failed:", err);
+          });
+        } else {
+          needsClipboard = true;
+        }
+      }
+
+      // Open window/redirect or copy link
+      if (needsClipboard) {
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(text);
+          this.showToastNotification('LINK COPIED 📋', `Share link copied to clipboard!`);
+        }
+      } else if (shareUrl) {
+        window.open(shareUrl, '_blank');
+      }
+
+      this.showToastNotification('SHARE SUCCESSFUL 🎉', 'You earned share mission progress!');
+      this.render();
     };
 
     const btnShareWhatsapp = document.getElementById('btn-share-whatsapp');
@@ -1829,127 +1868,6 @@ export class UIManager {
     if (btnShareSystem) btnShareSystem.addEventListener('click', () => handleShareClick('System'));
   }
 
-  private showSharePopup(platform: string) {
-    const existing = document.getElementById('share-modal-overlay');
-    if (existing) existing.remove();
-
-    const overlay = document.createElement('div');
-    overlay.id = 'share-modal-overlay';
-    overlay.style.cssText = `
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 999999;
-      font-family: 'Outfit', sans-serif;
-    `;
-
-    overlay.innerHTML = `
-      <div class="glass-card fade-in" style="
-        background: rgba(20, 16, 38, 0.95);
-        border: 1.5px solid rgba(0, 255, 136, 0.25);
-        padding: 24px;
-        border-radius: 20px;
-        width: 90%;
-        max-width: 340px;
-        text-align: center;
-        box-shadow: 0 15px 35px rgba(0, 255, 136, 0.1), 0 5px 15px rgba(0,0,0,0.5);
-      ">
-        <div style="font-size: 18px; font-weight: 900; color: #ffd700; margin-bottom: 8px;">
-          SHARE VIA ${platform.toUpperCase()} 🚀
-        </div>
-        <div style="font-size: 11px; color: rgba(255,255,255,0.7); margin-bottom: 16px;">
-          Enter friend's Email, Username, or Phone Number to share the game link and claim rewards.
-        </div>
-        
-        <input type="text" id="share-target-input" placeholder="e.g. +9779812345678 or user@mail.com" style="
-          width: 100%;
-          padding: 12px;
-          border-radius: 10px;
-          border: 1px solid rgba(255,255,255,0.15);
-          background: rgba(0,0,0,0.25);
-          color: white;
-          font-family: inherit;
-          font-size: 12px;
-          margin-bottom: 16px;
-          box-sizing: border-box;
-          outline: none;
-        ">
-        
-        <div style="display: flex; gap: 10px; justify-content: center;">
-          <button id="share-cancel-btn" class="btn btn-secondary" style="flex: 1; padding: 10px; border-radius: 10px; font-weight: 800; font-size: 12px;">CANCEL</button>
-          <button id="share-send-btn" class="btn" style="flex: 1; padding: 10px; border-radius: 10px; font-weight: 800; font-size: 12px; background: linear-gradient(135deg, #00ff88, #00b3ff); color: #0b071e;">SHARE & SEND</button>
-        </div>
-      </div>
-    `;
-
-    document.body.appendChild(overlay);
-
-    const closePopup = () => overlay.remove();
-    document.getElementById('share-cancel-btn')?.addEventListener('click', closePopup);
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) closePopup();
-    });
-
-    document.getElementById('share-send-btn')?.addEventListener('click', () => {
-      const inputEl = document.getElementById('share-target-input') as HTMLInputElement | null;
-      const targetVal = inputEl ? inputEl.value.trim() : '';
-
-      if (!targetVal) {
-        this.showToastNotification('INPUT REQUIRED', 'Please enter a valid number, username, or email.');
-        return;
-      }
-
-      // Check validation
-      const result = this.engine.progressManager.recordShareTarget(targetVal);
-      if (result.success) {
-        // Trigger sharing intent (mocked/native Web Share API or platform deep link redirects)
-        const gameUrl = window.location.href;
-        const text = `Hey! Play Floppy Bird Pipes: Flight of Legends with me here: ${gameUrl}`;
-        
-        let shareUrl = '';
-        let needsClipboard = false;
-        
-        if (platform === 'WhatsApp') {
-          shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-        } else if (platform === 'Messenger') {
-          shareUrl = `https://www.facebook.com/dialog/send?link=${encodeURIComponent(gameUrl)}&app_id=123456789&redirect_uri=${encodeURIComponent(gameUrl)}`;
-        } else if (platform === 'System') {
-          if (navigator.share) {
-            navigator.share({
-              title: 'Flight of Legends',
-              text: text,
-              url: gameUrl
-            }).catch(err => {
-              console.log("System Share cancelled/failed:", err);
-            });
-          } else {
-            needsClipboard = true;
-          }
-        }
-
-        // Open window/redirect or copy link
-        if (needsClipboard) {
-          if (navigator.clipboard) {
-            navigator.clipboard.writeText(text);
-            this.showToastNotification('LINK COPIED 📋', `Share link copied to clipboard!`);
-          }
-        } else if (shareUrl) {
-          window.open(shareUrl, '_blank');
-        }
-
-        this.showToastNotification('SHARE SUCCESSFUL 🎉', 'You earned share mission progress!');
-        closePopup();
-        this.render();
-      } else {
-        this.showToastNotification('DUPLICATE SHARE 🔒', result.msg);
-      }
-    });
-  }
 
   private renderHUD() {
     const pList = this.engine.getActivePowerups();
