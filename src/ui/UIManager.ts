@@ -773,7 +773,7 @@ export class UIManager {
                 box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 6;
               ">
                 <div class="hangar-section-title" style="margin: 0 0 6px 0; font-size: 10px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; color: #ffaa00; text-shadow: 0 0 5px rgba(255,170,0,0.3);">🔮 MYSTERIOUS CHESTS</div>
-                <div class="chests-row" style="display: flex; gap: 8px; width: 100%;">
+                <div class="chests-row" style="display: flex; gap: 8px; width: 100%; justify-content: center;">
                   ${this.getChestsHtml()}
                 </div>
               </div>`
@@ -2955,31 +2955,28 @@ export class UIManager {
 
       chestsHtml += `
         <div class="chest-border-wrapper" style="
-          flex: 1; min-width: 85px; padding: 2.5px; border-radius: 18px;
+          flex: 1; min-width: 65px; max-width: 75px; padding: 2px; border-radius: 14px;
           background: conic-gradient(${ch.color} ${progressPercent}%, rgba(255, 255, 255, 0.08) ${progressPercent}%);
-          box-shadow: 0 4px 15px ${ch.glow}; transition: all 0.3s ease;
+          box-shadow: 0 4px 12px ${ch.glow}; transition: all 0.3s ease;
           display: flex;
         ">
           <div class="chest-card glass-card ${isReady ? 'ready-pulse' : ''}" data-chest-id="${ch.id}" style="
             flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 10px 4px; border-radius: 16px; border: none; background: rgba(13, 10, 28, 0.95);
+            padding: 8px 2px; border-radius: 12px; border: none; background: rgba(13, 10, 28, 0.95);
             transition: all 0.3s ease; position: relative; width: 100%;
           ">
             <div class="chest-icon-wrapper" style="
-              width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; filter: drop-shadow(0 0 6px ${ch.color});
+              width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; margin-bottom: 2px; filter: drop-shadow(0 0 6px ${ch.color});
               animation: ${isReady ? 'chestFloat 2s ease-in-out infinite' : 'none'};
             ">
-              ${this.getChestSvg(ch.id, '50px', '50px', '', 'tab-chest-' + ch.id)}
+              ${this.getChestSvg(ch.id, '65px', '65px', '', 'tab-chest-' + ch.id)}
             </div>
-            <div class="chest-name" style="font-size: 8px; font-weight: 900; color: ${ch.color}; letter-spacing: 0.5px; text-shadow: 0 0 5px ${ch.glow}; margin-bottom: 2px;">${ch.name.toUpperCase()}</div>
-            <div class="chest-rewards-preview" style="font-size: 7px; color: rgba(255,255,255,0.5); line-height: 1.2; text-align: center; margin-bottom: 4px;">
-              🪙 ${ch.minCoins}-${ch.maxCoins}<br>💎 ${ch.minGems}-${ch.maxGems}
-            </div>
-            <div class="chest-status" style="font-size: 8px; font-weight: 800; color: ${isCompleted ? '#a855f7' : (isReady ? '#00ffaa' : '#ff3366')}; text-shadow: ${isReady ? '0 0 5px rgba(0,255,170,0.5)' : 'none'}; margin-bottom: 6px;">
+            <div class="chest-name" style="font-size: 7.5px; font-weight: 900; color: ${ch.color}; letter-spacing: 0.5px; text-shadow: 0 0 5px ${ch.glow}; margin-bottom: 2px;">${ch.name.toUpperCase()}</div>
+            <div class="chest-status" style="font-size: 7.5px; font-weight: 800; color: ${isCompleted ? '#a855f7' : (isReady ? '#00ffaa' : '#ff3366')}; text-shadow: ${isReady ? '0 0 5px rgba(0,255,170,0.5)' : 'none'}; margin-bottom: 6px;">
               ${statusText}
             </div>
             <button class="${btnClass}" data-chest-id="${ch.id}" ${btnDisabled} style="
-              width: 90%; max-width: 80px; border: none; padding: 4px 0; border-radius: 8px; font-family: inherit; font-size: 8px; font-weight: 900;
+              width: 90%; max-width: 65px; border: none; padding: 3px 0; border-radius: 6px; font-family: inherit; font-size: 7.5px; font-weight: 900;
               color: ${isReady ? '#030c17' : 'rgba(255,255,255,0.35)'}; background: ${isReady ? `linear-gradient(180deg, ${ch.color} 0%, #ffffff 100%)` : 'rgba(255,255,255,0.06)'};
               cursor: ${isReady ? 'pointer' : 'not-allowed'}; box-shadow: ${isReady ? `0 4px 10px ${ch.glow}` : 'none'}; transition: all 0.2s;
             ">
