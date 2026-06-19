@@ -3026,13 +3026,6 @@ export class UIManager {
       this.render();
     });
 
-    document.getElementById('card-select-classic')?.addEventListener('click', () => {
-      document.getElementById('btn-select-classic')?.click();
-    });
-
-    document.getElementById('card-select-flock')?.addEventListener('click', () => {
-      document.getElementById('btn-select-flock')?.click();
-    });
   }
 
   private getPowerupColor(type: string): string {
