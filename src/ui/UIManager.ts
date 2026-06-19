@@ -2646,7 +2646,9 @@ export class UIManager {
     this.container.innerHTML = `
       <style>
         .mode-3d-overlay {
-          background: rgba(8, 4, 18, 0.92);
+          background: rgba(6, 4, 14, 0.88);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -2659,183 +2661,165 @@ export class UIManager {
           font-family: 'Outfit', sans-serif;
         }
         .mode-3d-card-wrapper {
-          background: rgba(18, 12, 30, 0.7);
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          border-radius: 28px;
-          padding: 30px 25px;
-          max-width: 500px;
+          background: rgba(18, 12, 30, 0.65);
+          border: 1.5px solid rgba(255, 255, 255, 0.08);
+          border-radius: 24px;
+          padding: 24px 20px;
+          max-width: 460px;
           width: 90%;
-          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+          box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
           position: relative;
-          backdrop-filter: blur(16px);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
           text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          box-sizing: border-box;
         }
         .mode-3d-container {
           display: flex;
-          gap: 20px;
+          gap: 16px;
           width: 100%;
           justify-content: center;
           perspective: 1000px;
-          padding: 15px 5px;
-          margin-top: 15px;
+          padding: 10px 2px;
+          margin-top: 12px;
+          box-sizing: border-box;
         }
         .mode-3d-card {
           flex: 1;
-          background: linear-gradient(135deg, rgba(28, 22, 40, 0.9) 0%, rgba(14, 10, 22, 0.95) 100%);
-          border-radius: 20px;
+          background: linear-gradient(135deg, rgba(32, 24, 48, 0.7) 0%, rgba(16, 12, 28, 0.85) 100%);
+          border-radius: 18px;
           position: relative;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: space-between;
-          padding: 24px 16px;
-          transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+          padding: 20px 14px;
+          transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, border-color 0.15s ease-out;
           transform-style: preserve-3d;
           cursor: pointer;
+          box-sizing: border-box;
         }
         
         /* Classic 3D Theme */
         .mode-3d-card.classic-3d {
-          border: 2px solid #ffd700;
-          border-bottom: 8px solid #c59b00;
-          box-shadow: 0 10px 25px rgba(255, 215, 0, 0.15), 0 15px 30px rgba(0, 0, 0, 0.5);
+          border: 1.5px solid rgba(255, 215, 0, 0.25);
+          box-shadow: 0 10px 25px rgba(255, 215, 0, 0.08), 0 15px 30px rgba(0, 0, 0, 0.5);
         }
         .mode-3d-card.classic-3d:hover {
-          transform: translateY(-10px) rotateX(12deg) rotateY(-5deg);
-          box-shadow: 0 20px 35px rgba(255, 215, 0, 0.35), 0 25px 40px rgba(0, 0, 0, 0.6);
-          border-bottom-width: 8px;
-        }
-        .mode-3d-card.classic-3d:active {
-          transform: translateY(2px) rotateX(2deg) rotateY(0deg);
-          border-bottom-width: 3px;
-          box-shadow: 0 4px 10px rgba(255, 215, 0, 0.2), 0 8px 15px rgba(0, 0, 0, 0.5);
+          border-color: rgba(255, 215, 0, 0.8);
         }
 
         /* Squad 3D Theme */
         .mode-3d-card.squad-3d {
-          border: 2px solid #00f3ff;
-          border-bottom: 8px solid #00a2ac;
-          box-shadow: 0 10px 25px rgba(0, 243, 255, 0.15), 0 15px 30px rgba(0, 0, 0, 0.5);
+          border: 1.5px solid rgba(0, 243, 255, 0.25);
+          box-shadow: 0 10px 25px rgba(0, 243, 255, 0.08), 0 15px 30px rgba(0, 0, 0, 0.5);
         }
         .mode-3d-card.squad-3d:hover {
-          transform: translateY(-10px) rotateX(12deg) rotateY(5deg);
-          box-shadow: 0 20px 35px rgba(0, 243, 255, 0.35), 0 25px 40px rgba(0, 0, 0, 0.6);
-          border-bottom-width: 8px;
-        }
-        .mode-3d-card.squad-3d:active {
-          transform: translateY(2px) rotateX(2deg) rotateY(0deg);
-          border-bottom-width: 3px;
-          box-shadow: 0 4px 10px rgba(0, 243, 255, 0.2), 0 8px 15px rgba(0, 0, 0, 0.5);
+          border-color: rgba(0, 243, 255, 0.8);
         }
 
         /* Inner elements 3D pop-out */
         .mode-3d-icon {
-          transform: translateZ(35px);
-          transition: transform 0.3s ease;
-          margin-bottom: 12px;
-          width: 50px;
-          height: 50px;
+          transform: translateZ(0px);
+          transition: transform 0.15s ease-out;
+          margin-bottom: 8px;
+          width: 58px;
+          height: 58px;
           display: flex;
           align-items: center;
           justify-content: center;
-        }
-        .mode-3d-card:hover .mode-3d-icon {
-          transform: translateZ(50px) scale(1.15);
+          pointer-events: none;
         }
         .mode-3d-label {
           font-family: 'Outfit', sans-serif;
-          font-size: 16px;
-          font-weight: 900;
-          letter-spacing: 1.5px;
-          margin-bottom: 18px;
+          font-size: 15px;
+          font-weight: 800;
+          letter-spacing: 1.2px;
+          margin-bottom: 12px;
           text-transform: uppercase;
-          transform: translateZ(20px);
+          transition: transform 0.15s ease-out;
+          pointer-events: none;
         }
         .mode-3d-card.classic-3d .mode-3d-label {
           color: #ffd700;
-          text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+          text-shadow: 0 0 8px rgba(255, 215, 0, 0.35);
         }
         .mode-3d-card.squad-3d .mode-3d-label {
           color: #00f3ff;
-          text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+          text-shadow: 0 0 8px rgba(0, 243, 255, 0.35);
         }
 
         /* 3D arcade buttons */
         .mode-3d-btn {
           width: 100%;
-          padding: 10px 8px;
-          font-size: 12px;
+          padding: 8px 6px;
+          font-size: 11px;
           font-weight: 900;
           text-transform: uppercase;
-          border-radius: 12px;
+          border-radius: 10px;
           border: none;
-          transform: translateZ(25px);
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 0.15s ease-out;
         }
         .classic-3d-btn {
-          background: linear-gradient(180deg, #ffd700 0%, #ff8800 100%);
-          color: #301f00;
-          box-shadow: 0 4px 0 #9c6300, 0 6px 15px rgba(255, 170, 0, 0.3);
+          background: linear-gradient(180deg, #ffd700 0%, #ff9900 100%);
+          color: #2b1c00;
+          box-shadow: 0 4px 0 #9c6300, 0 4px 10px rgba(255, 170, 0, 0.25);
         }
         .classic-3d-btn:hover {
-          background: linear-gradient(180deg, #ffe54d 0%, #ff9900 100%);
-          box-shadow: 0 5px 0 #9c6300, 0 8px 18px rgba(255, 170, 0, 0.4);
+          background: linear-gradient(180deg, #ffe54d 0%, #ffa200 100%);
+          box-shadow: 0 4px 0 #9c6300, 0 6px 14px rgba(255, 170, 0, 0.35);
         }
         .squad-3d-btn {
           background: linear-gradient(180deg, #00f3ff 0%, #0066ff 100%);
-          color: #001f30;
-          box-shadow: 0 4px 0 #004da8, 0 6px 15px rgba(0, 136, 255, 0.3);
+          color: #001a33;
+          box-shadow: 0 4px 0 #004da8, 0 4px 10px rgba(0, 136, 255, 0.25);
         }
         .squad-3d-btn:hover {
           background: linear-gradient(180deg, #4df7ff 0%, #1a80ff 100%);
-          box-shadow: 0 5px 0 #004da8, 0 8px 18px rgba(0, 136, 255, 0.4);
+          box-shadow: 0 4px 0 #004da8, 0 6px 14px rgba(0, 136, 255, 0.35);
         }
 
         /* Mobile Responsive 3D Styling (Lightweight & Smooth) */
         @media (max-width: 480px) {
+          .mode-3d-card-wrapper {
+            padding: 20px 16px;
+            max-width: 320px;
+          }
           .mode-3d-container {
             flex-direction: column;
-            gap: 15px;
-            padding: 5px;
+            gap: 12px;
+            padding: 0;
+            margin-top: 10px;
           }
           .mode-3d-card {
-            padding: 16px 20px;
+            padding: 12px 14px;
             flex-direction: row !important;
             justify-content: space-between;
             align-items: center;
             width: 100%;
-            box-sizing: border-box;
-            transform: none !important; /* Disable heavy 3D rotation on mobile to ensure 60 FPS */
-          }
-          .mode-3d-card:hover {
-            transform: translateY(-4px) !important; /* High-performance 2D translate fallback */
-          }
-          .mode-3d-card:active {
-            transform: scale(0.97) translateY(2px) !important;
+            height: 70px;
+            border-radius: 14px;
           }
           .mode-3d-icon {
             margin-bottom: 0 !important;
-            width: 45px;
-            height: 45px;
-            transform: none !important;
-          }
-          .mode-3d-card:hover .mode-3d-icon {
-            transform: none !important;
+            width: 44px;
+            height: 44px;
           }
           .mode-3d-label {
             margin-bottom: 0 !important;
-            font-size: 16px;
+            font-size: 14px;
             flex: 1;
             text-align: left;
-            padding-left: 15px;
-            transform: none !important;
+            padding-left: 12px;
           }
           .mode-3d-btn {
             width: auto !important;
-            padding: 8px 18px !important;
-            font-size: 12px !important;
-            transform: none !important;
+            padding: 6px 14px !important;
+            font-size: 11px !important;
           }
         }
       </style>
@@ -2845,8 +2829,8 @@ export class UIManager {
           <!-- Close button in corner -->
           <button id="btn-close-mode-selector" style="position: absolute; right: 15px; top: 15px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50%; color: white; width: 32px; height: 32px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">×</button>
           
-          <h2 style="color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); font-size: 24px; font-weight: 900; margin-bottom: 5px; text-transform: uppercase;">SELECT GAME MODE</h2>
-          <p style="color: rgba(255, 255, 255, 0.6); font-size: 11px; margin-bottom: 5px;">Choose your endless adventure</p>
+          <h2 style="color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); font-size: 22px; font-weight: 900; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">SELECT GAME MODE</h2>
+          <p style="color: rgba(255, 255, 255, 0.5); font-size: 11px; margin-bottom: 6px; letter-spacing: 0.2px;">Choose your endless adventure</p>
           
           <div class="mode-3d-container">
             <!-- Option 1: Classic Card -->
@@ -2857,28 +2841,28 @@ export class UIManager {
                   <g transform="translate(10, 15)">
                     <path d="M12,40 C5,38 2,42 0,47 C3,52 8,50 15,46 Z" fill="#ff8800" />
                     <path d="M15,44 C10,40 6,43 5,48 C8,52 12,50 17,46 Z" fill="#ffaa00" />
-                    <circle cx="40" cy="38" r="24" fill="url(#gold-body-grad-3d)" stroke="#9c6300" stroke-width="2" />
+                    <circle cx="40" cy="38" r="24" fill="url(#gold-body-grad-classic-selection)" stroke="#9c6300" stroke-width="2" />
                     <ellipse cx="50" cy="28" rx="8" ry="11" fill="#ffffff" stroke="#111" stroke-width="2" />
                     <ellipse cx="51" cy="28" rx="4" ry="6" fill="#000000" />
                     <circle cx="49" cy="25" r="2.2" fill="#ffffff" />
                     <circle cx="53" cy="31" r="1" fill="#ffffff" />
-                    <path d="M60,34 C72,34 78,38 72,44 C66,48 60,42 60,34 Z" fill="url(#beak-grad-3d)" stroke="#b34000" stroke-width="1.5" />
-                    <path d="M58,40 C68,42 70,46 64,48 C58,50 56,43 58,40 Z" fill="url(#beak-grad-3d)" stroke="#b34000" stroke-width="1.5" />
+                    <path d="M60,34 C72,34 78,38 72,44 C66,48 60,42 60,34 Z" fill="url(#beak-grad-classic-selection)" stroke="#b34000" stroke-width="1.5" />
+                    <path d="M58,40 C68,42 70,46 64,48 C58,50 56,43 58,40 Z" fill="url(#beak-grad-classic-selection)" stroke="#b34000" stroke-width="1.5" />
                     <path d="M22,46 C28,58 52,58 58,46 C48,50 32,50 22,46 Z" fill="#fff9d4" opacity="0.8" />
-                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#gold-wing-grad-3d)" stroke="#9c6300" stroke-width="1.8" />
+                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#gold-wing-grad-classic-selection)" stroke="#9c6300" stroke-width="1.8" />
                     <path d="M28,36 C24,27 36,18 40,26 C43,33 36,41 28,36 Z" fill="#ffe066" opacity="0.9" />
                   </g>
                   <defs>
-                    <linearGradient id="gold-body-grad-3d" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <linearGradient id="gold-body-grad-classic-selection" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stop-color="#fff099" />
                       <stop offset="40%" stop-color="#ffd700" />
                       <stop offset="100%" stop-color="#e69d00" />
                     </linearGradient>
-                    <linearGradient id="gold-wing-grad-3d" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <linearGradient id="gold-wing-grad-classic-selection" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stop-color="#fff5cc" />
                       <stop offset="100%" stop-color="#ffa600" />
                     </linearGradient>
-                    <linearGradient id="beak-grad-3d" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <linearGradient id="beak-grad-classic-selection" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stop-color="#ff9900" />
                       <stop offset="100%" stop-color="#ff3300" />
                     </linearGradient>
@@ -2896,38 +2880,38 @@ export class UIManager {
                   <circle cx="50" cy="50" r="42" fill="rgba(0, 243, 255, 0.04)" stroke="rgba(0, 243, 255, 0.15)" stroke-width="1.5" stroke-dasharray="4 4" />
                   <g transform="translate(10, 52) scale(0.42)">
                     <path d="M12,40 C5,38 2,42 0,47 C3,52 8,50 15,46 Z" fill="#005588" />
-                    <circle cx="40" cy="38" r="24" fill="url(#squad-blue-grad-3d)" stroke="#003366" stroke-width="2" />
+                    <circle cx="40" cy="38" r="24" fill="url(#squad-blue-grad-squad-selection)" stroke="#003366" stroke-width="2" />
                     <ellipse cx="50" cy="28" rx="8" ry="11" fill="#ffffff" stroke="#111" stroke-width="2" />
                     <ellipse cx="51" cy="28" rx="4" ry="6" fill="#000000" />
                     <path d="M60,34 C72,34 78,38 72,44 C66,48 60,42 60,34 Z" fill="#ff7700" />
-                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#squad-cyan-grad-3d)" stroke="#005588" stroke-width="1.8" />
+                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#squad-cyan-grad-squad-selection)" stroke="#005588" stroke-width="1.8" />
                   </g>
                   <g transform="translate(15, 12) scale(0.5)">
                     <path d="M12,40 C5,38 2,42 0,47 C3,52 8,50 15,46 Z" fill="#005588" />
-                    <circle cx="40" cy="38" r="24" fill="url(#squad-blue-grad-3d)" stroke="#003366" stroke-width="2" />
+                    <circle cx="40" cy="38" r="24" fill="url(#squad-blue-grad-squad-selection)" stroke="#003366" stroke-width="2" />
                     <ellipse cx="50" cy="28" rx="8" ry="11" fill="#ffffff" stroke="#111" stroke-width="2" />
                     <ellipse cx="51" cy="28" rx="4" ry="6" fill="#000000" />
                     <path d="M60,34 C72,34 78,38 72,44 C66,48 60,42 60,34 Z" fill="#ff7700" />
-                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#squad-cyan-grad-3d)" stroke="#005588" stroke-width="1.8" />
+                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#squad-cyan-grad-squad-selection)" stroke="#005588" stroke-width="1.8" />
                   </g>
                   <g transform="translate(42, 26) scale(0.65)">
                     <path d="M12,40 C5,38 2,42 0,47 C3,52 8,50 15,46 Z" fill="#005588" />
-                    <circle cx="40" cy="38" r="24" fill="url(#squad-cyan-grad-3d)" stroke="#005588" stroke-width="2" />
+                    <circle cx="40" cy="38" r="24" fill="url(#squad-cyan-grad-squad-selection)" stroke="#005588" stroke-width="2" />
                     <ellipse cx="50" cy="28" rx="8" ry="11" fill="#ffffff" stroke="#111" stroke-width="2" />
                     <ellipse cx="51" cy="28" rx="4" ry="6" fill="#000000" />
                     <circle cx="49" cy="25" r="2.2" fill="#ffffff" />
                     <path d="M60,34 C72,34 78,38 72,44 C66,48 60,42 60,34 Z" fill="#ff7700" stroke="#b34000" stroke-width="1" />
                     <path d="M58,40 C68,42 70,46 64,48 C58,50 56,43 58,40 Z" fill="#ff5500" stroke="#b34000" stroke-width="1" />
-                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#squad-blue-grad-3d)" stroke="#003366" stroke-width="1.8" />
+                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#squad-blue-grad-squad-selection)" stroke="#003366" stroke-width="1.8" />
                     <path d="M28,36 C24,27 36,18 40,26 C43,33 36,41 28,36 Z" fill="#a3f5ff" opacity="0.9" />
                   </g>
                   <defs>
-                    <linearGradient id="squad-cyan-grad-3d" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <linearGradient id="squad-cyan-grad-squad-selection" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stop-color="#b3f5ff" />
                       <stop offset="50%" stop-color="#00f3ff" />
                       <stop offset="100%" stop-color="#00aaff" />
                     </linearGradient>
-                    <linearGradient id="squad-blue-grad-3d" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <linearGradient id="squad-blue-grad-squad-selection" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stop-color="#80d5ff" />
                       <stop offset="100%" stop-color="#0055ff" />
                     </linearGradient>
@@ -2941,6 +2925,86 @@ export class UIManager {
         </div>
       </div>
     `;
+
+    // Dynamic 3D interactive tilt math for desktop and mobile
+    const setup3DTilt = (cardId: string) => {
+      const card = document.getElementById(cardId);
+      if (!card) return;
+
+      const handleMove = (e: MouseEvent | TouchEvent) => {
+        const rect = card.getBoundingClientRect();
+        
+        let clientX = 0;
+        let clientY = 0;
+        if ('touches' in e) {
+          if (e.touches.length === 0) return;
+          clientX = e.touches[0].clientX;
+          clientY = e.touches[0].clientY;
+        } else {
+          clientX = e.clientX;
+          clientY = e.clientY;
+        }
+
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
+
+        // Calculate offset from center (from -0.5 to 0.5)
+        const px = (x / rect.width) - 0.5;
+        const py = (y / rect.height) - 0.5;
+
+        // Dynamic 3D rotation angles
+        const rx = -py * 16; 
+        const ry = px * 16;  
+
+        // Apply interactive 3D rotation and scale
+        card.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) scale3d(1.03, 1.03, 1.03)`;
+        
+        // Subtle offset shadow based on cursor position
+        const shadowX = -px * 12;
+        const shadowY = -py * 12;
+        const glowColor = cardId.includes('classic') ? '255, 215, 0' : '0, 243, 255';
+        card.style.boxShadow = `${shadowX}px ${shadowY}px 20px rgba(${glowColor}, 0.2), 0 12px 25px rgba(0,0,0,0.45)`;
+
+        // Parallax offset for inner elements
+        const icon = card.querySelector('.mode-3d-icon') as HTMLElement;
+        const label = card.querySelector('.mode-3d-label') as HTMLElement;
+        const btn = card.querySelector('.mode-3d-btn') as HTMLElement;
+        if (icon) icon.style.transform = `translateZ(40px) scale(1.1) rotateX(${-rx * 0.15}deg) rotateY(${-ry * 0.15}deg)`;
+        if (label) label.style.transform = `translateZ(20px)`;
+        if (btn) btn.style.transform = `translateZ(25px)`;
+      };
+
+      const handleReset = () => {
+        card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+        
+        const glowColor = cardId.includes('classic') ? '255, 215, 0' : '0, 243, 255';
+        card.style.boxShadow = `0 10px 25px rgba(${glowColor}, 0.08), 0 15px 30px rgba(0, 0, 0, 0.5)`;
+
+        const icon = card.querySelector('.mode-3d-icon') as HTMLElement;
+        const label = card.querySelector('.mode-3d-label') as HTMLElement;
+        const btn = card.querySelector('.mode-3d-btn') as HTMLElement;
+        if (icon) icon.style.transform = `translateZ(0px) scale(1)`;
+        if (label) label.style.transform = `translateZ(0px)`;
+        if (btn) btn.style.transform = `translateZ(0px)`;
+      };
+
+      card.addEventListener('mousemove', handleMove);
+      card.addEventListener('mouseleave', handleReset);
+      
+      // Touch support for mobile 3D interactivity
+      card.addEventListener('touchstart', (e) => {
+        handleMove(e);
+      }, { passive: true });
+      card.addEventListener('touchmove', (e) => {
+        handleMove(e);
+      }, { passive: true });
+      card.addEventListener('touchend', handleReset);
+      card.addEventListener('touchcancel', handleReset);
+    };
+
+    // Initialize 3D dynamic tilt for both modes
+    setup3DTilt('card-select-classic');
+    setup3DTilt('card-select-flock');
 
     document.getElementById('btn-close-mode-selector')?.addEventListener('click', () => {
       this.renderMenu();
