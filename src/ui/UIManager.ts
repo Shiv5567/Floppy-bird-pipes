@@ -3589,14 +3589,17 @@ export class UIManager {
   <g clip-path="url(#circleClip)">
     <!-- Distant Mountains Silhouette -->
     <!-- Peak 1: Left Peak -->
-    <path d="M -10,80 L 25,25 L 60,80 Z" fill="#0f3d24" opacity="0.7" />
-    <path d="M 25,25 L 25,80 L 60,80 Z" fill="#0c321d" opacity="0.5" />
+    <path d="M -10,80 L 25,25 L 25,80 Z" fill="#2d6a4f" />
+    <path d="M 25,25 L 60,80 L 25,80 Z" fill="#1b4332" />
+    <path d="M 20,33 C 23,31 24,31 25,25 C 26,31 27,31 30,33 L 25,37 Z" fill="#74c69d" />
+    
     <!-- Peak 2: Right Peak (Taller) -->
-    <path d="M 35,80 L 70,20 L 105,80 Z" fill="#0d351f" opacity="0.8" />
-    <path d="M 70,20 L 70,80 L 105,80 Z" fill="#092716" opacity="0.5" />
+    <path d="M 35,80 L 70,15 L 70,80 Z" fill="#225c42" />
+    <path d="M 70,15 L 105,80 L 70,80 Z" fill="#123826" />
+    <path d="M 64,26 C 68,23 69,23 70,15 C 71,23 72,23 76,26 L 70,30 Z" fill="#95d5b2" />
     
     <!-- Foothills / Jungle Ridge in front -->
-    <path d="M 0,70 Q 25,60 50,75 T 100,70 L 100,100 L 0,100 Z" fill="#0b301a" />
+    <path d="M 0,70 Q 25,60 50,75 T 100,70 L 100,100 L 0,100 Z" fill="#081c15" />
 
     <!-- Waterfall coming from the top center -->
     <path d="M 42,40 L 58,40 L 62,90 L 38,90 Z" fill="url(#waterfallGrad)" />
