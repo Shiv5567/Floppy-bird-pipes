@@ -2971,7 +2971,7 @@ export class UIManager {
             ">
               ${this.getChestSvg(ch.id, '65px', '65px', '', 'tab-chest-' + ch.id)}
             </div>
-            <div class="chest-name" style="display: none; font-size: 7.5px; font-weight: 900; color: ${ch.color}; letter-spacing: 0.5px; text-shadow: 0 0 5px ${ch.glow}; margin-bottom: 2px;">${ch.name.toUpperCase()}</div>
+            <div class="chest-name" style="font-size: 7.5px; font-weight: 900; color: ${ch.color}; letter-spacing: 0.5px; text-shadow: 0 0 5px ${ch.glow}; margin-bottom: 2px;">${ch.name.replace(' Box', '').toUpperCase()}</div>
             <div class="chest-status" style="font-size: 7.5px; font-weight: 800; color: ${isCompleted ? '#a855f7' : (isReady ? '#00ffaa' : '#ff3366')}; text-shadow: ${isReady ? '0 0 5px rgba(0,255,170,0.5)' : 'none'}; margin-bottom: 6px;">
               ${statusText}
             </div>
