@@ -106,18 +106,14 @@ export class PowerupManager {
     // Determine target coins based on level: exactly 50 coins for every level
     const targetCoins: number = 50;
 
-    // Determine target gap gems based on level
+    // Determine target gap gems based on level: 1-20 (3 gems), 21-40 (4 gems), 41-50 (5 gems)
     let targetGapGems = 3;
-    if (levelNum >= 1 && levelNum <= 10) {
+    if (levelNum >= 1 && levelNum <= 20) {
       targetGapGems = 3;
-    } else if (levelNum >= 11 && levelNum <= 20) {
+    } else if (levelNum >= 21 && levelNum <= 40) {
       targetGapGems = 4;
-    } else if (levelNum >= 21 && levelNum <= 30) {
-      targetGapGems = 4;
-    } else if (levelNum >= 31 && levelNum <= 40) {
-      targetGapGems = 5;
     } else if (levelNum >= 41 && levelNum <= 50) {
-      targetGapGems = 6;
+      targetGapGems = 5;
     }
 
     // Pre-calculate spawn distances for all targetScore obstacles
@@ -449,8 +445,8 @@ export class PowerupManager {
               if (this.list[k]) this.list[k].pulseTimer = syncTimer;
             }
           }
-        } else if (indexInBlock % 10 === 5) {
-          // Spawn a gem at equal intervals (every 10th obstacle, except on powerup indices)
+        } else if ([10, 35, 62, 85].includes(indexInBlock)) {
+          // Spawn exactly 4 gems per 100 obstacles cycle
           this.spawnItem('gem', width, height, targetX, gapCenterY);
         }
       }
@@ -483,8 +479,8 @@ export class PowerupManager {
           this.spawnItem('coin', width, height, targetX - 15, targetY, unrewardedObstacle, offsetPct);
           this.spawnItem('coin', width, height, targetX + 15, targetY, unrewardedObstacle, offsetPct);
           this.spawnItem('coin', width, height, targetX + 45, targetY, unrewardedObstacle, offsetPct);
-        } else if (obsIdx % 7 === 4) {
-          // Spare slots: gems
+        } else if ([10, 35, 62, 85].includes(obsIdx % 100)) {
+          // Spawn exactly 4 gems per 100 obstacles cycle
           this.spawnItem('gem', width, height, targetX, targetY, unrewardedObstacle, offsetPct);
         } else if (obsIdx % 12 === 8) {
           // Rare random powerups

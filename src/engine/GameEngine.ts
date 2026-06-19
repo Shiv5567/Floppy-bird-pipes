@@ -1313,19 +1313,15 @@ export class GameEngine {
   private triggerLevelComplete() {
     if (this.gameMode !== 'level' || !this.activeLevelConfig) return;
 
-    // Award gems according to level bracket when level is completed
+    // Award gems according to level bracket when level is completed: 1-20 (3 gems), 21-40 (4 gems), 41-50 (5 gems)
     const levelNum = this.currentLevelNum;
-    let bossGems = 2;
-    if (levelNum >= 1 && levelNum <= 10) {
-      bossGems = 2;
-    } else if (levelNum >= 11 && levelNum <= 20) {
-      bossGems = 2;
-    } else if (levelNum >= 21 && levelNum <= 30) {
+    let bossGems = 3;
+    if (levelNum >= 1 && levelNum <= 20) {
       bossGems = 3;
-    } else if (levelNum >= 31 && levelNum <= 40) {
-      bossGems = 3;
-    } else if (levelNum >= 41 && levelNum <= 50) {
+    } else if (levelNum >= 21 && levelNum <= 40) {
       bossGems = 4;
+    } else if (levelNum >= 41 && levelNum <= 50) {
+      bossGems = 5;
     }
     this.gemsCollectedThisRun += bossGems;
     this.progressManager.addGems(bossGems);
