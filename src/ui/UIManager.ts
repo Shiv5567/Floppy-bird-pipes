@@ -562,15 +562,8 @@ export class UIManager {
       particlesHtml += `<div class="menu-particle" style="left:${x}%;width:${size}px;height:${size}px;background:${color};animation-duration:${dur}s;animation-delay:${delay}s"></div>`;
     }
 
-    // Floating items around bird
-    const floaties = [
-      { emoji: '🪙', dur: '5s', delay: '0s' },
-      { emoji: '💎', dur: '7s', delay: '-2s' },
-      { emoji: '⭐', dur: '6s', delay: '-3.5s' },
-    ];
-    const floatiesHtml = floaties.map(f =>
-      `<div class="bird-floaty" style="animation-duration:${f.dur};animation-delay:${f.delay}">${f.emoji}</div>`
-    ).join('');
+    // Floating items around bird (removed)
+    const floatiesHtml = '';
 
     const menuHTML = `
       <div class="screen menu-screen fade-in">
