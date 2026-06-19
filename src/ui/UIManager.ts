@@ -699,41 +699,6 @@ export class UIManager {
       });
     }
 
-    // 5. Update chest countdown timers dynamically if they are on screen
-    if (this.activeTab === 'rewards') {
-      const now = Date.now();
-      const chests = [
-        { id: 1, name: 'Bronze Chest', cooldown: 1 * 60 * 60 * 1000 },
-        { id: 2, name: 'Silver Chest', cooldown: 4 * 60 * 60 * 1000 },
-        { id: 3, name: 'Golden Chest', cooldown: 8 * 60 * 60 * 1000 }
-      ];
-      chests.forEach(ch => {
-        const card = this.container.querySelector(`.chest-card[data-chest-id="${ch.id}"]`) as HTMLElement | null;
-        if (!card) return;
-        
-        const lastOpen = parseInt(localStorage.getItem(`flight_of_legends_chest_${ch.id}_time`) || '0');
-        const timePassed = now - lastOpen;
-        const isReady = timePassed >= ch.cooldown;
-        
-        const statusEl = card.querySelector('.chest-status') as HTMLElement | null;
-        
-        if (!isReady) {
-          const msLeft = ch.cooldown - timePassed;
-          const hours = Math.floor(msLeft / (3600 * 1000));
-          const minutes = Math.floor((msLeft % (3600 * 1000)) / (60 * 1000));
-          const seconds = Math.floor((msLeft % (60 * 1000)) / 1000);
-          
-          if (statusEl) {
-            statusEl.textContent = `⏳ ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-          }
-        } else {
-          // If it is ready, check if we need to transition it to READY state
-          if (statusEl && statusEl.textContent && statusEl.textContent.trim().startsWith('⏳')) {
-            this.render();
-          }
-        }
-      });
-    }
   }
 
   private renderTabPage(worldId: string): string {
@@ -1527,23 +1492,17 @@ export class UIManager {
         const chestId = parseInt((btn as HTMLElement).getAttribute('data-chest-id') || '0');
         if (!chestId) return;
 
-        const now = Date.now();
         const chests = [
-          { id: 1, name: 'Bronze Chest', icon: '📦', cooldown: 1 * 60 * 60 * 1000, minCoins: 250, maxCoins: 600, minGems: 2, maxGems: 6 },
-          { id: 2, name: 'Silver Chest', icon: '🧰', cooldown: 4 * 60 * 60 * 1000, minCoins: 800, maxCoins: 1800, minGems: 8, maxGems: 16 },
-          { id: 3, name: 'Golden Chest', icon: '🎁', cooldown: 8 * 60 * 60 * 1000, minCoins: 2000, maxCoins: 4500, minGems: 20, maxGems: 45 }
+          { id: 1, name: 'Bronze Chest', icon: '📦', minCoins: 250, maxCoins: 600, minGems: 2, maxGems: 6 },
+          { id: 2, name: 'Silver Chest', icon: '🧰', minCoins: 800, maxCoins: 1800, minGems: 8, maxGems: 16 },
+          { id: 3, name: 'Golden Chest', icon: '🎁', minCoins: 2000, maxCoins: 4500, minGems: 20, maxGems: 45 }
         ];
         const ch = chests.find(c => c.id === chestId);
         if (!ch) return;
 
-        const lastOpen = parseInt(localStorage.getItem(`flight_of_legends_chest_${ch.id}_time`) || '0');
-        const timePassed = now - lastOpen;
-        if (timePassed < ch.cooldown) {
-          const msLeft = ch.cooldown - timePassed;
-          const hours = Math.floor(msLeft / (3600 * 1000));
-          const minutes = Math.floor((msLeft % (3600 * 1000)) / (60 * 1000));
-          const seconds = Math.floor((msLeft % (60 * 1000)) / 1000);
-          this.showToastNotification('CHEST LOCKED', `Chest is on cooldown! Try again in ${hours}:${minutes}:${seconds}.`);
+        const status = this.getChestStatus(chestId);
+        if (!status.isReady) {
+          this.showToastNotification('CHEST LOCKED', `You need to claim more missions to open this chest!`);
           return;
         }
 
@@ -1563,8 +1522,9 @@ export class UIManager {
           const gainedCoins = Math.floor(Math.random() * (ch.maxCoins - ch.minCoins + 1)) + ch.minCoins;
           const gainedGems = Math.floor(Math.random() * (ch.maxGems - ch.minGems + 1)) + ch.minGems;
 
-          // Save timestamp
-          localStorage.setItem(`flight_of_legends_chest_${ch.id}_time`, Date.now().toString());
+          // Save claims count
+          const nextClaims = status.claims + 1;
+          localStorage.setItem(`flight_of_legends_chest_${ch.id}_claims`, nextClaims.toString());
 
           // Apply rewards
           this.engine.progressManager.addCoins(gainedCoins);
@@ -2922,64 +2882,110 @@ export class UIManager {
     `;
   }
 
+  private getChestStatus(chestId: number) {
+    const daily = this.engine.progressManager.getState().dailyQuests || [];
+    const claimedMissions = daily.filter(q => q.claimed).length;
+    const claims = parseInt(localStorage.getItem(`flight_of_legends_chest_${chestId}_claims`) || '0');
+    
+    let maxClaims = 0;
+    let requiredMissions = 0;
+    
+    if (chestId === 1) {
+      maxClaims = 3;
+      requiredMissions = (claims + 1) * 3;
+    } else if (chestId === 2) {
+      maxClaims = 2;
+      requiredMissions = (claims + 1) * 9;
+    } else if (chestId === 3) {
+      maxClaims = 1;
+      requiredMissions = 27;
+    }
+    
+    const isCompleted = claims >= maxClaims;
+    const isReady = !isCompleted && (claimedMissions >= requiredMissions);
+    
+    return {
+      claims,
+      maxClaims,
+      requiredMissions,
+      claimedMissions,
+      isCompleted,
+      isReady
+    };
+  }
+
   private getChestsHtml(): string {
-    const now = Date.now();
     const chests = [
-      { id: 1, name: 'Bronze Chest', icon: '📦', cooldown: 1 * 60 * 60 * 1000, color: '#cd7f32', glow: 'rgba(205, 127, 50, 0.45)', minCoins: 250, maxCoins: 600, minGems: 2, maxGems: 6 },
-      { id: 2, name: 'Silver Chest', icon: '🧰', cooldown: 4 * 60 * 60 * 1000, color: '#c0c0c0', glow: 'rgba(192, 192, 192, 0.45)', minCoins: 800, maxCoins: 1800, minGems: 8, maxGems: 16 },
-      { id: 3, name: 'Golden Chest', icon: '🎁', cooldown: 8 * 60 * 60 * 1000, color: '#ffd700', glow: 'rgba(255, 215, 0, 0.45)', minCoins: 2000, maxCoins: 4500, minGems: 20, maxGems: 45 }
+      { id: 1, name: 'Bronze Chest', icon: '📦', color: '#cd7f32', glow: 'rgba(205, 127, 50, 0.45)', minCoins: 250, maxCoins: 600, minGems: 2, maxGems: 6 },
+      { id: 2, name: 'Silver Chest', icon: '🧰', color: '#c0c0c0', glow: 'rgba(192, 192, 192, 0.45)', minCoins: 800, maxCoins: 1800, minGems: 8, maxGems: 16 },
+      { id: 3, name: 'Golden Chest', icon: '🎁', color: '#ffd700', glow: 'rgba(255, 215, 0, 0.45)', minCoins: 2000, maxCoins: 4500, minGems: 20, maxGems: 45 }
     ];
 
     let chestsHtml = '';
     chests.forEach(ch => {
-      const lastOpen = parseInt(localStorage.getItem(`flight_of_legends_chest_${ch.id}_time`) || '0');
-      const timePassed = now - lastOpen;
-      const isReady = timePassed >= ch.cooldown;
+      const status = this.getChestStatus(ch.id);
+      const isReady = status.isReady;
+      const isCompleted = status.isCompleted;
+      
+      let progressPercent = 0;
+      if (isCompleted) {
+        progressPercent = 100;
+      } else {
+        progressPercent = Math.min(100, Math.floor((status.claimedMissions / status.requiredMissions) * 100));
+      }
       
       let statusText = '';
       let btnText = 'OPEN 🎁';
       let btnClass = 'btn-open-chest';
       let btnDisabled = '';
       
-      if (!isReady) {
-        const msLeft = ch.cooldown - timePassed;
-        const hours = Math.floor(msLeft / (3600 * 1000));
-        const minutes = Math.floor((msLeft % (3600 * 1000)) / (60 * 1000));
-        const seconds = Math.floor((msLeft % (60 * 1000)) / 1000);
-        statusText = `⏳ ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        btnText = 'LOCKED 🔒';
+      if (isCompleted) {
+        statusText = `✅ CLAIMED (${status.claims}/${status.maxClaims})`;
+        btnText = 'CLAIMED';
+        btnClass = 'btn-open-chest completed';
+        btnDisabled = 'disabled';
+      } else if (!isReady) {
+        statusText = `🔒 ${status.claimedMissions}/${status.requiredMissions} QUESTS`;
+        btnText = 'LOCKED';
         btnClass = 'btn-open-chest locked';
         btnDisabled = 'disabled';
       } else {
-        statusText = '✨ READY!';
+        statusText = `✨ READY! (${status.claims}/${status.maxClaims})`;
       }
 
       chestsHtml += `
-        <div class="chest-card glass-card ${isReady ? 'ready-pulse' : ''}" data-chest-id="${ch.id}" style="
-          flex: 1; min-width: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-          padding: 10px 4px; border-radius: 16px; border: 1.5px solid ${ch.color}; background: rgba(255, 255, 255, 0.02);
-          box-shadow: 0 4px 15px ${ch.glow}; transition: all 0.3s ease; position: relative;
+        <div class="chest-border-wrapper" style="
+          flex: 1; min-width: 85px; padding: 2.5px; border-radius: 18px;
+          background: conic-gradient(${ch.color} ${progressPercent}%, rgba(255, 255, 255, 0.08) ${progressPercent}%);
+          box-shadow: 0 4px 15px ${ch.glow}; transition: all 0.3s ease;
+          display: flex;
         ">
-          <div class="chest-icon-wrapper" style="
-            width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; filter: drop-shadow(0 0 6px ${ch.color});
-            animation: ${isReady ? 'chestFloat 2s ease-in-out infinite' : 'none'};
+          <div class="chest-card glass-card ${isReady ? 'ready-pulse' : ''}" data-chest-id="${ch.id}" style="
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 10px 4px; border-radius: 16px; border: none; background: rgba(13, 10, 28, 0.95);
+            transition: all 0.3s ease; position: relative; width: 100%;
           ">
-            ${this.getChestSvg(ch.id, '50px', '50px', '', 'tab-chest-' + ch.id)}
+            <div class="chest-icon-wrapper" style="
+              width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; filter: drop-shadow(0 0 6px ${ch.color});
+              animation: ${isReady ? 'chestFloat 2s ease-in-out infinite' : 'none'};
+            ">
+              ${this.getChestSvg(ch.id, '50px', '50px', '', 'tab-chest-' + ch.id)}
+            </div>
+            <div class="chest-name" style="font-size: 8px; font-weight: 900; color: ${ch.color}; letter-spacing: 0.5px; text-shadow: 0 0 5px ${ch.glow}; margin-bottom: 2px;">${ch.name.toUpperCase()}</div>
+            <div class="chest-rewards-preview" style="font-size: 7px; color: rgba(255,255,255,0.5); line-height: 1.2; text-align: center; margin-bottom: 4px;">
+              🪙 ${ch.minCoins}-${ch.maxCoins}<br>💎 ${ch.minGems}-${ch.maxGems}
+            </div>
+            <div class="chest-status" style="font-size: 8px; font-weight: 800; color: ${isCompleted ? '#a855f7' : (isReady ? '#00ffaa' : '#ff3366')}; text-shadow: ${isReady ? '0 0 5px rgba(0,255,170,0.5)' : 'none'}; margin-bottom: 6px;">
+              ${statusText}
+            </div>
+            <button class="${btnClass}" data-chest-id="${ch.id}" ${btnDisabled} style="
+              width: 90%; max-width: 80px; border: none; padding: 4px 0; border-radius: 8px; font-family: inherit; font-size: 8px; font-weight: 900;
+              color: ${isReady ? '#030c17' : 'rgba(255,255,255,0.35)'}; background: ${isReady ? `linear-gradient(180deg, ${ch.color} 0%, #ffffff 100%)` : 'rgba(255,255,255,0.06)'};
+              cursor: ${isReady ? 'pointer' : 'not-allowed'}; box-shadow: ${isReady ? `0 4px 10px ${ch.glow}` : 'none'}; transition: all 0.2s;
+            ">
+              ${btnText}
+            </button>
           </div>
-          <div class="chest-name" style="font-size: 8px; font-weight: 900; color: ${ch.color}; letter-spacing: 0.5px; text-shadow: 0 0 5px ${ch.glow}; margin-bottom: 2px;">${ch.name.toUpperCase()}</div>
-          <div class="chest-rewards-preview" style="font-size: 7px; color: rgba(255,255,255,0.5); line-height: 1.2; text-align: center; margin-bottom: 4px;">
-            🪙 ${ch.minCoins}-${ch.maxCoins}<br>💎 ${ch.minGems}-${ch.maxGems}
-          </div>
-          <div class="chest-status" style="font-size: 8px; font-weight: 800; color: ${isReady ? '#00ffaa' : '#ff3366'}; text-shadow: ${isReady ? '0 0 5px rgba(0,255,170,0.5)' : 'none'}; margin-bottom: 6px;">
-            ${statusText}
-          </div>
-          <button class="${btnClass}" data-chest-id="${ch.id}" ${btnDisabled} style="
-            width: 90%; max-width: 80px; border: none; padding: 4px 0; border-radius: 8px; font-family: inherit; font-size: 8px; font-weight: 900;
-            color: ${isReady ? '#030c17' : 'rgba(255,255,255,0.35)'}; background: ${isReady ? `linear-gradient(180deg, ${ch.color} 0%, #ffffff 100%)` : 'rgba(255,255,255,0.06)'};
-            cursor: ${isReady ? 'pointer' : 'not-allowed'}; box-shadow: ${isReady ? `0 4px 10px ${ch.glow}` : 'none'}; transition: all 0.2s;
-          ">
-            ${btnText}
-          </button>
         </div>
       `;
     });
