@@ -4157,22 +4157,13 @@ export class UIManager {
     <!-- 1. CIRCULAR BASE HEAD -->
     <circle cx="46" cy="50" r="36" fill="url(#redBaseGrad-${idSuffix})" />
 
-    <!-- 2. WHITE THROAT FEATHERS -->
+    <!-- 2. WHITE THROAT FEATHERS (SMOOTH AND CONFORMING TO CIRCLE) -->
     <path d="
-      M 56,54
-      C 48,56 42,60 38,65
-      Q 34,71 39,73
-      Q 34,78 40,81
-      Q 36,87 44,87
-      Q 42,93 50,91
-      Q 56,87 60,84
-      C 66,77 69,68 67,58
-      C 64,54 60,53 56,54 Z"
+      M 20,75
+      A 36,36 0 0,0 72,75
+      C 66,62 58,54 46,54
+      C 34,54 26,62 20,75 Z"
       fill="url(#throatGrad-${idSuffix})" />
-
-    <!-- Shading/Texture lines on white throat -->
-    <path d="M 44,70 C 42,75 44,79 46,83" fill="none" stroke="#cfcbc2" stroke-width="1.5" />
-    <path d="M 50,68 C 49,74 51,78 53,82" fill="none" stroke="#cfcbc2" stroke-width="1.5" />
 
     <!-- 3. LOWER BEAK -->
     <path d="
