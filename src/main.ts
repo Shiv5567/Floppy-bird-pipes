@@ -377,7 +377,9 @@ function loop(time: number) {
       ctx.restore();
     }
   } else {
-    gameEngine.bird.render(ctx);
+    if (gameEngine.state !== 'MENU') {
+      gameEngine.bird.render(ctx);
+    }
   }
   gameEngine.particleEngine.render(ctx);
   gameEngine.renderer.endCamera();
