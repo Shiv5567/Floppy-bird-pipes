@@ -856,13 +856,13 @@ export class UIManager {
           heaven: '#ffd740'
         };
         const worlds = [
-          { id: 'jungle',     name: 'Amazon Rainforest', emoji: '🌴', desc: 'Lush greenery, cascades & peaceful rivers' },
-          { id: 'jungle_temple', name: 'Sunny Jungle Valley', emoji: '🛕', desc: 'Bright sunbeams, overgrown paths & sacred golden light' },
-          { id: 'ice',        name: 'Frozen Ice Kingdom',   emoji: '❄️', desc: 'Sub-zero snowstorms & giant icicles' },
-          { id: 'desert',     name: 'Ancient Desert Ruins', emoji: '🏜️', desc: 'Swirling dust & golden sandstone obelisks' },
-          { id: 'volcano',    name: 'Volcanic Spring',      emoji: '🌋', desc: 'Warm thermal springs, glowing embers & obsidian columns' },
-          { id: 'space',      name: 'Cosmic Meadow',        emoji: '🌌', desc: 'Warp zones & drifting asteroid fields' },
-          { id: 'heaven',     name: 'Heaven Cloud Kingdom', emoji: '🌤️', desc: 'Marble pillars & golden sky lightrays' }
+          { id: 'jungle',     name: 'AMAZON RAINFOREST', emoji: '🌴' },
+          { id: 'jungle_temple', name: 'SUNNY JUNGLE VALLEY', emoji: '🛕' },
+          { id: 'ice',        name: 'FROZEN ICE KINGDOM',   emoji: '❄️' },
+          { id: 'desert',     name: 'DESERT RUINS', emoji: '🏜️' },
+          { id: 'volcano',    name: 'VOLCANIC SPRING',      emoji: '🌋' },
+          { id: 'space',      name: 'COSMIC MEADOW',        emoji: '🌌' },
+          { id: 'heaven',     name: 'HEAVEN CLOUD KINGDOM', emoji: '🌤️' }
         ];
         const worldsCards = worlds.map(w => {
           const isActive = progress.activeWorld === w.id;
@@ -895,7 +895,6 @@ export class UIManager {
                   ${w.name}
                   ${isActive ? `<span style="color:${wc};font-size:9px;margin-left:6px;font-weight:800">● ACTIVE</span>` : ''}
                 </div>
-                <div class="world-desc">${w.desc}</div>
               </div>
               ${isActive ? '' : `<div style="font-size:18px;color:rgba(255,255,255,0.25)">›</div>`}
             </div>
