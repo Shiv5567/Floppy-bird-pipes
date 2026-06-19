@@ -4154,6 +4154,10 @@ export class UIManager {
   </defs>
 
   <g stroke="#1a0a05" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round">
+    <!-- 0. CREST FEATHERS (UNDER BASE HEAD) -->
+    <circle cx="28" cy="18" r="9" fill="url(#redBaseGrad-${idSuffix})" />
+    <circle cx="18" cy="26" r="6" fill="url(#redBaseGrad-${idSuffix})" />
+
     <!-- 1. CIRCULAR BASE HEAD -->
     <circle cx="46" cy="50" r="36" fill="url(#redBaseGrad-${idSuffix})" />
 
@@ -4165,7 +4169,10 @@ export class UIManager {
       C 34,54 26,62 20,75 Z"
       fill="url(#throatGrad-${idSuffix})" />
 
-    <!-- 3. LOWER BEAK -->
+    <!-- 3. CHEEK BLUSH -->
+    <circle cx="45" cy="58" r="4.5" fill="#ff4444" opacity="0.35" stroke="none" />
+
+    <!-- 4. LOWER BEAK -->
     <path d="
       M 60,54
       Q 68,62 76,58
@@ -4173,7 +4180,7 @@ export class UIManager {
       Q 72,51 60,54 Z"
       fill="url(#beakLowerGrad-${idSuffix})" />
 
-    <!-- 4. UPPER BEAK -->
+    <!-- 5. UPPER BEAK -->
     <path d="
       M 64,38
       C 72,36 82,38 88,43
@@ -4184,15 +4191,18 @@ export class UIManager {
       C 63,40 63,38 64,38 Z"
       fill="url(#beakUpperGrad-${idSuffix})" />
     
+    <!-- Beak Gloss Highlight -->
+    <path d="M 68,41 Q 76,39 82,43" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.75" />
+
     <!-- Nostril -->
     <ellipse cx="70" cy="43" rx="1.2" ry="1.8" fill="#4d1a00" stroke="none" transform="rotate(-20, 70, 43)" />
 
-    <!-- 5. EYE -->
+    <!-- 6. EYE -->
     <ellipse cx="54" cy="45" rx="10" ry="9.5" fill="#ffffff" />
     <ellipse cx="58" cy="46" rx="5.5" ry="5.3" fill="#121212" />
     <circle cx="60" cy="44" r="1.6" fill="#ffffff" stroke="none" />
 
-    <!-- 6. ANGRY EYEBROW -->
+    <!-- 7. ANGRY EYEBROW -->
     <path d="M 44,27 Q 49,23 54,26 Q 50,29 44,30 Z" fill="#121212" />
     <path d="
       M 40,36
@@ -4204,6 +4214,20 @@ export class UIManager {
       Q 56,39 48,40
       Q 43,40 40,36 Z"
       fill="#121212" />
+
+    <!-- 8. SIDE WING -->
+    <path d="
+      M 16,54
+      C 16,46 26,46 32,50
+      C 36,52 36,58 32,62
+      C 26,68 16,64 16,54 Z"
+      fill="#b81d1d" />
+    <path d="
+      M 20,54
+      C 20,48 28,48 32,52
+      C 34,54 32,58 28,60
+      C 24,62 20,60 20,54 Z"
+      fill="url(#redBaseGrad-${idSuffix})" />
   </g>
 </svg>
     `;
