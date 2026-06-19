@@ -627,7 +627,7 @@ export class UIManager {
               <span class="side-btn-label">REWARDS</span>
             </button>
             <button class="side-btn" id="side-btn-powerups" style="width: 100%;">
-              ${this.getUpgradeIconSvg('55px', '55px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.6));', 'home')}
+              <div style="font-size: 38px; line-height: 55px; height: 55px; margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.6)); display: flex; align-items: center; justify-content: center;">🔮</div>
               <span class="side-btn-label">UPGRADES</span>
             </button>
           </div>
@@ -712,7 +712,7 @@ export class UIManager {
       rewards:      { icon: this.getRewardBoxSvg('32px', '32px', 'vertical-align: middle; display: inline-block;', 'tab'), title: 'REWARDS & PROGRESSION HUB', color: '#ffaa00', heroIcon: this.getRewardBoxSvg('72px', '72px', 'animation: floatBird 4s ease-in-out infinite;', 'hero'), heroSubtitle: 'Claim your daily logs, trophies, and battle pass!' },
       settings:     { icon: '⚙️', title: 'GAME CONFIGURATION',   color: '#00ff88', heroIcon: '⚙️', heroSubtitle: 'Configure your flight difficulty mode' },
       levels:       { icon: '🏆', title: 'LEVEL SELECT MODE',    color: '#7b2fff', heroIcon: '🏆', heroSubtitle: 'Complete all 50 transforming levels!' },
-      powerups:     { icon: this.getUpgradeIconSvg('32px', '32px', 'vertical-align: middle; display: inline-block;', 'tab'), title: 'POWERUP UPGRADE LAB',   color: '#00f3ff', heroIcon: this.getUpgradeIconSvg('72px', '72px', 'animation: floatBird 4s ease-in-out infinite;', 'hero'), heroSubtitle: 'Upgrade bubble durations & effectiveness' }
+      powerups:     { icon: `<span style="font-size: 24px; vertical-align: middle; display: inline-block;">🔮</span>`, title: 'POWERUP UPGRADE LAB',   color: '#00f3ff', heroIcon: `<span style="font-size: 72px; display: inline-block; animation: floatBird 4s ease-in-out infinite;">🔮</span>`, heroSubtitle: 'Upgrade bubble durations & effectiveness' }
     };
     const meta = tabMeta[this.activeTab] || tabMeta['skins'];
 
