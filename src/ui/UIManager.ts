@@ -3601,20 +3601,19 @@ export class UIManager {
     <!-- Foothills / Jungle Ridge in front -->
     <path d="M 0,70 Q 25,60 50,75 T 100,70 L 100,100 L 0,100 Z" fill="#081c15" />
 
-    <!-- Waterfall coming from the top center -->
-    <path d="M 42,40 L 58,40 L 62,90 L 38,90 Z" fill="url(#waterfallGrad)" />
+    <!-- Waterfall coming from the top center (60% smaller presence) -->
+    <path d="M 47,40 L 53,40 L 55,90 L 45,90 Z" fill="url(#waterfallGrad)" opacity="0.4" />
     <!-- Waterfall stream details -->
-    <path d="M 46,40 L 48,90" stroke="#ffffff" stroke-width="0.8" opacity="0.7" stroke-dasharray="8 4" />
-    <path d="M 52,40 L 50,90" stroke="#ffffff" stroke-width="0.8" opacity="0.7" stroke-dasharray="10 5" />
-    <path d="M 54,45 L 53,90" stroke="#e0f2fe" stroke-width="0.6" opacity="0.8" />
+    <path d="M 49,40 L 48,90" stroke="#ffffff" stroke-width="0.5" opacity="0.3" stroke-dasharray="8 4" />
+    <path d="M 51,40 L 52,90" stroke="#ffffff" stroke-width="0.5" opacity="0.3" stroke-dasharray="10 5" />
     
     <!-- Water Splash Foam at bottom -->
-    <ellipse cx="50" cy="88" rx="15" ry="5" fill="#e0f2fe" opacity="0.9" />
-    <ellipse cx="50" cy="91" rx="18" ry="4" fill="#ffffff" opacity="0.8" />
+    <ellipse cx="50" cy="88" rx="6" ry="2" fill="#e0f2fe" opacity="0.4" />
+    <ellipse cx="50" cy="91" rx="7" ry="2" fill="#ffffff" opacity="0.3" />
 
-    <!-- Tropical Leaves Left Side -->
+    <!-- Tropical Leaves Left Side (scaled down 60%, opacity 0.5) -->
     <!-- Monstera leaf 1 -->
-    <g transform="translate(18, 62) rotate(-20) scale(0.6)">
+    <g transform="translate(18, 68) rotate(-20) scale(0.24)" opacity="0.5">
       <path d="M 0,0 C 15,-15 30,-5 30,15 C 30,35 10,40 0,40 C -10,40 -30,35 -30,15 C -30,-5 -15,-15 0,0 Z" fill="url(#leafGradDark)" />
       <!-- Leaf cuts -->
       <path d="M 0,0 L 0,40" stroke="#14532d" stroke-width="1.5" />
@@ -3624,32 +3623,18 @@ export class UIManager {
       <path stroke="#052e16" stroke-width="1.2" d="M -8,20 L -28,18" />
     </g>
     <!-- Fern/Palm Leaf 1 -->
-    <g transform="translate(10, 80) rotate(35) scale(0.7)">
+    <g transform="translate(10, 84) rotate(35) scale(0.28)" opacity="0.5">
       <path d="M -2,40 Q 15,10 30,-10 Q 15,20 -2,40 Z" fill="url(#leafGrad)" />
       <path d="M 0,40 L 20,0" stroke="#15803d" stroke-width="1" />
     </g>
 
-    <!-- Tropical Leaves Right Side -->
-    <!-- Monstera leaf 2 -->
-    <g transform="translate(82, 60) rotate(15) scale(0.65)">
-      <path d="M 0,0 C 15,-15 30,-5 30,15 C 30,35 10,40 0,40 C -10,40 -30,35 -30,15 C -30,-5 -15,-15 0,0 Z" fill="url(#leafGrad)" />
-      <path d="M 0,0 L 0,40" stroke="#166534" stroke-width="1.5" />
-      <path d="M 5,10 L 25,5" stroke="#14532d" stroke-width="1" />
-      <path d="M -5,10 L -25,5" stroke="#14532d" stroke-width="1" />
-      <path d="M 8,20 L 28,18" stroke="#14532d" stroke-width="1" />
-      <path d="M -8,20 L -28,18" stroke="#14532d" stroke-width="1" />
-    </g>
-    <!-- Fern/Palm Leaf 2 -->
-    <g transform="translate(90, 78) rotate(-30) scale(0.7)">
-      <path d="M 2,40 Q -15,10 -30,-10 Q -15,20 2,40 Z" fill="url(#leafGradDark)" />
-      <path d="M 0,40 L -20,0" stroke="#14532d" stroke-width="1" />
-    </g>
+    <!-- Tropical Leaves Right Side completely removed for 60%+ leaf presence reduction -->
 
-    <!-- Vines hanging from the top -->
-    <path d="M 15,0 Q 20,20 18,35" fill="none" stroke="#166534" stroke-width="1" />
-    <path d="M 18,35 L 15,38 L 21,38 Z" fill="#22c55e" />
-    <path d="M 85,0 Q 80,18 82,30" fill="none" stroke="#166534" stroke-width="1" />
-    <path d="M 82,30 L 79,33 L 85,33 Z" fill="#22c55e" />
+    <!-- Vines hanging from the top (reduced scale and opacity) -->
+    <path d="M 15,0 Q 18,10 17,20" fill="none" stroke="#166534" stroke-width="0.8" opacity="0.3" />
+    <path d="M 17,20 L 15,22 L 19,22 Z" fill="#22c55e" opacity="0.3" />
+    <path d="M 85,0 Q 82,10 83,18" fill="none" stroke="#166534" stroke-width="0.8" opacity="0.3" />
+    <path d="M 83,18 L 81,20 L 85,20 Z" fill="#22c55e" opacity="0.3" />
 
     <!-- Rain drops falling diagonally (express environment!) -->
     <path d="M 30,15 L 28,22" stroke="#38bdf8" stroke-width="1" opacity="0.6" stroke-linecap="round" />
