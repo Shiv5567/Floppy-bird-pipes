@@ -773,7 +773,7 @@ export class UIManager {
                 box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 6;
               ">
                 <div class="hangar-section-title" style="margin: 0 0 6px 0; font-size: 10px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; color: #ffaa00; text-shadow: 0 0 5px rgba(255,170,0,0.3);">🔮 MYSTERIOUS BOXES</div>
-                <div class="chests-row" style="display: flex; gap: 21px; width: 100%; justify-content: center;">
+                <div class="chests-row" style="display: flex; gap: 42px; width: 100%; justify-content: center;">
                   ${this.getChestsHtml()}
                 </div>
               </div>`
