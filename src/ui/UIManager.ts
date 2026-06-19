@@ -641,11 +641,9 @@ export class UIManager {
             <div style="display: flex; gap: 8px; width: 100%; margin-bottom: 6px; margin-top: 8px; transform: translateY(50px);">
               <button class="start-fly-btn" id="btn-start-game" style="flex: 1; padding: 14px 11px; font-size: 18px;">
                 <span>ENDLESS</span>
-                <span class="start-fly-wing" style="font-size: 25px;">🪶</span>
               </button>
               <button class="start-fly-btn" id="btn-open-levels" style="flex: 1; padding: 14px 11px; font-size: 18px; background: linear-gradient(180deg, #b35dfb 0%, #7b2fff 50%, #5200b3 100%); box-shadow: 0 6px 0 #3a0082, 0 8px 20px rgba(123,47,255,0.4);">
                 <span>LEVELS</span>
-                <span class="start-fly-wing" style="font-size: 25px;">🏆</span>
               </button>
             </div>
             <button class="spectator-btn-small" id="btn-spectator" style="transform: translateY(50px);">🤖 SPECTATOR AUTO-PILOT</button>
