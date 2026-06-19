@@ -2791,6 +2791,53 @@ export class UIManager {
           background: linear-gradient(180deg, #4df7ff 0%, #1a80ff 100%);
           box-shadow: 0 5px 0 #004da8, 0 8px 18px rgba(0, 136, 255, 0.4);
         }
+
+        /* Mobile Responsive 3D Styling (Lightweight & Smooth) */
+        @media (max-width: 480px) {
+          .mode-3d-container {
+            flex-direction: column;
+            gap: 15px;
+            padding: 5px;
+          }
+          .mode-3d-card {
+            padding: 16px 20px;
+            flex-direction: row !important;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            box-sizing: border-box;
+            transform: none !important; /* Disable heavy 3D rotation on mobile to ensure 60 FPS */
+          }
+          .mode-3d-card:hover {
+            transform: translateY(-4px) !important; /* High-performance 2D translate fallback */
+          }
+          .mode-3d-card:active {
+            transform: scale(0.97) translateY(2px) !important;
+          }
+          .mode-3d-icon {
+            margin-bottom: 0 !important;
+            width: 45px;
+            height: 45px;
+            transform: none !important;
+          }
+          .mode-3d-card:hover .mode-3d-icon {
+            transform: none !important;
+          }
+          .mode-3d-label {
+            margin-bottom: 0 !important;
+            font-size: 16px;
+            flex: 1;
+            text-align: left;
+            padding-left: 15px;
+            transform: none !important;
+          }
+          .mode-3d-btn {
+            width: auto !important;
+            padding: 8px 18px !important;
+            font-size: 12px !important;
+            transform: none !important;
+          }
+        }
       </style>
 
       <div class="mode-3d-overlay fade-in">
