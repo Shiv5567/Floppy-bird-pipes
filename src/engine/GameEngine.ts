@@ -309,7 +309,18 @@ export class GameEngine {
     }
 
     if (this.state === 'REVIVE_CHOICE') {
+      this.bird.update(dt, this.particleEngine, true, 1.0, this.score);
+      if (this.gameMode === 'flock') {
+        this.updateFlockFollowers(dt, 1.0);
+      }
       this.renderer.update(dt, 0, this.bird.y, 1.0, this.state);
+
+      // Bounce once hit floor
+      const height = this.renderer.canvas.height / this.renderer.dpr;
+      if (this.bird.y >= height - 40) {
+        this.bird.y = height - 40;
+        this.bird.vy = 0;
+      }
       return;
     }
 

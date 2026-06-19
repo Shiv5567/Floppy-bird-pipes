@@ -344,7 +344,7 @@ function loop(time: number) {
   gameEngine.renderer.beginCamera();
   gameEngine.obstacleManager.render(ctx, height);
   gameEngine.powerupManager.render(ctx, gameEngine);
-  gameEngine.bossManager.render(ctx, gameEngine.bird.isCrashing);
+  gameEngine.bossManager.render(ctx, gameEngine.state === 'GAMEOVER');
   const isNeonCrowUltimate = gameEngine.ultimateActive && gameEngine.bird && gameEngine.bird.getSkin().id === 'neon_crow';
   if ((gameEngine.gameMode === 'flock' || isNeonCrowUltimate) && gameEngine.flock && gameEngine.flock.length > 0) {
     const len = gameEngine.flock.length;
