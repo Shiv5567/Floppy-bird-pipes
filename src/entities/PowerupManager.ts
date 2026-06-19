@@ -103,19 +103,8 @@ export class PowerupManager {
     this.nextGemIndex = 0;
     this.lastSpawnedObstacleCenterY = 300; // default height / 2
 
-    // Determine target coins based on level
-    let targetCoins = 100;
-    if (levelNum >= 1 && levelNum <= 10) {
-      targetCoins = 100;
-    } else if (levelNum >= 11 && levelNum <= 20) {
-      targetCoins = 130;
-    } else if (levelNum >= 21 && levelNum <= 30) {
-      targetCoins = 150;
-    } else if (levelNum >= 31 && levelNum <= 40) {
-      targetCoins = 180;
-    } else if (levelNum >= 41 && levelNum <= 50) {
-      targetCoins = 200;
-    }
+    // Determine target coins based on level: exactly 50 coins for every level
+    const targetCoins: number = 50;
 
     // Determine target gap gems based on level
     let targetGapGems = 3;
@@ -386,7 +375,7 @@ export class PowerupManager {
         if (planItem) {
           // Spawn exactly in the center of the gap (targetX, gapCenterY)
           this.spawnItem(planItem.type, width, height, targetX, gapCenterY);
-        } else if (indexInBlock % 4 === 0) {
+        } else if (indexInBlock % 9 === 0) {
           // Cycle through 4 pattern styles for engaging gameplay:
           // Pattern 0: Convex Arch Shape (5 coins: pointing up)
           // Pattern 1: Concave U Shape (5 coins: pointing down)
@@ -488,8 +477,8 @@ export class PowerupManager {
           // Spawn a cage in the gap center (or shifted)
           this.spawnItem('rescue', width, height, targetX, targetY, unrewardedObstacle, offsetPct);
           this.nextRescueSpawnTarget = obsIdx + 10 + Math.floor(Math.random() * 6); // Set next spawn between 10 and 15 obstacles
-        } else if (obsIdx % 3 === 0) {
-          // Spawn 4 coins group (aims for around 100 coins per 100 score interval)
+        } else if (obsIdx % 6 === 0) {
+          // Spawn 4 coins group (aims for around 60 to 70 coins per 100 score interval)
           this.spawnItem('coin', width, height, targetX - 45, targetY, unrewardedObstacle, offsetPct);
           this.spawnItem('coin', width, height, targetX - 15, targetY, unrewardedObstacle, offsetPct);
           this.spawnItem('coin', width, height, targetX + 15, targetY, unrewardedObstacle, offsetPct);
