@@ -1216,23 +1216,19 @@ export class UIManager {
             <!-- Game Share System -->
             <div class="control-group" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px; margin-top: 20px;">
               <div class="segment-label" style="font-size: 11px; font-weight: 800; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 12px; text-transform: uppercase;">SHARE GAME & EARN REWARDS</div>
-              <div style="display: flex; gap: 8px; justify-content: space-between;">
-                <button class="share-btn-platform" id="btn-share-whatsapp" style="flex: 1; padding: 10px 6px; border: none; border-radius: 12px; font-family: var(--font-family); font-weight: 800; font-size: 11px; cursor: pointer; color: #fff; background: linear-gradient(135deg, #25D366, #128C7E); display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.2);">
+              <div style="display: flex; gap: 8px; justify-content: space-between; margin-bottom: 10px;">
+                <button class="share-btn-platform" id="btn-share-whatsapp" style="flex: 1; padding: 12px 6px; border: none; border-radius: 12px; font-family: var(--font-family); font-weight: 800; font-size: 11px; cursor: pointer; color: #fff; background: linear-gradient(135deg, #25D366, #128C7E); display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.2);">
                   <span style="font-size: 18px;">💬</span>
                   <span>WhatsApp</span>
                 </button>
-                <button class="share-btn-platform" id="btn-share-messenger" style="flex: 1; padding: 10px 6px; border: none; border-radius: 12px; font-family: var(--font-family); font-weight: 800; font-size: 11px; cursor: pointer; color: #fff; background: linear-gradient(135deg, #006AFF, #00B2FF); display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 4px 10px rgba(0, 106, 255, 0.2);">
+                <button class="share-btn-platform" id="btn-share-messenger" style="flex: 1; padding: 12px 6px; border: none; border-radius: 12px; font-family: var(--font-family); font-weight: 800; font-size: 11px; cursor: pointer; color: #fff; background: linear-gradient(135deg, #006AFF, #00B2FF); display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 4px 10px rgba(0, 106, 255, 0.2);">
                   <span style="font-size: 18px;">⚡</span>
                   <span>Messenger</span>
                 </button>
-                <button class="share-btn-platform" id="btn-share-imo" style="flex: 1; padding: 10px 6px; border: none; border-radius: 12px; font-family: var(--font-family); font-weight: 800; font-size: 11px; cursor: pointer; color: #fff; background: linear-gradient(135deg, #1062F4, #00A3FF); display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 4px 10px rgba(16, 98, 244, 0.2);">
-                  <span style="font-size: 18px;">📱</span>
-                  <span>IMO</span>
-                </button>
               </div>
-              <button class="share-btn-platform" id="btn-share-more" style="width: 100%; margin-top: 10px; padding: 12px; border: none; border-radius: 12px; font-family: var(--font-family); font-weight: 800; font-size: 12px; cursor: pointer; color: #fff; background: linear-gradient(135deg, #a855f7, #6366f1); display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);">
-                <span style="font-size: 16px;">🔗</span>
-                <span>MORE SOCIAL SHARING</span>
+              <button class="share-btn-platform" id="btn-share-system" style="width: 100%; padding: 12px; border: none; border-radius: 12px; font-family: var(--font-family); font-weight: 800; font-size: 12px; cursor: pointer; color: #fff; background: linear-gradient(135deg, #a855f7, #6366f1); display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);">
+                <span style="font-size: 16px;">📤</span>
+                <span>SYSTEM SHARE</span>
               </button>
             </div>
 
@@ -1829,95 +1825,8 @@ export class UIManager {
     const btnShareMessenger = document.getElementById('btn-share-messenger');
     if (btnShareMessenger) btnShareMessenger.addEventListener('click', () => handleShareClick('Messenger'));
 
-    const btnShareImo = document.getElementById('btn-share-imo');
-    if (btnShareImo) btnShareImo.addEventListener('click', () => handleShareClick('IMO'));
-
-    const btnShareMore = document.getElementById('btn-share-more');
-    if (btnShareMore) btnShareMore.addEventListener('click', () => {
-      this.showSocialShareOptionsPanel();
-    });
-  }
-
-  private showSocialShareOptionsPanel() {
-    const existing = document.getElementById('social-share-panel-overlay');
-    if (existing) existing.remove();
-
-    const overlay = document.createElement('div');
-    overlay.id = 'social-share-panel-overlay';
-    overlay.style.cssText = `
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 999999;
-      font-family: 'Outfit', sans-serif;
-    `;
-
-    overlay.innerHTML = `
-      <div class="glass-card fade-in" style="
-        background: rgba(20, 16, 38, 0.95);
-        border: 1.5px solid rgba(168, 85, 247, 0.35);
-        padding: 24px;
-        border-radius: 24px;
-        width: 90%;
-        max-width: 360px;
-        text-align: center;
-        box-shadow: 0 15px 35px rgba(168, 85, 247, 0.15), 0 5px 15px rgba(0,0,0,0.5);
-      ">
-        <div style="font-size: 18px; font-weight: 900; color: #ffd700; margin-bottom: 6px;">
-          SELECT SOCIAL MEDIA 🌐
-        </div>
-        <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 20px;">
-          Choose a platform to share the game and unlock rewards!
-        </div>
-
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">
-          <button class="share-opt-btn" data-platform="Facebook" style="background: linear-gradient(135deg, #1877F2, #0d52ab); color: white; padding: 12px; border: none; border-radius: 14px; font-weight: 800; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <span>👥</span> Facebook
-          </button>
-          <button class="share-opt-btn" data-platform="Twitter / X" style="background: linear-gradient(135deg, #14171A, #000000); color: white; padding: 12px; border: none; border-radius: 14px; font-weight: 800; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <span>🐦</span> Twitter / X
-          </button>
-          <button class="share-opt-btn" data-platform="Telegram" style="background: linear-gradient(135deg, #0088cc, #005580); color: white; padding: 12px; border: none; border-radius: 14px; font-weight: 800; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <span>✈️</span> Telegram
-          </button>
-          <button class="share-opt-btn" data-platform="Viber" style="background: linear-gradient(135deg, #7360F2, #503ebd); color: white; padding: 12px; border: none; border-radius: 14px; font-weight: 800; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <span>💜</span> Viber
-          </button>
-          <button class="share-opt-btn" data-platform="LinkedIn" style="background: linear-gradient(135deg, #0077B5, #004466); color: white; padding: 12px; border: none; border-radius: 14px; font-weight: 800; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <span>💼</span> LinkedIn
-          </button>
-          <button class="share-opt-btn" data-platform="Instagram" style="background: linear-gradient(135deg, #C13584, #833AB4); color: white; padding: 12px; border: none; border-radius: 14px; font-weight: 800; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <span>📸</span> Instagram
-          </button>
-          <button class="share-opt-btn" data-platform="Email" style="grid-column: span 2; background: linear-gradient(135deg, #EA4335, #c22e22); color: white; padding: 12px; border: none; border-radius: 14px; font-weight: 800; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <span>✉️</span> Share via Email / Gmail
-          </button>
-        </div>
-
-        <button id="social-share-close-btn" class="btn btn-secondary" style="width: 100%; padding: 10px; border-radius: 10px; font-weight: 800; font-size: 12px;">CLOSE</button>
-      </div>
-    `;
-
-    document.body.appendChild(overlay);
-
-    const closeOverlay = () => overlay.remove();
-    document.getElementById('social-share-close-btn')?.addEventListener('click', closeOverlay);
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) closeOverlay();
-    });
-
-    overlay.querySelectorAll('.share-opt-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const platform = btn.getAttribute('data-platform') || '';
-        closeOverlay();
-        this.showSharePopup(platform);
-      });
-    });
+    const btnShareSystem = document.getElementById('btn-share-system');
+    if (btnShareSystem) btnShareSystem.addEventListener('click', () => handleShareClick('System'));
   }
 
   private showSharePopup(platform: string) {
@@ -2009,33 +1918,25 @@ export class UIManager {
           shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
         } else if (platform === 'Messenger') {
           shareUrl = `https://www.facebook.com/dialog/send?link=${encodeURIComponent(gameUrl)}&app_id=123456789&redirect_uri=${encodeURIComponent(gameUrl)}`;
-        } else if (platform === 'IMO') {
-          needsClipboard = true;
-        } else if (platform === 'Facebook') {
-          shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(gameUrl)}`;
-        } else if (platform === 'Twitter / X') {
-          shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(gameUrl)}&text=${encodeURIComponent(text)}`;
-        } else if (platform === 'Telegram') {
-          shareUrl = `https://t.me/share/url?url=${encodeURIComponent(gameUrl)}&text=${encodeURIComponent(text)}`;
-        } else if (platform === 'Viber') {
-          shareUrl = `viber://forward?text=${encodeURIComponent(text)}`;
-        } else if (platform === 'LinkedIn') {
-          shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(gameUrl)}`;
-        } else if (platform === 'Instagram') {
-          shareUrl = `https://instagram.com/`;
-          needsClipboard = true;
-        } else if (platform === 'Email') {
-          shareUrl = `mailto:?subject=${encodeURIComponent("Play Flight of Legends!")}&body=${encodeURIComponent(text)}`;
+        } else if (platform === 'System') {
+          if (navigator.share) {
+            navigator.share({
+              title: 'Flight of Legends',
+              text: text,
+              url: gameUrl
+            }).catch(err => {
+              console.log("System Share cancelled/failed:", err);
+            });
+          } else {
+            needsClipboard = true;
+          }
         }
 
         // Open window/redirect or copy link
         if (needsClipboard) {
           if (navigator.clipboard) {
             navigator.clipboard.writeText(text);
-            this.showToastNotification('LINK COPIED 📋', `Share link copied to clipboard for ${platform}!`);
-          }
-          if (shareUrl) {
-            window.open(shareUrl, '_blank');
+            this.showToastNotification('LINK COPIED 📋', `Share link copied to clipboard!`);
           }
         } else if (shareUrl) {
           window.open(shareUrl, '_blank');
