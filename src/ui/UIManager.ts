@@ -472,14 +472,14 @@ export class UIManager {
     const worldId = progress.activeWorld;
 
     const worldNames: Record<string, string> = {
-      jungle:     'TROPICAL JUNGLE',
-      jungle_temple: 'JUNGLE TEMPLE',
-      ice:        'FROZEN KINGDOM',
+      jungle:     'AMAZON RAINFOREST',
+      jungle_temple: 'SUNNY JUNGLE VALLEY',
+      ice:        'FROZEN ICE KINGDOM',
       desert:     'DESERT RUINS',
-      volcano:    'VOLCANIC ABYSS',
-      space:      'COSMIC SPACE VOID',
+      volcano:    'VOLCANIC SPRING',
+      space:      'COSMIC MEADOW',
       underwater: 'DEEP UNDERWATER',
-      heaven:     'HEAVENLY REALM',
+      heaven:     'HEAVEN CLOUD KINGDOM',
       retro:      'RETRO WORLD'
     };
 
@@ -856,13 +856,13 @@ export class UIManager {
           heaven: '#ffd740'
         };
         const worlds = [
-          { id: 'jungle',     name: 'Tropical Rainforest', emoji: '🌴', desc: 'Lush greenery, cascades & ancient ruins' },
-          { id: 'jungle_temple', name: 'Jungle Temple Ruins', emoji: '🛕', desc: 'Lost ancient civilization, mossy ruins & sacred golden light' },
+          { id: 'jungle',     name: 'Amazon Rainforest', emoji: '🌴', desc: 'Lush greenery, cascades & peaceful rivers' },
+          { id: 'jungle_temple', name: 'Sunny Jungle Valley', emoji: '🛕', desc: 'Bright sunbeams, overgrown paths & sacred golden light' },
           { id: 'ice',        name: 'Frozen Ice Kingdom',   emoji: '❄️', desc: 'Sub-zero snowstorms & giant icicles' },
           { id: 'desert',     name: 'Ancient Desert Ruins', emoji: '🏜️', desc: 'Swirling dust & golden sandstone obelisks' },
-          { id: 'volcano',    name: 'Volcano Hell World',   emoji: '🌋', desc: 'Magma rivers, lightning & basalt spires' },
-          { id: 'space',      name: 'Space Galaxy Void',    emoji: '🌌', desc: 'Warp zones & drifting asteroid fields' },
-          { id: 'heaven',     name: 'Heaven Fantasy Realm', emoji: '🌤️', desc: 'Marble pillars & golden sky lightrays' }
+          { id: 'volcano',    name: 'Volcanic Spring',      emoji: '🌋', desc: 'Warm thermal springs, glowing embers & obsidian columns' },
+          { id: 'space',      name: 'Cosmic Meadow',        emoji: '🌌', desc: 'Warp zones & drifting asteroid fields' },
+          { id: 'heaven',     name: 'Heaven Cloud Kingdom', emoji: '🌤️', desc: 'Marble pillars & golden sky lightrays' }
         ];
         const worldsCards = worlds.map(w => {
           const isActive = progress.activeWorld === w.id;
