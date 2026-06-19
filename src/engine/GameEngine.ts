@@ -74,6 +74,7 @@ export class GameEngine {
   public score = 0;
   public coinsCollectedThisRun = 0;
   public gemsCollectedThisRun = 0;
+  public lastCoinMilestoneScore = 0;
   public squadSurvivalTime = 0.0;
   public scrollSpeed = 4.2;
   private baseScrollSpeed = 4.2;
@@ -156,6 +157,7 @@ export class GameEngine {
     this.score = 0;
     this.coinsCollectedThisRun = 0;
     this.gemsCollectedThisRun = 0;
+    this.lastCoinMilestoneScore = 0;
     this.squadSurvivalTime = 0.0;
 
     if (this.gameMode === 'level') {
@@ -1041,6 +1043,8 @@ export class GameEngine {
         }
       }
 
+      this.checkCoinMilestones();
+
     } else if (this.state === 'GAMEOVER') {
       // Crash spinning physics update
       this.bird.update(dt, this.particleEngine, true, 1.0, this.score);
@@ -1304,6 +1308,45 @@ export class GameEngine {
     // Demo completion checks were removed  
   }
 
+  private checkCoinMilestones() {
+    if (this.gameMode !== 'endless' && this.gameMode !== 'flock') return;
+    
+    const scoreDiff = this.score - this.lastCoinMilestoneScore;
+    if (scoreDiff >= 100) {
+      const cycles = Math.floor(scoreDiff / 100);
+      this.lastCoinMilestoneScore += cycles * 100;
+      
+      let coinsGained = 0;
+      for (let c = 0; c < cycles; c++) {
+        if (this.gameMode === 'endless') { // Classic mode
+          coinsGained += Math.floor(Math.random() * (80 - 70 + 1)) + 70;
+        } else if (this.gameMode === 'flock') { // Squad mode
+          coinsGained += Math.floor(Math.random() * (70 - 60 + 1)) + 60;
+        }
+      }
+      
+      if (coinsGained > 0) {
+        this.coinsCollectedThisRun += coinsGained;
+        this.progressManager.addCoins(coinsGained);
+        this.progressManager.updateQuestProgress('coins', coinsGained);
+        
+        // Sparkle particles
+        this.particleEngine.emitRing(this.bird.x, this.bird.y, '#ffd700', 30);
+        
+        // Dispatch alert to UI
+        window.dispatchEvent(new CustomEvent('hud_alert', {
+          detail: {
+            text: `🪙 +${coinsGained} COINS!`,
+            sub: `MILESTONE REACHED AT SCORE ${this.lastCoinMilestoneScore}!`
+          }
+        }));
+        
+        // Play coin sound
+        this.soundManager.playCoin();
+      }
+    }
+  }
+
   private triggerBossWarning() {
     this.state = 'BOSS_WARNING';
     this.bossWarningTimer = 0;
@@ -1330,6 +1373,11 @@ export class GameEngine {
     this.gemsCollectedThisRun += bossGems;
     this.progressManager.addGems(bossGems);
     this.progressManager.updateQuestProgress('gems', bossGems);
+
+    // Award 50 coins on level completion
+    this.coinsCollectedThisRun += 50;
+    this.progressManager.addCoins(50);
+    this.progressManager.updateQuestProgress('coins', 50);
 
     // Play chime / sounds and register completion stats
     this.soundManager.playLevelUp();
