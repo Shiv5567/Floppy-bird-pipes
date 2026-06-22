@@ -331,12 +331,20 @@ export class PowerupManager {
     if (gameMode === 'level') {
       this.cumulativeDistance += actualScrollSpeed;
       
+      let zoom = 1.0;
+      const gameEngine = (window as any).gameEngine;
+      if (gameEngine && gameEngine.renderer) {
+        zoom = gameEngine.renderer.zoomFactor || 1.0;
+      }
+      const visibleRightEdge = (width / 2) + (width / 2) / zoom;
+      const offscreenSpawnX = visibleRightEdge + 120;
+
       // Spawn coins
       while (
         this.nextCoinIndex < this.coinDistances.length &&
         this.cumulativeDistance >= this.coinDistances[this.nextCoinIndex]
       ) {
-        this.spawnItem('coin', width, height, width + 50, this.lastSpawnedObstacleCenterY);
+        this.spawnItem('coin', width, height, offscreenSpawnX, this.lastSpawnedObstacleCenterY);
         this.nextCoinIndex++;
       }
 
@@ -345,7 +353,7 @@ export class PowerupManager {
         this.nextGemIndex < this.gemDistances.length &&
         this.cumulativeDistance >= this.gemDistances[this.nextGemIndex]
       ) {
-        this.spawnItem('gem', width, height, width + 50, this.lastSpawnedObstacleCenterY);
+        this.spawnItem('gem', width, height, offscreenSpawnX, this.lastSpawnedObstacleCenterY);
         this.nextGemIndex++;
       }
     }
@@ -548,7 +556,15 @@ export class PowerupManager {
     else if (type === 'gem') radius = 14; // enlarged from 8
     else if (type === 'rescue') radius = 42; // Another 40% size increase (from 30)
 
-    const spawnX = customX !== undefined ? customX : (width + 50);
+    let zoom = 1.0;
+    const gameEngine = (window as any).gameEngine;
+    if (gameEngine && gameEngine.renderer) {
+      zoom = gameEngine.renderer.zoomFactor || 1.0;
+    }
+    const visibleRightEdge = (width / 2) + (width / 2) / zoom;
+    const offscreenSpawnX = visibleRightEdge + 120;
+
+    const spawnX = customX !== undefined ? customX : offscreenSpawnX;
     let spawnY = customY;
     
     if (spawnY === undefined) {

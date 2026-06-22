@@ -1819,7 +1819,16 @@ export class ObstacleManager {
 
     const isFirstSpawn = (this.activeLevelConfig ? this.currentPatternIdx === 0 : this.endlessObstacleCount === 0) && this.list.length === 0;
     if (isFirstSpawn) {
-      const initialX = width > 0 ? width * 0.92 : 360;
+      let initialX = width > 0 ? width * 0.92 : 360;
+      if (this.activeLevelConfig) {
+        let zoom = 1.0;
+        const gameEngine = (window as any).gameEngine;
+        if (gameEngine && gameEngine.renderer) {
+          zoom = gameEngine.renderer.zoomFactor || 1.0;
+        }
+        const visibleRightEdge = (width / 2) + (width / 2) / zoom;
+        initialX = visibleRightEdge + 120;
+      }
       const dynamicGap = zone === 'classic' ? startGap : (startGap - (startGap - minGap) * progressRatio);
       let gapWithDifficulty = this.activeLevelConfig ? this.activeLevelConfig.gapHeight : dynamicGap;
       if (gameMode === 'endless') {
@@ -1954,6 +1963,14 @@ export class ObstacleManager {
     gameMode: 'endless' | 'level' | 'flock' | 'rescue' | 'formation' = 'endless',
     customX?: number
   ) {
+    let zoom = 1.0;
+    const gameEngine = (window as any).gameEngine;
+    if (gameEngine && gameEngine.renderer) {
+      zoom = gameEngine.renderer.zoomFactor || 1.0;
+    }
+    const visibleRightEdge = (width / 2) + (width / 2) / zoom;
+    const offscreenSpawnX = visibleRightEdge + 120;
+
     if (this.activeLevelConfig) {
       const levelNumPlayable = this.activeLevelConfig.levelNum;
       const patternsList = this.activeLevelConfig.patterns;
@@ -1973,9 +1990,13 @@ export class ObstacleManager {
       const obstacleIdx = Math.min(17, Math.floor(groupIdx * 6 + idxInGroup * scaleFactor));
       this.currentPatternIdx++;
 
-      let spawnX = width + 50;
+      let spawnX = offscreenSpawnX;
       if (customX !== undefined) {
-        spawnX = customX;
+        if (this.activeLevelConfig) {
+          spawnX = offscreenSpawnX;
+        } else {
+          spawnX = customX;
+        }
       } else if (this.list.length > 0) {
         const prevObs = this.list[this.list.length - 1];
         if (idxInGroup !== 0) {
@@ -3166,7 +3187,7 @@ export class ObstacleManager {
     }
 
     this.list.push(this.acquireObstacle({
-      x: customX !== undefined ? customX : (width + 50),
+      x: customX !== undefined ? customX : offscreenSpawnX,
       width: this.obstacleWidth,
       topHeight,
       bottomHeight,
