@@ -33,6 +33,12 @@ android {
       buildConfig = false
       shaders = false
     }
+
+    sourceSets {
+        getByName("main") {
+            assets.setSrcDirs(listOf(file("C:/Users/Admin/.gemini/antigravity-ide/scratch/assets")))
+        }
+    }
 }
 
 kotlin {
