@@ -10,6 +10,7 @@ export class SoundManager {
   private menuAudioElement: HTMLAudioElement | null = null; // Glass Alibi menu BGM
   private wasMenuMusicPlayingBeforeTabHide = false;
   private wasWorldMusicPlayingBeforeTabHide = false;
+  private lastPlayTimes: Record<string, number> = {};
 
   // Add individual volume controls (Music and System SFX)
   private musicVolume = 0.6; // 0.0 to 1.0 (60% default)
@@ -20,11 +21,38 @@ export class SoundManager {
     this.sfxVolume = parseFloat(localStorage.getItem('flight_of_legends_sfx_vol_v2') || '0.4');
   }
 
+  private checkThrottle(soundId: string, limitMs = 400): boolean {
+    // 1. If currently handling a standard browser click event, ignore to prevent duplicate sound (already played on pointerdown)
+    if (window.event && window.event.type === 'click') {
+      return false;
+    }
+
+    // 2. Fallback to time-based throttling (400ms covers mobile click delays)
+    const now = Date.now();
+    const last = this.lastPlayTimes[soundId] || 0;
+    if (now - last < limitMs) {
+      return false;
+    }
+    this.lastPlayTimes[soundId] = now;
+    return true;
+  }
+
+  public resumeContext() {
+    this.ensureContextActive();
+  }
+
+  private ensureContextActive() {
+    this.init();
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(e => console.warn("Failed to resume AudioContext:", e));
+    }
+  }
+
   public init() {
     if (this.ctx) return;
     try {
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-      this.ctx = new AudioCtx();
+      this.ctx = new AudioCtx({ latencyHint: 'interactive' });
       this.masterVolumeNode = this.ctx.createGain();
       this.masterVolumeNode.gain.setValueAtTime(0.55, this.ctx.currentTime); // Boosted Master
       this.masterVolumeNode.connect(this.ctx.destination);
@@ -159,14 +187,9 @@ export class SoundManager {
     freqCurve: 'linear' | 'exp' = 'exp',
     isMusic = false // Category selection
   ) {
-    this.init();
+    this.ensureContextActive();
     if (document.hidden) return;
     if (!this.ctx || this.isMuted) return;
-
-    // Resume context if suspended
-    if (this.ctx.state === 'suspended') {
-      this.ctx.resume();
-    }
 
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
@@ -205,13 +228,9 @@ export class SoundManager {
     portamentoFreqEnd?: number,
     isMusic = false // Category selection
   ) {
-    this.init();
+    this.ensureContextActive();
     if (document.hidden) return;
     if (!this.ctx || this.isMuted) return;
-
-    if (this.ctx.state === 'suspended') {
-      this.ctx.resume();
-    }
 
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
@@ -276,6 +295,11 @@ export class SoundManager {
   }
 
   public playCoin() {
+    const now = Date.now();
+    const last = this.lastPlayTimes['coin'] || 0;
+    if (now - last < 70) return; // Throttle playback to once per 70ms to avoid audio thread congestion
+    this.lastPlayTimes['coin'] = now;
+
     this.playTone(523.25, 1046.50, 0.1, 'sine', 0.4, 'linear', false);
     setTimeout(() => {
       this.playTone(1046.50, 1567.98, 0.15, 'sine', 0.3, 'linear', false);
@@ -303,7 +327,7 @@ export class SoundManager {
   }
 
   public playExplosion() {
-    this.init();
+    this.ensureContextActive();
     if (!this.ctx || this.isMuted || !this.explosionBuffer) return;
 
     const noiseNode = this.ctx.createBufferSource();
@@ -335,7 +359,8 @@ export class SoundManager {
 
   /** Short punchy click: sub kick + crisp snap (≈60ms total) */
   public playUIClick() {
-    this.init();
+    if (!this.checkThrottle('ui_click')) return;
+    this.ensureContextActive();
     if (!this.ctx || this.isMuted) return;
     const t = this.ctx.currentTime;
     const vol = this.sfxVolume;
@@ -366,7 +391,8 @@ export class SoundManager {
 
   /** Short tab/select: quick punch + 2-note chime (≈150ms total) */
   public playUISelect() {
-    this.init();
+    if (!this.checkThrottle('ui_select')) return;
+    this.ensureContextActive();
     if (!this.ctx || this.isMuted) return;
     const t = this.ctx.currentTime;
     const vol = this.sfxVolume;
@@ -399,7 +425,8 @@ export class SoundManager {
 
   /** Premium back: descending thud + soft sweep */
   public playUIBack() {
-    this.init();
+    if (!this.checkThrottle('ui_back')) return;
+    this.ensureContextActive();
     if (!this.ctx || this.isMuted) return;
     const t = this.ctx.currentTime;
     const vol = this.sfxVolume;
@@ -435,7 +462,8 @@ export class SoundManager {
 
   /** Premium CLAIM sound: golden coin cascade + triumphant rising shimmer */
   public playUIClaim() {
-    this.init();
+    if (!this.checkThrottle('ui_claim')) return;
+    this.ensureContextActive();
     if (!this.ctx || this.isMuted) return;
     const t = this.ctx.currentTime;
     const vol = this.sfxVolume;
@@ -487,7 +515,8 @@ export class SoundManager {
 
   /** Premium UPGRADE sound: power-up charge sweep + bright burst */
   public playUIUpgrade() {
-    this.init();
+    if (!this.checkThrottle('ui_upgrade')) return;
+    this.ensureContextActive();
     if (!this.ctx || this.isMuted) return;
     const t = this.ctx.currentTime;
     const vol = this.sfxVolume;
@@ -555,7 +584,7 @@ export class SoundManager {
 
   // Dynamic Procedural Background Music System
   public startMusic(worldId: string) {
-    this.init();
+    this.ensureContextActive();
     if (!this.ctx) return;
     if (this.isMusicPlaying) this.stopMusic();
 
@@ -582,17 +611,6 @@ export class SoundManager {
         percussionType: 'bongo', // Fits the environment
         useFilterSweep: true,
         useDelayEcho: true, // Echo for space/engagement
-        usePortamento: false
-      },
-      jungle_temple: {
-        tempo: 88,
-        baseNotes: [87.31, 98.00, 110.00, 130.81],
-        melodyNotes: [174.61, 196.00, 220.00, 261.63, 311.13, 349.23],
-        oscType: 'sine',
-        leadOscType: 'sine',
-        percussionType: 'woodblock',
-        useFilterSweep: false,
-        useDelayEcho: true,
         usePortamento: false
       },
       ice: {
@@ -764,7 +782,7 @@ export class SoundManager {
           }
         }
 
-        if ((worldId === 'jungle_temple' || worldId === 'jungle') && barStep === 0) {
+        if (worldId === 'jungle' && barStep === 0) {
           this.playSynthNote(80, 1.5, 'sine', 0.25, { type: 'lowpass', startFreq: 400, endFreq: 50, q: 2 }, true, undefined, true);
         }
       }
@@ -787,7 +805,7 @@ export class SoundManager {
             this.playSynthNote(chordFreq1, 0.85, 'triangle', chordVol, { type: 'lowpass', startFreq: 1800, endFreq: 400, q: 1.5 }, true, undefined, true);
             this.playSynthNote(chordFreq2, 0.85, 'triangle', chordVol * 0.7, { type: 'lowpass', startFreq: 2200, endFreq: 500, q: 1.5 }, true, undefined, true);
             this.playSynthNote(chordFreq3, 0.85, 'sine', chordVol * 0.4, { type: 'lowpass', startFreq: 2600, endFreq: 600, q: 1.5 }, true, undefined, true);
-          } else if (worldId === 'jungle_temple' || worldId === 'ice' || worldId === 'jungle') {
+          } else if (worldId === 'ice' || worldId === 'jungle') {
             this.playSynthNote(chordFreq1, 0.7, 'sine', chordVol, undefined, true, undefined, true);
             this.playSynthNote(chordFreq2, 0.7, 'sine', chordVol * 0.7, undefined, true, undefined, true);
             this.playSynthNote(chordFreq3, 0.7, 'sine', chordVol * 0.5, undefined, true, undefined, true);

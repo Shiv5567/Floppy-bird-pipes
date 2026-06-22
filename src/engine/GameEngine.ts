@@ -24,6 +24,8 @@ export class GameEngine {
   public revivesUsedThisRun = 0;
   public reviveCountdown = 5.0;
   private preReviveState: GameState = 'PLAYING';
+  public waitingForDoubleTapAfterRevive = false;
+  public reviveFloatY = 300;
   
   // Level Mode systems
   public gameMode: 'endless' | 'level' | 'flock' = 'endless';
@@ -87,9 +89,10 @@ export class GameEngine {
   public boosterTimer = 0.0;
   public boosterDeactivating = false;
   public boosterDeactivateTimer = 0.0;
-  public boosterSpawnTimer = 5.0;
+  public boosterSpawnTimer = 1.0;
   private boosterScoreAccumulator = 0.0;
   private falconScoreAccumulator = 0.0;
+  public falconObstaclesPassed = 0;
   public boosterTapsThisRun = 0;
   
   // Powerups timers
@@ -146,8 +149,8 @@ export class GameEngine {
   }
 
   public startGame() {
-    this.state = 'PRELOADING';
-    this.preloadingTimer = 0.4;
+    this.state = 'PLAYING';
+    this.preloadingTimer = 0.0;
     this.firstTapDone = false;
     this.soundManager.init(); // Warm up Web Audio context on user gesture
     this.hasRevivedThisRun = false;
@@ -164,8 +167,10 @@ export class GameEngine {
         this.activeLevelConfig = levelConfig;
         this.scrollSpeed = levelConfig.scrollSpeed;
         this.baseScrollSpeed = levelConfig.scrollSpeed;
-        this.progressManager.setWorld(levelConfig.worldId);
-        this.renderer.setWeather(levelConfig.worldId);
+        
+        // Keep currently active/selected world and apply its weather/theme to level mode
+        const activeWorld = this.progressManager.getState().activeWorld;
+        this.renderer.setWeather(activeWorld);
         this.renderer.activeLevelNum = this.currentLevelNum;
         this.progressManager.trackLevelPlay(this.currentLevelNum);
       }
@@ -187,7 +192,12 @@ export class GameEngine {
     this.boosterSpawnTimer = 0.0; // Button starts fully charged and ready at start!
     this.boosterScoreAccumulator = 0.0;
     this.falconScoreAccumulator = 0.0;
+    this.falconObstaclesPassed = 0;
     this.boosterTapsThisRun = 0;
+
+    // Reset revive waiting state
+    this.waitingForDoubleTapAfterRevive = false;
+    this.reviveFloatY = 300;
     
     // Reset ultimate skill status
     this.ultimateEnergy = 0;
@@ -250,6 +260,7 @@ export class GameEngine {
     }
     
     this.soundManager.stopMusic();
+    this.soundManager.startMusic(this.progressManager.getState().activeWorld);
   }
 
   public update(deltaTime: number) {
@@ -350,7 +361,9 @@ export class GameEngine {
 
 
     // Update active powerups durations
-    this.updatePowerupTimers(dt);
+    if (!this.waitingForDoubleTapAfterRevive) {
+      this.updatePowerupTimers(dt);
+    }
 
     // Active skill cooldown tick was removed
 
@@ -379,8 +392,6 @@ export class GameEngine {
       
       // Update Ultimate Ability Energy Charging & Durations (Visual Upgrade Option 2)
       if (this.ultimateActive) {
-        this.ultimateDurationLeft -= dt;
-        
         // Spawn active neon stardust trailing particles matching the skin color
         const skinColor = this.bird.getSkin().glowColor || '#00f3ff';
         if (Math.random() < 0.45 * dt * 60) {
@@ -399,12 +410,32 @@ export class GameEngine {
           );
         }
         
-        if (this.ultimateDurationLeft <= 0) {
-          this.deactivateUltimate();
+        if (this.bird.getSkin().id === 'neon_crow') {
+          // Indefinite duration: keep duration full
+          this.ultimateDurationLeft = this.ultimateMaxDuration;
+          
+          // Deactivate only if the clone bird (or leader) died
+          const targetLimit = this.gameMode === 'flock' ? this.preUltimateFlockLength : 1;
+          if (this.flock.length <= targetLimit) {
+            this.deactivateUltimate();
+          }
+        } else if (this.bird.getSkin().id === 'dread_falcon') {
+          // Deactivate when 20 obstacles are passed (previously 50 in design)
+          this.ultimateDurationLeft = (1.0 - this.falconObstaclesPassed / 20) * this.ultimateMaxDuration;
+          if (this.falconObstaclesPassed >= 20) {
+            this.deactivateUltimate();
+          }
+        } else {
+          this.ultimateDurationLeft -= dt;
+          if (this.ultimateDurationLeft <= 0) {
+            this.deactivateUltimate();
+          }
         }
       } else {
-        // Regenerate energy organically by 2% per second
-        this.ultimateEnergy = Math.min(100, this.ultimateEnergy + 2 * dt);
+        // Regenerate energy organically by 2% per second (only outside endless/flock modes)
+        if (this.gameMode !== 'endless' && this.gameMode !== 'flock') {
+          this.ultimateEnergy = Math.min(100, this.ultimateEnergy + 2 * dt);
+        }
       }
 
       // Spawn glowing pink stardust trail from the merged bird in Squad Survival
@@ -577,14 +608,12 @@ export class GameEngine {
         // Ice Phoenix passive Blizzard Chill 20% slow-down removed
       }
 
-      if (!this.firstTapDone) {
+      if (!this.firstTapDone || this.waitingForDoubleTapAfterRevive) {
         this.scrollSpeed = 0.0;
       }
 
       // Booster overrides scroll speed and active effects
       if (this.boosterActive) {
-        this.boosterTimer -= dt;
-        
         // Suppress collisions and enforce invincibility
         this.bird.isInvincible = true;
         
@@ -592,23 +621,24 @@ export class GameEngine {
         this.bird.y += (height / 2 - this.bird.y) * 0.25 * (dt * 60);
         this.bird.vy = 0;
 
+        // Count obstacles passed via score accumulation (50 obstacles = done)
+        this.boosterScoreAccumulator += dt * 20;
+        if (this.boosterScoreAccumulator >= 1.0) {
+          const pointsToAdd = Math.floor(this.boosterScoreAccumulator);
+          this.boosterScoreAccumulator -= pointsToAdd;
+          this.score += pointsToAdd;
+          this.boosterTimer -= pointsToAdd; // Decrement obstacle counter
+          this.particleEngine.emitCoinSparkle(this.bird.x + 30, this.bird.y, '#ffd700');
+        }
+
         if (this.boosterTimer <= 0) {
-          // Enter deactivation cooldown phase
+          // 50 obstacles passed — enter deactivation cooldown phase
           this.boosterActive = false;
           this.boosterDeactivating = true;
           this.boosterDeactivateTimer = 0.5;
         } else {
           // Set speed to 15.0x
           this.scrollSpeed = this.baseScrollSpeed * 15.0;
-
-          // Increment score smoothly over the 1-second boost (20 points total, ~20 per second)
-          this.boosterScoreAccumulator += dt * 20;
-          if (this.boosterScoreAccumulator >= 1.0) {
-            const pointsToAdd = Math.floor(this.boosterScoreAccumulator);
-            this.boosterScoreAccumulator -= pointsToAdd;
-            this.score += pointsToAdd;
-            this.particleEngine.emitCoinSparkle(this.bird.x + 30, this.bird.y, '#ffd700');
-          }
 
           // Emit supersonic speed sparks from bird
           if (Math.random() < 0.8) {
@@ -653,8 +683,12 @@ export class GameEngine {
         if (this.falconScoreAccumulator >= 1.0) {
           const pointsToAdd = Math.floor(this.falconScoreAccumulator);
           this.falconScoreAccumulator -= pointsToAdd;
-          this.score += pointsToAdd;
-          this.particleEngine.emitCoinSparkle(this.bird.x + 30, this.bird.y, '#00f3ff');
+          const pointsToReallyAdd = Math.min(pointsToAdd, 20 - this.falconObstaclesPassed);
+          if (pointsToReallyAdd > 0) {
+            this.score += pointsToReallyAdd;
+            this.falconObstaclesPassed += pointsToReallyAdd;
+            this.particleEngine.emitCoinSparkle(this.bird.x + 30, this.bird.y, '#00f3ff');
+          }
         }
       }
       
@@ -697,24 +731,6 @@ export class GameEngine {
               if (topDist <= grazeThreshold || bottomDist <= grazeThreshold) {
                 obs.grazed = true;
                 
-                // 1. Emit ring and star sparkles
-                if (this.gameMode !== 'level') {
-                  this.particleEngine.emitRing(this.bird.x, this.bird.y, '#00f3ff', 15);
-                  for (let k = 0; k < 10; k++) {
-                    this.particleEngine.spawn(
-                      this.bird.x + (Math.random() - 0.5) * 15,
-                      this.bird.y + (Math.random() - 0.5) * 15,
-                      -1 - Math.random() * 3,
-                      (Math.random() - 0.5) * 4,
-                      '#ffd700',
-                      2.5 + Math.random() * 3,
-                      1.0,
-                      0.025,
-                      'star'
-                    );
-                  }
-                }
-                
                 // Play sound
                 this.soundManager.playCoin();
                 
@@ -722,24 +738,9 @@ export class GameEngine {
                 this.progressManager.updateQuestProgress('graze', 1);
                 this.progressManager.incrementAchievement('near_miss', 1);
                 
-                // Reward Ultimate energy for high skill near-miss grazes (Option 2)
-                if (!this.ultimateActive) {
+                // Reward Ultimate energy for high skill near-miss grazes (only outside endless/flock modes)
+                if (!this.ultimateActive && this.gameMode !== 'endless' && this.gameMode !== 'flock') {
                   this.ultimateEnergy = Math.min(100, this.ultimateEnergy + 5);
-                }
-                
-                // 4. Tremor screen shake
-                if (this.gameMode !== 'level') {
-                  this.renderer.triggerScreenShake(7, 0.22);
-                }
-                
-                // 5. Dispatch custom event for floating HUD texts
-                if (this.gameMode !== 'level') {
-                  window.dispatchEvent(new CustomEvent('bird_grazed', {
-                    detail: {
-                      x: this.bird.x,
-                      y: this.bird.y
-                    }
-                  }));
                 }
               }
             }
@@ -756,6 +757,11 @@ export class GameEngine {
             this.progressManager.updateQuestProgress('obstacles', 1);
             if (this.progressManager.getState().selectedZone === 'classic') {
               this.progressManager.updateQuestProgress('obstacles_classic', 1);
+            }
+            
+            // Ultimate charging: exactly 2.5% per obstacle passed in endless/flock modes (reaches 100% every 40 obstacles)
+            if ((this.gameMode === 'endless' || this.gameMode === 'flock') && !this.ultimateActive) {
+              this.ultimateEnergy = Math.min(100, this.ultimateEnergy + 2.5);
             }
             
             // If the state changes from PLAYING (e.g., entered BOSS_WARNING), break out of the loop immediately
@@ -789,9 +795,7 @@ export class GameEngine {
                     fb.hasShield = false;
                   }
                   
-                  this.particleEngine.emitRing(b.x, b.y, '#00f3ff', 24);
                   this.soundManager.playShieldDeflect();
-                  this.renderer.triggerScreenShake(20, 0.4);
                   
                   setTimeout(() => {
                     for (const fb of this.flock) {
@@ -800,9 +804,7 @@ export class GameEngine {
                   }, 1500);
                 } else {
                   // Eliminate this specific bird
-                  this.particleEngine.emitExplosion(b.x, b.y, b.getSkin().glowColor, 20);
                   this.soundManager.playExplosion();
-                  this.renderer.triggerScreenShake(12, 0.25);
                   
                   this.flock.splice(i, 1);
                   
@@ -840,13 +842,11 @@ export class GameEngine {
                 this.bird.isInvincible = true;
                 
                 // Explode shield wave
-                if (this.gameMode !== 'level') {
+                if (this.gameMode === 'level') {
                   this.particleEngine.emitRing(this.bird.x, this.bird.y, '#00f3ff', 24);
-                }
-                this.soundManager.playShieldDeflect();
-                if (this.gameMode !== 'level') {
                   this.renderer.triggerScreenShake(20, 0.4);
                 }
+                this.soundManager.playShieldDeflect();
                 
                 // Temporary invincibility safety delay
                 setTimeout(() => {
@@ -905,57 +905,56 @@ export class GameEngine {
 
         // Check boss or bullet hitting bird / flock
         if (this.gameMode === 'flock') {
-          if (this.gameMode === 'flock' && this.playerBossHP > 0) {
-            // Merged boss HP is active
-            if (!this.bird.isInvincible) {
-              const bossHit = this.bossManager.checkCollisions(this.bird.x, this.bird.y, this.bird.radius);
+          // Loop through all birds in the flock (both leader and followers)
+          for (let i = this.flock.length - 1; i >= 0; i--) {
+            const b = this.flock[i];
+            if (!b.isInvincible) {
+              const bossHit = this.bossManager.checkCollisions(b.x, b.y, b.radius);
               if (bossHit) {
-                this.playerBossHP--;
-                window.dispatchEvent(new CustomEvent('bird_damaged'));
-                
-                this.bird.isInvincible = true;
-                this.particleEngine.emitRing(this.bird.x, this.bird.y, '#ff007f', 24);
-                this.soundManager.playShieldDeflect();
-                this.renderer.triggerScreenShake(20, 0.4);
-                
-                setTimeout(() => {
-                  this.bird.isInvincible = false;
-                }, 300);
-
-                if (this.playerBossHP <= 0) {
-                  this.handleCrash();
-                }
-              }
-            }
-          } else {
-            // Standard bird-by-bird flock elimination
-            for (let i = this.flock.length - 1; i >= 0; i--) {
-              const b = this.flock[i];
-              if (!b.isInvincible) {
-                const bossHit = this.bossManager.checkCollisions(b.x, b.y, b.radius);
-                if (bossHit) {
-                  if (b.hasShield) {
-                    b.hasShield = false;
-                    this.shieldBrokenThisRun = true;
-                    delete this.activePowerupsList['shield'];
-                    
-                    // Temporary invincibility safety delay for the whole flock
+                if (b.hasShield) {
+                  b.hasShield = false;
+                  this.shieldBrokenThisRun = true;
+                  delete this.activePowerupsList['shield'];
+                  
+                  // Temporary invincibility safety delay for the whole flock
+                  for (const fb of this.flock) {
+                    fb.isInvincible = true;
+                    fb.hasShield = false;
+                  }
+                  
+                  this.particleEngine.emitRing(b.x, b.y, '#00f3ff', 24);
+                  this.soundManager.playShieldDeflect();
+                  this.renderer.triggerScreenShake(20, 0.4);
+                  
+                  setTimeout(() => {
                     for (const fb of this.flock) {
-                      fb.isInvincible = true;
-                      fb.hasShield = false;
+                      fb.isInvincible = false;
                     }
+                  }, 1500);
+                } else {
+                  // No shield.
+                  if (i === 0 && this.playerBossHP > 0) {
+                    // Leader bird is hit and has merged boss HP
+                    this.playerBossHP -= 1;
                     
-                    this.particleEngine.emitRing(b.x, b.y, '#00f3ff', 24);
-                    this.soundManager.playShieldDeflect();
-                    this.renderer.triggerScreenShake(20, 0.4);
-                    
+                    this.particleEngine.emitExplosion(b.x, b.y, b.getSkin().glowColor, 20);
+                    this.soundManager.playExplosion();
+                    this.renderer.triggerScreenShake(12, 0.25);
+                    window.dispatchEvent(new CustomEvent('bird_damaged'));
+
+                    // Check if HP reached 0, reset size multiplier
+                    if (this.playerBossHP <= 0) {
+                      this.playerBossHP = 0;
+                      b.sizeMultiplier = 1.0;
+                    }
+
+                    // Temporary invincibility safety delay for the leader
+                    b.isInvincible = true;
                     setTimeout(() => {
-                      for (const fb of this.flock) {
-                        fb.isInvincible = false;
-                      }
+                      b.isInvincible = false;
                     }, 1500);
                   } else {
-                    // Eliminate this specific bird
+                    // Leader with 0 HP, or a follower bird is hit
                     this.particleEngine.emitExplosion(b.x, b.y, b.getSkin().glowColor, 20);
                     this.soundManager.playExplosion();
                     this.renderer.triggerScreenShake(12, 0.25);
@@ -966,6 +965,11 @@ export class GameEngine {
                     if (i === 0 && this.flock.length > 0) {
                       this.bird = this.flock[0];
                       this.bird.isInvincible = true;
+                      
+                      // Reset merged HP since the new leader wasn't part of the original merge HP
+                      this.playerBossHP = 0;
+                      this.bird.sizeMultiplier = 1.0;
+
                       setTimeout(() => {
                         this.bird.isInvincible = false;
                       }, 1500);
@@ -975,9 +979,9 @@ export class GameEngine {
                     if (this.flock.length === 0) {
                       this.handleCrash();
                     }
-                    break;
                   }
                 }
+                break; // Break the flock loop for this frame to avoid multiple simultaneous hits
               }
             }
           }
@@ -1114,12 +1118,8 @@ export class GameEngine {
   private handleCrash() {
     this.bird.isCrashing = true;
     this.soundManager.playExplosion();
-    if (this.gameMode !== 'level') {
+    if (this.gameMode === 'level') {
       this.renderer.triggerScreenShake(25, 0.5);
-    }
-
-    // Debris explosion sparks
-    if (this.gameMode !== 'level') {
       this.particleEngine.emitExplosion(this.bird.x, this.bird.y, this.bird.getSkin().glowColor, 35);
     }
     
@@ -1167,7 +1167,7 @@ export class GameEngine {
   }
 
   public attemptRevive(): boolean {
-    if (this.revivesUsedThisRun >= 10) return false;
+    if (this.revivesUsedThisRun >= 3) return false;
     const progress = this.progressManager.getState();
     if (progress.gems < 5) return false;
 
@@ -1179,7 +1179,6 @@ export class GameEngine {
     this.hasRevivedThisRun = false; // Unlimited revives!
     
     // Ensure flock is restored in flock modes so collisions and collections resume
-    // Ensure flock is restored in flock mode so collisions and collections resume
     if (this.gameMode === 'flock') {
       this.flock = [this.bird];
       this.mergeReadyCount = 1;
@@ -1187,22 +1186,33 @@ export class GameEngine {
     
     this.bird.isCrashing = false;
     this.bird.isInvincible = true;
-    this.bird.vy = -4.5; // slight upwards jump impulse to resume
-    this.bird.hasShield = true;
+    this.bird.vy = 0;
+    this.bird.hasShield = false;
 
-    // Add shield powerup
-    this.activePowerupsList['shield'] = {
-      type: 'shield',
-      durationLeft: 3.5,
-      maxDuration: 3.5
-    };
-
-    // Invincibility timeout for 3.5 seconds
-    setTimeout(() => {
-      if (this.state === 'PLAYING' || this.state === 'BOSS_FIGHT' || this.state === 'BOSS_WARNING') {
-        this.bird.isInvincible = false;
+    // Find the next obstacle ahead of the bird to float in the center of the path gap
+    const obstacles = this.obstacleManager.getList();
+    let nextObstacle = null;
+    for (let i = 0; i < obstacles.length; i++) {
+      const obs = obstacles[i];
+      if (obs.x + obs.width > this.bird.x) {
+        nextObstacle = obs;
+        break;
       }
-    }, 3500);
+    }
+    
+    const height = this.renderer.canvas.height / this.renderer.dpr;
+    let gapCenterY = height / 2;
+    if (nextObstacle) {
+      const gapTop = nextObstacle.topHeight;
+      const gapBottom = height - nextObstacle.bottomHeight;
+      gapCenterY = gapTop + (gapBottom - gapTop) * 0.5;
+    }
+    
+    this.bird.y = gapCenterY;
+    this.reviveFloatY = gapCenterY;
+    
+    // Trigger double tap waiting mode
+    this.waitingForDoubleTapAfterRevive = true;
 
     // Sparkles and deflect sound effect
     this.particleEngine.emitRing(this.bird.x, this.bird.y, '#ffd700', 30);
@@ -1219,12 +1229,11 @@ export class GameEngine {
   }
 
   public attemptReviveFree(): void {
-    if (this.revivesUsedThisRun >= 10) return;
+    if (this.revivesUsedThisRun >= 3) return;
     this.revivesUsedThisRun++;
     this.hasRevivedThisRun = false;
     
     // Ensure flock is restored in flock modes so collisions and collections resume
-    // Ensure flock is restored in flock mode so collisions and collections resume
     if (this.gameMode === 'flock') {
       this.flock = [this.bird];
       this.mergeReadyCount = 1;
@@ -1232,22 +1241,33 @@ export class GameEngine {
     
     this.bird.isCrashing = false;
     this.bird.isInvincible = true;
-    this.bird.vy = -4.5; // slight upwards jump impulse to resume
-    this.bird.hasShield = true;
+    this.bird.vy = 0;
+    this.bird.hasShield = false;
 
-    // Add shield powerup
-    this.activePowerupsList['shield'] = {
-      type: 'shield',
-      durationLeft: 3.5,
-      maxDuration: 3.5
-    };
-
-    // Invincibility timeout for 3.5 seconds
-    setTimeout(() => {
-      if (this.state === 'PLAYING' || this.state === 'BOSS_FIGHT' || this.state === 'BOSS_WARNING') {
-        this.bird.isInvincible = false;
+    // Find the next obstacle ahead of the bird to float in the center of the path gap
+    const obstacles = this.obstacleManager.getList();
+    let nextObstacle = null;
+    for (let i = 0; i < obstacles.length; i++) {
+      const obs = obstacles[i];
+      if (obs.x + obs.width > this.bird.x) {
+        nextObstacle = obs;
+        break;
       }
-    }, 3500);
+    }
+    
+    const height = this.renderer.canvas.height / this.renderer.dpr;
+    let gapCenterY = height / 2;
+    if (nextObstacle) {
+      const gapTop = nextObstacle.topHeight;
+      const gapBottom = height - nextObstacle.bottomHeight;
+      gapCenterY = gapTop + (gapBottom - gapTop) * 0.5;
+    }
+    
+    this.bird.y = gapCenterY;
+    this.reviveFloatY = gapCenterY;
+    
+    // Trigger double tap waiting mode
+    this.waitingForDoubleTapAfterRevive = true;
 
     // Sparkles and deflect sound effect
     this.particleEngine.emitRing(this.bird.x, this.bird.y, '#ffd700', 30);
@@ -1290,10 +1310,23 @@ export class GameEngine {
       multiplier *= 2; // Legendary Eagle King gets 2x score only when ultimate is active!
     }
     this.score += amt * multiplier;
+    if (this.ultimateActive && this.bird.getSkin().id === 'dread_falcon') {
+      this.falconObstaclesPassed += amt;
+    }
     this.progressManager.incrementAchievement('first_flight', this.score);
 
     // Quest progression for high score pass
     this.progressManager.updateQuestProgress('score', this.score, true);
+    
+    // Custom quests: Kingfisher score of 300
+    if (this.bird.getSkin().id === 'kingfisher') {
+      this.progressManager.updateQuestProgress('kingfisher_pts', this.score, true);
+    }
+
+    // Custom quests: Volcanic Spring score of 100
+    if (this.progressManager.getState().activeWorld === 'volcano') {
+      this.progressManager.updateQuestProgress('volcano_pts', this.score, true);
+    }
     
     // Play subtle chime on score pass
     this.soundManager.playCoin();
@@ -1338,21 +1371,11 @@ export class GameEngine {
     this.state = 'LEVEL_COMPLETE' as any;
     this.soundManager.stopMusic();
     
-    // Stars calculation:
-    // 3 Stars: 0 revives used AND shield not broken
-    // 2 Stars: 0 revives used AND shield broken
-    // 1 Star: 1 or more revives used
-    let stars = 1;
-    if (this.revivesUsedThisRun === 0) {
-      stars = this.shieldBrokenThisRun ? 2 : 3;
-    }
-    
-    this.progressManager.setLevelComplete(this.currentLevelNum, stars);
+    this.progressManager.setLevelComplete(this.currentLevelNum, 0);
     
     window.dispatchEvent(new CustomEvent('level_complete_state', {
       detail: {
         levelNum: this.currentLevelNum,
-        stars: stars,
         score: this.score,
         targetScore: this.activeLevelConfig.targetScore,
         coinsGained: this.coinsCollectedThisRun,
@@ -1394,26 +1417,6 @@ export class GameEngine {
     }
 
     if (type === 'booster') {
-      this.boosterActive = true;
-      this.boosterTapsThisRun++;
-
-      // Progress achievements
-      this.progressManager.incrementAchievement('hyper_speeder', 1);
-      
-      // Every tap/activation should add exactly 20 points (cross 20 score/obstacles).
-      this.boosterTimer = 1.0; // 1 second * 20 score/sec = 20 score points/obstacles on every action/tap
-      this.boosterScoreAccumulator = 0.0;
-      this.bird.isInvincible = true;
-      
-      this.soundManager.playSpeedBoost();
-      this.renderer.triggerScreenShake(20, 0.4);
-      
-      window.dispatchEvent(new CustomEvent('hud_alert', { 
-        detail: { 
-          text: '⚡ BOOSTER ACTIVE ⚡', 
-          sub: 'HYPER-DRIVE PROGRESSION ACTIVATED!' 
-        } 
-      }));
       return;
     }
 
@@ -1430,8 +1433,8 @@ export class GameEngine {
       this.coinsCollectedThisRun += coinVal;
       this.progressManager.addCoins(coinVal);
       this.progressManager.updateQuestProgress('coins', coinVal);
-      // Reward Ultimate energy
-      if (!this.ultimateActive) {
+      // Reward Ultimate energy (only outside endless/flock modes)
+      if (!this.ultimateActive && this.gameMode !== 'endless' && this.gameMode !== 'flock') {
         this.ultimateEnergy = Math.min(100, this.ultimateEnergy + 8 * coinVal);
       }
       return;
@@ -1445,8 +1448,8 @@ export class GameEngine {
       this.gemsCollectedThisRun += gemVal;
       this.progressManager.addGems(gemVal);
       this.progressManager.updateQuestProgress('gems', gemVal);
-      // Reward Ultimate energy (Option 2)
-      if (!this.ultimateActive) {
+      // Reward Ultimate energy (only outside endless/flock modes)
+      if (!this.ultimateActive && this.gameMode !== 'endless' && this.gameMode !== 'flock') {
         this.ultimateEnergy = Math.min(100, this.ultimateEnergy + 15);
       }
       return;
@@ -1550,8 +1553,43 @@ export class GameEngine {
 
   public jump() {
     if (this.boosterActive) return;
+
+    if (this.waitingForDoubleTapAfterRevive) {
+      // Single tap confirmed! Resume game!
+      this.waitingForDoubleTapAfterRevive = false;
+
+      // Add shield powerup and invincibility (only starts ticking down now!)
+      this.bird.isInvincible = true;
+      this.bird.hasShield = true;
+      const shieldDuration = this.gameMode === 'level' ? 4.025 : 3.5;
+      this.activePowerupsList['shield'] = {
+        type: 'shield',
+        durationLeft: shieldDuration,
+        maxDuration: shieldDuration
+      };
+
+      // Invincibility timeout starts now
+      setTimeout(() => {
+        if (this.state === 'PLAYING' || this.state === 'BOSS_FIGHT' || this.state === 'BOSS_WARNING') {
+          this.bird.isInvincible = false;
+        }
+      }, shieldDuration * 1000);
+
+      this.bird.jump(this.soundManager, this.score);
+
+      // Force UI redraw to clear the alert
+      window.dispatchEvent(new CustomEvent('game_revived'));
+      return;
+    }
+
     if (this.state === 'PLAYING' && !this.firstTapDone) {
       this.firstTapDone = true;
+      if (this.gameMode === 'endless' || this.gameMode === 'level') {
+        const currentCount = parseInt(localStorage.getItem('legends_tap_instruction_count') || '0', 10);
+        if (currentCount < 10) {
+          localStorage.setItem('legends_tap_instruction_count', (currentCount + 1).toString());
+        }
+      }
     }
     this.bird.jump(this.soundManager, this.score);
   }
@@ -1559,6 +1597,7 @@ export class GameEngine {
   // Trigger the Ultimate Special Ability (Option 2)
   public triggerUltimate() {
     if (this.state !== 'PLAYING' && this.state !== 'BOSS_FIGHT') return;
+    if (this.gameMode === 'level') return; // Restrict ultimate special ability in levels mode
     if (this.ultimateActive || this.ultimateEnergy < 100) return;
 
     this.ultimateActive = true;
@@ -1567,7 +1606,18 @@ export class GameEngine {
     this.progressManager.updateQuestProgress('use_ultimate', 1);
 
     const skin = this.bird.getSkin();
-    let duration = 5.0; // Default duration in seconds
+    const lvl = skin.upgradeLevel || 1;
+    let duration = 10.0;
+    if (lvl === 1) duration = 10.0;
+    else if (lvl === 2) duration = 12.0;
+    else if (lvl === 3) duration = 14.0;
+    else if (lvl === 4) duration = 16.0;
+    else if (lvl === 5) duration = 20.0;
+
+    if (skin.id === 'angry_red') {
+      duration = 20.0;
+    }
+
     let subtext = 'SPECIAL ACTIVE ABILITY RELEASED!';
 
     // Play a cool ultimate trigger sound & tremors shake
@@ -1582,12 +1632,10 @@ export class GameEngine {
     const id = skin.id;
     if (id === 'default') {
       // Sky Sovereign: Micro Glider
-      duration = 6.0;
       this.bird.sizeMultiplier = 0.60;
       subtext = 'MICRO SIZE ACTIVE!';
     } else if (id === 'neon_crow') {
       // Neon Raven: Cyber Clone
-      duration = 8.0;
       subtext = 'CYBER CLONE ACTIVE!';
       this.preUltimateFlockLength = this.flock.length;
       if (this.gameMode !== 'flock') {
@@ -1599,45 +1647,38 @@ export class GameEngine {
       this.flock.push(cloneBird);
     } else if (id === 'white_dragon') {
       // Seto Drake: Lunar Sanctuary
-      duration = 10.0;
       this.bird.hasShield = true;
       this.bird.isInvincible = true;
       subtext = 'FULL INVINCIBILITY & PROTECTIVE SHIELD!';
     } else if (id === 'kingfisher') {
       // Azure Kingfisher: Temporal Distortion
-      duration = 10.0;
       this.timeScale = 0.70; // 30% slowmo
       subtext = 'WORLD TIME DILATED BY 30%!';
     } else if (id === 'dread_owl') {
       // Great Horned Owl: Ghost Walk
-      duration = 5.5;
       this.bird.isGhost = true;
       subtext = 'PHASE THROUGH ALL SOLID PIPES!';
     } else if (id === 'dread_falcon') {
       // Charan Falcon: Sonic Supercharge
-      duration = 4.0;
       this.bird.isInvincible = true;
       this.scrollSpeed = this.baseScrollSpeed * 3.64;
       subtext = 'SUPERSONIC SPEED BLAST ACTIVE!';
       this.falconScoreAccumulator = 0.0;
+      this.falconObstaclesPassed = 0;
     } else if (id === 'legendary_eagle_king') {
       // Legendary Eagle King: Aurum Gilded Age
-      duration = 12.0;
       this.bird.hasShield = true;
       this.scoreMultiplier = 3;
       subtext = '3X SCORE & COINS + COIN MAGNET!';
     } else if (id === 'angry_red') {
       // Angry Bird: Cyber Magnet
-      duration = 8.0;
       subtext = 'SCREEN-WIDE COIN HARVESTER ACTIVE!';
     } else if (id === 'articuno') {
       // Ice Phoenix: Temporal Freeze
-      duration = 10.0;
       this.scrollSpeed = 0.0;
-      subtext = 'ALL OBSTACLES AND MOTION FROZEN FOR 10 SECONDS!';
+      subtext = `ALL OBSTACLES AND MOTION FROZEN FOR ${duration} SECONDS!`;
     } else if (id === 'jade_lotus') {
       // Lotus Hummingbird: Temporal Dilation
-      duration = 10.0;
       this.timeScale = 0.30; // 70% slow-mo
       subtext = 'WORLD TIME SLOWED BY 70%! HYPER AGILITY ACTIVE!';
     }
@@ -1793,13 +1834,7 @@ export class GameEngine {
     // Increase main bird size by 3% per merged bird
     this.bird.sizeMultiplier = 1.0 + this.playerBossHP * 0.03;
 
-    // Show floating hud alert
-    window.dispatchEvent(new CustomEvent('hud_alert', {
-      detail: {
-        text: `💖 SQUAD MERGED!`,
-        sub: `Gained +${mergeCount} HP for the upcoming Boss Fight!`
-      }
-    }));
+    // Show floating hud alert removed as per user request
   }
 }
 

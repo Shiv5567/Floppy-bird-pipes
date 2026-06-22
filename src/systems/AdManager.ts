@@ -169,15 +169,15 @@ export class AdManager {
   }
 
   /**
-   * Triggers a rewarded ad for the Revive system.
+   * Triggers an interstitial ad for the Revive system.
    * Enforces an independent 2-minute cooldown.
    */
-  public static showReviveRewarded(onCompleted: (success: boolean) => void) {
+  public static showReviveInterstitial(onCompleted: (success: boolean) => void) {
     const now = Date.now();
     const remaining = this.getReviveCooldownRemaining();
 
     if (remaining > 0) {
-      console.warn(`[AdManager] Revive rewarded ads are locked for another ${Math.ceil(remaining / 1000)}s.`);
+      console.warn(`[AdManager] Revive interstitial ads are locked for another ${Math.ceil(remaining / 1000)}s.`);
       onCompleted(false);
       return;
     }
@@ -187,39 +187,32 @@ export class AdManager {
     this.updateAdButtonsDOM();
 
     const network = this.nextReviveNetwork;
-    console.log(`[AdManager] Requesting Revive ad from network: ${network}`);
+    console.log(`[AdManager] Requesting Revive Interstitial ad from network: ${network}`);
 
     if (network === 'AdMob') {
       this.nextReviveNetwork = 'Unity';
 
-      if (typeof window.AndroidBridge !== 'undefined' && window.AndroidBridge.showAdMobRewarded) {
-        window.onAdMobRewardedCallback = (success: boolean) => {
-          onCompleted(success);
-          delete window.onAdMobRewardedCallback;
-        };
-        window.AndroidBridge.showAdMobRewarded("onAdMobRewardedCallback");
+      if (typeof window.AndroidBridge !== 'undefined' && window.AndroidBridge.showAdMobInterstitial) {
+        window.AndroidBridge.showAdMobInterstitial();
+      } else if (typeof window.AndroidAdMob !== 'undefined' && window.AndroidAdMob.showInterstitial) {
+        window.AndroidAdMob.showInterstitial();
       } else {
-        console.log("[AdManager Mock] showAdMobRewarded(Revive) - simulating ad completion");
-        setTimeout(() => {
-          onCompleted(true);
-        }, 1500);
+        console.log("[AdManager Mock] showAdMobInterstitial(Revive)");
       }
     } else {
       this.nextReviveNetwork = 'AdMob';
 
-      if (typeof window.AndroidBridge !== 'undefined' && window.AndroidBridge.showUnityRewarded) {
-        window.onUnityRewardedCallback = (success: boolean) => {
-          onCompleted(success);
-          delete window.onUnityRewardedCallback;
-        };
-        window.AndroidBridge.showUnityRewarded("onUnityRewardedCallback");
+      if (typeof window.AndroidBridge !== 'undefined' && window.AndroidBridge.showUnityInterstitial) {
+        window.AndroidBridge.showUnityInterstitial();
       } else {
-        console.log("[AdManager Mock] showUnityRewarded(Revive) - simulating ad completion");
-        setTimeout(() => {
-          onCompleted(true);
-        }, 1500);
+        console.log("[AdManager Mock] showUnityInterstitial(Revive)");
       }
     }
+
+    // Grant the revive after a short delay (1.5 seconds) simulating ad completion
+    setTimeout(() => {
+      onCompleted(true);
+    }, 1500);
   }
 
   /**
@@ -257,7 +250,7 @@ export class AdManager {
     // A. Economy & Booster buttons (3-minute timeline)
     const ecoRemaining = this.getEconomyCooldownRemaining();
     const isEcoCooldownActive = ecoRemaining > 0;
-    const ecoTimeText = isEcoCooldownActive ? `Wait ${this.formatTime(ecoRemaining)}` : '';
+    const ecoTimeText = isEcoCooldownActive ? this.formatTime(ecoRemaining) : '';
 
     // 1. Plus Coins Icon Button
     const plusCoinsBtn = document.getElementById('btn-plus-coins') as HTMLButtonElement | null;
@@ -290,7 +283,23 @@ export class AdManager {
     // 3. Extra Rewards Button in Hangar Tab
     const extraRewardsBtn = document.getElementById('btn-extra-rewards') as HTMLButtonElement | null;
     if (extraRewardsBtn) {
-      if (isEcoCooldownActive) {
+      const engine = window.gameEngine;
+      const lastClaim = engine?.progressManager?.getState()?.lastSpecialOfferAdTime || 0;
+      const dailyCooldown = 24 * 60 * 60 * 1000;
+      const elapsed = Date.now() - lastClaim;
+      const isDailyCooldownActive = elapsed < dailyCooldown;
+
+      if (isDailyCooldownActive) {
+        extraRewardsBtn.disabled = true;
+        extraRewardsBtn.classList.add('disabled-ad-btn');
+        
+        const remainingMs = dailyCooldown - elapsed;
+        const totalSecs = Math.ceil(remainingMs / 1000);
+        const hours = Math.floor(totalSecs / 3600);
+        const mins = Math.floor((totalSecs % 3600) / 60);
+        const secs = totalSecs % 60;
+        extraRewardsBtn.innerText = `⏳ ${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      } else if (isEcoCooldownActive) {
         extraRewardsBtn.disabled = true;
         extraRewardsBtn.classList.add('disabled-ad-btn');
         extraRewardsBtn.innerText = ecoTimeText;
@@ -304,7 +313,7 @@ export class AdManager {
     // B. Revive buttons (2-minute timeline)
     const revRemaining = this.getReviveCooldownRemaining();
     const isRevCooldownActive = revRemaining > 0;
-    const revTimeText = isRevCooldownActive ? `Wait ${this.formatTime(revRemaining)}` : '';
+    const revTimeText = isRevCooldownActive ? this.formatTime(revRemaining) : '';
 
     // 4. Revive Screen Button ("WATCH AD TO REVIVE")
     const reviveBtn = document.getElementById('btn-ad-revive') as HTMLButtonElement | null;
@@ -339,13 +348,8 @@ export class AdManager {
 
   // --- Legacy banner wrapper triggers ---
   public static showBanner() {
-    if (typeof window.AndroidBridge !== 'undefined' && (window.AndroidBridge as any).showBanner) {
-      (window.AndroidBridge as any).showBanner();
-    } else if (typeof window.AndroidAdMob !== 'undefined') {
-      window.AndroidAdMob.showBanner();
-    } else {
-      console.log("[AdMob Mock] showBanner()");
-    }
+    // Banner ads are permanently disabled in the game
+    console.log("[AdManager] showBanner() called but disabled.");
   }
 
   public static hideBanner() {

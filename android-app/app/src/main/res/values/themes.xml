@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.FlightOfLegends" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.FlightOfLegends" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Set native window background to match the game loading screen -->
+        <item name="android:windowBackground">#06050b</item>
+    </style>
 </resources>

@@ -117,7 +117,8 @@ export class ParticleEngine {
       if (!p.active) continue;
 
       // Direct draw mode for performance!
-      if ((!p.glow || disableShadows) && p.shape !== 'leaf' && p.shape !== 'flower') {
+      const isMobile = (window as any).gameIsMobile;
+      if ((!p.glow || disableShadows) && (p.shape !== 'leaf' && p.shape !== 'flower' || isMobile)) {
         ctx.globalAlpha = p.alpha;
 
         if (p.glow && p.glowColor) {
@@ -192,6 +193,16 @@ export class ParticleEngine {
             ctx.lineTo(p.x + dx * p.size * 0.5 + px * p.size * 0.3, p.y + dy * p.size * 0.5 + py * p.size * 0.3);
           }
           ctx.stroke();
+        } else if (p.shape === 'leaf') {
+          // Fast path rotated leaf using native ctx.ellipse (saves expensive context save/restore blocks)
+          ctx.beginPath();
+          ctx.ellipse(p.x, p.y, p.size * 1.3, p.size * 0.6, p.angle, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (p.shape === 'flower') {
+          // Fast path simplified flower (removes 5 distinct petal loops and nested fills)
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
         }
         continue;
       }

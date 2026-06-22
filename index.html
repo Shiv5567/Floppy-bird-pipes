@@ -4,14 +4,15 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="description" content="Flight of Legends is a premium AAA-quality, highly addictive flappy arcade adventure. Collect legendary skins, travel through 8 mythical worlds, defeat titanic bosses, and rank in the Battle Pass!" />
+    <meta name="description" content="Flappy Legends is a premium, highly addictive flappy bird style arcade adventure. Collect legendary skins, travel through 8 mythical maps, defeat titanic monsters, and rank in the Battle Pass!" />
+    <meta name="keywords" content="flappy bird, flappy legends, arcade adventure, retro game, endless runner, flappy bird online, flappy bird game" />
     
     <!-- OpenGraph meta tags for premium presentation sharing -->
-    <meta property="og:title" content="Flight of Legends - AAA Flappy Arcade Adventure" />
-    <meta property="og:description" content="Immersive 60FPS physics, volumetric weather, and 8 mythological landscapes await." />
+    <meta property="og:title" content="Flappy Legends - Flappy Bird Arcade Adventure" />
+    <meta property="og:description" content="Experience the next generation of flappy bird games with Flappy Legends. Immersive 60FPS physics, volumetric weather, and 8 mythological landscapes await." />
     <meta property="og:type" content="website" />
     
-    <title>Flight of Legends - AAA Flappy Arcade Adventure</title>
+    <title>Flappy Legends - Flappy Bird Arcade Adventure</title>
     
     <!-- Preconnect to Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -20,6 +21,105 @@
   </head>
   <body>
     <div id="app">
+      <!-- Lightweight Web Loading Screen -->
+      <div id="loading-screen" style="
+        position: absolute;
+        inset: 0;
+        z-index: 9999;
+        background: radial-gradient(circle at 50% 50%, #1a1638 0%, #06050b 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.5s ease;
+      ">
+        <!-- Logo / Title Section -->
+        <div style="text-align: center; margin-bottom: 30px;">
+          <!-- Engaging pulsing emoji mascot -->
+          <div style="font-size: 55px; margin-bottom: -5px; animation: wings-flap 1.5s infinite ease-in-out; filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.4));">🦅</div>
+          <h1 style="
+            font-family: 'Outfit', sans-serif;
+            font-size: 34px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #ffd700, #ff8800);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.25);
+          ">FLAPPY LEGENDS</h1>
+          <p style="
+            font-family: 'Outfit', sans-serif;
+            font-size: 11px;
+            color: #00f3ff;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin: 6px 0 0 0;
+            opacity: 0.95;
+            font-weight: 800;
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+          ">Bird Adventure</p>
+        </div>
+
+        <!-- Lightweight Dual Spinner & Loading Text -->
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+          <!-- Cyberpunk Glowing Dual Spinner (CSS only, highly responsive) -->
+          <div style="position: relative; width: 56px; height: 56px;">
+            <!-- Outer clock-wise spinner (Cyan) -->
+            <div style="
+              position: absolute;
+              inset: 0;
+              border: 3px solid rgba(0, 243, 255, 0.05);
+              border-top: 3px solid #00f3ff;
+              border-radius: 50%;
+              animation: spin-clockwise 1s infinite linear;
+              box-shadow: 0 0 15px rgba(0, 243, 255, 0.35);
+            "></div>
+            <!-- Inner counter-clockwise spinner (Pink) -->
+            <div style="
+              position: absolute;
+              inset: 7px;
+              border: 3px solid rgba(255, 0, 127, 0.05);
+              border-bottom: 3px solid #ff007f;
+              border-radius: 50%;
+              animation: spin-counter-clockwise 0.7s infinite linear;
+              box-shadow: 0 0 12px rgba(255, 0, 127, 0.3);
+            "></div>
+          </div>
+          
+          <span style="
+            font-family: 'Outfit', sans-serif;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 1.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            animation: pulse-text 1.2s infinite ease-in-out;
+            margin-top: 5px;
+          ">Loading Worlds...</span>
+        </div>
+      </div>
+      
+      <!-- Inline CSS animations for loading screen -->
+      <style>
+        @keyframes spin-clockwise {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes spin-counter-clockwise {
+          0% { transform: rotate(360deg); }
+          100% { transform: rotate(0deg); }
+        }
+        @keyframes pulse-text {
+          0%, 100% { opacity: 0.5; }
+          50% { opacity: 1; }
+        }
+        @keyframes wings-flap {
+          0%, 100% { transform: scale(1) translateY(0) rotate(-1deg); }
+          50% { transform: scale(1.08) translateY(-8px) rotate(2deg); }
+        }
+      </style>
+
       <!-- High performance game canvas drawing sits behind -->
       <canvas id="gameCanvas"></canvas>
       

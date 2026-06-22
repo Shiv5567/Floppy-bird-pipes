@@ -14,6 +14,95 @@ Object.defineProperty(CanvasRenderingContext2D.prototype, 'shadowColor', {
   get: function() { return 'transparent'; }
 });
 
+// Mobile detection helper
+const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                       window.innerWidth < 1024 || 
+                       ('ontouchstart' in window) || 
+                       navigator.maxTouchPoints > 0;
+(window as any).gameIsMobile = isMobileDevice;
+
+// Transparent Gradient Optimizer to completely neutralize per-frame canvas gradient allocations on mobile
+if (isMobileDevice) {
+  class FakeGradient {
+    public __isFakeGradient = true;
+    public colors: string[] = [];
+    addColorStop(_offset: number, color: string) {
+      this.colors.push(color);
+    }
+    clear() {
+      this.colors.length = 0;
+    }
+  }
+
+  const fakeGradientPool = Array.from({ length: 8 }, () => new FakeGradient());
+  let poolIndex = 0;
+
+  CanvasRenderingContext2D.prototype.createLinearGradient = function() {
+    const grad = fakeGradientPool[poolIndex];
+    poolIndex = (poolIndex + 1) % 8;
+    grad.clear();
+    return grad as any;
+  };
+
+  CanvasRenderingContext2D.prototype.createRadialGradient = function() {
+    const grad = fakeGradientPool[poolIndex];
+    poolIndex = (poolIndex + 1) % 8;
+    grad.clear();
+    return grad as any;
+  };
+
+  // Helper to traverse prototype chain to locate IDL properties like fillStyle / strokeStyle
+  // which might reside on BaseRenderingContext2D.prototype in modern WebViews.
+  const findDescriptor = (proto: any, prop: string): PropertyDescriptor | undefined => {
+    let p = proto;
+    while (p) {
+      const desc = Object.getOwnPropertyDescriptor(p, prop);
+      if (desc) return desc;
+      p = Object.getPrototypeOf(p);
+    }
+    return undefined;
+  };
+
+  const fillStyleDesc = findDescriptor(CanvasRenderingContext2D.prototype, 'fillStyle');
+  if (fillStyleDesc && fillStyleDesc.set) {
+    const originalSetFillStyle = fillStyleDesc.set;
+    Object.defineProperty(CanvasRenderingContext2D.prototype, 'fillStyle', {
+      get: fillStyleDesc.get,
+      set: function(val) {
+        if (val && (val as any).__isFakeGradient) {
+          // Use middle color for linear gradient approximation
+          const color = (val as any).colors[Math.floor((val as any).colors.length / 2)] || '#ffffff';
+          originalSetFillStyle.call(this, color);
+        } else {
+          originalSetFillStyle.call(this, val);
+        }
+      },
+      configurable: true,
+      enumerable: true
+    });
+  }
+
+  const strokeStyleDesc = findDescriptor(CanvasRenderingContext2D.prototype, 'strokeStyle');
+  if (strokeStyleDesc && strokeStyleDesc.set) {
+    const originalSetStrokeStyle = strokeStyleDesc.set;
+    Object.defineProperty(CanvasRenderingContext2D.prototype, 'strokeStyle', {
+      get: strokeStyleDesc.get,
+      set: function(val) {
+        if (val && (val as any).__isFakeGradient) {
+          // Use first color for stroke/outlines
+          const color = (val as any).colors[0] || '#ffffff';
+          originalSetStrokeStyle.call(this, color);
+        } else {
+          originalSetStrokeStyle.call(this, val);
+        }
+      },
+      configurable: true,
+      enumerable: true
+    });
+  }
+}
+
+
 
 // Global error catcher overlay for instant live debugging
 window.onerror = function(message, source, lineno, colno, error) {
@@ -33,7 +122,7 @@ window.onerror = function(message, source, lineno, colno, error) {
   errorDiv.style.border = '3px solid #ff0055';
   errorDiv.style.boxShadow = '0 0 30px rgba(255,0,85,0.5)';
   errorDiv.innerHTML = `
-    <h2 style="color: #ff0055; margin-top: 0; text-shadow: 0 0 10px rgba(255,0,85,0.4);">🚨 FLIGHT OF LEGENDS CRASHED!</h2>
+    <h2 style="color: #ff0055; margin-top: 0; text-shadow: 0 0 10px rgba(255,0,85,0.4);">🚨 FLAPPY LEGENDS CRASHED!</h2>
     <p style="color: #ffffff; font-size: 16px;"><b>Message:</b> ${message}</p>
     <p><b>Location:</b> ${source} (Line ${lineno}:${colno})</p>
     <pre style="background: rgba(0,0,0,0.4); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); color: #e2e8f0; font-size: 12px; line-height: 1.5;">${error ? error.stack : 'No stack trace available'}</pre>
@@ -49,6 +138,25 @@ let gameEngine: GameEngine;
 let uiManager: UIManager;
 
 let lastTime = 0;
+
+// Snaps raw delta times to VSync targets (120Hz, 90Hz, 60Hz, 30Hz) to eliminate micro-jitter
+function snapDeltaTime(rawDt: number): number {
+  const targetIntervals = [
+    1 / 120, // ~0.008333
+    1 / 90,  // ~0.011111
+    1 / 60,  // ~0.016667
+    1 / 30   // ~0.033333
+  ];
+
+  for (let i = 0; i < targetIntervals.length; i++) {
+    const target = targetIntervals[i];
+    if (Math.abs(rawDt - target) < 0.0018) {
+      return target;
+    }
+  }
+  return rawDt;
+}
+
 let lastScore = 0;
 let lastState = '';
 let lastBossHealth = 0;
@@ -62,11 +170,7 @@ function init() {
   if (!canvas) return;
 
   // Add mobile class helper to completely disable expensive layout blurs (backdrop-filter)
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
-                   window.innerWidth < 1024 || 
-                   ('ontouchstart' in window) || 
-                   navigator.maxTouchPoints > 0;
-  if (isMobile) {
+  if (isMobileDevice) {
     document.body.classList.add('mobile-performance');
   }
 
@@ -220,8 +324,9 @@ function init() {
     soundManager.handleVisibilityChange(document.hidden);
   });
 
-  // Start/resume menu music on any user gesture (browser autoplay policy workaround)
+  // Start/resume menu music and AudioContext on any user gesture (browser autoplay policy workaround)
   const playMenuMusicOnGesture = () => {
+    soundManager.resumeContext();
     const shouldPlayMenuMusic = gameEngine.state === 'MENU' ||
                                 gameEngine.state === 'GAMEOVER' ||
                                 gameEngine.state === 'DEMO_COMPLETE';
@@ -231,6 +336,15 @@ function init() {
   };
   window.addEventListener('pointerdown', playMenuMusicOnGesture);
   window.addEventListener('keydown', playMenuMusicOnGesture);
+
+  // Fade out and remove the loading screen once initialization completes
+  const loadingScreen = document.getElementById('loading-screen');
+  if (loadingScreen) {
+    loadingScreen.style.opacity = '0';
+    setTimeout(() => {
+      loadingScreen.remove();
+    }, 500); // 500ms matching transition duration
+  }
 }
 
 function setupInputs() {
@@ -258,6 +372,35 @@ function setupInputs() {
   };
 
   window.addEventListener('pointerdown', onActionInput);
+
+  // Play corresponding click/action sound instantly on pointerdown (touch down)
+  const onUIPointerDown = (e: PointerEvent) => {
+    const target = e.target as HTMLElement;
+    if (!target) return;
+
+    // Resolve closest interactive element
+    const interactive = target.closest('button, a, .btn, .card, .tab, .side-btn, .settings-slider, .hud-circle-btn, [id*="btn-"], [class*="btn-"]');
+    if (!interactive) return;
+
+    // Explicitly resume/warm up AudioContext if suspended
+    soundManager.resumeContext();
+
+    const id = interactive.id || '';
+    const className = interactive.className || '';
+
+    if (id.includes('back') || className.includes('back') || id === 'btn-quit' || id.includes('quit') || id.includes('close')) {
+      soundManager.playUIBack();
+    } else if (id.includes('select') || className.includes('select') || className.includes('tab') || className.includes('card') || className.includes('side-btn')) {
+      soundManager.playUISelect();
+    } else if (id.includes('claim') || id.includes('reward')) {
+      soundManager.playUIClaim();
+    } else if (id.includes('upgrade') || id.includes('buy')) {
+      soundManager.playUIUpgrade();
+    } else {
+      soundManager.playUIClick();
+    }
+  };
+  window.addEventListener('pointerdown', onUIPointerDown, { passive: true });
 
   window.addEventListener('keydown', (e) => {
     if (e.code === 'Space' || e.code === 'ArrowUp') {
@@ -321,20 +464,22 @@ function updateGamepad() {
   }
 }
 
-const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
-                       window.innerWidth < 1024 || 
-                       ('ontouchstart' in window) || 
-                       navigator.maxTouchPoints > 0;
-const frameMinTime = isMobileDevice ? 1000 / 60 : 1000 / 120; // Cap to 60fps on mobile to prevent thermal throttling, 120fps on desktop!
-
 function loop(time: number) {
   const elapsed = time - lastTime;
-  if (elapsed < frameMinTime - 1) { // 1ms tolerance for requestAnimationFrame timing jitter
+  if (elapsed <= 0) {
     requestAnimationFrame(loop);
     return;
   }
-  const deltaTime = elapsed / 1000;
+  
+  // Use exact elapsed time, capping raw deltaTime to 0.1s to prevent huge jumps on sudden lag spikes
+  const rawDeltaTime = Math.min(0.1, elapsed / 1000);
   lastTime = time;
+
+  // Snaps raw delta time to VSync intervals (120Hz, 90Hz, 60Hz, 30Hz) to eliminate micro-jitter
+  let deltaTime = snapDeltaTime(rawDeltaTime);
+
+  // Removed the heavy 0.85 low-pass filter as it decouples physics step updates from actual render frame intervals,
+  // causing visible vibration/judder. Snap delta time is highly stable and does not need trailing averaging.
 
   updateGamepad();
 

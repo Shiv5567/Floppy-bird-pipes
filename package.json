@@ -7,7 +7,7 @@
     "dev": "vite --host 0.0.0.0",
     "build": "tsc && vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "sync-android": "xcopy /E /I /Y dist android-app\\app\\src\\main\\assets\\dist",
+    "sync-android": "powershell -Command \"if (Test-Path android-app/app/src/main/assets/dist) { Remove-Item -Recurse -Force android-app/app/src/main/assets/dist }; New-Item -ItemType Directory -Force -Path android-app/app/src/main/assets/dist | Out-Null; Copy-Item -Recurse -Force dist/* android-app/app/src/main/assets/dist\"",
     "build-android": "npm run build && npm run sync-android"
   },
   "devDependencies": {

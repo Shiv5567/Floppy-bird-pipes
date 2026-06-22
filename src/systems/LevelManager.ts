@@ -13,8 +13,8 @@ export class LevelManager {
 
   static {
     // Generate 50 unique levels
-    const worlds = ['jungle', 'jungle_temple', 'ice', 'space', 'volcano'];
-    const worldNames = ['Amazon Rainforest', 'Sunny Jungle Valley', 'Frozen Ice Kingdom', 'Cosmic Meadow', 'Volcanic Spring'];
+    const worlds = ['jungle', 'ice', 'space', 'desert', 'volcano'];
+    const worldNames = ['Amazon Rainforest', 'Frozen Ice Kingdom', 'Cosmic Meadow', 'Desert Ruins', 'Volcanic Spring'];
 
     // All available active moving/oscillating wave patterns
     const wavePatterns = [

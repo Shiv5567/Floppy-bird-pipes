@@ -38,7 +38,6 @@ export class Renderer {
   private shakeDuration = 0;
   public zoomFactor = 0.90;
   public scale = 1.0;
-  private jungleTempleBgImg: HTMLImageElement | null = null;
 
   constructor(canvas: HTMLCanvasElement, particleEngine: ParticleEngine) {
     this.canvas = canvas;
@@ -47,27 +46,22 @@ export class Renderer {
     this.ctx = context;
     this.particleEngine = particleEngine;
     this.resize();
-
-    // Preload the custom sunset background for Jungle Temple ruins world
-    this.jungleTempleBgImg = new Image();
-    this.jungleTempleBgImg.src = '/jungle_temple_bg.png';
   }
 
   public resize() {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    // Increase mobile maxDpr to 2.0 for maximum sharpness on modern mobile retina/high-DPI screens
-    const maxDpr = isMobile ? 2.0 : 2.0;
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 1024;
+    const maxDpr = isMobile ? 1.15 : 2.0; // Enforce lower DPR on mobile for ultra smooth performance (reduces pixel counts by ~3-4x)
     this.dpr = Math.min(maxDpr, window.devicePixelRatio || 1);
     const rect = this.canvas.getBoundingClientRect();
     this.canvas.width = rect.width * this.dpr;
     this.canvas.height = rect.height * this.dpr;
     this.ctx.scale(this.dpr, this.dpr);
     
-    // Disable canvas bilinear interpolation smoothing to enforce pixel-sharp contours
-    this.ctx.imageSmoothingEnabled = false;
-    (this.ctx as any).mozImageSmoothingEnabled = false;
-    (this.ctx as any).webkitImageSmoothingEnabled = false;
-    (this.ctx as any).msImageSmoothingEnabled = false;
+    // Enable canvas bilinear interpolation smoothing to make all vector outlines and scaled images smooth and crisp
+    this.ctx.imageSmoothingEnabled = true;
+    (this.ctx as any).mozImageSmoothingEnabled = true;
+    (this.ctx as any).webkitImageSmoothingEnabled = true;
+    (this.ctx as any).msImageSmoothingEnabled = true;
 
     // Base scale based on standard height
     this.scale = rect.height / 720;
@@ -79,9 +73,6 @@ export class Renderer {
     switch (worldId) {
       case 'jungle':
         this.weather = { type: 'rain', windSpeed: 1, density: 56, lightning: true };
-        break;
-      case 'jungle_temple':
-        this.weather = { type: 'jungle_fog', windSpeed: 0.1, density: 30, lightning: false };
         break;
       case 'ice':
         this.weather = { type: 'snow', windSpeed: 2, density: 35, lightning: false };
@@ -99,7 +90,7 @@ export class Renderer {
         this.weather = { type: 'underwater', windSpeed: 0.1, density: 15, lightning: false };
         break;
       case 'heaven':
-        this.weather = { type: 'heavenly', windSpeed: 0.5, density: 8, lightning: false };
+        this.weather = { type: 'heavenly', windSpeed: 0.5, density: 3, lightning: false }; // Reduced density to make world lightweight
         break;
       case 'retro':
         this.weather = { type: 'clear', windSpeed: 0, density: 0, lightning: false };
@@ -122,15 +113,6 @@ export class Renderer {
             dy += Math.sin(lookupX * 0.003 * (4 - layer)) * 80 * (4 - layer);
             dy += Math.sin(lookupX * 0.015) * 8;
             break;
-          case 'jungle_temple': {
-            const templeSeed = Math.floor(lookupX / 140);
-            const steppedHeight = (Math.sin(templeSeed * 789.1) * 0.5 + 0.5);
-            dy -= steppedHeight * 80 * (4 - layer);
-            if (lookupX % 140 < 20) {
-              dy -= 35;
-            }
-            break;
-          }
           case 'ice':
             dy += Math.sin(lookupX * 0.004) * 90 * (4 - layer);
             dy += Math.abs(Math.sin(lookupX * 0.02) * 20);
@@ -436,35 +418,22 @@ export class Renderer {
               'rgba(255, 170, 0, 0.5)'
             );
           }
-          // Spawn horizontal flowing leaves and flowers from the right side of the screen
+          // Spawn horizontal flowing leaves from the right side of the screen
           if (Math.random() < 0.40) {
-            const isLeaf = Math.random() > 0.35; // 65% leaves, 35% flowers
             const size = 5 + Math.random() * 7;
             const decay = 0.0015 + Math.random() * 0.002; // Slow decay to let them drift across the screen
             const spawnY = Math.random() * (height - 100) + 30; // Spawn within screen heights
             const vx = -this.currentSpeed * 0.85 - 1.5 - Math.random() * 2.0; // Horizontal sweep to the left
             const vy = (Math.random() - 0.5) * 0.8 + Math.sin(this.weatherTime * 1.2 + spawnY) * 0.3; // Wavy wind drift
             
-            let color = '';
-            if (isLeaf) {
-              const leafColors = [
-                'rgba(46, 125, 50, 0.85)',   // Forest Green
-                'rgba(76, 175, 80, 0.85)',   // Vibrant Green
-                'rgba(139, 195, 74, 0.85)',  // Lime Green
-                'rgba(230, 81, 0, 0.85)',    // Autumn Amber/Orange
-                'rgba(255, 167, 38, 0.85)'   // Gold Orange
-              ];
-              color = leafColors[Math.floor(Math.random() * leafColors.length)];
-            } else {
-              const flowerColors = [
-                'rgba(244, 143, 177, 0.9)',  // Cherry Blossom Pink
-                'rgba(255, 64, 129, 0.9)',   // Deep Pink
-                'rgba(224, 64, 251, 0.9)',   // Orchid Purple
-                'rgba(255, 235, 59, 0.9)',   // Golden Jasmine Yellow
-                'rgba(255, 255, 255, 0.9)'   // White Lotus
-              ];
-              color = flowerColors[Math.floor(Math.random() * flowerColors.length)];
-            }
+            const leafColors = [
+              'rgba(46, 125, 50, 0.85)',   // Forest Green
+              'rgba(76, 175, 80, 0.85)',   // Vibrant Green
+              'rgba(139, 195, 74, 0.85)',  // Lime Green
+              'rgba(230, 81, 0, 0.85)',    // Autumn Amber/Orange
+              'rgba(255, 167, 38, 0.85)'   // Gold Orange
+            ];
+            const color = leafColors[Math.floor(Math.random() * leafColors.length)];
 
             this.particleEngine.spawn(
               width + 20,
@@ -475,7 +444,7 @@ export class Renderer {
               size,
               0.9,
               decay,
-              isLeaf ? 'leaf' : 'flower'
+              'leaf'
             );
           }
           // Ambient soft background mist/fog
@@ -508,12 +477,6 @@ export class Renderer {
 
     ctxSaveApplyShake(this.ctx, this.shakeIntensity, this.shakeDuration);
 
-    // If active world is Jungle Temple and custom image is loaded, draw it directly
-    if (worldId === 'jungle_temple' && this.jungleTempleBgImg && this.jungleTempleBgImg.complete) {
-      this.ctx.drawImage(this.jungleTempleBgImg, 0, 0, width, height);
-      return;
-    }
-
     if (this.activeLevelNum === 44) {
       // Final Boss level dramatic dark void backdrop
       const bossGrad = this.ctx.createLinearGradient(0, 0, 0, height);
@@ -537,10 +500,6 @@ export class Renderer {
       case 'jungle':
         skyGrad.addColorStop(0, '#001a11');
         skyGrad.addColorStop(1, '#0c3527');
-        break;
-      case 'jungle_temple':
-        skyGrad.addColorStop(0, '#001208');
-        skyGrad.addColorStop(1, '#123c26');
         break;
       case 'ice':
         skyGrad.addColorStop(0, '#0d1e3a');
@@ -625,8 +584,7 @@ export class Renderer {
   }
 
   private drawSkyDetails(worldId: string, width: number, height: number) {
-    const isPerformance = (window as any).gameDisableShadows;
-    if (isPerformance) return;
+    // Allow sky details drawing even in performance mode since shadows are disabled globally anyway
     this.ctx.save();
 
     if (this.activeLevelNum === 44) {
@@ -646,48 +604,249 @@ export class Renderer {
 
     switch (worldId) {
       case 'space': {
-        const moonX = width * 0.75;
-        const moonY = height * 0.2;
+        const isMobile = (window as any).gameIsMobile;
 
-        // Moonlight Halo
-        const moonHalo = this.ctx.createRadialGradient(moonX, moonY, 10, moonX, moonY, 80);
-        moonHalo.addColorStop(0, 'rgba(255, 253, 235, 0.22)');
-        moonHalo.addColorStop(0.4, 'rgba(255, 253, 235, 0.08)');
-        moonHalo.addColorStop(1, 'rgba(0, 0, 0, 0)');
-        this.ctx.fillStyle = moonHalo;
-        this.ctx.beginPath();
-        this.ctx.arc(moonX, moonY, 80, 0, Math.PI * 2);
-        this.ctx.fill();
+        if (!isMobile) {
+          // --- 1. Distant Nebula Cloud Glows ---
+          this.ctx.save();
+          // Purple Nebula Top-Left
+          const nebulaGrad1 = this.ctx.createRadialGradient(width * 0.15, height * 0.25, 10, width * 0.15, height * 0.25, 220);
+          nebulaGrad1.addColorStop(0, 'rgba(88, 28, 135, 0.18)'); // deep purple
+          nebulaGrad1.addColorStop(0.5, 'rgba(124, 58, 237, 0.08)'); // violet
+          nebulaGrad1.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          this.ctx.fillStyle = nebulaGrad1;
+          this.ctx.beginPath();
+          this.ctx.arc(width * 0.15, height * 0.25, 220, 0, Math.PI * 2);
+          this.ctx.fill();
 
-        // Crescent Moon Base Circle
-        this.ctx.fillStyle = '#fffce0';
-        this.ctx.beginPath();
-        this.ctx.arc(moonX, moonY, 25, 0, Math.PI * 2);
-        this.ctx.fill();
+          // Magenta/Pink Nebula near center-right
+          const nebulaGrad2 = this.ctx.createRadialGradient(width * 0.65, height * 0.4, 20, width * 0.65, height * 0.4, 280);
+          nebulaGrad2.addColorStop(0, 'rgba(157, 23, 77, 0.15)'); // deep magenta
+          nebulaGrad2.addColorStop(0.4, 'rgba(219, 39, 119, 0.06)'); // pink
+          nebulaGrad2.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          this.ctx.fillStyle = nebulaGrad2;
+          this.ctx.beginPath();
+          this.ctx.arc(width * 0.65, height * 0.4, 280, 0, Math.PI * 2);
+          this.ctx.fill();
+          this.ctx.restore();
 
-        // Mask Circle to make it crescent (blended with background colors)
-        const maskX = moonX - 8;
-        const maskY = moonY - 4;
-        const maskGrad = this.ctx.createRadialGradient(maskX, maskY, 5, maskX, maskY, 40);
-        maskGrad.addColorStop(0, '#000818');
-        maskGrad.addColorStop(1, '#061226');
-        this.ctx.fillStyle = maskGrad;
-        this.ctx.beginPath();
-        this.ctx.arc(maskX, maskY, 24, 0, Math.PI * 2);
-        this.ctx.fill();
+          // --- 2. Draw Milky Way Galaxy Nebula ---
+          this.ctx.save();
+          const galX = width * 0.35;
+          const galY = height * 0.32;
+          this.ctx.translate(galX, galY);
+          this.ctx.rotate(-Math.PI / 5); // Tilted galaxy
 
-        // Draw 80 twinkling stars procedurally with variable sizes and speeds
-        this.ctx.fillStyle = '#ffffff';
-        for (let i = 0; i < 80; i++) {
+          // Galaxy Outer Glow (Nebula Dust)
+          this.ctx.save();
+          const galOuterGradA = this.ctx.createRadialGradient(0, 0, 5, 0, 0, 160);
+          galOuterGradA.addColorStop(0, 'rgba(109, 40, 217, 0.32)'); // purple nebula core
+          galOuterGradA.addColorStop(0.4, 'rgba(192, 38, 211, 0.18)'); // fuchsia dust
+          galOuterGradA.addColorStop(0.75, 'rgba(6, 182, 212, 0.08)'); // cyan tail
+          galOuterGradA.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          this.ctx.fillStyle = galOuterGradA;
+          this.ctx.scale(2.5, 0.75); // Stretch horizontally
+          this.ctx.beginPath();
+          this.ctx.arc(0, 0, 160, 0, Math.PI * 2);
+          this.ctx.fill();
+          this.ctx.restore();
+
+          // Layer B: Bright cyan-blue inner envelope
+          this.ctx.save();
+          const galOuterGradB = this.ctx.createRadialGradient(0, 0, 2, 0, 0, 90);
+          galOuterGradB.addColorStop(0, 'rgba(6, 182, 212, 0.35)'); // vibrant cyan
+          galOuterGradB.addColorStop(0.5, 'rgba(59, 130, 246, 0.15)'); // blue
+          galOuterGradB.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          this.ctx.fillStyle = galOuterGradB;
+          this.ctx.scale(2.2, 0.65);
+          this.ctx.beginPath();
+          this.ctx.arc(0, 0, 90, 0, Math.PI * 2);
+          this.ctx.fill();
+          this.ctx.restore();
+
+          // Galaxy Core (Bright white center glow)
+          const galCoreGrad = this.ctx.createRadialGradient(0, 0, 1, 0, 0, 28);
+          galCoreGrad.addColorStop(0, '#ffffff'); // bright core
+          galCoreGrad.addColorStop(0.2, '#fef08a'); // gold center
+          galCoreGrad.addColorStop(0.5, 'rgba(249, 115, 22, 0.6)'); // orange boundary
+          galCoreGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          this.ctx.fillStyle = galCoreGrad;
+          this.ctx.beginPath();
+          this.ctx.arc(0, 0, 28, 0, Math.PI * 2);
+          this.ctx.fill();
+          this.ctx.restore();
+
+          // Galaxy Spiral Arms (Slow rotating star clusters)
+          this.ctx.save();
+          this.ctx.translate(galX, galY);
+          this.ctx.rotate(-Math.PI / 5 + this.weatherTime * 0.012); // Slow spinning effect
+          
+          // Multi-colored spiral stars
+          const starColors = ['#ffffff', '#e0f2fe', '#fbcfe8', '#cffafe', '#fef9c3'];
+          const numStars = 80;
+          for (let i = 0; i < numStars; i++) {
+            const angle = i * 0.32;
+            const r = 10 + i * 2.2;
+            
+            // Arm 1
+            const x1 = r * Math.cos(angle);
+            const y1 = r * Math.sin(angle) * 0.38;
+            const size1 = 1.0 + (Math.sin(i * 12.3) * 0.5 + 0.5) * 2.0;
+            this.ctx.globalAlpha = 0.2 + (Math.sin(this.weatherTime * 2.0 + i) * 0.5 + 0.5) * 0.8;
+            this.ctx.fillStyle = starColors[i % starColors.length];
+            this.ctx.fillRect(x1, y1, size1, size1);
+
+            // Arm 2 (180 deg opposite)
+            const x2 = r * Math.cos(angle + Math.PI);
+            const y2 = r * Math.sin(angle + Math.PI) * 0.38;
+            this.ctx.fillRect(x2, y2, size1, size1);
+          }
+          this.ctx.restore();
+        }
+
+        // --- 3. Draw Giant Detailed Moon ---
+        const moonX = width * 0.8;
+        const moonY = height * 0.22;
+        const moonRadius = 40; // slightly larger for majestic details
+
+        if (isMobile) {
+          // Optimized flat moon drawing for mobile devices (removes radial gradients, craters, and corona glows)
+          this.ctx.fillStyle = '#cbd5e1'; // solid pale silver
+          this.ctx.beginPath();
+          this.ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
+          this.ctx.fill();
+        } else {
+          // Outer Moon Corona Glow (cyan-violet space atmosphere rim - brightened)
+          this.ctx.save();
+          const moonGlow = this.ctx.createRadialGradient(moonX, moonY, moonRadius * 0.9, moonX, moonY, moonRadius * 2.4);
+          moonGlow.addColorStop(0, 'rgba(255, 255, 255, 0.42)'); // bright white corona rim
+          moonGlow.addColorStop(0.3, 'rgba(103, 232, 249, 0.20)'); // cyan secondary glow
+          moonGlow.addColorStop(0.7, 'rgba(139, 92, 246, 0.06)'); // faint purple outer boundary
+          moonGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          this.ctx.fillStyle = moonGlow;
+          this.ctx.beginPath();
+          this.ctx.arc(moonX, moonY, moonRadius * 2.4, 0, Math.PI * 2);
+          this.ctx.fill();
+          this.ctx.restore();
+
+          // Moon Body Sphere (3D spherical shade - brightened)
+          this.ctx.save();
+          const moonBody = this.ctx.createRadialGradient(moonX - 10, moonY - 10, 4, moonX, moonY, moonRadius);
+          moonBody.addColorStop(0, '#ffffff'); // Sunlit white
+          moonBody.addColorStop(0.4, '#f8fafc'); // Pale silver
+          moonBody.addColorStop(0.75, '#cbd5e1'); // Silver grey shadow boundary (lighter)
+          moonBody.addColorStop(1, '#94a3b8'); // Much lighter shadow side
+          this.ctx.fillStyle = moonBody;
+          this.ctx.beginPath();
+          this.ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
+          this.ctx.fill();
+
+          // Lunar Maria (Subtle light-silver lunar plains for a clean surface look)
+          this.ctx.fillStyle = 'rgba(241, 245, 249, 0.15)';
+          const drawMare = (mx: number, my: number, rx: number, ry: number, rot: number) => {
+            this.ctx.save();
+            this.ctx.translate(moonX + mx, moonY + my);
+            this.ctx.rotate(rot);
+            this.ctx.beginPath();
+            this.ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.restore();
+          };
+          drawMare(-12, -10, 10, 6, Math.PI / 6);
+          drawMare(8, -15, 7, 5, -Math.PI / 4);
+          drawMare(-22, 5, 8, 12, Math.PI / 12);
+          drawMare(-5, 18, 14, 8, -Math.PI / 8);
+          drawMare(15, 10, 9, 6, Math.PI / 4);
+
+          // Moon Craters (with subtle highlights for premium depth without dark spots)
+          const drawCrater = (cx: number, cy: number, r: number) => {
+            // Crater bowl (light silver-grey instead of dark slate)
+            this.ctx.fillStyle = 'rgba(248, 250, 252, 0.25)';
+            this.ctx.beginPath();
+            this.ctx.arc(moonX + cx, moonY + cy, r, 0, Math.PI * 2);
+            this.ctx.fill();
+            
+            // Subtle soft rim (light silver-grey instead of dark)
+            this.ctx.strokeStyle = 'rgba(203, 213, 225, 0.25)';
+            this.ctx.lineWidth = 0.8;
+            this.ctx.beginPath();
+            this.ctx.arc(moonX + cx - 0.5, moonY + cy - 0.5, r, Math.PI * 1.7, Math.PI * 0.7);
+            this.ctx.stroke();
+
+            // Bright rim highlight (sunlit side)
+            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.65)';
+            this.ctx.lineWidth = 0.8;
+            this.ctx.beginPath();
+            this.ctx.arc(moonX + cx + 0.8, moonY + cy + 0.8, r, Math.PI * 0.7, Math.PI * 1.7);
+            this.ctx.stroke();
+          };
+
+          // Draw multiple craters
+          drawCrater(-12, -6, 6);
+          drawCrater(6, 12, 5.5);
+          drawCrater(-18, 14, 4);
+          drawCrater(16, -10, 5);
+          drawCrater(2, -18, 3);
+          drawCrater(-3, 20, 3.5);
+          drawCrater(22, 6, 2.5);
+          drawCrater(-24, -12, 3);
+          drawCrater(12, 22, 2);
+          this.ctx.restore();
+        }
+
+        // --- 4. Twinkling Stars (Deep Parallax Atmosphere) ---
+        // Twinkling stars of different color variants (white, cyan, fuchsia, gold)
+        const starPalette = ['#ffffff', '#ffffff', '#cffafe', '#fbcfe8', '#fef9c3'];
+        const starCount = isMobile ? 25 : 90; // Significantly reduced star density on mobile to cut redraw path overhead
+        for (let i = 0; i < starCount; i++) {
           const x = (Math.sin(i * 1421.3) * 0.5 + 0.5) * width;
-          const y = (Math.cos(i * 842.1) * 0.5 + 0.5) * (height * 0.85);
-          const size = 1.0 + (Math.sin(i * 77.3) * 0.5 + 0.5) * 1.5; // size 1px to 2.5px
-          const speed = 1.5 + (Math.sin(i * 33.3) * 0.5 + 0.5) * 2.0;
-          const alpha = 0.25 + (Math.sin(this.weatherTime * speed + i) * 0.5 + 0.5) * 0.75;
+          const y = (Math.cos(i * 842.1) * 0.5 + 0.5) * (height * 0.88);
+          const size = 0.8 + (Math.sin(i * 77.3) * 0.5 + 0.5) * 1.6;
+          const speed = 1.2 + (Math.sin(i * 33.3) * 0.5 + 0.5) * 2.5;
+          const alpha = 0.2 + (Math.sin(this.weatherTime * speed + i) * 0.5 + 0.5) * 0.8;
+          
           this.ctx.globalAlpha = alpha;
+          this.ctx.fillStyle = starPalette[i % starPalette.length];
           this.ctx.fillRect(x, y, size, size);
         }
         this.ctx.globalAlpha = 1.0;
+
+        // --- 5. Shooting Stars (Meteors) ---
+        // Procedurally trigger a shooting star streak across the background
+        const cycle = (this.weatherTime * 0.25) % 15; // Streaks every 15 seconds
+        if (cycle < 2.0 && !isMobile) { // Metors disabled on mobile devices to optimize updates
+          this.ctx.save();
+          const t = cycle / 2.0; // Normalized time (0 to 1)
+          
+          // Meteor start & end coordinate logic based on cycle index
+          const cycleIdx = Math.floor(this.weatherTime / 15);
+          const startX = ((Math.sin(cycleIdx * 71.3) * 0.5 + 0.5) * 0.4 + 0.1) * width;
+          const startY = ((Math.cos(cycleIdx * 43.7) * 0.5 + 0.5) * 0.2 + 0.05) * height;
+          
+          const angle = Math.PI / 6; // Streak downwards at 30 degrees
+          const length = 180;
+          const distance = 400 * t; // slide distance
+          
+          const curX = startX + distance * Math.cos(angle);
+          const curY = startY + distance * Math.sin(angle);
+          
+          // Draw meteor trail
+          const meteorGrad = this.ctx.createLinearGradient(
+            curX, curY, 
+            curX - length * Math.cos(angle), curY - length * Math.sin(angle)
+          );
+          meteorGrad.addColorStop(0, 'rgba(167, 139, 250, 0.8)'); // Purple tip
+          meteorGrad.addColorStop(0.25, 'rgba(103, 232, 249, 0.4)'); // Cyan trail
+          meteorGrad.addColorStop(1, 'rgba(0, 0, 0, 0)'); // fade out
+          
+          this.ctx.strokeStyle = meteorGrad;
+          this.ctx.lineWidth = 1.8;
+          this.ctx.beginPath();
+          this.ctx.moveTo(curX, curY);
+          this.ctx.lineTo(curX - length * Math.cos(angle), curY - length * Math.sin(angle));
+          this.ctx.stroke();
+          this.ctx.restore();
+        }
         break;
       }
 
@@ -715,116 +874,187 @@ export class Renderer {
         break;
 
       case 'heaven': {
-        // Celestial sunrays drawing
-        const rayGrad = this.ctx.createRadialGradient(width * 0.5, 0, 50, width * 0.5, 0, 500);
-        rayGrad.addColorStop(0, 'rgba(255, 235, 180, 0.35)');
-        rayGrad.addColorStop(0.6, 'rgba(255, 255, 255, 0.15)');
-        rayGrad.addColorStop(1, 'rgba(255,255,255,0)');
-        this.ctx.fillStyle = rayGrad;
-        this.ctx.beginPath();
-        this.ctx.arc(width * 0.5, 0, 600, 0, Math.PI, false);
-        this.ctx.fill();
+        const isMobile = (window as any).gameIsMobile;
+
+        // --- 1. Draw Giant Radiant Celestial Sun (Center-Top) ---
+        const sunX = width * 0.5;
+        const sunY = -60;
+        const sunGlowRad = isMobile ? 120 : 450; // Smaller sun glow radius on mobile devices
         
-        // Draw sweeping volumetric rays
         this.ctx.save();
-        this.ctx.translate(width * 0.5, 0);
-        this.ctx.globalCompositeOperation = 'screen';
-        
-        const numRays = 4;
-        for (let i = 0; i < numRays; i++) {
-          const rayAngle = Math.sin(this.weatherTime * 0.15 + i * 1.5) * 0.25 + (i - numRays / 2) * 0.45;
-          const rayWidth = 0.12 + Math.sin(this.weatherTime * 0.35 + i) * 0.04;
-          
-          const grad = this.ctx.createLinearGradient(0, 0, 0, height);
-          grad.addColorStop(0, 'rgba(255, 243, 210, 0.24)');
-          grad.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
-          
-          this.ctx.fillStyle = grad;
+        if (isMobile) {
+          // Flat sun core without radial blending gradients to boost mobile FPS
+          this.ctx.fillStyle = '#fff8dc'; // warm celestial cream
           this.ctx.beginPath();
-          this.ctx.moveTo(0, 0);
-          this.ctx.lineTo(Math.sin(rayAngle - rayWidth) * height * 1.5, height);
-          this.ctx.lineTo(Math.sin(rayAngle + rayWidth) * height * 1.5, height);
-          this.ctx.closePath();
+          this.ctx.arc(sunX, sunY, sunGlowRad, 0, Math.PI * 2);
           this.ctx.fill();
+        } else {
+          const sunGrad = this.ctx.createRadialGradient(sunX, sunY, 30, sunX, sunY, sunGlowRad);
+          sunGrad.addColorStop(0, 'rgba(255, 248, 220, 0.48)'); // Soft warm cream
+          sunGrad.addColorStop(0.3, 'rgba(255, 235, 180, 0.28)'); // Golden white
+          sunGrad.addColorStop(0.65, 'rgba(219, 234, 254, 0.12)'); // Soft heavenly blue
+          sunGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          this.ctx.fillStyle = sunGrad;
+          this.ctx.beginPath();
+          this.ctx.arc(sunX, sunY, sunGlowRad, 0, Math.PI * 2);
+          this.ctx.fill();
+        }
+        this.ctx.restore();
+
+        // --- 2. Draw Static Volumetric God Rays (Light Rays - Disabled on Mobile) ---
+        if (!isMobile) {
+          this.ctx.save();
+          this.ctx.translate(sunX, sunY);
+          this.ctx.globalCompositeOperation = 'screen';
+
+          const numRays = 6;
+          for (let i = 0; i < numRays; i++) {
+            const baseAngle = (i - (numRays - 1) / 2) * 0.35;
+            const rayAngle = Math.PI / 2 + baseAngle;
+
+            const rayWidth = 0.09;
+            const rayOpacity = 0.18;
+
+            const rayLen = height * 1.6;
+            const leftX = Math.cos(rayAngle - rayWidth) * rayLen;
+            const leftY = Math.sin(rayAngle - rayWidth) * rayLen;
+            const rightX = Math.cos(rayAngle + rayWidth) * rayLen;
+            const rightY = Math.sin(rayAngle + rayWidth) * rayLen;
+
+            const grad = this.ctx.createLinearGradient(0, 0, (leftX + rightX) / 2, (leftY + rightY) / 2);
+            grad.addColorStop(0, `rgba(255, 244, 215, ${rayOpacity})`);
+            grad.addColorStop(0.3, `rgba(255, 250, 235, ${rayOpacity * 0.6})`);
+            grad.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+
+            this.ctx.fillStyle = grad;
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, 0);
+            this.ctx.lineTo(leftX, leftY);
+            this.ctx.lineTo(rightX, rightY);
+            this.ctx.closePath();
+            this.ctx.fill();
+          }
+          this.ctx.restore();
+        }
+
+        // --- 4. Draw Floating Sparkles & Halo particles (Rising slowly) ---
+        this.ctx.save();
+        const floatParticlesCount = isMobile ? 3 : 8; // Fewer particles on mobile
+        for (let i = 0; i < floatParticlesCount; i++) {
+          const randSeed = i * 789.23;
+          const x = (Math.sin(randSeed) * 0.5 + 0.5) * width;
+          const yStart = (Math.cos(randSeed * 1.5) * 0.5 + 0.5) * height;
+          const floatDist = (this.weatherTime * (15 + (i % 5) * 5)) % (height + 50);
+          const y = (yStart - floatDist + height) % height;
+
+          const size = 1.2 + (Math.sin(randSeed * 4.3) * 0.5 + 0.5) * 2.2;
+          const pulse = Math.sin(this.weatherTime * 1.8 + i) * 0.5 + 0.5;
+          const alpha = (0.2 + pulse * 0.6) * (y / height); // Fades out as it goes higher
+
+          this.ctx.globalAlpha = alpha;
+          this.ctx.fillStyle = i % 2 === 0 ? '#ffffff' : '#fef08a'; // Alternate white and gold
+          
+          if (!(window as any).gameDisableShadows) {
+            this.ctx.shadowBlur = 8;
+            this.ctx.shadowColor = '#ffd700';
+          }
+
+          // Draw small glowing diamond/star or soft bubble
+          if (i % 3 === 0) {
+            // Draw diamond sparkle
+            this.ctx.beginPath();
+            this.ctx.moveTo(x, y - size);
+            this.ctx.lineTo(x + size * 0.7, y);
+            this.ctx.lineTo(x, y + size);
+            this.ctx.lineTo(x - size * 0.7, y);
+            this.ctx.closePath();
+            this.ctx.fill();
+          } else {
+            // Draw soft light bubble
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, size, 0, Math.PI * 2);
+            this.ctx.fill();
+          }
         }
         this.ctx.restore();
         break;
       }
       case 'desert': {
-        // Draw a scorching desert mid-day sun with glowing radial halos
-        const sunX = width * 0.65;
-        const sunY = height * 0.20;
-        const baseRadius = 35;
-
-        // Outer heat haze / corona glow
-        const coronaGrad = this.ctx.createRadialGradient(sunX, sunY, baseRadius * 0.8, sunX, sunY, baseRadius * 4.5);
-        coronaGrad.addColorStop(0, 'rgba(255, 230, 150, 0.45)');
-        coronaGrad.addColorStop(0.3, 'rgba(255, 170, 50, 0.22)');
-        coronaGrad.addColorStop(0.7, 'rgba(255, 100, 0, 0.06)');
-        coronaGrad.addColorStop(1, 'rgba(255, 100, 0, 0)');
-        this.ctx.fillStyle = coronaGrad;
-        this.ctx.beginPath();
-        this.ctx.arc(sunX, sunY, baseRadius * 4.5, 0, Math.PI * 2);
-        this.ctx.fill();
-
-        // Inner bright sun glow
-        const sunGrad = this.ctx.createRadialGradient(sunX, sunY, 2, sunX, sunY, baseRadius);
-        sunGrad.addColorStop(0, '#ffffff'); // bright hot white core
-        sunGrad.addColorStop(0.2, '#fff6d5'); // cream white
-        sunGrad.addColorStop(0.7, '#ffde80'); // bright yellow-gold
-        sunGrad.addColorStop(1, 'rgba(255, 222, 128, 0)');
-        this.ctx.fillStyle = sunGrad;
-        this.ctx.beginPath();
-        this.ctx.arc(sunX, sunY, baseRadius, 0, Math.PI * 2);
-        this.ctx.fill();
-
-        // Core sun sphere
-        this.ctx.fillStyle = '#ffffff';
-        this.ctx.beginPath();
-        this.ctx.arc(sunX, sunY, baseRadius * 0.65, 0, Math.PI * 2);
-        this.ctx.fill();
+        const isMobile = (window as any).gameIsMobile;
         
-        break;
-      }
-      case 'jungle_temple': {
-        const rayGrad = this.ctx.createRadialGradient(0, 0, 50, 0, 0, 500);
-        rayGrad.addColorStop(0, 'rgba(255, 223, 137, 0.22)');
-        rayGrad.addColorStop(0.6, 'rgba(18, 60, 38, 0.12)');
-        rayGrad.addColorStop(1, 'rgba(0,0,0,0)');
-        this.ctx.fillStyle = rayGrad;
-        this.ctx.beginPath();
-        this.ctx.arc(0, 0, 650, 0, Math.PI * 0.5, false);
-        this.ctx.fill();
+        // Animate the sun slowly from left to right across the screen in a parabolic arc
+        const speed = 6; // Slowed down from 16 pixels per second
+        const baseRadius = 40;
+        const range = width + 300;
+        const sunX = ((this.weatherTime * speed) % range) - 150;
         
-        this.ctx.save();
-        this.ctx.globalCompositeOperation = 'screen';
-        
-        const numRays = 3;
-        for (let i = 0; i < numRays; i++) {
-          const rayAngle = Math.sin(this.weatherTime * 0.12 + i * 2.2) * 0.14 + 0.65 + (i * 0.28);
-          const rayWidth = 0.07 + Math.sin(this.weatherTime * 0.3 + i) * 0.025;
-          
-          const grad = this.ctx.createLinearGradient(0, 0, width, height);
-          grad.addColorStop(0, 'rgba(255, 235, 180, 0.16)');
-          grad.addColorStop(1, 'rgba(12, 53, 39, 0.0)');
-          
-          this.ctx.fillStyle = grad;
+        // Curved sky path (parabolic arc)
+        const normalizedX = (sunX + 150) / range;
+        const peakHeight = height * 0.32;
+        const baseHeight = height * 0.48;
+        const sunY = baseHeight - Math.sin(normalizedX * Math.PI) * peakHeight;
+
+        if (!isMobile) {
+          // --- 2. Outer Scorching Heat Haze Corona Glow ---
+          this.ctx.save();
+          const coronaGrad = this.ctx.createRadialGradient(sunX, sunY, baseRadius * 0.7, sunX, sunY, baseRadius * 4.8);
+          coronaGrad.addColorStop(0, 'rgba(255, 220, 120, 0.42)'); // Golden corona rim
+          coronaGrad.addColorStop(0.3, 'rgba(255, 150, 30, 0.18)'); // Scorching orange haze
+          coronaGrad.addColorStop(0.75, 'rgba(239, 68, 68, 0.05)'); // Soft heat boundary
+          coronaGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          this.ctx.fillStyle = coronaGrad;
           this.ctx.beginPath();
-          this.ctx.moveTo(0, 0);
-          this.ctx.lineTo(Math.cos(rayAngle - rayWidth) * width * 1.5, Math.sin(rayAngle - rayWidth) * height * 1.5);
-          this.ctx.lineTo(Math.cos(rayAngle + rayWidth) * width * 1.5, Math.sin(rayAngle + rayWidth) * height * 1.5);
-          this.ctx.closePath();
+          this.ctx.arc(sunX, sunY, baseRadius * 4.8, 0, Math.PI * 2);
+          this.ctx.fill();
+          this.ctx.restore();
+
+          // --- 3. Dynamic Sun Lens Ring (Real Sun Glow Accent) ---
+          this.ctx.save();
+          this.ctx.globalCompositeOperation = 'screen';
+          this.ctx.strokeStyle = 'rgba(255, 230, 180, 0.06)';
+          this.ctx.lineWidth = 1.5;
+          this.ctx.beginPath();
+          this.ctx.arc(sunX, sunY, baseRadius * 2.2, 0, Math.PI * 2);
+          this.ctx.stroke();
+          this.ctx.restore();
+        }
+
+        // --- 4. Inner Scorching Hot Sun Sphere ---
+        this.ctx.save();
+        if (isMobile) {
+          // Flat sun core without radial blending gradients to boost mobile FPS
+          this.ctx.fillStyle = '#ffd700'; // scorching hot yellow
+          this.ctx.beginPath();
+          this.ctx.arc(sunX, sunY, baseRadius, 0, Math.PI * 2);
+          this.ctx.fill();
+        } else {
+          const sunGrad = this.ctx.createRadialGradient(sunX - 3, sunY - 3, 2, sunX, sunY, baseRadius);
+          sunGrad.addColorStop(0, '#ffffff'); // Blazing white sun core
+          sunGrad.addColorStop(0.25, '#fffbeb'); // Cream yellow halo
+          sunGrad.addColorStop(0.7, '#fef08a'); // Rich gold rim
+          sunGrad.addColorStop(1, 'rgba(253, 224, 71, 0)');
+          this.ctx.fillStyle = sunGrad;
+          this.ctx.beginPath();
+          this.ctx.arc(sunX, sunY, baseRadius, 0, Math.PI * 2);
           this.ctx.fill();
         }
+
+        // Core sun ball
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.beginPath();
+        this.ctx.arc(sunX, sunY, baseRadius * 0.62, 0, Math.PI * 2);
+        this.ctx.fill();
         this.ctx.restore();
+        
         break;
       }
+
     }
     this.ctx.restore();
   }
 
   private drawParallaxHills(worldId: string, width: number, height: number) {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isMobile = (window as any).gameIsMobile || false;
     
     // 3 separate layers of hills / city silhouettes
     for (let layer = 1; layer <= 3; layer++) {
@@ -845,6 +1075,8 @@ export class Renderer {
         baseStepX = 35;
       } else if (worldId === 'volcano' || worldId === 'ice') {
         baseStepX = 25;
+      } else if (worldId === 'heaven') {
+        baseStepX = 60; // Significantly reduce path drawing complexity for heaven world lightweighting
       }
       
       const stepX = isMobile ? baseStepX * 3.8 : baseStepX;
@@ -889,12 +1121,7 @@ export class Renderer {
           '#081e13', // Layer 2
           '#05120a'  // Layer 3 (Closest)
         ][layer - 1];
-      case 'jungle_temple':
-        return [
-          '#081a0f',
-          '#051109',
-          '#020804'
-        ][layer - 1];
+
 
       case 'ice':
         return [
@@ -1013,7 +1240,6 @@ export class Renderer {
     if (worldId === 'volcano') glowColor = 'rgba(255, 69, 0, 0.15)';
     else if (worldId === 'heaven') glowColor = 'rgba(255, 223, 137, 0.15)';
     else if (worldId === 'ice') glowColor = 'rgba(0, 243, 255, 0.08)';
-    else if (worldId === 'jungle_temple') glowColor = 'rgba(212, 175, 55, 0.12)';
 
     const glowGrad = this.ctx.createRadialGradient(width * 0.5, height * 0.5, 100, width * 0.5, height * 0.5, width * 0.6);
     glowGrad.addColorStop(0, glowColor);
@@ -1026,7 +1252,6 @@ export class Renderer {
     let filterColor = 'rgba(255, 255, 255, 1.0)';
     if (worldId === 'volcano') filterColor = 'rgba(255, 230, 220, 1.0)';
     else if (worldId === 'ice') filterColor = 'rgba(220, 245, 255, 1.0)';
-    else if (worldId === 'jungle_temple') filterColor = 'rgba(235, 255, 240, 1.0)';
 
     this.ctx.fillStyle = filterColor;
     this.ctx.fillRect(0, 0, width, height);

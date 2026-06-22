@@ -121,7 +121,7 @@ export class PowerupManager {
     const groupSize = Math.floor(targetScore / 3);
     const isLevel6 = levelNum === 6;
     const distances: number[] = [];
-    let x = 350; // initial spawn distance
+    let x = 550; // initial spawn distance
     for (let i = 0; i < targetScore; i++) {
       distances.push(x);
       if (i === groupSize - 1 || i === (groupSize * 2) - 1) {
@@ -132,8 +132,8 @@ export class PowerupManager {
     }
 
     // Distribute targetCoins in groups of 3 between startX and endX
-    const startX = 400;
-    const endX = distances[distances.length - 1] || 400;
+    const startX = 600;
+    const endX = distances[distances.length - 1] || 600;
     this.coinDistances = [];
     
     const numGroups = Math.ceil(targetCoins / 3);
@@ -522,7 +522,8 @@ export class PowerupManager {
     }
 
     // 3. Fallback rare random spawns if no obstacles are currently active
-    if (obstacles.length === 0) {
+    const gameEngine = (window as any).gameEngine;
+    if (obstacles.length === 0 && gameEngine && gameEngine.firstTapDone && gameEngine.score > 0) {
       if (Math.random() < 0.005 * dtCoeff) {
         this.spawnItem('coin', width, height);
       }
@@ -586,7 +587,9 @@ export class PowerupManager {
       if (dist < birdRadius + item.radius) {
         const type = item.type;
 
-        // Visual collection particles
+        // Visual collection particles (Completely disabled in all modes)
+        const isEndless = true;
+
         if (item.type === 'coin') {
           const gameScore = (window as any).gameEngine ? (window as any).gameEngine.score : 0;
           let sparkleColor = '#ffd700';
@@ -595,46 +598,54 @@ export class PowerupManager {
           } else if (gameScore >= 500) {
             sparkleColor = '#ff3d00';
           }
-          particleEngine.emitCoinSparkle(item.x, item.y, sparkleColor);
+          if (!isEndless) {
+            particleEngine.emitCoinSparkle(item.x, item.y, sparkleColor);
+          }
           soundManager.playCoin();
         } else if (item.type === 'gem') {
-          particleEngine.emitCoinSparkle(item.x, item.y, '#00ffcc');
+          if (!isEndless) {
+            particleEngine.emitCoinSparkle(item.x, item.y, '#00ffcc');
+          }
           soundManager.playGem();
         } else if (item.type === 'rescue') {
           // CAGE BREAK: Bird escapes! Dramatic multi-burst effect
-          particleEngine.emitRing(item.x, item.y, '#ffaa00', 18);
-          // Golden cage-bar shatter sparks flying outward
-          for (let k = 0; k < 12; k++) {
-            const angle = (k / 12) * Math.PI * 2;
-            particleEngine.spawn(
-              item.x + Math.cos(angle) * 8,
-              item.y + Math.sin(angle) * 8,
-              Math.cos(angle) * (1.5 + Math.random() * 2.5),
-              Math.sin(angle) * (1.5 + Math.random() * 2.5),
-              k % 2 === 0 ? '#ffaa00' : '#ffffff',
-              3 + Math.random() * 3,
-              1.0,
-              0.03,
-              'star'
-            );
-          }
-          // Freed bird upward trail
-          for (let k = 0; k < 8; k++) {
-            particleEngine.spawn(
-              item.x + (Math.random() - 0.5) * 12,
-              item.y - k * 4,
-              (Math.random() - 0.5) * 1.5,
-              -1 - Math.random() * 2,
-              '#00f3ff',
-              2 + Math.random() * 2,
-              0.9,
-              0.04,
-              'star'
-            );
+          if (!isEndless) {
+            particleEngine.emitRing(item.x, item.y, '#ffaa00', 18);
+            // Golden cage-bar shatter sparks flying outward
+            for (let k = 0; k < 12; k++) {
+              const angle = (k / 12) * Math.PI * 2;
+              particleEngine.spawn(
+                item.x + Math.cos(angle) * 8,
+                item.y + Math.sin(angle) * 8,
+                Math.cos(angle) * (1.5 + Math.random() * 2.5),
+                Math.sin(angle) * (1.5 + Math.random() * 2.5),
+                k % 2 === 0 ? '#ffaa00' : '#ffffff',
+                3 + Math.random() * 3,
+                1.0,
+                0.03,
+                'star'
+              );
+            }
+            // Freed bird upward trail
+            for (let k = 0; k < 8; k++) {
+              particleEngine.spawn(
+                item.x + (Math.random() - 0.5) * 12,
+                item.y - k * 4,
+                (Math.random() - 0.5) * 1.5,
+                -1 - Math.random() * 2,
+                '#00f3ff',
+                2 + Math.random() * 2,
+                0.9,
+                0.04,
+                'star'
+              );
+            }
           }
           soundManager.playLevelUp();
         } else {
-          particleEngine.emitRing(item.x, item.y, this.getPowerupGlowColor(item.type));
+          if (!isEndless) {
+            particleEngine.emitRing(item.x, item.y, this.getPowerupGlowColor(item.type));
+          }
           soundManager.playShieldDeflect();
         }
 

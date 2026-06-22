@@ -18,6 +18,7 @@
   user-select: none;
   -webkit-user-drag: none;
   touch-action: none;
+  -webkit-tap-highlight-color: transparent !important;
 }
 
 body, html {
@@ -40,7 +41,6 @@ body, html {
   align-items: center;
 }
 
-/* Game canvas sits behind UI */
 #gameCanvas {
   position: absolute;
   top: 0;
@@ -49,10 +49,6 @@ body, html {
   height: 100%;
   display: block;
   z-index: 1;
-  image-rendering: -moz-crisp-edges;
-  image-rendering: -webkit-crisp-edges;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
 }
 
 /* UI responsive frame wrapper */
@@ -195,7 +191,6 @@ body, html {
 }
 
 .world-bg-jungle   { background: radial-gradient(ellipse at 50% 60%, rgba(0,80,30,0.55) 0%, rgba(0,26,17,0.85) 100%); }
-.world-bg-jungle_temple { background: radial-gradient(ellipse at 50% 40%, rgba(255,200,100,0.45) 0%, rgba(20,50,90,0.85) 100%); }
 .world-bg-ice      { background: radial-gradient(ellipse at 50% 60%, rgba(0,100,200,0.5) 0%, rgba(13,30,58,0.9) 100%); }
 .world-bg-desert   { background: radial-gradient(ellipse at 50% 60%, rgba(180,120,30,0.55) 0%, rgba(90,70,44,0.9) 100%); }
 .world-bg-volcano  { background: radial-gradient(ellipse at 50% 60%, rgba(200,40,0,0.6) 0%, rgba(17,3,0,0.95) 100%); }
@@ -229,9 +224,9 @@ body, html {
   justify-content: space-between;
   align-items: center;
   padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 8px 12px;
-  background: rgba(5, 3, 18, 0.7);
-  backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  background: transparent;
+  backdrop-filter: none;
+  border-bottom: none;
 }
 
 .top-bar-player {
@@ -291,9 +286,9 @@ body, html {
   align-items: center;
   gap: 6px;
   background: linear-gradient(180deg, rgba(30, 25, 50, 0.9) 0%, rgba(10, 8, 20, 0.95) 100%);
-  border-radius: 24px;
-  padding: 5px 12px 5px 8px;
-  font-size: 12.5px;
+  border-radius: 28px;
+  padding: 6px 14px 6px 10px;
+  font-size: 15px;
   font-weight: 800;
   box-shadow: 
     0 4px 8px rgba(0,0,0,0.4), 
@@ -321,7 +316,7 @@ body, html {
 }
 
 .top-bar-coin-icon, .top-bar-gem-icon {
-  font-size: 15px;
+  font-size: 18px;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
   animation: spinSlowly 6s linear infinite;
   display: inline-block;
@@ -337,13 +332,10 @@ body, html {
   color: white;
   width: 44px;
   height: 44px;
-  margin-left: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   outline: none;
-  position: relative;
-  left: 12px;
   transition: all 0.1s ease;
   box-shadow: 
     0 4px 0 #1b1e25,
@@ -501,8 +493,8 @@ body, html {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 88px;
-  height: 86px;
+  width: 97px;
+  height: 95px;
   border-radius: 20px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 100%);
   border: 2px solid rgba(212, 175, 55, 0.25);
@@ -561,7 +553,7 @@ body, html {
 }
 
 .side-btn-label {
-  font-size: 9.5px;
+  font-size: 10.5px;
   font-weight: 800;
   letter-spacing: 0.5px;
   color: rgba(255,255,255,0.75);
@@ -572,12 +564,12 @@ body, html {
   position: absolute;
   top: -6px;
   right: -6px;
-  width: 21px;
-  height: 21px;
+  width: 23px;
+  height: 23px;
   border-radius: 50%;
   background: #ff3c2e;
   border: 2px solid rgba(5,3,18,1);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   display: flex;
   align-items: center;
@@ -670,6 +662,7 @@ body, html {
   box-shadow: 0 0 12px rgba(0,200,255,0.5), inset 0 0 12px rgba(0,200,255,0.15);
   animation: platformPulse 2s ease-in-out infinite;
   pointer-events: none;
+  z-index: 1; /* Establish stacking context for z-index: -1 child */
 }
 
 .world-selector-chip {
@@ -861,9 +854,109 @@ body, html {
   background: rgba(4, 2, 14, 0.95);
 }
 
-/* Premium fade-and-scale transition for tabs and screens */
+/* Premium entrance slide-up and scale transition for tab screen */
 .tab-transition {
-  animation: tabFadeScale 0.18s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  animation: tabSlideUp 0.52s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Staggered entrance for header controls */
+.tab-transition .tab-back-btn {
+  animation: backBtnEntrance 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+}
+.tab-transition .tab-hero-title-row {
+  animation: titleEntrance 0.58s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
+}
+
+/* Staggered entrance for hero canvas/character preview */
+.tab-transition .tab-hero-spotlight {
+  animation: spotlightEntrance 0.62s cubic-bezier(0.175, 0.885, 0.32, 1.1) 0.18s both;
+}
+
+/* Staggered cascading entrance for list cards/items */
+.tab-transition .tab-content-area > * {
+  animation: cardEntrance 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+  opacity: 0;
+}
+/* Staggered animation delays for the first 8 children */
+.tab-transition .tab-content-area > *:nth-child(1) { animation-delay: 0.20s; }
+.tab-transition .tab-content-area > *:nth-child(2) { animation-delay: 0.26s; }
+.tab-transition .tab-content-area > *:nth-child(3) { animation-delay: 0.32s; }
+.tab-transition .tab-content-area > *:nth-child(4) { animation-delay: 0.38s; }
+.tab-transition .tab-content-area > *:nth-child(5) { animation-delay: 0.44s; }
+.tab-transition .tab-content-area > *:nth-child(6) { animation-delay: 0.50s; }
+.tab-transition .tab-content-area > *:nth-child(7) { animation-delay: 0.56s; }
+.tab-transition .tab-content-area > *:nth-child(8) { animation-delay: 0.62s; }
+
+/* Opaque menu entrance to prevent canvas flashlight strobe effect */
+.menu-entrance {
+  animation: menuSlideDown 0.52s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes menuSlideDown {
+  from {
+    opacity: 1;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Keyframe animations */
+@keyframes tabSlideUp {
+  from {
+    opacity: 1;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes backBtnEntrance {
+  from {
+    opacity: 0;
+    transform: translateX(-15px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes titleEntrance {
+  from {
+    opacity: 0;
+    transform: translateX(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes spotlightEntrance {
+  from {
+    opacity: 0;
+    transform: scale(0.7) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes cardEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* ---- Hero Header (back + title) ---- */
@@ -873,9 +966,9 @@ body, html {
   display: flex;
   align-items: center;
   padding: calc(14px + env(safe-area-inset-top, 0px)) 14px 10px;
-  background: rgba(5, 3, 18, 0.8);
-  backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  background: transparent;
+  backdrop-filter: none;
+  border-bottom: none;
   flex-shrink: 0;
   gap: 12px;
 }
@@ -2664,11 +2757,11 @@ body, html {
 .boss-health-bar-container {
   margin: 12px auto 4px auto;
   width: 90%;
-  max-width: 400px;
+  max-width: 320px; /* Reduced by 20% (400px * 0.8) */
   background: rgba(13, 10, 28, 0.85);
   border: 1px solid rgba(255, 0, 85, 0.4);
-  border-radius: 12px;
-  padding: 10px 16px;
+  border-radius: 10px;
+  padding: 8px 12px; /* Reduced by 20% */
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 18px rgba(255, 0, 85, 0.15);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -2679,20 +2772,20 @@ body, html {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
 }
 
 .boss-name {
-  font-size: 13px;
+  font-size: 11px; /* Reduced by ~15-20% */
   font-weight: 800;
   color: #ff0055;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.2px;
   text-shadow: 0 0 8px rgba(255, 0, 85, 0.7);
   text-transform: uppercase;
 }
 
 .boss-health-val {
-  font-size: 11px;
+  font-size: 9px; /* Reduced by ~15-20% */
   font-weight: 700;
   color: #ffffff;
   letter-spacing: 0.5px;
@@ -2700,9 +2793,9 @@ body, html {
 
 .boss-health-track {
   width: 100%;
-  height: 10px;
+  height: 8px; /* Reduced by 20% (10px * 0.8) */
   background: rgba(255, 255, 255, 0.08);
-  border-radius: 5px;
+  border-radius: 4px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -2711,7 +2804,7 @@ body, html {
   height: 100%;
   background: linear-gradient(90deg, #ff0055, #ff5500, #ffaa00);
   box-shadow: 0 0 10px rgba(255, 0, 85, 0.8);
-  border-radius: 5px;
+  border-radius: 4px;
   transition: width 0.25s ease-out;
 }
 
@@ -2875,6 +2968,15 @@ body.mobile-performance .glass-card {
   -webkit-backdrop-filter: none !important;
 }
 
+/* Neutralize expensive shadow blurs and text shadows to speed up composite layer painting on mobile */
+body.mobile-performance *,
+body.mobile-performance ::before,
+body.mobile-performance ::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+
 /* ====================================================
    LEVEL SELECT SCREEN & COMPLETE SYSTEM
    ==================================================== */
@@ -3005,35 +3107,68 @@ body.mobile-performance .glass-card {
 .level-select-card {
   position: relative;
   aspect-ratio: 1 / 1;
-  border-radius: 16px;
+  border-radius: 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
   cursor: pointer;
-  transition: all 0.22s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   scroll-snap-align: start;
 }
 
 .level-select-card.locked {
-  opacity: 0.35;
-  background: rgba(0, 0, 0, 0.2);
+  opacity: 0.3;
+  background: rgba(0, 0, 0, 0.25);
   border-color: rgba(255, 255, 255, 0.03);
   cursor: not-allowed;
+  box-shadow: none;
+}
+
+.level-select-card.unlocked {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.22);
 }
 
 .level-select-card.unlocked:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
 }
 
 .level-select-card.unlocked:active {
   transform: scale(0.92);
-  background: rgba(123, 47, 255, 0.15);
-  border-color: rgba(123, 47, 255, 0.5);
+  background: rgba(123, 47, 255, 0.2);
+  border-color: rgba(123, 47, 255, 0.6);
+}
+
+.level-select-card.latest-unlocked {
+  border: 2px solid #a855f7 !important;
+  background: rgba(168, 85, 247, 0.1) !important;
+  animation: latestPulse 2s infinite ease-in-out;
+}
+
+@keyframes latestPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.45);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.85), inset 0 0 8px rgba(168, 85, 247, 0.25);
+  }
+}
+
+.level-num-label {
+  font-size: 21px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  font-family: 'Outfit', sans-serif;
 }
 
 .level-lock-icon {
@@ -3271,10 +3406,10 @@ body.mobile-performance .glass-card {
   background: linear-gradient(135deg, #ff9f1a, #ff6b00);
   border: none;
   color: white;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
   display: inline-flex;
   align-items: center;
@@ -3462,5 +3597,245 @@ body.mobile-performance .glass-card {
     transform: scale(1) translateY(0);
   }
 }
+
+/* Card upgrade success pulse glow animation */
+.card-upgrade-success {
+  animation: cardUpgradeSparkle 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+@keyframes cardUpgradeSparkle {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.06);
+  }
+  70% {
+    transform: scale(0.97);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Mobile performance overrides to make the game ultra smooth */
+body.mobile-performance * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.mobile-performance .glass-nav,
+body.mobile-performance .overlay-screen,
+body.mobile-performance .glass-panel,
+body.mobile-performance .side-btn,
+body.mobile-performance .bottom-nav-bar,
+body.mobile-performance .top-bar-coin,
+body.mobile-performance .top-bar-gem,
+body.mobile-performance .top-bar-settings-btn {
+  background-color: rgba(13, 10, 28, 0.96) !important; /* Slightly more opaque background to keep readable without backdrop blurs */
+}
+
+/* ====================================================
+   TACTILE TOUCH & SLIDE INTERACTION SYSTEM
+   ==================================================== */
+.btn,
+.side-btn,
+.nav-item,
+.skin-card,
+.world-card,
+.bp-tier-card,
+.achievement-card,
+.quest-card,
+.reward-card,
+.zone-card,
+.level-select-card,
+.chest-card,
+.bp-mission-card,
+.hud-circle-btn,
+.top-bar-settings-btn,
+.top-bar-coin,
+.top-bar-gem,
+.world-selector-chip,
+.modal-card,
+.top-bar-add-btn,
+.start-fly-btn,
+.tab-back-btn,
+.spectator-btn-small {
+  /* Default interactive state variables */
+  --tx: 0px;
+  --ty: 0px;
+  --r: 0deg;
+  --s: 1;
+
+  /* Physical transformation combined */
+  transform: translate3d(var(--tx, 0px), var(--ty, 0px), 0px) scale(var(--s, 1)) rotate(var(--r, 0deg)) !important;
+  
+  /* Bouncy spring transition on release */
+  transition: transform 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.25s ease, filter 0.25s ease !important;
+  will-change: transform;
+}
+
+/* Fast track transform during active press/drag for instant response */
+.touch-active {
+  transition: transform 0.08s ease-out !important;
+  z-index: 1000 !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* Fallbacks for pure CSS hover states mapped to variables */
+@media (hover: hover) {
+  .btn:hover,
+  .start-fly-btn:hover {
+    --ty: -3px;
+    --s: 1.02;
+  }
+  
+  .side-btn:hover {
+    --ty: -2px;
+    --s: 1.04;
+  }
+  
+  .hud-circle-btn:hover,
+  .top-bar-settings-btn:hover {
+    --ty: -1px;
+    --s: 1.02;
+  }
+  
+  .top-bar-coin:hover,
+  .top-bar-gem:hover {
+    --s: 1.05;
+  }
+  
+  .tab-back-btn:hover {
+    --tx: -2px;
+  }
+  
+  .skin-card:hover,
+  .world-card:hover,
+  .quest-card:hover,
+  .bp-mission-card:hover {
+    --ty: -2px;
+    --s: 1.01;
+  }
+}
+
+/* Fallbacks for pure CSS active states (taps without drag) */
+.btn:active,
+.start-fly-btn:active,
+.side-btn:active,
+.hud-circle-btn:active,
+.top-bar-settings-btn:active,
+.tab-back-btn:active {
+  --s: 0.95;
+  --ty: 2px;
+}
+
+.skin-card:active,
+.world-card:active,
+.level-select-card.unlocked:active,
+.chest-card:active {
+  --s: 0.96;
+}
+
+/* Tab slide-down exit transition removed for instant transitions */
+
+/* Volumetric Conic Hologram Light Ray projecting upwards from the platform ring */
+.platform-conic-ray {
+  position: absolute;
+  top: -238px; /* Position bottom edge at the vertical center of the glow ring */
+  left: 50%;
+  width: 180px;
+  height: 240px;
+  transform-origin: 50% 100%;
+  
+  /* Conic gradient projecting a widening spotlight cone upwards */
+  background: conic-gradient(from 165deg at 50% 100%, 
+    transparent 0deg, 
+    transparent 15deg, 
+    rgba(0, 243, 255, 0.15) 22deg, 
+    rgba(0, 243, 255, 0.4) 30deg, 
+    rgba(255, 255, 255, 0.7) 35deg, 
+    rgba(0, 243, 255, 0.4) 40deg, 
+    rgba(0, 243, 255, 0.15) 48deg, 
+    transparent 55deg, 
+    transparent 360deg
+  );
+  
+  /* Vertical mask to fade the light beam volumetricly as it projects higher */
+  -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 10%, rgba(0, 0, 0, 0.45) 55%, rgba(0, 0, 0, 0) 95%);
+  mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 10%, rgba(0, 0, 0, 0.45) 55%, rgba(0, 0, 0, 0) 95%);
+  
+  filter: blur(5px);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 0; /* Sibling rendering naturally layers behind the glowing ring */
+  animation: raySweep 7s ease-in-out infinite;
+}
+
+@keyframes raySweep {
+  0% {
+    transform: translate(-50%, 0) rotate(-15deg) scaleX(0.85);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate(-50%, 0) rotate(15deg) scaleX(1.15);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, 0) rotate(-15deg) scaleX(0.85);
+    opacity: 0.55;
+  }
+}
+
+.share-btn-platform {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.share-btn-platform:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 243, 255, 0.4) !important;
+  background: linear-gradient(135deg, #00d2ff, #8b3cff) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.share-btn-platform:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(0, 243, 255, 0.2) !important;
+}
+
+/* Onboarding TAP TAP TAP instruction popup styling */
+.tap-instruction-overlay {
+  will-change: transform, opacity;
+}
+
+@keyframes tapPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.06);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.85;
+  }
+}
+
+@keyframes handWobble {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(0.9);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+
 
 

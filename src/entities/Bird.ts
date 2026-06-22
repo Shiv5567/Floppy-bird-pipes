@@ -169,28 +169,21 @@ export class Bird {
     
     if (isPlaying) {
       const isFirstTapWaiting = engine && !engine.firstTapDone && engine.state === 'PLAYING';
+      const isReviveWaiting = engine && engine.waitingForDoubleTapAfterRevive;
       
       if (isFirstTapWaiting) {
         this.vy = 0;
         this.y = 300 + Math.sin(performance.now() * 0.005) * 8;
         const targetAngle = 0;
         this.angle += (targetAngle - this.angle) * 0.22 * dtCoeff;
+      } else if (isReviveWaiting) {
+        this.vy = 0;
+        this.y = engine.reviveFloatY + Math.sin(performance.now() * 0.005) * 8;
+        const targetAngle = 0;
+        this.angle += (targetAngle - this.angle) * 0.22 * dtCoeff;
       } else {
-        // Apply gravity or keep velocity constant during ultimate
-        if (
-          engine &&
-          engine.ultimateActive &&
-          this.activeSkin.id !== 'default' &&
-          this.activeSkin.id !== 'jade_lotus' &&
-          this.activeSkin.id !== 'articuno' &&
-          this.activeSkin.id !== 'neon_crow' &&
-          this.activeSkin.id !== 'angry_red'
-        ) {
-          // Controllable: smoothly return to starting velocity after a jump
-          this.vy += (this.ultimateStartVy - this.vy) * 0.10 * dtCoeff;
-        } else {
-          this.vy += currentGravity * dtCoeff;
-        }
+        // Apply gravity
+        this.vy += currentGravity * dtCoeff;
         if (this.vy > currentMaxFallSpeed) this.vy = currentMaxFallSpeed;
         if (this.vy < currentMaxRiseSpeed) this.vy = currentMaxRiseSpeed; // Synced upward rise cap
 
@@ -235,10 +228,10 @@ export class Bird {
 
     this.radius = this.baseRadius * this.sizeMultiplier;
 
-    // Emit skin-specific trails
+    // Emit skin-specific trails (disabled in endless/flock mode to solve lag completely)
     const isPerformanceMode = (window as any).gameDisableShadows;
     const trailRate = isPerformanceMode ? 0.15 : 0.35;
-    if (isPlaying && !this.isCrashing && Math.random() < trailRate * dtCoeff) {
+    if (false && isPlaying && !this.isCrashing && Math.random() < trailRate * dtCoeff) {
       this.emitSkinTrail(particleEngine);
     }
   }
@@ -503,7 +496,6 @@ export class Bird {
   // Draw dynamic breathing & rotating skin-themed Magic Aura (Visual Weather & Aura Pack)
   private drawMagicAura(ctx: CanvasRenderingContext2D) {
     const skinId = this.activeSkin.id;
-    const upgradeLvl = this.activeSkin.upgradeLevel;
     
     ctx.save();
     
@@ -581,20 +573,8 @@ export class Bird {
       case 'neon_crow':
         break;
 
-      default: {
-        // Gold celestial wing shield (Default Eagle)
-        if (upgradeLvl > 1) {
-          ctx.strokeStyle = '#ffd700';
-          ctx.save();
-          ctx.rotate(this.auraAngle * 0.5);
-          ctx.setLineDash([10, 15]);
-          ctx.beginPath();
-          ctx.arc(0, 0, baseRadius * 1.2, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.restore();
-        }
+      default:
         break;
-      }
     }
     
     ctx.restore();
@@ -615,7 +595,7 @@ export class Bird {
 
     // --- 1. TAIL FEATHERS (Classic Flappy shape, Golden Eagle theme) ---
     ctx.save();
-    const tailGrad = ctx.createLinearGradient(faceX - 24, faceY - 2, faceX - 10, faceY + 10);
+    const tailGrad = ctx.createLinearGradient(faceX - 24, faceY - 2, faceX - 4, faceY + 10);
     tailGrad.addColorStop(0, '#4a2f1b'); // Dark brown
     tailGrad.addColorStop(1, '#8b5a2b'); // Golden brown
     
@@ -626,30 +606,30 @@ export class Bird {
 
     // Tail feather 1 (top)
     ctx.beginPath();
-    ctx.moveTo(faceX - 13, faceY - 2);
+    ctx.moveTo(faceX - 6, faceY - 2);
     ctx.lineTo(faceX - 24, faceY - 2);
     ctx.lineTo(faceX - 24, faceY + 3);
-    ctx.lineTo(faceX - 13, faceY + 3);
+    ctx.lineTo(faceX - 6, faceY + 3);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
     // Tail feather 2 (middle)
     ctx.beginPath();
-    ctx.moveTo(faceX - 12, faceY + 1);
+    ctx.moveTo(faceX - 6, faceY + 1);
     ctx.lineTo(faceX - 21, faceY + 4);
     ctx.lineTo(faceX - 20, faceY + 8);
-    ctx.lineTo(faceX - 11, faceY + 5);
+    ctx.lineTo(faceX - 5, faceY + 5);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
     // Tail feather 3 (bottom)
     ctx.beginPath();
-    ctx.moveTo(faceX - 10, faceY + 4);
+    ctx.moveTo(faceX - 5, faceY + 4);
     ctx.lineTo(faceX - 17, faceY + 10);
     ctx.lineTo(faceX - 15, faceY + 14);
-    ctx.lineTo(faceX - 8, faceY + 8);
+    ctx.lineTo(faceX - 4, faceY + 8);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();

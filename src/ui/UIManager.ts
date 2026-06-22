@@ -1,6 +1,6 @@
 import { GameEngine } from '../engine/GameEngine.ts';
 import type { GameState } from '../engine/GameEngine.ts';
-import type { Skin } from '../systems/ProgressManager.ts';
+import type { Skin, GameWorld } from '../systems/ProgressManager.ts';
 import { LevelManager } from '../systems/LevelManager.ts';
 import { AdManager } from '../systems/AdManager.ts';
 
@@ -25,6 +25,61 @@ export class UIManager {
   private bossHealthVal: HTMLElement | null = null;
   private bossHealthFill: HTMLElement | null = null;
   private playerHPContainer: HTMLElement | null = null;
+
+  // Additional cached references for performance
+  private flockIndicatorEl: HTMLElement | null = null;
+  private playerHPHearts: HTMLElement | null = null;
+  private ultDurationBarContainer: HTMLElement | null = null;
+  private ultDurationBarFill: HTMLElement | null = null;
+  private boosterOverlay: HTMLElement | null = null;
+  private boosterOverlayTitle: HTMLElement | null = null;
+  private boosterOverlayFill: HTMLElement | null = null;
+  private boosterBtn: HTMLElement | null = null;
+  private boosterBtnIcon: HTMLElement | null = null;
+  private boosterBtnProgressFill: HTMLElement | null = null;
+  private flockMergeBtn: HTMLElement | null = null;
+  private flockMergeBtnLabel: HTMLElement | null = null;
+  private tapOverlayRemoved: boolean = false;
+
+  // Cached HUD state values to avoid layout thrashing
+  private lastScore: number = -1;
+  private lastCoins: number = -1;
+  private lastGems: number = -1;
+  private lastFlockLength: number = -1;
+  private lastUltimateEnergy: number = -1;
+  private lastUltimateActive: boolean = false;
+  private lastBoosterTimer: number = -1;
+  private lastBoosterSpawnTimer: number = -1;
+  private lastBoosterReadyState: boolean = false;
+  private lastBossHealth: number = -1;
+  private lastBossMaxHealth: number = -1;
+  private lastPlayerBossHP: number = -1;
+  private lastPlayerMaxHpVal: number = -1;
+  private lastFlockMergeVisible: boolean = false;
+  private lastFlockMergeLen: number = -1;
+  private lastActivePowerupsKey: string = '';
+  private lastUltimateDurationPercent: number = -1;
+
+  private resetHUDCache() {
+    this.lastScore = -1;
+    this.lastCoins = -1;
+    this.lastGems = -1;
+    this.lastFlockLength = -1;
+    this.lastUltimateEnergy = -1;
+    this.lastUltimateActive = false;
+    this.lastBoosterTimer = -1;
+    this.lastBoosterSpawnTimer = -1;
+    this.lastBoosterReadyState = false;
+    this.lastBossHealth = -1;
+    this.lastBossMaxHealth = -1;
+    this.lastPlayerBossHP = -1;
+    this.lastPlayerMaxHpVal = -1;
+    this.lastFlockMergeVisible = false;
+    this.lastFlockMergeLen = -1;
+    this.lastActivePowerupsKey = '';
+    this.lastUltimateDurationPercent = -1;
+    this.tapOverlayRemoved = false;
+  }
 
   constructor(containerId: string, engine: GameEngine) {
     this.engine = engine;
@@ -63,6 +118,10 @@ export class UIManager {
       this.render();
     });
 
+    window.addEventListener('game_revived', () => {
+      this.render();
+    });
+
     window.addEventListener('hud_alert', (e: any) => {
       this.showHudAlert(e.detail.text, e.detail.sub);
     });
@@ -80,7 +139,98 @@ export class UIManager {
     window.addEventListener('bird_damaged', () => {
       this.render();
     });
+
+    this.setupTactileInteractions();
   }
+
+  private setupTactileInteractions() {
+    let activeElement: HTMLElement | null = null;
+    let startX = 0;
+    let startY = 0;
+
+    const findInteractiveParent = (el: HTMLElement | null): HTMLElement | null => {
+      if (!el) return null;
+      const selector = '.btn, .side-btn, .nav-item, .skin-card, .world-card, .bp-tier-card, .achievement-card, .quest-card, .reward-card, .zone-card, .level-select-card, .chest-card, .bp-mission-card, .hud-circle-btn, .top-bar-settings-btn, .top-bar-coin, .top-bar-gem, .world-selector-chip, .modal-card, .top-bar-add-btn, .start-fly-btn, .tab-back-btn, .spectator-btn-small';
+      if (el.matches && el.matches(selector)) return el;
+      return el.parentElement ? findInteractiveParent(el.parentElement) : null;
+    };
+
+    document.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return; // Only trigger for main click/touch
+      
+      const target = findInteractiveParent(e.target as HTMLElement);
+      if (!target) return;
+
+      activeElement = target;
+      startX = e.clientX;
+      startY = e.clientY;
+
+      activeElement.classList.add('touch-active');
+      activeElement.style.setProperty('--s', '0.94');
+      activeElement.style.setProperty('--tx', '0px');
+      activeElement.style.setProperty('--ty', '0px');
+      activeElement.style.setProperty('--r', '0deg');
+    });
+
+    document.addEventListener('pointermove', (e) => {
+      if (!activeElement) return;
+
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      // Elastic resistance drag factor
+      const resistance = 0.3;
+      let tx = dx * resistance;
+      let ty = dy * resistance;
+
+      // Cap movement distance
+      const maxDistance = 12;
+      const dist = Math.sqrt(tx * tx + ty * ty);
+      if (dist > maxDistance) {
+        tx = (tx / dist) * maxDistance;
+        ty = (ty / dist) * maxDistance;
+      }
+
+      // Proportional rotation
+      const maxRotate = 3; // degrees
+      const r = Math.max(-maxRotate, Math.min(maxRotate, dx * 0.06));
+
+      // Scaling pressure response
+      const dragRatio = Math.min(dist / maxDistance, 1);
+      const scale = 0.94 - (dragRatio * 0.02);
+
+      activeElement.style.setProperty('--tx', `${tx}px`);
+      activeElement.style.setProperty('--ty', `${ty}px`);
+      activeElement.style.setProperty('--r', `${r}deg`);
+      activeElement.style.setProperty('--s', `${scale}`);
+
+      // Check if finger is dragged too far from element bounds
+      const rect = activeElement.getBoundingClientRect();
+      const padding = 45; // pixels
+      if (
+        e.clientX < rect.left - padding ||
+        e.clientX > rect.right + padding ||
+        e.clientY < rect.top - padding ||
+        e.clientY > rect.bottom + padding
+      ) {
+        resetActiveElement();
+      }
+    });
+
+    const resetActiveElement = () => {
+      if (!activeElement) return;
+      activeElement.classList.remove('touch-active');
+      activeElement.style.removeProperty('--tx');
+      activeElement.style.removeProperty('--ty');
+      activeElement.style.removeProperty('--r');
+      activeElement.style.removeProperty('--s');
+      activeElement = null;
+    };
+
+    document.addEventListener('pointerup', resetActiveElement);
+    document.addEventListener('pointercancel', resetActiveElement);
+  }
+
 
   private showFloatingGrazeText(x: number, y: number) {
     const el = document.createElement('div');
@@ -100,12 +250,8 @@ export class UIManager {
   public render() {
     const state = this.engine.state;
 
-    // Show banner ad in Menu and Game Over screens, hide elsewhere
-    if (state === 'MENU' || state === 'GAMEOVER') {
-      AdManager.showBanner();
-    } else {
-      AdManager.hideBanner();
-    }
+    // Ensure banner ads are permanently hidden/disabled
+    AdManager.hideBanner();
     
     // In-place HUD updates to completely bypass innerHTML DOM thrashing when playing!
     if ((state === 'PLAYING' || state === 'BOSS_FIGHT' || state === 'BOSS_WARNING') && document.getElementById('hud-score')) {
@@ -123,6 +269,10 @@ export class UIManager {
         return;
       }
     }
+
+    // Save scroll position of any scrollable container
+    const scrollContainer = this.container.querySelector('.tab-content-area');
+    const scrollTop = scrollContainer ? scrollContainer.scrollTop : 0;
 
     // Clear old HTML
     this.container.innerHTML = '';
@@ -150,25 +300,49 @@ export class UIManager {
 
     // Sync ad button states dynamically
     AdManager.updateAdButtonsDOM();
+
+    // Restore scroll position
+    if (scrollContainer && scrollTop > 0) {
+      const restoreScroll = () => {
+        const newScrollContainer = this.container.querySelector('.tab-content-area');
+        if (newScrollContainer) {
+          newScrollContainer.scrollTop = scrollTop;
+        }
+      };
+      requestAnimationFrame(restoreScroll);
+      setTimeout(restoreScroll, 20); // Fallback for various browsers/render timings
+    }
   }
 
   private updateHUDValues() {
-    // 1. Score / Obstacles (using cached reference if available, otherwise query and cache it)
-    if (!this.scoreEl) this.scoreEl = document.getElementById('hud-score');
-    if (this.scoreEl) {
-      if (this.engine.gameMode === 'level' && this.engine.activeLevelConfig) {
-        this.scoreEl.innerText = `${this.engine.score} / ${this.engine.activeLevelConfig.targetScore}`;
-      } else {
-        this.scoreEl.innerText = this.engine.score.toString();
+    // Dismiss onboarding tap instruction popup if the first tap is completed
+    if (this.engine.firstTapDone && !this.tapOverlayRemoved) {
+      const tapOverlay = document.querySelector('.tap-instruction-overlay');
+      if (tapOverlay) {
+        tapOverlay.remove();
+      }
+      this.tapOverlayRemoved = true;
+    }
+
+    // 1. Score / Obstacles
+    const scoreVal = this.engine.score;
+    if (this.lastScore !== scoreVal) {
+      this.lastScore = scoreVal;
+      if (!this.scoreEl) this.scoreEl = document.getElementById('hud-score');
+      if (this.scoreEl) {
+        if (this.engine.gameMode === 'level' && this.engine.activeLevelConfig) {
+          this.scoreEl.innerText = `${scoreVal} / ${this.engine.activeLevelConfig.targetScore}`;
+        } else {
+          this.scoreEl.innerText = scoreVal.toString();
+        }
       }
     }
 
-    // 1.5 Best Score (only in endless mode)
+    // 1.5 Best Score (endless only)
     if (this.engine.gameMode !== 'level') {
-      if (!this.bestScoreEl) this.bestScoreEl = document.getElementById('hud-best-score');
+      const bestScoreVal = Math.max(this.engine.progressManager.getState().highscore, scoreVal);
       if (this.bestScoreEl) {
-        const best = Math.max(this.engine.progressManager.getState().highscore, this.engine.score);
-        this.bestScoreEl.innerText = `BEST: ${best}`;
+        this.bestScoreEl.innerText = `BEST: ${bestScoreVal}`;
       }
     }
 
@@ -176,87 +350,82 @@ export class UIManager {
     const ultActive = this.engine.ultimateActive;
     const ultPercent = Math.min(100, Math.floor(this.engine.ultimateEnergy));
     const ultReady = ultPercent >= 100;
-    const skinGlow = this.engine.bird.getSkin().glowColor || '#00f3ff';
-    const ultBarBg = ultReady ? `linear-gradient(90deg, #ffd700, ${skinGlow})` : skinGlow;
+    
+    if (this.lastUltimateEnergy !== ultPercent || this.lastUltimateActive !== ultActive) {
+      this.lastUltimateEnergy = ultPercent;
+      this.lastUltimateActive = ultActive;
+      
+      const skinGlow = this.engine.bird.getSkin().glowColor || '#00f3ff';
+      const ultBarBg = ultReady ? `linear-gradient(90deg, #ffd700, ${skinGlow})` : skinGlow;
 
-    if (!this.btnUltimate) {
-      this.btnUltimate = document.getElementById('btn-hud-ultimate');
+      if (!this.btnUltimate) this.btnUltimate = document.getElementById('btn-hud-ultimate');
       if (this.btnUltimate) {
-        this.ultIcon = this.btnUltimate.querySelector('.ult-icon');
-        this.ultFill = this.btnUltimate.querySelector('.ult-progress-fill');
-        this.ultText = this.btnUltimate.querySelector('.ult-text');
-      }
-    }
+        if (ultReady) {
+          this.btnUltimate.classList.add('ult-ready-pulse');
+        } else {
+          this.btnUltimate.classList.remove('ult-ready-pulse');
+        }
 
-    if (this.btnUltimate) {
-      // Toggle class lists in place
-      if (ultReady) {
-        this.btnUltimate.classList.add('ult-ready-pulse');
-      } else {
-        this.btnUltimate.classList.remove('ult-ready-pulse');
-      }
+        if (ultActive) {
+          this.btnUltimate.classList.add('ult-active-glow');
+        } else {
+          this.btnUltimate.classList.remove('ult-active-glow');
+        }
 
-      if (ultActive) {
-        this.btnUltimate.classList.add('ult-active-glow');
-      } else {
-        this.btnUltimate.classList.remove('ult-active-glow');
-      }
+        if (!this.ultIcon) this.ultIcon = this.btnUltimate.querySelector('.ult-icon');
+        if (this.ultIcon) {
+          this.ultIcon.innerText = ultActive ? '⚡' : '✨';
+        }
 
-      if (this.ultIcon) {
-        this.ultIcon.innerText = ultActive ? '⚡' : ultReady ? '🔥' : '✨';
-      }
+        if (!this.ultFill) this.ultFill = this.btnUltimate.querySelector('.ult-progress-fill');
+        if (this.ultFill) {
+          const circumference = 157;
+          const offset = circumference - (ultPercent / 100) * circumference;
+          (this.ultFill as any).style.strokeDashoffset = `${offset}`;
+          (this.ultFill as any).style.stroke = ultBarBg;
+        }
 
-      if (this.ultFill) {
-        const circumference = 157;
-        const offset = circumference - (ultPercent / 100) * circumference;
-        (this.ultFill as any).style.strokeDashoffset = `${offset}`;
-        (this.ultFill as any).style.stroke = ultBarBg;
-      }
-
-      if (this.ultText) {
-        this.ultText.innerText = ultActive ? 'ACTIVE' : ultReady ? 'READY!' : `${ultPercent}%`;
-      }
-    }
-
-    // 3. Stats (Coins & Gems) - using fast innerText with emojis!
-    if (!this.runStatsCoins || !this.runStatsGems) {
-      const runStats = this.container.querySelector('.run-stats');
-      if (runStats) {
-        const statsBadges = runStats.querySelectorAll('.stat-badge');
-        if (statsBadges.length >= 2) {
-          this.runStatsCoins = statsBadges[0] as HTMLElement;
-          this.runStatsGems = statsBadges[1] as HTMLElement;
+        if (!this.ultText) this.ultText = this.btnUltimate.querySelector('.ult-text');
+        if (this.ultText) {
+          this.ultText.innerText = ultActive ? 'ACTIVE' : ultReady ? 'READY!' : `${ultPercent}%`;
         }
       }
     }
 
-    if (this.runStatsCoins) {
-      this.runStatsCoins.innerText = `🟡 ${this.engine.coinsCollectedThisRun}`;
-    }
-    if (this.runStatsGems) {
-      this.runStatsGems.innerText = `💎 ${this.engine.gemsCollectedThisRun}`;
-    }
-    // Update squad indicator for squad survival mode
-    const flockInd = this.container.querySelector('.flock-indicator') as HTMLElement;
-    if (flockInd) {
-      flockInd.innerText = `🪽 SQUAD: ${this.engine.flock.length}`;
+    // 3. Stats (Coins & Gems)
+    const coinsVal = this.engine.coinsCollectedThisRun;
+    if (this.lastCoins !== coinsVal) {
+      this.lastCoins = coinsVal;
+      if (this.runStatsCoins) {
+        this.runStatsCoins.innerText = `🟡 ${coinsVal}`;
+      }
     }
 
-    // 4. Powerup timers holder (In-place updates without DOM reconstruction!)
-    if (!this.powerupsHolder) {
-      this.powerupsHolder = this.container.querySelector('.powerup-timers-holder');
+    const gemsVal = this.engine.gemsCollectedThisRun;
+    if (this.lastGems !== gemsVal) {
+      this.lastGems = gemsVal;
+      if (this.runStatsGems) {
+        this.runStatsGems.innerText = `💎 ${gemsVal}`;
+      }
     }
+
+    // Squad indicator
+    const flockLen = this.engine.flock.length;
+    if (this.lastFlockLength !== flockLen) {
+      this.lastFlockLength = flockLen;
+      if (this.flockIndicatorEl) {
+        this.flockIndicatorEl.innerText = `🪽 SQUAD: ${flockLen}`;
+      }
+    }
+
+    // 4. Powerup timers holder
     const holder = this.powerupsHolder;
     if (holder) {
       const pList = this.engine.getActivePowerups();
+      const currentTypesKey = pList.map(p => p.type).join(',');
       
-      // Get current types in holder and next types to update
-      const currentBadges = Array.from(holder.querySelectorAll('.hud-powerup-badge')) as HTMLElement[];
-      const currentTypes = currentBadges.map(el => el.getAttribute('data-powerup-type') || '');
-      const nextTypes = pList.map(p => p.type);
-
-      if (currentTypes.join(',') !== nextTypes.join(',')) {
-        // Powerups set has changed, regenerate HTML once
+      if (this.lastActivePowerupsKey !== currentTypesKey) {
+        this.lastActivePowerupsKey = currentTypesKey;
         if (pList.length === 0) {
           holder.innerHTML = '';
         } else {
@@ -274,6 +443,7 @@ export class UIManager {
         }
       } else {
         // Types are identical, update timer widths in-place!
+        const currentBadges = Array.from(holder.querySelectorAll('.hud-powerup-badge')) as HTMLElement[];
         for (let idx = 0; idx < pList.length; idx++) {
           const p = pList[idx];
           const badge = currentBadges[idx];
@@ -288,18 +458,10 @@ export class UIManager {
       }
     }
 
-    // 5. Boss Health Bar (Optimized to skip queries)
+    // 5. Boss Health Bar
     const state = this.engine.state;
     const isBossFight = state === 'BOSS_FIGHT';
     const isBossActive = this.engine.bossManager.isBossActive();
-
-    if (!this.bossContainer) {
-      this.bossContainer = this.container.querySelector('.boss-health-bar-container') as HTMLElement;
-      if (this.bossContainer) {
-        this.bossHealthVal = this.bossContainer.querySelector('.boss-health-val');
-        this.bossHealthFill = this.bossContainer.querySelector('.boss-health-fill');
-      }
-    }
 
     if (isBossFight && isBossActive) {
       const bossHealth = this.engine.bossManager.getHealth();
@@ -307,49 +469,52 @@ export class UIManager {
       const bossHealthPercent = Math.max(0, Math.min(100, (bossHealth / bossMaxHealth) * 100));
 
       if (this.bossContainer) {
-        // Just update values in place using cached elements!
-        if (this.bossHealthVal) {
-          this.bossHealthVal.innerText = `${bossHealth} / ${bossMaxHealth}`;
-        }
-        if (this.bossHealthFill) {
-          this.bossHealthFill.style.width = `${bossHealthPercent}%`;
+        if (this.lastBossHealth !== bossHealth || this.lastBossMaxHealth !== bossMaxHealth) {
+          this.lastBossHealth = bossHealth;
+          this.lastBossMaxHealth = bossMaxHealth;
+          if (this.bossHealthVal) {
+            this.bossHealthVal.innerText = `${bossHealth} / ${bossMaxHealth}`;
+          }
+          if (this.bossHealthFill) {
+            this.bossHealthFill.style.width = `${bossHealthPercent}%`;
+          }
         }
       } else {
-        // Boss health bar doesn't exist yet, we must do a full render to spawn it and cache references
         this.renderHUD();
       }
     } else if (this.bossContainer) {
-      // Boss is defeated or gone but health bar container reference still active, reset references and do full render HUD to clear
       this.bossContainer = null;
       this.bossHealthVal = null;
       this.bossHealthFill = null;
       this.renderHUD();
     }
 
-    // 5.5 Player HP Hearts (In-place updates)
-    const showHP = (isBossFight || state === 'BOSS_WARNING') && this.engine.gameMode === 'flock' && this.engine.playerBossHP > 0;
+    // 5.5 Player HP Hearts
+    const showHP = (isBossFight || state === 'BOSS_WARNING') && this.engine.gameMode === 'flock';
     if (showHP) {
-      if (!this.playerHPContainer) {
-        this.playerHPContainer = this.container.querySelector('.player-hud-hp-container');
-      }
       if (this.playerHPContainer) {
-        const heartsSpan = this.playerHPContainer.querySelector('.player-hud-hp-hearts') as HTMLElement;
-        if (heartsSpan) {
-          const hp = this.engine.playerBossHP;
-          const maxHp = this.engine.maxPlayerBossHP || hp;
-          const hearts = '❤️'.repeat(hp);
+        const hp = this.engine.playerBossHP > 0 ? this.engine.playerBossHP : flockLen;
+        const maxHp = this.engine.playerBossHP > 0 ? (this.engine.maxPlayerBossHP || hp) : Math.max(flockLen, 1);
+        
+        if (this.lastPlayerBossHP !== hp || this.lastPlayerMaxHpVal !== maxHp) {
+          this.lastPlayerBossHP = hp;
+          this.lastPlayerMaxHpVal = maxHp;
           
-          const fontSize = Math.max(10, 16 - Math.max(0, maxHp - 5) * 0.4);
-          const letterSpacing = Math.max(0.5, 2.5 - Math.max(0, maxHp - 5) * 0.15);
-          const paddingX = Math.max(10, 18 - Math.max(0, maxHp - 5) * 0.6);
-          
-          if (heartsSpan.innerText !== hearts) {
-            heartsSpan.innerText = hearts;
+          if (this.playerHPHearts) {
+            const hearts = '❤️'.repeat(hp);
+            if (this.playerHPHearts.innerText !== hearts) {
+              this.playerHPHearts.innerText = hearts;
+            }
+            const fontSize = Math.max(8.5, (16 - Math.max(0, maxHp - 5) * 0.4) * 0.85);
+            const letterSpacing = Math.max(0.5, 2.5 - Math.max(0, maxHp - 5) * 0.15);
+            const paddingX = Math.max(10, 18 - Math.max(0, maxHp - 5) * 0.6);
+            
+            this.playerHPHearts.style.fontSize = `${fontSize}px`;
+            this.playerHPHearts.style.letterSpacing = `${letterSpacing}px`;
+            this.playerHPContainer.style.padding = `6px ${paddingX}px`;
           }
-          heartsSpan.style.fontSize = `${fontSize}px`;
-          heartsSpan.style.letterSpacing = `${letterSpacing}px`;
-          this.playerHPContainer.style.padding = `6px ${paddingX}px`;
         }
+        
         const hasBossBar = isBossFight && isBossActive;
         const targetTop = hasBossBar ? '190px' : '130px';
         if (this.playerHPContainer.style.top !== targetTop) {
@@ -360,108 +525,101 @@ export class UIManager {
       }
     } else if (this.playerHPContainer) {
       this.playerHPContainer = null;
+      this.playerHPHearts = null;
       this.renderHUD();
     }
 
-    // 5.8. Ultimate Duration Bar In-place updates
+    // 5.8. Ultimate Duration Bar
     const isUltActive = this.engine.ultimateActive;
-    const hasUltBar = !!document.querySelector('.ultimate-duration-bar-container');
+    const hasUltBar = !!this.ultDurationBarContainer;
     if (isUltActive !== hasUltBar) {
       this.renderHUD();
       return;
     }
 
-    if (isUltActive) {
-      const barContainer = this.container.querySelector('.ultimate-duration-bar-container') as HTMLElement;
-      if (barContainer) {
-        const fill = barContainer.querySelector('.ultimate-duration-bar-fill') as HTMLElement;
-        if (fill) {
-          const pct = Math.max(0, Math.min(100, (this.engine.ultimateDurationLeft / this.engine.ultimateMaxDuration) * 100));
-          fill.style.width = `${pct}%`;
-        }
+    if (isUltActive && this.ultDurationBarFill) {
+      const pct = Math.max(0, Math.min(100, (this.engine.ultimateDurationLeft / this.engine.ultimateMaxDuration) * 100));
+      if (this.lastUltimateDurationPercent !== pct) {
+        this.lastUltimateDurationPercent = pct;
+        this.ultDurationBarFill.style.width = `${pct}%`;
       }
     }
 
-    // 6. Booster System HUD Overlay In-place updates
+    // 6. Booster System HUD Overlay
     const isBoosterActive = this.engine.boosterActive;
-    const hasBoosterOverlay = !!document.querySelector('.hud-booster-overlay');
+    const hasBoosterOverlay = !!this.boosterOverlay;
     if (isBoosterActive !== hasBoosterOverlay) {
       this.renderHUD();
       return;
     }
 
-    if (isBoosterActive) {
-      const overlayEl = this.container.querySelector('.hud-booster-overlay') as HTMLElement;
-      if (overlayEl) {
-        const timerText = overlayEl.querySelector('.hud-booster-title') as HTMLElement;
-        const barInner = overlayEl.querySelector('.hud-booster-fill') as HTMLElement;
-        if (timerText) {
-          timerText.innerText = `⚡ HYPER BOOST: ${this.engine.boosterTimer.toFixed(1)}s`;
+    if (isBoosterActive && this.boosterOverlay) {
+      const bTimer = this.engine.boosterTimer;
+      if (this.lastBoosterTimer !== bTimer) {
+        this.lastBoosterTimer = bTimer;
+        if (this.boosterOverlayTitle) {
+          this.boosterOverlayTitle.innerText = `⚡ HYPER BOOST: ${bTimer.toFixed(1)}s`;
         }
-        if (barInner) {
-          const bPct = Math.max(0, Math.min(100, (this.engine.boosterTimer / 1.0) * 100));
-          barInner.style.width = `${bPct}%`;
+        if (this.boosterOverlayFill) {
+          const bPct = Math.max(0, Math.min(100, (bTimer / 1.0) * 100));
+          this.boosterOverlayFill.style.width = `${bPct}%`;
         }
       }
     }
 
-    // 7. Booster Static Cooldown Button In-place updates in Endless Mode
-    if (this.engine.gameMode !== 'level') {
-      const boosterBtn = document.getElementById('btn-hud-booster');
-      if (boosterBtn) {
-        const bTimer = this.engine.boosterSpawnTimer;
-        const bReady = bTimer <= 0;
-        const bPercent = Math.min(100, Math.floor((1 - bTimer / 5.0) * 100));
+    // 7. Booster Static Cooldown Button in Endless Mode
+    if (this.engine.gameMode !== 'level' && this.boosterBtn) {
+      const bTimer = this.engine.boosterSpawnTimer;
+      const bReady = bTimer <= 0;
+      const bPercent = Math.min(100, Math.floor((1 - bTimer / 1.0) * 100));
+
+      if (this.lastBoosterSpawnTimer !== bTimer || this.lastBoosterReadyState !== bReady) {
+        this.lastBoosterSpawnTimer = bTimer;
+        this.lastBoosterReadyState = bReady;
 
         // Toggle ready states in place
         if (bReady) {
-          boosterBtn.classList.add('ult-ready-pulse');
-          boosterBtn.style.border = '2px solid #ffd700';
-          boosterBtn.style.background = 'rgba(255,215,0,0.12)';
-          boosterBtn.style.boxShadow = '0 0 15px rgba(255,215,0,0.4)';
-          boosterBtn.style.opacity = '1';
+          this.boosterBtn.classList.add('ult-ready-pulse');
+          this.boosterBtn.style.border = '2px solid #ffd700';
+          this.boosterBtn.style.background = 'rgba(255,215,0,0.12)';
+          this.boosterBtn.style.boxShadow = '0 0 15px rgba(255,215,0,0.4)';
+          this.boosterBtn.style.opacity = '1';
           
-          const icon = boosterBtn.querySelector('span');
-          if (icon && icon.innerText !== '⚡') {
-            icon.innerText = '⚡';
-            icon.style.textShadow = '0 0 8px #ffd700';
+          if (this.boosterBtnIcon && this.boosterBtnIcon.innerText !== '⚡') {
+            this.boosterBtnIcon.innerText = '⚡';
+            this.boosterBtnIcon.style.textShadow = '0 0 8px #ffd700';
           }
         } else {
-          boosterBtn.classList.remove('ult-ready-pulse');
-          boosterBtn.style.border = '2px solid rgba(255,255,255,0.2)';
-          boosterBtn.style.background = 'rgba(255,255,255,0.03)';
-          boosterBtn.style.boxShadow = 'none';
-          boosterBtn.style.opacity = '0.65';
+          this.boosterBtn.classList.remove('ult-ready-pulse');
+          this.boosterBtn.style.border = '2px solid rgba(255,255,255,0.2)';
+          this.boosterBtn.style.background = 'rgba(255,255,255,0.03)';
+          this.boosterBtn.style.boxShadow = 'none';
+          this.boosterBtn.style.opacity = '0.65';
 
-          const icon = boosterBtn.querySelector('span');
-          if (icon && icon.innerText !== '⏳') {
-            icon.innerText = '⏳';
-            icon.style.textShadow = 'none';
+          if (this.boosterBtnIcon && this.boosterBtnIcon.innerText !== '⏳') {
+            this.boosterBtnIcon.innerText = '⏳';
+            this.boosterBtnIcon.style.textShadow = 'none';
           }
         }
 
-        const progressFill = boosterBtn.querySelector('.booster-progress-fill') as HTMLElement;
-        if (progressFill) {
+        if (this.boosterBtnProgressFill) {
           const circumference = 157;
           const offset = circumference - (bPercent / 100) * circumference;
-          progressFill.style.strokeDashoffset = `${offset}`;
+          this.boosterBtnProgressFill.style.strokeDashoffset = `${offset}`;
         }
       }
     }
 
-    // 8. Flock Merge Button updates in Squad Survival mode
-    if (this.engine.gameMode === 'flock') {
-      const flockMergeBtn = document.getElementById('btn-hud-flock-merge');
-      if (flockMergeBtn) {
-        const flockLen = this.engine.flock.length;
-        const visible = flockLen >= 2;
-        flockMergeBtn.style.display = visible ? 'flex' : 'none';
+    // 8. Flock Merge Button updates
+    if (this.engine.gameMode === 'flock' && this.flockMergeBtn) {
+      const visible = flockLen >= 2;
+      if (this.lastFlockMergeVisible !== visible || this.lastFlockMergeLen !== flockLen) {
+        this.lastFlockMergeVisible = visible;
+        this.lastFlockMergeLen = flockLen;
+        this.flockMergeBtn.style.display = visible ? 'flex' : 'none';
         
-        if (visible) {
-          const label = flockMergeBtn.querySelector('.flock-merge-label') as HTMLElement;
-          if (label) {
-            label.innerText = `MERGE (+${flockLen})`;
-          }
+        if (visible && this.flockMergeBtnLabel) {
+          this.flockMergeBtnLabel.innerText = `MERGE (+${flockLen})`;
         }
       }
     }
@@ -473,14 +631,13 @@ export class UIManager {
 
     const worldNames: Record<string, string> = {
       jungle:     'AMAZON RAINFOREST',
-      jungle_temple: 'SUNNY JUNGLE VALLEY',
       ice:        'FROZEN ICE KINGDOM',
       desert:     'DESERT RUINS',
       volcano:    'VOLCANIC SPRING',
       space:      'COSMIC MEADOW',
       underwater: 'DEEP UNDERWATER',
       heaven:     'HEAVEN CLOUD KINGDOM',
-      retro:      'RETRO WORLD'
+      retro:      'RETRO MAP'
     };
 
     const worldName = worldNames[worldId] || 'THE WORLD';
@@ -566,7 +723,7 @@ export class UIManager {
     const floatiesHtml = '';
 
     const menuHTML = `
-      <div class="screen menu-screen fade-in">
+      <div class="screen menu-screen menu-entrance">
 
         <!-- World reactive background overlay -->
         <div class="menu-world-bg world-bg-${worldId}"></div>
@@ -578,15 +735,17 @@ export class UIManager {
         <div class="menu-top-bar">
           <div class="top-bar-currencies">
             <div class="top-bar-coin" id="btn-coin-topup" style="position: relative; cursor: pointer;">
-              <span class="top-bar-coin-icon">🪙</span>${progress.coins.toLocaleString()}
+              <span class="top-bar-coin-icon" style="width: 19px; height: 19px; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; margin-right: 4px;">
+                ${this.getCoinIconSvg('19px', '19px', '', 'topbar')}
+              </span>${progress.coins.toLocaleString()}
               <button class="top-bar-add-btn" id="btn-plus-coins" title="Watch ad for +500 Coins">+</button>
             </div>
             <div class="top-bar-gem" id="btn-gem-topup" style="position: relative; cursor: pointer;">
               <span class="top-bar-gem-icon">💎</span>${progress.gems.toLocaleString()}
               <button class="top-bar-add-btn" id="btn-plus-gems" title="Watch ad for +10 Gems">+</button>
             </div>
-            <button class="top-bar-settings-btn" id="btn-open-settings">⚙️</button>
           </div>
+          <button class="top-bar-settings-btn" id="btn-open-settings">⚙️</button>
         </div>
 
         <!-- ===== CENTER STAGE ===== -->
@@ -595,12 +754,12 @@ export class UIManager {
           <!-- Left side panel -->
           <div class="side-panel-left">
             <button class="side-btn" id="side-btn-skins">
-              ${this.getCharacterIconSvg('55px', '55px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.5));', 'home')}
+              ${this.getCharacterIconSvg('60px', '60px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.5));', 'home')}
               <span class="side-btn-label">CHARACTERS</span>
             </button>
             <button class="side-btn" id="side-btn-worlds">
-              ${this.getWorldsIconSvg('55px', '55px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(123, 47, 255, 0.5));', 'home')}
-              <span class="side-btn-label">WORLDS</span>
+              ${this.getWorldsIconSvg('60px', '60px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(123, 47, 255, 0.5));', 'home')}
+              <span class="side-btn-label">MAPS</span>
             </button>
           </div>
 
@@ -614,14 +773,14 @@ export class UIManager {
 
           <!-- Right side panel -->
           <div class="side-panel-right">
-            <button class="side-btn" id="side-btn-rewards" style="width: 89px !important; height: 86px !important; margin-bottom: 8px; border-radius: 20px;">
-              <div class="side-btn-badge">!</div>
-              ${this.getRewardBoxSvg('55px', '55px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(255, 170, 0, 0.5));', 'home')}
-              <span class="side-btn-label" style="font-size: 9.5px;">REWARDS</span>
+            <button class="side-btn" id="side-btn-rewards" style="width: 98px !important; height: 95px !important; margin-bottom: 8px; border-radius: 20px;">
+              ${this.hasClaimableRewards() ? `<div class="side-btn-badge">!</div>` : ''}
+              ${this.getRewardBoxSvg('60px', '60px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(255, 170, 0, 0.5));', 'home')}
+              <span class="side-btn-label" style="font-size: 10.5px;">REWARDS</span>
             </button>
-            <button class="side-btn" id="side-btn-powerups" style="width: 89px !important; height: 86px !important; border-radius: 20px;">
-              <div style="font-size: 38px; line-height: 55px; height: 55px; margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.6)); display: flex; align-items: center; justify-content: center;">🔮</div>
-              <span class="side-btn-label" style="font-size: 9.5px;">UPGRADES</span>
+            <button class="side-btn" id="side-btn-powerups" style="width: 98px !important; height: 95px !important; border-radius: 20px;">
+              <div style="font-size: 42px; line-height: 60px; height: 60px; margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.6)); display: flex; align-items: center; justify-content: center;">🔮</div>
+              <span class="side-btn-label" style="font-size: 10.5px;">POWER-UPS</span>
             </button>
           </div>
         </div>
@@ -629,17 +788,17 @@ export class UIManager {
         <!-- ===== WORLD PLATFORM + START FLY ===== -->
         <div class="world-platform-area">
           <div class="platform-base">
+            <div class="platform-conic-ray"></div>
             <div class="platform-glow-ring"></div>
 
-            <div style="display: flex; gap: 8px; width: 100%; margin-bottom: 6px; margin-top: 8px; transform: translateY(50px);">
-              <button class="start-fly-btn" id="btn-start-game" style="flex: 1; padding: 14px 11px; font-size: 18px;">
+            <div style="display: flex; flex-direction: column; gap: 12px; width: 100%; margin-bottom: 8px; margin-top: 8px; transform: translateY(50px);">
+              <button class="start-fly-btn" id="btn-start-game" style="width: 100%; padding: 17px 20px; font-size: 19px;">
                 <span>ENDLESS</span>
               </button>
-              <button class="start-fly-btn" id="btn-open-levels" style="flex: 1; padding: 14px 11px; font-size: 18px; background: linear-gradient(180deg, #b35dfb 0%, #7b2fff 50%, #5200b3 100%); box-shadow: 0 6px 0 #3a0082, 0 8px 20px rgba(123,47,255,0.4);">
+              <button class="start-fly-btn" id="btn-open-levels" style="width: 100%; padding: 17px 20px; font-size: 19px; background: linear-gradient(180deg, #b35dfb 0%, #7b2fff 50%, #5200b3 100%); box-shadow: 0 6px 0 #3a0082, 0 8px 20px rgba(123,47,255,0.4);">
                 <span>LEVELS</span>
               </button>
             </div>
-            <button class="spectator-btn-small" id="btn-spectator" style="transform: translateY(50px);">🤖 SPECTATOR AUTO-PILOT</button>
           </div>
         </div>
 
@@ -652,13 +811,31 @@ export class UIManager {
   }
 
   public drawSkinPreviews() {
+    const dpr = Math.min(2.5, window.devicePixelRatio || 1); // Cap at 2.5 to keep rendering fast and sharp
+
+    // Helper to configure canvas internal resolution vs CSS display size accounting for High-DPI screens
+    const setupCanvas = (canvas: HTMLCanvasElement, baseWidth: number, baseHeight: number) => {
+      const targetWidth = baseWidth * dpr;
+      const targetHeight = baseHeight * dpr;
+      if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        canvas.style.width = `${baseWidth}px`;
+        canvas.style.height = `${baseHeight}px`;
+      }
+    };
+
     // 1. Draw main menu bird canvas if present
     const mainCanvas = document.getElementById('main-menu-bird-canvas') as HTMLCanvasElement | null;
     if (mainCanvas) {
       const activeSkin = this.engine.progressManager.getActiveSkinInfo();
       const ctx = mainCanvas.getContext('2d');
       if (ctx) {
-        this.engine.bird.renderPreview(ctx, mainCanvas.width, mainCanvas.height, activeSkin, true);
+        setupCanvas(mainCanvas, 180, 140);
+        ctx.save();
+        ctx.scale(dpr, dpr);
+        this.engine.bird.renderPreview(ctx, 180, 140, activeSkin, true);
+        ctx.restore();
       }
     }
 
@@ -668,7 +845,11 @@ export class UIManager {
       const activeSkin = this.engine.progressManager.getActiveSkinInfo();
       const ctx = spotlightCanvas.getContext('2d');
       if (ctx) {
-        this.engine.bird.renderPreview(ctx, spotlightCanvas.width, spotlightCanvas.height, activeSkin);
+        setupCanvas(spotlightCanvas, 100, 100);
+        ctx.save();
+        ctx.scale(dpr, dpr);
+        this.engine.bird.renderPreview(ctx, 100, 100, activeSkin);
+        ctx.restore();
       }
     }
 
@@ -686,10 +867,13 @@ export class UIManager {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
         
-        this.engine.bird.renderPreview(ctx, canvas.width, canvas.height, skin);
+        setupCanvas(canvas, 90, 90);
+        ctx.save();
+        ctx.scale(dpr, dpr);
+        this.engine.bird.renderPreview(ctx, 90, 90, skin);
+        ctx.restore();
       });
     }
-
   }
 
   private renderTabPage(worldId: string): string {
@@ -702,8 +886,8 @@ export class UIManager {
       achievements: { icon: '🏆', title: 'HALL OF TROPHIES',     color: '#ffd700', heroIcon: '🏅', heroSubtitle: 'Track your legendary feats' },
       rewards:      { icon: this.getRewardBoxSvg('32px', '32px', 'vertical-align: middle; display: inline-block;', 'tab'), title: 'REWARDS & PROGRESSION HUB', color: '#ffaa00', heroIcon: this.getRewardBoxSvg('72px', '72px', 'animation: floatBird 4s ease-in-out infinite;', 'hero'), heroSubtitle: 'Claim your daily logs, trophies, and battle pass!' },
       settings:     { icon: '⚙️', title: 'GAME CONFIGURATION',   color: '#00ff88', heroIcon: '⚙️', heroSubtitle: 'Configure your flight difficulty mode' },
-      levels:       { icon: '🏆', title: 'LEVEL SELECT MODE',    color: '#7b2fff', heroIcon: '🏆', heroSubtitle: 'Complete all 50 transforming levels!' },
-      powerups:     { icon: `<span style="font-size: 24px; vertical-align: middle; display: inline-block;">🔮</span>`, title: 'POWERUP UPGRADE LAB',   color: '#00f3ff', heroIcon: `<span style="font-size: 72px; display: inline-block; animation: floatBird 4s ease-in-out infinite;">🔮</span>`, heroSubtitle: 'Upgrade bubble durations & effectiveness' }
+      levels:       { icon: '', title: 'LEVEL SELECT MODE',    color: '#7b2fff', heroIcon: '', heroSubtitle: '' },
+      powerups:     { icon: `<span style="font-size: 24px; vertical-align: middle; display: inline-block;">🔮</span>`, title: 'POWERS-UPS BUBBLE UPGRADES',   color: '#00f3ff', heroIcon: `<span style="font-size: 72px; display: inline-block; animation: floatBird 4s ease-in-out infinite;">🔮</span>`, heroSubtitle: 'Upgrade bubble durations & effectiveness' }
     };
     const meta = tabMeta[this.activeTab] || tabMeta['skins'];
 
@@ -771,7 +955,7 @@ export class UIManager {
               : `<div class="tab-spotlight-icon">${meta.heroIcon}</div>`
             )
           }
-          ${this.activeTab !== 'rewards' ? `<div class="tab-spotlight-label" style="color:${meta.color}">${meta.title}</div>` : ''}
+          ${(this.activeTab !== 'rewards' && this.activeTab !== 'skins' && this.activeTab !== 'powerups') ? `<div class="tab-spotlight-label" style="color:${meta.color}">${meta.title}</div>` : ''}
         </div>
         ` : ''}
 
@@ -794,7 +978,18 @@ export class UIManager {
         const skins = this.engine.progressManager.getSkins();
         const skinsCards = skins.map((s: Skin) => {
           const isSelected = s.id === progress.activeSkin;
-          const upgradeCost = Math.floor(s.costCoins * 0.4 * s.upgradeLevel) || (s.id === 'default' ? 200 * s.upgradeLevel : 500);
+          const upgradeCost = this.engine.progressManager.getSkinUpgradeCost(s.upgradeLevel);
+
+          const getSkinAbilityDuration = (lvl: number) => {
+            if (s.id === 'angry_red') return 20;
+            if (lvl === 1) return 10;
+            if (lvl === 2) return 12;
+            if (lvl === 3) return 14;
+            if (lvl === 4) return 16;
+            if (lvl === 5) return 20;
+            return 10;
+          };
+          const currentDuration = getSkinAbilityDuration(s.upgradeLevel);
 
           const rarityColors: Record<string, string> = {
             common: '#aaa', rare: '#00f3ff', epic: '#a855f7', legendary: '#ffd700'
@@ -815,7 +1010,7 @@ export class UIManager {
               <div class="skin-info-panel" id="info-${s.id}"
                 style="visibility:hidden;min-height:32px;margin-top:4px;width:100%;text-align:center;"
               >
-                ${s.abilityDesc ? `<div style="font-size:8px;color:rgba(230,200,255,0.8);line-height:1.4;padding:0 4px;">${s.abilityDesc}</div>` : '<div style="font-size:8px;color:rgba(230,200,255,0.6);">No special ability.</div>'}
+                ${s.abilityDesc ? `<div style="font-size:8px;color:rgba(230,200,255,0.8);line-height:1.4;padding:0 4px;">${s.abilityDesc}<br><span style="color:#ffd700;font-weight:bold;">Duration: ${currentDuration}s</span></div>` : '<div style="font-size:8px;color:rgba(230,200,255,0.6);">No special ability.</div>'}
               </div>
               ${isSelected ? `<div style="font-size:9px;color:#00ff88;font-weight:800;margin-top:4px">✓ SELECTED</div>` : ''}
               <div class="upgrade-row">
@@ -842,28 +1037,18 @@ export class UIManager {
 
       case 'worlds': {
         const worldColors: Record<string, string> = {
-          jungle: '#00c853', jungle_temple: '#2e7d32', ice: '#40c4ff',
+          jungle: '#00c853', ice: '#40c4ff',
           desert: '#ffab40', volcano: '#ff3d00', space: '#651fff',
           heaven: '#ffd740'
         };
-        const worlds = [
-          { id: 'jungle',     name: 'AMAZON RAINFOREST', emoji: '🌴' },
-          { id: 'jungle_temple', name: 'SUNNY JUNGLE VALLEY', emoji: '🛕' },
-          { id: 'ice',        name: 'FROZEN ICE KINGDOM',   emoji: '❄️' },
-          { id: 'desert',     name: 'DESERT RUINS', emoji: '🏜️' },
-          { id: 'volcano',    name: 'VOLCANIC SPRING',      emoji: '🌋' },
-          { id: 'space',      name: 'COSMIC MEADOW',        emoji: '🌌' },
-          { id: 'heaven',     name: 'HEAVEN CLOUD KINGDOM', emoji: '🌤️' }
-        ];
-        const worldsCards = worlds.map(w => {
+        const worlds = this.engine.progressManager.getWorldsList();
+        const worldsCards = worlds.map((w: GameWorld) => {
           const isActive = progress.activeWorld === w.id;
           const wc = worldColors[w.id] || '#fff';
           
           let iconHtml = `<div class="world-icon" style="font-size:50px">${w.emoji}</div>`;
           if (w.id === 'jungle') {
             iconHtml = this.getJungleWorldIconSvg('58px', '58px');
-          } else if (w.id === 'jungle_temple') {
-            iconHtml = this.getJungleTempleWorldIconSvg('58px', '58px');
           } else if (w.id === 'ice') {
             iconHtml = this.getIceWorldIconSvg('58px', '58px');
           } else if (w.id === 'volcano') {
@@ -876,23 +1061,35 @@ export class UIManager {
             iconHtml = this.getDesertWorldIconSvg('58px', '58px');
           }
 
+          let actionHtml = '';
+          if (w.unlocked) {
+            if (isActive) {
+              actionHtml = `<span style="color:${wc};font-size:9px;font-weight:800">● ACTIVE</span>`;
+            } else {
+              actionHtml = `<span style="font-size:18px;color:rgba(255,255,255,0.25)">›</span>`;
+            }
+          } else {
+            actionHtml = `<button class="btn-buy-world btn-buy-skin" data-id="${w.id}" style="padding: 6px 12px; font-size: 10px; width: auto; font-family: inherit;">
+              ${w.costCoins > 0 ? '🟡 ' + w.costCoins.toLocaleString() : '💎 ' + w.costGems.toLocaleString()}
+            </button>`;
+          }
+
           return `
             <div class="world-card glass-card ${isActive ? 'selected-border' : ''}" data-world-id="${w.id}"
-                 style="${isActive ? `box-shadow: 0 0 0 2px ${wc}, 0 0 18px ${wc}44; background:${wc}12;` : ''}"
+                 style="zoom: 1.2; ${isActive ? `box-shadow: 0 0 0 2px ${wc}, 0 0 18px ${wc}44; background:${wc}12;` : ''}"
             >
               ${iconHtml}
-              <div style="flex:1;min-width:0">
-                <div class="world-name">
-                  ${w.name}
-                  ${isActive ? `<span style="color:${wc};font-size:9px;margin-left:6px;font-weight:800">● ACTIVE</span>` : ''}
-                </div>
+              <div style="flex:1;min-width:0;text-align:left;">
+                <div class="world-name" style="font-size: 11px;">${w.name}</div>
               </div>
-              ${isActive ? '' : `<div style="font-size:18px;color:rgba(255,255,255,0.25)">›</div>`}
+              <div style="margin-left: 10px;">
+                ${actionHtml}
+              </div>
             </div>
           `;
         }).join('');
         return `
-          <div class="vertical-scroll">${worldsCards}</div>
+          <div class="vertical-scroll" style="gap: 24px; padding-bottom: 20px; margin-top: 35px;">${worldsCards}</div>
         `;
       }
 
@@ -936,7 +1133,10 @@ export class UIManager {
                 </div>
                 <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
                   <div class="quest-rewards">
-                    <span>💰+${q.rewardCoins}</span>
+                    <span style="display: inline-flex; align-items: center; gap: 4px;">
+                      ${this.getCoinIconSvg('13px', '13px', 'display: inline-block; vertical-align: middle;', 'quest-' + q.id)}
+                      +${q.rewardCoins}
+                    </span>
                     <span>💎+${q.rewardGems}</span>
                   </div>
                   <button class="btn-quest-claim ${claimBtnClass}" data-quest-id="${q.id}" ${claimDisabled}>
@@ -952,6 +1152,10 @@ export class UIManager {
 
           const shortHtml = shortMissions.map(renderQuestCard).join('');
           const longHtml = longMissions.map(renderQuestCard).join('');
+
+          const lastClaim = this.engine.progressManager.getState().lastSpecialOfferAdTime || 0;
+          const offerCooldown = 24 * 60 * 60 * 1000;
+          const isDailyCooldownActive = (Date.now() - lastClaim) < offerCooldown;
 
           return `
             <div class="daily-rewards-container" style="padding-bottom: 20px;">
@@ -971,10 +1175,10 @@ export class UIManager {
                 <!-- WATCH AD FOR EXTRA COINS & GEMS -->
                 <div class="quest-card" style="background: rgba(255, 170, 0, 0.08); border: 1px solid rgba(255, 170, 0, 0.2);">
                   <div class="quest-details">
-                    <div class="quest-desc" style="font-weight: 800; font-size: 11px; color: #fff;">Watch an ad to get 500 Coins & 10 Gems instantly!</div>
+                    <div class="quest-desc" style="font-weight: 800; font-size: 11px; color: #fff;">Watch an ad to get 200 Coins & 10 Gems instantly!</div>
                   </div>
                   <div style="display: flex; align-items: center; justify-content: flex-end;">
-                    <button class="btn-quest-claim" id="btn-extra-rewards" style="background: linear-gradient(135deg, #ffaa00, #ff7700); border: none; font-size: 10px; font-weight: 800; padding: 6px 12px; border-radius: 8px; cursor: pointer; color: white;">
+                    <button class="btn-quest-claim ${isDailyCooldownActive ? 'disabled-ad-btn' : ''}" id="btn-extra-rewards" ${isDailyCooldownActive ? 'disabled' : ''} style="background: linear-gradient(135deg, #ffaa00, #ff7700); border: none; font-size: 10px; font-weight: 800; padding: 6px 12px; border-radius: 8px; cursor: pointer; color: white;">
                       CLAIM 🎁
                     </button>
                   </div>
@@ -986,7 +1190,6 @@ export class UIManager {
 
       case 'levels': {
         const allLevels = LevelManager.getAllLevels();
-        const starsMap = progress.levelModeStars || {};
 
         const pageSize = 20;
         const numPages = Math.ceil(allLevels.length / pageSize);
@@ -1004,45 +1207,27 @@ export class UIManager {
             if (!lvl) {
               return `<div class="level-select-card placeholder" style="opacity: 0; pointer-events: none;"></div>`;
             }
-            const isLocked = false;
-            const starsCount = starsMap[lvl.levelNum] || 0;
-            
-            let starHtml = '';
-            for (let s = 1; s <= 3; s++) {
-              starHtml += `<span class="level-select-star ${s <= starsCount ? 'filled' : ''}">★</span>`;
-            }
+            const unlockedLevel = progress.levelModeUnlockedLevel || 1;
+            const isLocked = lvl.levelNum > unlockedLevel;
+            const isLatest = lvl.levelNum === unlockedLevel;
 
-            const worldEmojis: Record<string, string> = {
-              jungle: '🌴', jungle_temple: '🛕', ice: '❄️', volcano: '🌋', space: '🌌', heaven: '🌤️', desert: '🏜️'
-            };
-            
-            let emojiHtml = `<div class="level-emoji-label" style="font-size:20px; margin:2px 0;">${worldEmojis[lvl.worldId] || '🐦'}</div>`;
-            if (lvl.worldId === 'jungle') {
-              emojiHtml = `<div class="level-emoji-label" style="display:flex; justify-content:center; align-items:center; height:25px; margin:2px 0;">${this.getJungleWorldIconSvg('25px', '25px')}</div>`;
-            } else if (lvl.worldId === 'jungle_temple') {
-              emojiHtml = `<div class="level-emoji-label" style="display:flex; justify-content:center; align-items:center; height:25px; margin:2px 0;">${this.getJungleTempleWorldIconSvg('25px', '25px')}</div>`;
-            } else if (lvl.worldId === 'ice') {
-              emojiHtml = `<div class="level-emoji-label" style="display:flex; justify-content:center; align-items:center; height:25px; margin:2px 0;">${this.getIceWorldIconSvg('25px', '25px')}</div>`;
-            } else if (lvl.worldId === 'volcano') {
-              emojiHtml = `<div class="level-emoji-label" style="display:flex; justify-content:center; align-items:center; height:25px; margin:2px 0;">${this.getVolcanoWorldIconSvg('25px', '25px')}</div>`;
-            } else if (lvl.worldId === 'space') {
-              emojiHtml = `<div class="level-emoji-label" style="display:flex; justify-content:center; align-items:center; height:25px; margin:2px 0;">${this.getSpaceWorldIconSvg('25px', '25px')}</div>`;
-            } else if (lvl.worldId === 'heaven') {
-              emojiHtml = `<div class="level-emoji-label" style="display:flex; justify-content:center; align-items:center; height:25px; margin:2px 0;">${this.getHeavenWorldIconSvg('25px', '25px')}</div>`;
-            } else if (lvl.worldId === 'desert') {
-              emojiHtml = `<div class="level-emoji-label" style="display:flex; justify-content:center; align-items:center; height:25px; margin:2px 0;">${this.getDesertWorldIconSvg('25px', '25px')}</div>`;
+            let levelColor = 'inherit';
+            if (lvl.levelNum >= 1 && lvl.levelNum <= 20) {
+              levelColor = '#4ade80'; // Green
+            } else if (lvl.levelNum >= 21 && lvl.levelNum <= 40) {
+              levelColor = '#facc15'; // Yellow
+            } else if (lvl.levelNum >= 41 && lvl.levelNum <= 50) {
+              levelColor = '#f87171'; // Red
             }
 
             return `
-              <div class="level-select-card glass-card ${isLocked ? 'locked' : 'unlocked'}" 
+              <div class="level-select-card glass-card ${isLocked ? 'locked' : 'unlocked'} ${isLatest ? 'latest-unlocked' : ''}" 
                    data-level-num="${lvl.levelNum}"
               >
                 ${isLocked 
                   ? `<div class="level-lock-icon">🔒</div>`
                   : `
-                    <div class="level-num-label">${lvl.levelNum}</div>
-                    ${emojiHtml}
-                    <div class="level-select-stars">${starHtml}</div>
+                    <div class="level-num-label" style="color: ${levelColor}; text-shadow: 0 0 10px ${levelColor}88;">${lvl.levelNum}</div>
                   `
                 }
               </div>
@@ -1057,7 +1242,6 @@ export class UIManager {
         }
 
         return `
-          <div class="tab-sheet-title">🏆 SELECT A LEVEL TO START</div>
           <div class="level-select-grid-container">
             <div class="level-select-grid">
               ${pagesHtml}
@@ -1094,7 +1278,6 @@ export class UIManager {
                 <div class="quest-name-row">
                   <span class="quest-name">${p.icon} ${p.name}</span>
                 </div>
-                <div class="quest-desc">${p.desc}</div>
                 <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
                   <div class="powerup-lvl-dots">${indicatorHtml}</div>
                   <span class="quest-progress-text" style="color: #ffd700;">Lvl ${lvl}/5</span>
@@ -1117,7 +1300,6 @@ export class UIManager {
 
         return `
           <div class="daily-rewards-container" style="padding-bottom: 20px;">
-            <div class="hangar-section-title">🧪 POWERUP BUBBLE UPGRADES</div>
             <div class="quests-list">
               ${upgradesHtml}
             </div>
@@ -1131,15 +1313,6 @@ export class UIManager {
             <!-- Close icon button -->
             <button id="btn-settings-back-icon" style="position: absolute; right: 15px; top: 15px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: white; width: 28px; height: 28px; border-radius: 50%; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">✖</button>
 
-            <!-- Difficulty segmented control -->
-            <div class="control-group" style="margin-bottom: 24px;">
-              <div class="segment-label" style="font-size: 11px; font-weight: 800; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 10px; text-transform: uppercase;">SELECT DIFFICULTY</div>
-              <div class="segmented-control" style="display: flex; gap: 8px; background: rgba(0,0,0,0.25); padding: 4px; border-radius: 14px;">
-                <button class="segment-btn diff-easy ${progress.selectedDifficulty === 'easy' ? 'active' : ''}" data-diff="easy" style="flex: 1; padding: 10px; border: none; border-radius: 10px; font-family: var(--font-family); font-weight: 800; font-size: 12px; cursor: pointer; color: #fff; background: transparent; transition: all 0.2s ease;">Easy</button>
-                <button class="segment-btn diff-medium ${progress.selectedDifficulty === 'medium' ? 'active' : ''}" data-diff="medium" style="flex: 1; padding: 10px; border: none; border-radius: 10px; font-family: var(--font-family); font-weight: 800; font-size: 12px; cursor: pointer; color: #fff; background: transparent; transition: all 0.2s ease;">Medium</button>
-                <button class="segment-btn diff-hard ${progress.selectedDifficulty === 'hard' ? 'active' : ''}" data-diff="hard" style="flex: 1; padding: 10px; border: none; border-radius: 10px; font-family: var(--font-family); font-weight: 800; font-size: 12px; cursor: pointer; color: #fff; background: transparent; transition: all 0.2s ease;">Hard</button>
-              </div>
-            </div>
 
             <!-- Volume control sliders section -->
             <div class="control-group" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px;">
@@ -1171,9 +1344,9 @@ export class UIManager {
             <!-- Game Share System -->
             <div class="control-group" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px; margin-top: 20px;">
               <div class="segment-label" style="font-size: 11px; font-weight: 800; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 12px; text-transform: uppercase;">SHARE GAME & EARN REWARDS</div>
-              <button class="share-btn-platform" id="btn-share-system" style="width: 100%; padding: 14px; border: none; border-radius: 12px; font-family: var(--font-family); font-weight: 800; font-size: 12px; cursor: pointer; color: #fff; background: linear-gradient(135deg, #a855f7, #6366f1); display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);">
-                <span style="font-size: 16px;">📤</span>
-                <span>SHARE GAME LINK</span>
+              <button class="share-btn-platform" id="btn-share-system" style="width: 100%; padding: 15px 20px; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 14px; font-family: var(--font-family); font-weight: 900; font-size: 13px; letter-spacing: 1.5px; cursor: pointer; color: #fff; background: linear-gradient(135deg, #00f3ff, #a855f7); display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(0, 243, 255, 0.25); text-transform: uppercase;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                <span>SHARE</span>
               </button>
             </div>
 
@@ -1250,11 +1423,8 @@ export class UIManager {
         ">✕</button>
 
         <!-- Header -->
-        <div style="font-size: 18px; font-weight: 900; letter-spacing: 1.5px; color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.4); margin-bottom: 4px; margin-top: 6px;">
-          🎁 FREE REWARDS 🎁
-        </div>
-        <div style="font-size: 10px; font-weight: 800; color: #00f3ff; margin-bottom: 16px; text-shadow: 0 0 8px rgba(0,243,255,0.35); display: flex; align-items: center; justify-content: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
-          📺 WATCH ADS, GET REWARD!
+        <div style="font-size: 14px; font-weight: 900; color: #00f3ff; margin-bottom: 16px; margin-top: 10px; text-shadow: 0 0 8px rgba(0,243,255,0.35); display: flex; align-items: center; justify-content: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+          🎬 WATCH ADS, GET REWARD!
         </div>
 
         <!-- Cooldown Indicator -->
@@ -1287,8 +1457,11 @@ export class UIManager {
             justify-content: space-between;
             transition: all 0.3s;
           ">
-            <div style="font-size: 14px; font-weight: 900; color: #ffe47a;">
-              🪙 +500 Coins
+            <div style="font-size: 14px; font-weight: 900; color: #ffe47a; display: flex; align-items: center; gap: 6px;">
+              <span style="width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;">
+                ${this.getCoinIconSvg('18px', '18px', '', 'topup')}
+              </span>
+              +6,000 Coins
             </div>
             <button id="topup-coins-ad-btn" ${onCooldown ? 'disabled' : ''} style="
               background: ${onCooldown ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #ffd700, #ff8800)'};
@@ -1303,7 +1476,7 @@ export class UIManager {
               box-shadow: ${onCooldown ? 'none' : '0 3px 8px rgba(255,136,0,0.2)'};
               transition: all 0.2s;
             ">
-              ${onCooldown ? 'COOLING' : 'WATCH AD 📺'}
+              ${onCooldown ? 'COOLING' : 'GET 🎬'}
             </button>
           </div>
 
@@ -1318,8 +1491,8 @@ export class UIManager {
             justify-content: space-between;
             transition: all 0.3s;
           ">
-            <div style="font-size: 14px; font-weight: 900; color: #a8e5ff;">
-              💎 +10 Gems
+            <div style="font-size: 14px; font-weight: 900; color: #a8e5ff; display: flex; align-items: center; gap: 6px;">
+              💎 +200 Gems
             </div>
             <button id="topup-gems-ad-btn" ${onCooldown ? 'disabled' : ''} style="
               background: ${onCooldown ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #00c3ff, #0055ff)'};
@@ -1334,7 +1507,7 @@ export class UIManager {
               box-shadow: ${onCooldown ? 'none' : '0 3px 8px rgba(0,85,255,0.2)'};
               transition: all 0.2s;
             ">
-              ${onCooldown ? 'COOLING' : 'WATCH AD 📺'}
+              ${onCooldown ? 'COOLING' : 'GET 🎬'}
             </button>
           </div>
         </div>
@@ -1358,11 +1531,11 @@ export class UIManager {
         overlay.remove();
         AdManager.showEconomyRewarded((success) => {
           if (success) {
-            this.engine.progressManager.addCoins(500);
+            this.engine.progressManager.addCoins(6000);
             this.engine.progressManager.updateQuestProgress('watch_ads', 1);
             this.engine.progressManager.save();
             this.render();
-            this.showToastNotification('COINS CLAIMED! 🪙', 'You received 500 Coins!');
+            this.showToastNotification('REWARDS CLAIMED! 🎁', 'You received 6,000 Coins!');
           } else {
             this.showToastNotification('AD FAILED', 'Failed to play or watch ad.');
           }
@@ -1377,11 +1550,11 @@ export class UIManager {
         overlay.remove();
         AdManager.showEconomyRewarded((success) => {
           if (success) {
-            this.engine.progressManager.addGems(10);
+            this.engine.progressManager.addGems(200);
             this.engine.progressManager.updateQuestProgress('watch_ads', 1);
             this.engine.progressManager.save();
             this.render();
-            this.showToastNotification('GEMS CLAIMED! 💎', 'You received 10 Gems!');
+            this.showToastNotification('REWARDS CLAIMED! 🎁', 'You received 200 Gems!');
           } else {
             this.showToastNotification('AD FAILED', 'Failed to play or watch ad.');
           }
@@ -1397,23 +1570,17 @@ export class UIManager {
       if (el) el.addEventListener('click', action);
     };
 
-    // Back to main landing page
-    bindClick('btn-back-main', () => {
+    // Back to main landing page instantly
+    const navigateBackWithAnimation = () => {
       sm.playUIBack();
       this.activeTab = 'main';
       this.render();
-    });
+    };
 
-    bindClick('btn-settings-back', () => {
-      sm.playUIBack();
-      this.activeTab = 'main';
-      this.render();
-    });
-    bindClick('btn-settings-back-icon', () => {
-      sm.playUIBack();
-      this.activeTab = 'main';
-      this.render();
-    });
+    bindClick('btn-back-main', navigateBackWithAnimation);
+    bindClick('btn-settings-back', navigateBackWithAnimation);
+    bindClick('btn-settings-back-icon', navigateBackWithAnimation);
+
 
     // Side panel quick-access buttons → open dedicated tab page
     bindClick('side-btn-rewards',      () => { sm.playUISelect(); this.activeTab = 'rewards';      this.render(); });
@@ -1429,24 +1596,7 @@ export class UIManager {
     const btnPlusGemsEl = document.getElementById('btn-plus-gems');
     if (btnPlusGemsEl) btnPlusGemsEl.addEventListener('click', (e) => { e.stopPropagation(); sm.playUIClick(); this.showTopupPopup(); });
 
-    // Difficulty selection buttons
-    const diffBtns = this.container.querySelectorAll('.segmented-control [data-diff]');
-    diffBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        sm.playUISelect();
-        const diff = (btn as HTMLElement).getAttribute('data-diff') as 'easy' | 'medium' | 'hard';
-        if (diff) {
-          this.engine.progressManager.getState().selectedDifficulty = diff;
-          this.engine.progressManager.save();
-          
-          // Update active bird physics difficulty dynamically
-          this.engine.bird.setDifficulty(diff);
-          
-          this.showToastNotification('DIFFICULTY SET', `Difficulty changed to ${diff.toUpperCase()}!`);
-          this.render();
-        }
-      });
-    });
+
 
     // Background Music Volume Slider Binding
     const slideMusic = this.container.querySelector('#slide-music-vol') as HTMLInputElement;
@@ -1508,22 +1658,117 @@ export class UIManager {
         this.engine.soundManager.playCrateUnlock();
 
         setTimeout(() => {
-          // Calculate rewards
-          const gainedCoins = Math.floor(Math.random() * (ch.maxCoins - ch.minCoins + 1)) + ch.minCoins;
-          const gainedGems = Math.floor(Math.random() * (ch.maxGems - ch.minGems + 1)) + ch.minGems;
+          // Calculate rewards based on chestId and status.claims
+          let gainedCoins = 0;
+          let gainedGems = 0;
+          let unlockedCharName: string | undefined = undefined;
+          let unlockedWorldName: string | undefined = undefined;
+
+          const skinsList = this.engine.progressManager.getSkins();
+          const worldsList = this.engine.progressManager.getWorldsList();
+
+          if (chestId === 1) {
+            // Bronze Box
+            if (status.claims === 0) {
+              gainedCoins = 1500;
+              gainedGems = 10;
+            } else if (status.claims === 1) {
+              gainedCoins = 2000;
+              gainedGems = 20;
+            } else if (status.claims === 2) {
+              const isNeonCrowUnlocked = skinsList.find(s => s.id === 'neon_crow')?.unlocked;
+              const isHummingbirdUnlocked = skinsList.find(s => s.id === 'jade_lotus')?.unlocked;
+
+              if (!isNeonCrowUnlocked) {
+                this.engine.progressManager.unlockSkinDirect('neon_crow');
+                unlockedCharName = 'Neon crow';
+              } else if (!isHummingbirdUnlocked) {
+                this.engine.progressManager.unlockSkinDirect('jade_lotus');
+                unlockedCharName = 'Lotus Hummingbird';
+              } else {
+                // Fallback reward if both already unlocked
+                gainedCoins = 2500;
+                gainedGems = 25;
+              }
+            }
+          } else if (chestId === 2) {
+            // Silver Box
+            if (status.claims === 0) {
+              gainedCoins = 3000;
+              gainedGems = 30;
+            } else if (status.claims === 1) {
+              gainedCoins = 1000;
+              gainedGems = 15;
+
+              const isWhiteDragonUnlocked = skinsList.find(s => s.id === 'white_dragon')?.unlocked;
+              const isKingfisherUnlocked = skinsList.find(s => s.id === 'kingfisher')?.unlocked;
+              const isIcePhoenixUnlocked = skinsList.find(s => s.id === 'articuno')?.unlocked;
+
+              if (!isWhiteDragonUnlocked) {
+                this.engine.progressManager.unlockSkinDirect('white_dragon');
+                unlockedCharName = 'Seto Dragon';
+              } else if (!isKingfisherUnlocked) {
+                this.engine.progressManager.unlockSkinDirect('kingfisher');
+                unlockedCharName = 'Azure Kingfisher';
+              } else if (!isIcePhoenixUnlocked) {
+                this.engine.progressManager.unlockSkinDirect('articuno');
+                unlockedCharName = 'Ice Phoenix';
+              }
+            }
+          } else if (chestId === 3) {
+            // Golden Box
+            if (status.claims === 0) {
+              gainedCoins = 0;
+              gainedGems = 25;
+
+              const isVolcanoUnlocked = worldsList.find(w => w.id === 'volcano')?.unlocked;
+              const isDesertUnlocked = worldsList.find(w => w.id === 'desert')?.unlocked;
+              const isSpaceUnlocked = worldsList.find(w => w.id === 'space')?.unlocked;
+
+              if (!isVolcanoUnlocked) {
+                this.engine.progressManager.unlockWorldDirect('volcano');
+                unlockedWorldName = 'Volcanic Spring';
+              } else if (!isDesertUnlocked) {
+                this.engine.progressManager.unlockWorldDirect('desert');
+                unlockedWorldName = 'Desert Ruins';
+              } else if (!isSpaceUnlocked) {
+                this.engine.progressManager.unlockWorldDirect('space');
+                unlockedWorldName = 'Cosmic Meadow';
+              }
+
+              const isDreadOwlUnlocked = skinsList.find(s => s.id === 'dread_owl')?.unlocked;
+              const isWhiteDragonUnlocked = skinsList.find(s => s.id === 'white_dragon')?.unlocked;
+              const isKingfisherUnlocked = skinsList.find(s => s.id === 'kingfisher')?.unlocked;
+
+              if (!isDreadOwlUnlocked) {
+                this.engine.progressManager.unlockSkinDirect('dread_owl');
+                unlockedCharName = 'Great Horned Owl';
+              } else if (!isWhiteDragonUnlocked) {
+                this.engine.progressManager.unlockSkinDirect('white_dragon');
+                unlockedCharName = 'Seto Dragon';
+              } else if (!isKingfisherUnlocked) {
+                this.engine.progressManager.unlockSkinDirect('kingfisher');
+                unlockedCharName = 'Azure Kingfisher';
+              }
+            }
+          }
 
           // Save claims count
           const nextClaims = status.claims + 1;
           localStorage.setItem(`flight_of_legends_chest_${ch.id}_claims`, nextClaims.toString());
 
           // Apply rewards
-          this.engine.progressManager.addCoins(gainedCoins);
-          this.engine.progressManager.addGems(gainedGems);
+          if (gainedCoins > 0) {
+            this.engine.progressManager.addCoins(gainedCoins);
+          }
+          if (gainedGems > 0) {
+            this.engine.progressManager.addGems(gainedGems);
+          }
           this.engine.progressManager.save();
 
           // Rerender and show reward popup
           this.render();
-          this.showChestRewardPopup(ch.name, gainedCoins, gainedGems);
+          this.showChestRewardPopup(ch.name, gainedCoins, gainedGems, unlockedCharName, unlockedWorldName);
         }, 1200); // 1.2 seconds shake animation
       });
     });
@@ -1601,13 +1846,7 @@ export class UIManager {
       this.activeTab = 'levels';
       this.render();
     });
-    bindClick('btn-spectator', () => {
-      sm.playUIClick();
-      this.engine.gameMode = 'endless';
-      this.engine.isSpectatorMode = true;
-      this.engine.startGame();
-      this.render();
-    });
+
 
     // Level Select click events
     const unlockedLevelCards = this.container.querySelectorAll('.level-select-card.unlocked');
@@ -1646,34 +1885,26 @@ export class UIManager {
         if (skin.unlocked) {
           sm.playUISelect();
           this.engine.progressManager.selectSkin(skinId);
-          this.showToastNotification('BIRD SELECTED! ✨', `${skin.name} is now your active bird!`);
-          setTimeout(() => { this.activeTab = 'main'; this.render(); }, 400);
+          this.activeTab = 'main';
+          this.render();
         } else {
-          // Attempt auto-buy when tapping a locked card
-          sm.playUIClick();
-          const res = this.engine.progressManager.buySkin(skinId);
-          if (res.success) {
-            this.showToastNotification('PURCHASE SUCCESSFUL 🎉', `${skin.name} unlocked and selected!`);
-            this.engine.progressManager.selectSkin(skinId);
-            setTimeout(() => { this.activeTab = 'main'; this.render(); }, 500);
-          } else {
-            this.showToastNotification('LOCKED SKIN 🔒', res.msg); // E.g. Insufficient coins
-          }
+          // Locked card clicked: do nothing (purchases must go through the blue purchase button directly)
         }
       });
     });
 
-    const buyBtns = this.container.querySelectorAll('.btn-buy-skin');
+    const buyBtns = this.container.querySelectorAll('.btn-buy-skin:not(.btn-buy-world)');
     buyBtns.forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         sm.playUIClick();
         const id = (btn as HTMLElement).getAttribute('data-id') || '';
         const res = this.engine.progressManager.buySkin(id);
-        this.showToastNotification(res.success ? 'PURCHASE SUCCESSFUL 🎉' : 'PURCHASE FAILED', res.msg);
         if (res.success) {
-          setTimeout(() => { this.activeTab = 'main'; this.render(); }, 600);
+          // Unlocked but not selected, no toast notification, no redirect, just refresh skins list
+          this.render();
         } else {
+          this.showToastNotification('PURCHASE FAILED', res.msg);
           this.render();
         }
       });
@@ -1685,9 +1916,8 @@ export class UIManager {
         sm.playUISelect();
         const id = (btn as HTMLElement).getAttribute('data-id') || '';
         this.engine.progressManager.selectSkin(id);
-        const skin = this.engine.progressManager.getSkins().find((s: Skin) => s.id === id);
-        this.showToastNotification('BIRD SELECTED! ✨', `${skin?.name || 'Skin'} is now your active bird!`);
-        setTimeout(() => { this.activeTab = 'main'; this.render(); }, 550);
+        this.activeTab = 'main';
+        this.render();
       });
     });
     const upgradeBtns = this.container.querySelectorAll('.btn-upgrade-skin');
@@ -1698,11 +1928,67 @@ export class UIManager {
         const res = this.engine.progressManager.upgradeSkin(id);
         if (res.success) {
           sm.playUIUpgrade();
+          
+          // Localized animation for the upgraded card only
+          const card = btn.closest('.grid-card');
+          if (card) {
+            card.classList.add('card-upgrade-success');
+            setTimeout(() => {
+              card.classList.remove('card-upgrade-success');
+            }, 600);
+
+            // Update Level Indicator text
+            const lvlIndicator = card.querySelector('.level-indicator');
+            const skin = this.engine.progressManager.getSkins().find((s: Skin) => s.id === id);
+            if (lvlIndicator && skin) {
+              lvlIndicator.textContent = `Lvl ${skin.upgradeLevel}/5`;
+            }
+
+            // Update info panel with new duration
+            const infoPanel = card.querySelector('.skin-info-panel');
+            if (infoPanel && skin) {
+              const getSkinAbilityDuration = (lvl: number) => {
+                if (skin.id === 'angry_red') return 20;
+                if (lvl === 1) return 10;
+                if (lvl === 2) return 12;
+                if (lvl === 3) return 14;
+                if (lvl === 4) return 16;
+                if (lvl === 5) return 20;
+                return 10;
+              };
+              const newDur = getSkinAbilityDuration(skin.upgradeLevel);
+              infoPanel.innerHTML = skin.abilityDesc 
+                ? `<div style="font-size:8px;color:rgba(230,200,255,0.8);line-height:1.4;padding:0 4px;">${skin.abilityDesc}<br><span style="color:#ffd700;font-weight:bold;">Duration: ${newDur}s</span></div>` 
+                : '<div style="font-size:8px;color:rgba(230,200,255,0.6);">No special ability.</div>';
+            }
+
+            // Update or remove the upgrade button cost/presence
+            if (skin) {
+              if (skin.upgradeLevel < skin.maxUpgrade) {
+                const nextCost = this.engine.progressManager.getSkinUpgradeCost(skin.upgradeLevel);
+                btn.textContent = `⬆ (${nextCost}🟡)`;
+              } else {
+                btn.remove();
+              }
+            }
+          }
+
+          // Safely update top bar coins if it exists
+          const coinEl = document.getElementById('btn-coin-topup');
+          if (coinEl) {
+            const progressState = this.engine.progressManager.getState();
+            for (let i = 0; i < coinEl.childNodes.length; i++) {
+              const node = coinEl.childNodes[i];
+              if (node.nodeType === Node.TEXT_NODE) {
+                node.textContent = progressState.coins.toLocaleString();
+                break;
+              }
+            }
+          }
         } else {
           sm.playUIClick();
         }
         this.showToastNotification(res.success ? 'UPGRADE SUCCESSFUL ⬆' : 'UPGRADE FAILED', res.msg);
-        this.render();
       });
     });
 
@@ -1720,18 +2006,40 @@ export class UIManager {
       });
     });
 
-    // Worlds selection → tap card → instant redirect home with new world
+    // Worlds selection
     const worldCards = this.container.querySelectorAll('.world-card[data-world-id]');
     worldCards.forEach(card => {
-      card.addEventListener('click', () => {
-        sm.playUISelect();
+      card.addEventListener('click', (e) => {
         const id = (card as HTMLElement).getAttribute('data-world-id') || '';
         if (!id) return;
-        this.engine.progressManager.setWorld(id);
-        this.engine.renderer.setWeather(id);
-        const worldName = (card.querySelector('.world-name') as HTMLElement)?.textContent?.trim() || id;
-        this.showToastNotification('🌍 WORLD SELECTED!', `${worldName.replace('● ACTIVE', '').trim()} is now your battlefield!`);
-        setTimeout(() => { this.activeTab = 'main'; this.render(); }, 450);
+
+        const target = e.target as HTMLElement;
+        // Don't trigger card selection if clicking a nested action button
+        if (target.classList.contains('btn-buy-world') || target.classList.contains('btn-equip-world')) return;
+
+        const worldsList = this.engine.progressManager.getWorldsList();
+        const world = worldsList.find(w => w.id === id);
+        if (!world) return;
+
+        if (world.unlocked) {
+          sm.playUISelect();
+          this.engine.progressManager.setWorld(id);
+          this.engine.renderer.setWeather(id);
+          this.activeTab = 'main';
+          this.render();
+        }
+      });
+    });
+
+    // Explicit Worlds purchase button click
+    const buyWorldBtns = this.container.querySelectorAll('.btn-buy-world');
+    buyWorldBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sm.playUIClick();
+        const id = (btn as HTMLElement).getAttribute('data-id') || '';
+        this.engine.progressManager.buyWorld(id);
+        this.render(); // Redraw UI, no toast notification
       });
     });
 
@@ -1740,13 +2048,25 @@ export class UIManager {
     if (btnExtraRewards) {
       btnExtraRewards.addEventListener('click', (e) => {
         e.stopPropagation();
+
+        const lastClaim = this.engine.progressManager.getState().lastSpecialOfferAdTime || 0;
+        const offerCooldown = 24 * 60 * 60 * 1000;
+        if (Date.now() - lastClaim < offerCooldown) {
+          this.showToastNotification('CLAIMED TODAY', 'You can only claim this reward once a day!');
+          return;
+        }
+
         AdManager.showEconomyRewarded((success) => {
           if (success) {
-            this.engine.progressManager.addCoins(500);
+            const state = this.engine.progressManager.getState();
+            state.lastSpecialOfferAdTime = Date.now();
+
+            this.engine.progressManager.addCoins(200);
             this.engine.progressManager.addGems(10);
             this.engine.progressManager.updateQuestProgress('watch_ads', 1);
             this.engine.progressManager.save();
             this.render();
+            this.showToastNotification('REWARDS CLAIMED! 🎁', 'You received 200 Coins & 10 Gems!');
           } else {
             this.showToastNotification('AD FAILED', 'Failed to play or watch ad.');
           }
@@ -1778,8 +2098,11 @@ export class UIManager {
       })
         .catch(err => console.error("KV initialize failed:", err));
 
-      const gameUrl = window.location.origin + window.location.pathname + `?ref=${shareToken}`;
-      const text = `Hey! Play Floppy Bird Pipes: Flight of Legends with me here: ${gameUrl}`;
+      let gameUrl = window.location.origin + window.location.pathname + `?ref=${shareToken}`;
+      if (window.location.hostname === 'localapp' || window.location.protocol === 'file:') {
+        gameUrl = `https://shiv5567.github.io/Floppy-bird-pipes/?ref=${shareToken}`;
+      }
+      const text = `Hey! Play Flappy Legends: Flappy Bird Game with me here: ${gameUrl}`;
       
       let shareUrl = '';
       let needsClipboard = false;
@@ -1789,9 +2112,11 @@ export class UIManager {
       } else if (platform === 'Messenger') {
         shareUrl = `https://www.facebook.com/dialog/send?link=${encodeURIComponent(gameUrl)}&app_id=123456789&redirect_uri=${encodeURIComponent(gameUrl)}`;
       } else if (platform === 'System') {
-        if (navigator.share) {
+        if ((window as any).AndroidBridge && (window as any).AndroidBridge.shareText) {
+          (window as any).AndroidBridge.shareText(text);
+        } else if (navigator.share) {
           navigator.share({
-            title: 'Flight of Legends',
+            title: 'Flappy Legends',
             text: text,
             url: gameUrl
           }).catch(err => {
@@ -1822,8 +2147,44 @@ export class UIManager {
 
 
   private renderHUD() {
+    this.resetHUDCache();
     const pList = this.engine.getActivePowerups();
+    
+    let tapInstructionHTML = '';
+    const tapCount = parseInt(localStorage.getItem('legends_tap_instruction_count') || '0', 10);
+    if (!this.engine.firstTapDone && (this.engine.gameMode === 'endless' || this.engine.gameMode === 'level') && tapCount < 10) {
+      tapInstructionHTML = `
+        <div class="tap-instruction-overlay fade-in" style="
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          pointer-events: none;
+          z-index: 200;
+          text-align: center;
+          animation: tapPulse 1.8s infinite ease-in-out;
+        ">
+          <span style="font-size: 32px; animation: handWobble 1.2s infinite ease-in-out; display: inline-block;">👆</span>
+          <span style="
+            font-size: 20px;
+            font-weight: 900;
+            color: #00f3ff;
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.7);
+            letter-spacing: 1.5px;
+            font-family: 'Outfit', sans-serif;
+          ">TAP TAP TAP</span>
+        </div>
+      `;
+    }
+
     const highscore = this.engine.progressManager.getState().highscore;
+
+
     
     // Convert powerups to floating badge list
     const powerupBadges = pList.map(p => {
@@ -1852,7 +2213,6 @@ export class UIManager {
 
     const bossNames: Record<string, string> = {
       jungle: 'Canopy Harpy',
-      jungle_temple: 'Sentinel Golem Mask',
       ice: 'Glacial Frost Wyrm',
       desert: 'Obelisk Sphinx',
       volcano: 'Volcanic Lava Dragon',
@@ -1881,44 +2241,8 @@ export class UIManager {
       `;
     }
 
-    let boosterOverlayHTML = '';
-    if (this.engine.boosterActive) {
-      const bPct = Math.max(0, Math.min(100, (this.engine.boosterTimer / 1.0) * 100));
-      boosterOverlayHTML = `
-        <div class="hud-booster-overlay fade-in glass-card" style="position: absolute; top: 85px; left: 50%; transform: translateX(-50%); padding: 10px 24px; border-radius: 12px; border: 2px solid #ffd700; background: rgba(20, 15, 0, 0.85); box-shadow: 0 0 20px rgba(255, 215, 0, 0.45); display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; z-index: 100;">
-          <div class="hud-booster-title" style="font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 900; color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.6); display: flex; align-items: center; gap: 8px;">
-            ⚡ HYPER BOOST: ${this.engine.boosterTimer.toFixed(1)}s
-          </div>
-          <div style="width: 140px; height: 6px; background: rgba(255, 255, 255, 0.15); border-radius: 3px; overflow: hidden; margin-top: 6px;">
-            <div class="hud-booster-fill" style="width: ${bPct}%; height: 100%; background: linear-gradient(90deg, #ffaa00, #ffd700); box-shadow: 0 0 8px #ffd700; transition: width 0.05s linear;"></div>
-          </div>
-        </div>
-      `;
-    }
-
-    let boosterBtnHTML = '';
-    if (this.engine.gameMode === 'endless' || this.engine.gameMode === 'flock') {
-      // Classic endless & Squad flock: manual tap-to-activate booster button
-      const bTimer = this.engine.boosterSpawnTimer;
-      const bReady = bTimer <= 0;
-      const bPercent = Math.min(100, Math.floor((1 - bTimer / 5.0) * 100));
-      
-      boosterBtnHTML = `
-        <div class="hud-booster-btn glass-card ${bReady ? 'ult-ready-pulse' : ''}" 
-             style="pointer-events: auto; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 62px; height: 62px; border-radius: 50%; border: 2px solid ${bReady ? '#ffd700' : 'rgba(255,255,255,0.2)'}; background: ${bReady ? 'rgba(255,215,0,0.12)' : 'rgba(255,255,255,0.03)'}; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: all 0.3s ease; box-shadow: ${bReady ? '0 0 15px rgba(255,215,0,0.4)' : 'none'}; position: relative; margin-bottom: 6px; -webkit-tap-highlight-color: transparent; opacity: ${bReady ? '1' : '0.65'};" 
-             id="btn-hud-booster" 
-             title="Tap to Activate Hyper Booster!">
-          <div style="position: absolute; inset: 2px; border-radius: 50%; background: ${bReady ? 'rgba(255,215,0,0.15)' : 'transparent'}; pointer-events: none;"></div>
-          <svg width="58" height="58" viewBox="0 0 58 58" style="position: absolute; transform: rotate(-90deg); pointer-events: none;">
-            <circle cx="29" cy="29" r="25" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="3"></circle>
-            <circle cx="29" cy="29" r="25" fill="none" stroke="#ffd700" stroke-width="4.5" 
-                    stroke-dasharray="157" stroke-dashoffset="${157 - (157 * bPercent) / 100}" 
-                    stroke-linecap="round" class="booster-progress-fill" style="transition: stroke-dashoffset 0.15s ease-out; stroke: #ffd700;"></circle>
-          </svg>
-          <span style="font-size: 26px; z-index: 2; transition: transform 0.2s ease; margin: 0; line-height: 1; text-shadow: ${bReady ? '0 0 8px #ffd700' : 'none'};">${bReady ? '⚡' : '⏳'}</span>
-        </div>
-      `;
-    }
+    const boosterOverlayHTML = '';
+    const boosterBtnHTML = '';
     const formationBtnHTML = '';
     const rescueEvolutionHTML = '';
     const evolveBtnHTML = '';
@@ -1933,10 +2257,97 @@ export class UIManager {
         <div class="hud-circle-btn glass-card ult-ready-pulse" 
              style="pointer-events: auto; cursor: pointer; display: ${visible ? 'flex' : 'none'}; flex-direction: column; align-items: center; justify-content: center; width: 68px; height: 68px; border-radius: 50%; border: 2.5px solid #ff007f; background: rgba(255, 0, 127, 0.1); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 0 18px rgba(255, 0, 127, 0.5); position: relative; margin-bottom: 6px; -webkit-tap-highlight-color: transparent; gap: 1px;" 
              id="btn-hud-flock-merge" 
-             title="Merge Squad for Boss HP!">
+             title="Merge Squad for Monster HP!">
           <div style="position: absolute; inset: 2px; border-radius: 50%; background: rgba(255, 0, 127, 0.15); pointer-events: none;"></div>
           
-          <img src="/merge_icon.png" width="32" height="32" style="z-index: 2; object-fit: contain; margin-bottom: 2px; border-radius: 50%; box-shadow: 0 0 8px rgba(255, 0, 127, 0.8);" />
+          <svg viewBox="0 0 100 100" style="width: 32px; height: 32px; z-index: 2; overflow: visible; margin-bottom: 2px;" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <filter id="mergeNeonGlow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+              <linearGradient id="mergeNeonGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#ff007f" />
+                <stop offset="40%" stop-color="#ff00ff" />
+                <stop offset="75%" stop-color="#ff5533" />
+                <stop offset="100%" stop-color="#ffaa00" />
+              </linearGradient>
+            </defs>
+            
+            <!-- Outer rings -->
+            <path d="M 50,12 A 38,38 0 1,1 12,50 A 38,38 0 0,1 48,12.5" fill="none" stroke="url(#mergeNeonGrad)" stroke-width="2.5" stroke-linecap="round" filter="url(#mergeNeonGlow)" />
+            <path d="M 40,20 A 30,30 0 1,0 75,50 A 30,30 0 0,0 52,20.3" fill="none" stroke="url(#mergeNeonGrad)" stroke-width="1.5" stroke-linecap="round" opacity="0.8" filter="url(#mergeNeonGlow)" />
+            
+            <!-- 3 Orbiting Birds -->
+            <g transform="translate(50, 12) rotate(15)" filter="url(#mergeNeonGlow)">
+              <path d="M -5,3 Q 0,-3 5,3 Q 2,1 0,-1 Q -2,1 -5,3" fill="url(#mergeNeonGrad)" />
+            </g>
+            <g transform="translate(18, 68) rotate(-110)" filter="url(#mergeNeonGlow)">
+              <path d="M -5,3 Q 0,-3 5,3 Q 2,1 0,-1 Q -2,1 -5,3" fill="url(#mergeNeonGrad)" />
+            </g>
+            <g transform="translate(82, 60) rotate(120)" filter="url(#mergeNeonGlow)">
+              <path d="M -5,3 Q 0,-3 5,3 Q 2,1 0,-1 Q -2,1 -5,3" fill="url(#mergeNeonGrad)" />
+            </g>
+            
+            <!-- Center Phoenix -->
+            <g transform="translate(50, 48) scale(0.9)" filter="url(#mergeNeonGlow)">
+              <path d="
+                M 0,-18 
+                C -1,-22 -3,-24 -5,-25 
+                C -3,-22 -2,-19 -2,-17 
+                C -4,-18 -6,-17 -7,-15 
+                C -5,-15 -3,-14 -2,-13
+                C -4,-12 -5,-10 -5,-8
+                C -3,-9 -1,-11 0,-12
+                C 1,-11 2,-9 2,-7
+                C 2,-5 1,-3 0,-1
+                C -2,3 -4,8 -2,13
+                C 0,17 3,22 1,26
+                C -1,29 -5,28 -7,25
+                C -5,30 0,32 3,29
+                C 6,26 6,20 4,14
+                C 6,18 9,23 13,22
+                C 10,20 8,16 6,12
+                C 8,8 8,3 6,-1
+                C 5,-4 4,-6 4,-8
+                C 4,-10 3,-12 1,-13
+                C 2,-14 4,-15 6,-15
+                C 4,-17 2,-18 0,-18 Z
+              " fill="url(#mergeNeonGrad)" />
+              
+              <!-- Left Wing -->
+              <path d="
+                M -3,-10
+                C -12,-16 -24,-13 -32,-2
+                C -26,-2 -18,-5 -12,-5
+                C -22,2 -28,10 -30,19
+                C -24,13 -16,9 -10,8
+                C -18,14 -20,24 -20,31
+                C -16,23 -10,17 -6,14
+                C -10,19 -11,26 -9,32
+                C -7,24 -4,18 -1,13
+                C -1,9 -2,0 -3,-10 Z
+              " fill="url(#mergeNeonGrad)" />
+              
+              <!-- Right Wing -->
+              <path d="
+                M 3,-10
+                C 12,-16 24,-13 32,-2
+                C 26,-2 18,-5 12,-5
+                C 22,2 28,10 30,19
+                C 24,13 16,9 10,8
+                C 18,14 20,24 20,31
+                C 16,23 10,17 6,14
+                C 10,19 11,26 9,32
+                C 7,24 4,18 1,13
+                C 1,9 2,0 3,-10 Z
+              " fill="url(#mergeNeonGrad)" />
+            </g>
+          </svg>
 
           <span class="flock-merge-label" style="font-size: 7px; font-weight: 900; color: #ff007f; z-index: 2; text-shadow: 0 0 6px #ff007f; letter-spacing: 0.2px; text-align: center;">MERGE (+${flockLen})</span>
         </div>
@@ -1946,15 +2357,15 @@ export class UIManager {
     // ── Squad Survival Mode Boss HP indicator ──────────────────────────────
     let playerHPBarHTML = '';
     const isBossWarning = state === 'BOSS_WARNING';
-    if ((isBossFight || isBossWarning) && this.engine.gameMode === 'flock' && this.engine.playerBossHP > 0) {
-      const hp = this.engine.playerBossHP;
-      const maxHp = this.engine.maxPlayerBossHP || hp;
+    if ((isBossFight || isBossWarning) && this.engine.gameMode === 'flock') {
+      const hp = this.engine.playerBossHP > 0 ? this.engine.playerBossHP : this.engine.flock.length;
+      const maxHp = this.engine.playerBossHP > 0 ? (this.engine.maxPlayerBossHP || hp) : Math.max(this.engine.flock.length, 1);
       const hearts = '❤️'.repeat(hp);
       
       const hasBossBar = isBossFight && isBossActive;
       const topOffset = hasBossBar ? '190px' : '130px';
       
-      const fontSize = Math.max(10, 16 - Math.max(0, maxHp - 5) * 0.4);
+      const fontSize = Math.max(8.5, (16 - Math.max(0, maxHp - 5) * 0.4) * 0.85);
       const letterSpacing = Math.max(0.5, 2.5 - Math.max(0, maxHp - 5) * 0.15);
       const paddingX = Math.max(10, 18 - Math.max(0, maxHp - 5) * 0.6);
 
@@ -2000,6 +2411,7 @@ export class UIManager {
 
     const hudHTML = `
       <div class="hud fade-in">
+        ${tapInstructionHTML}
         ${boosterOverlayHTML}
         ${rescueEvolutionHTML}
         ${playerHPBarHTML}
@@ -2047,7 +2459,7 @@ export class UIManager {
 
             <!-- Ultimate Special Ability Transparent Circular Button (Shifted from Double-Tap) -->
             <div class="hud-ult-circle-btn glass-card ${ultReady ? 'ult-ready-pulse' : ''} ${ultActive ? 'ult-active-glow' : ''}" 
-                 style="pointer-events: auto; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 62px; height: 62px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.06); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2); position: relative; margin-bottom: 6px; -webkit-tap-highlight-color: transparent;" 
+                 style="pointer-events: auto; cursor: pointer; display: ${this.engine.gameMode === 'level' ? 'none' : 'flex'}; align-items: center; justify-content: center; width: 62px; height: 62px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.06); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2); position: relative; margin-bottom: 6px; -webkit-tap-highlight-color: transparent;" 
                  id="btn-hud-ultimate" 
                  title="Tap to Activate Ultimate Special Ability!">
               <div class="ult-inner-glow" style="position: absolute; inset: 2px; border-radius: 50%; background: ${ultActive ? 'rgba(255, 0, 127, 0.25)' : ultReady ? 'rgba(255, 215, 0, 0.18)' : 'transparent'}; pointer-events: none;"></div>
@@ -2057,7 +2469,7 @@ export class UIManager {
                         stroke-dasharray="157" stroke-dashoffset="${157 - (157 * ultPercent) / 100}" 
                         stroke-linecap="round" class="ult-progress-fill" style="transition: stroke-dashoffset 0.15s ease-out; stroke: ${ultBarBg};"></circle>
               </svg>
-              <span class="ult-icon" style="font-size: 24px; z-index: 2; transition: transform 0.2s ease; margin: 0; line-height: 1;">${ultActive ? '⚡' : ultReady ? '🔥' : '✨'}</span>
+              <span class="ult-icon" style="font-size: 24px; z-index: 2; transition: transform 0.2s ease; margin: 0; line-height: 1;">${ultActive ? '⚡' : '✨'}</span>
             </div>
           </div>
         </div>
@@ -2102,35 +2514,39 @@ export class UIManager {
       this.bossHealthVal = null;
       this.bossHealthFill = null;
     }
+    this.flockIndicatorEl = this.container.querySelector('.flock-indicator') as HTMLElement;
+    this.playerHPContainer = this.container.querySelector('.player-hud-hp-container') as HTMLElement;
+    this.playerHPHearts = this.playerHPContainer ? this.playerHPContainer.querySelector('.player-hud-hp-hearts') as HTMLElement : null;
+    this.ultDurationBarContainer = this.container.querySelector('.ultimate-duration-bar-container') as HTMLElement;
+    this.ultDurationBarFill = this.ultDurationBarContainer ? this.ultDurationBarContainer.querySelector('.ultimate-duration-bar-fill') as HTMLElement : null;
+    this.boosterOverlay = this.container.querySelector('.hud-booster-overlay') as HTMLElement;
+    this.boosterOverlayTitle = this.boosterOverlay ? this.boosterOverlay.querySelector('.hud-booster-title') as HTMLElement : null;
+    this.boosterOverlayFill = this.boosterOverlay ? this.boosterOverlay.querySelector('.hud-booster-fill') as HTMLElement : null;
+    this.boosterBtn = document.getElementById('btn-hud-booster');
+    this.boosterBtnIcon = this.boosterBtn ? this.boosterBtn.querySelector('span') : null;
+    this.boosterBtnProgressFill = this.boosterBtn ? this.boosterBtn.querySelector('.booster-progress-fill') as HTMLElement : null;
+    this.flockMergeBtn = document.getElementById('btn-hud-flock-merge');
+    this.flockMergeBtnLabel = this.flockMergeBtn ? this.flockMergeBtn.querySelector('.flock-merge-label') as HTMLElement : null;
 
 
 
     // Bind triggers
     const ultBtn = document.getElementById('btn-hud-ultimate');
-    if (ultBtn) ultBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.engine.triggerUltimate();
-      this.render();
-    });
-
-    // Bind booster trigger instantly on touch/pointerdown for zero delay
-    const boosterBtn = document.getElementById('btn-hud-booster');
-    if (boosterBtn) {
-      const triggerBooster = (e: Event) => {
+    if (ultBtn) {
+      const triggerUltimateAbility = (e: Event) => {
         e.stopPropagation();
         e.preventDefault();
-        
-        if (this.engine.boosterSpawnTimer <= 0 && !this.engine.boosterActive && !this.engine.boosterDeactivating) {
-          this.engine.activatePowerup('booster');
-          // Reset charge timer
-          this.engine.boosterSpawnTimer = 5.0;
-          this.render(); // update visual ready state
+        this.engine.triggerUltimate();
+        if (this.engine.state === 'PLAYING' || this.engine.state === 'BOSS_FIGHT') {
+          this.engine.jump();
         }
+        this.render();
       };
-      
-      boosterBtn.addEventListener('pointerdown', triggerBooster);
-      boosterBtn.addEventListener('touchstart', triggerBooster);
+      ultBtn.addEventListener('pointerdown', triggerUltimateAbility);
+      ultBtn.addEventListener('touchstart', triggerUltimateAbility);
     }
+
+    // Booster trigger binding removed
 
     // Formation and Cage Rescue merge buttons removed
 
@@ -2142,8 +2558,11 @@ export class UIManager {
         e.preventDefault();
         if (this.engine.flock.length >= 2) {
           this.engine.triggerSurvivalMerge();
-          this.render();
         }
+        if (this.engine.state === 'PLAYING' || this.engine.state === 'BOSS_FIGHT') {
+          this.engine.jump();
+        }
+        this.render();
       };
       flockMergeBtn.addEventListener('pointerdown', triggerFlockMerge);
       flockMergeBtn.addEventListener('touchstart', triggerFlockMerge);
@@ -2163,7 +2582,6 @@ export class UIManager {
       <div class="overlay-screen fade-in glass-modal">
         <div class="modal-card">
           <h2 class="modal-title">PAUSED</h2>
-          <p class="modal-subtitle">Flight of Legends continues when you are ready.</p>
           
           <div class="vertical-actions">
             <button class="btn btn-primary" id="btn-resume">RESUME</button>
@@ -2206,31 +2624,33 @@ export class UIManager {
     const isNewHigh = this.engine.score >= progress.highscore;
 
     const goHTML = `
-      <div class="overlay-screen fade-in glass-modal">
-        <div class="modal-card gameover-card animate-slide-up">
-          <div class="skull-badge">💥</div>
-          <h2 class="modal-title warning-text">CRASHED!</h2>
-
-
-          <div class="final-score-box glass-card">
-            <div class="score-label">${isNewHigh ? '🏆 NEW HIGH SCORE! 🏆' : 'FINAL SCORE'}</div>
-            <div class="score-number pop-scale">${this.engine.score}</div>
-          </div>
-
-          <div class="rewards-summary">
-            <div class="reward-row">
-              <span>Coins Collected</span>
-              <strong>+${this.engine.coinsCollectedThisRun} 🟡</strong>
+      <div class="overlay-screen fade-in glass-modal" style="display: flex; align-items: center; justify-content: center;">
+        <div style="transform: scale(0.84) translateY(-20%); transform-origin: bottom center; width: 100%; display: flex; justify-content: center;">
+          <div class="modal-card gameover-card animate-slide-up">
+            <div class="skull-badge">💥</div>
+            <h2 class="modal-title warning-text">CRASHED!</h2>
+  
+  
+            <div class="final-score-box glass-card">
+              <div class="score-label">${isNewHigh ? '🏆 NEW HIGH SCORE! 🏆' : 'FINAL SCORE'}</div>
+              <div class="score-number pop-scale">${this.engine.score}</div>
             </div>
-            <div class="reward-row">
-              <span>Gems Collected</span>
-              <strong>+${this.engine.gemsCollectedThisRun} 💎</strong>
+  
+            <div class="rewards-summary">
+              <div class="reward-row">
+                <span>Coins Collected</span>
+                <strong>+${this.engine.coinsCollectedThisRun} 🟡</strong>
+              </div>
+              <div class="reward-row">
+                <span>Gems Collected</span>
+                <strong>+${this.engine.gemsCollectedThisRun} 💎</strong>
+              </div>
             </div>
-          </div>
-
-          <div class="vertical-actions">
-            <button class="btn btn-primary btn-glow-orange" id="btn-retry">FLY AGAIN</button>
-            <button class="btn btn-secondary" id="btn-hangar">RETURN HOME</button>
+  
+            <div class="vertical-actions">
+              <button class="btn btn-primary btn-glow-orange" id="btn-retry">FLY AGAIN</button>
+              <button class="btn btn-secondary" id="btn-hangar">RETURN HOME</button>
+            </div>
           </div>
         </div>
       </div>
@@ -2264,65 +2684,63 @@ export class UIManager {
 
     const reviveHTML = `
       <div class="overlay-screen fade-in" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center;">
-        <div style="background: rgba(20, 20, 30, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 40px 32px; text-align: center; width: 95%; max-width: 911px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); animation: slideUp 0.3s ease-out; position: relative;">
-          
-          <button id="btn-home-revive" style="position: absolute; left: 20px; top: 20px; font-size: 24px; color: #fff; font-weight: 800; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; cursor: pointer; line-height: 1; display: flex; align-items: center; justify-content: center; width: 46px; height: 46px; transition: background 0.2s;" title="Return Home">↩</button>
-          
-          <div style="font-size: 32px; margin-bottom: 10px;">💥</div>
-          <h2 style="font-size: 36px; font-weight: 900; color: #ff3c2e; letter-spacing: 2px; margin-bottom: 24px; text-shadow: 0 0 10px rgba(255,60,46,0.5);">CRASHED!</h2>
-
-          ${this.engine.gameMode !== 'level' ? `
-          <div style="background: rgba(0,0,0,0.3); border-radius: 16px; padding: 16px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05);">
-            <div style="font-size: 12px; font-weight: 800; color: #ffd700; letter-spacing: 1.5px; text-transform: uppercase;">SCORE</div>
-            <div style="font-size: 48px; font-weight: 900; color: #fff; text-shadow: 0 4px 10px rgba(0,0,0,0.5);">${this.engine.score}</div>
-            <div style="font-size: 14px; font-weight: 800; color: #ffd700; margin-top: 6px; letter-spacing: 1px;">BEST: ${Math.max(progress.highscore, this.engine.score)}</div>
-          </div>
-          ` : ''}
-
-          <div style="display: flex; flex-direction: column; gap: 8px; text-align: left; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 16px; margin-bottom: 24px; font-size: 14px; font-weight: 600; color: #ddd;">
-            <div style="display: flex; justify-content: space-between;">
-              <span>Coins Collected</span>
-              <strong style="color: #fff;">+${this.engine.coinsCollectedThisRun} 🟡</strong>
-            </div>
-            <div style="display: flex; justify-content: space-between;">
-              <span>Gems Collected</span>
-              <strong style="color: #fff;">+${this.engine.gemsCollectedThisRun} 💎</strong>
-            </div>
-          </div>
-
-
-
-          ${this.engine.revivesUsedThisRun < 10 ? `
-          <div class="revive-heartbeat-box">
+        <div style="transform: scale(1.024, 0.84) translateY(-20%); transform-origin: bottom center; width: 100%; display: flex; justify-content: center;">
+          <div style="background: rgba(20, 20, 30, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 40px 32px; text-align: center; width: 95%; max-width: 911px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); animation: slideUp 0.3s ease-out; position: relative;">
             
-            <div style="position: relative; text-align: center; margin-bottom: 20px;">
-              <div style="font-size: 20px; color: #00e676; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0, 230, 118, 0.6);">
-                REVIVE
+            <button id="btn-home-revive" style="position: absolute; left: 20px; top: 20px; font-size: 33px; color: #fff; font-weight: 800; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; cursor: pointer; line-height: 1; display: flex; align-items: center; justify-content: center; width: 63px; height: 63px; transition: background 0.2s;" title="Return Home">↩</button>
+            
+            <div style="font-size: 32px; margin-bottom: 10px;">💥</div>
+            <h2 style="font-size: 36px; font-weight: 900; color: #ff3c2e; letter-spacing: 2px; margin-bottom: 24px; text-shadow: 0 0 10px rgba(255,60,46,0.5);">CRASHED!</h2>
+  
+            ${this.engine.gameMode !== 'level' ? `
+            <div style="background: rgba(0,0,0,0.3); border-radius: 16px; padding: 16px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05);">
+              <div style="font-size: 12px; font-weight: 800; color: #ffd700; letter-spacing: 1.5px; text-transform: uppercase;">SCORE</div>
+              <div style="font-size: 48px; font-weight: 900; color: #fff; text-shadow: 0 4px 10px rgba(0,0,0,0.5);">${this.engine.score}</div>
+              <div style="font-size: 14px; font-weight: 800; color: #ffd700; margin-top: 6px; letter-spacing: 1px;">BEST: ${Math.max(progress.highscore, this.engine.score)}</div>
+            </div>
+            ` : ''}
+  
+            <div style="display: flex; flex-direction: column; gap: 8px; text-align: left; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 16px; margin-bottom: 24px; font-size: 14px; font-weight: 600; color: #ddd;">
+              <div style="display: flex; justify-content: space-between;">
+                <span>Coins Collected</span>
+                <strong style="color: #fff;">+${this.engine.coinsCollectedThisRun} 🟡</strong>
               </div>
-              <div style="position: absolute; right: 0; top: 50%; transform: translateY(-50%); font-size: 14px; color: #fff; font-weight: 800; letter-spacing: 1.5px; background: rgba(0,0,0,0.4); padding: 4px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
-                ${10 - this.engine.revivesUsedThisRun} / 10
+              <div style="display: flex; justify-content: space-between;">
+                <span>Gems Collected</span>
+                <strong style="color: #fff;">+${this.engine.gemsCollectedThisRun} 💎</strong>
               </div>
             </div>
-
-            <div style="display: flex; gap: 12px; justify-content: center;">
-              <button id="btn-confirm-revive" style="flex: 1; padding: 16px; border-radius: 50px; background: #2a2a35; border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); opacity: ${canAfford ? '1' : '0.5'};" ${canAfford ? '' : 'disabled'}>
-                <span style="font-size: 20px; filter: drop-shadow(0 0 5px rgba(0,243,255,0.8));">💎</span>
-                <span style="font-size: 20px; font-weight: 800; color: #fff;">5</span>
-              </button>
-              
-              <button id="btn-ad-revive" style="flex: 1; padding: 16px; border-radius: 50px; background: linear-gradient(135deg, #ff6b00, #ffaa00); border: none; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; box-shadow: 0 0 20px rgba(255, 107, 0, 0.4), 0 4px 10px rgba(0,0,0,0.3);">
-                <span style="font-size: 18px; font-weight: 900; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">🎬 WATCH AD</span>
-              </button>
+  
+  
+  
+            ${this.engine.revivesUsedThisRun < 3 ? `
+            <div class="revive-heartbeat-box">
+              <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
+                <div style="font-size: 12px; font-weight: 800; color: #aaa; letter-spacing: 1px;">
+                  REVIVE
+                </div>
+                <div style="font-size: 10px; font-weight: 800; color: #666;">
+                  ${3 - this.engine.revivesUsedThisRun} / 3
+                </div>
+              </div>
+              <div style="display: flex; gap: 10px; width: 100%; margin-top: 10px;">
+                <button id="btn-confirm-revive" style="flex: 1; padding: 16px; border-radius: 50px; background: #2a2a35; border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); opacity: ${canAfford ? '1' : '0.5'};" ${canAfford ? '' : 'disabled'}>
+                  <span style="font-size: 13px; font-weight: 800; color: #fff;">USE 5 💎</span>
+                </button>
+                <button id="btn-ad-revive" style="flex: 1; padding: 16px; border-radius: 50px; background: linear-gradient(135deg, #ff6b00, #ffaa00); border: none; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; box-shadow: 0 0 20px rgba(255, 107, 0, 0.4), 0 4px 10px rgba(0,0,0,0.3);">
+                  <span style="font-size: 13px; font-weight: 800; color: #fff;">FREE (AD) 📺</span>
+                </button>
+              </div>
             </div>
-          </div>
-          ` : `
-          <div style="background: rgba(255,0,0,0.15); border: 1px solid rgba(255,0,0,0.3); border-radius: 16px; padding: 16px; margin-bottom: 24px;">
-            <div style="font-size: 14px; color: #ff5252; font-weight: 800; letter-spacing: 1px; text-shadow: 0 0 8px rgba(255,82,82,0.5);">MAXIMUM REVIVES REACHED</div>
-          </div>
-          `}
-          
-          <div style="display: flex; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 8px; padding-top: 16px; gap: 12px;">
-            <button id="btn-skip-revive" style="flex: 1; background: rgba(255,255,255,0.1); border: none; border-radius: 12px; color: #fff; font-size: 18px; font-weight: 700; cursor: pointer; padding: 16px; transition: background 0.2s;">TRY AGAIN</button>
+            ` : `
+            <div style="background: rgba(255,0,0,0.15); border: 1px solid rgba(255,0,0,0.3); border-radius: 16px; padding: 16px; margin-bottom: 24px;">
+              <div style="font-size: 14px; color: #ff5252; font-weight: 800; letter-spacing: 1px; text-shadow: 0 0 8px rgba(255,82,82,0.5);">MAXIMUM REVIVES REACHED</div>
+            </div>
+            `}
+            
+            <div style="display: flex; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 8px; padding-top: 16px; gap: 12px;">
+              <button id="btn-skip-revive" style="flex: 1; background: rgba(255,255,255,0.1); border: none; border-radius: 12px; color: #fff; font-size: 18px; font-weight: 700; cursor: pointer; padding: 16px; transition: background 0.2s;">TRY AGAIN</button>
+            </div>
           </div>
         </div>
       </div>
@@ -2340,7 +2758,7 @@ export class UIManager {
 
     document.getElementById('btn-ad-revive')?.addEventListener('click', () => {
       this.engine.soundManager.playUIClick();
-      AdManager.showReviveRewarded((success) => {
+      AdManager.showReviveInterstitial((success) => {
         if (success) {
           this.engine.attemptReviveFree();
           this.engine.progressManager.updateQuestProgress('watch_ads', 1);
@@ -2373,25 +2791,13 @@ export class UIManager {
 
   private renderLevelComplete() {
     const levelNum = this.engine.currentLevelNum;
-    const levelConfig = LevelManager.getLevel(levelNum);
-    const starsMap = this.engine.progressManager.getState().levelModeStars || {};
-    const stars = starsMap[levelNum] || 0;
-    
-    let starsHtml = '';
-    for (let s = 1; s <= 3; s++) {
-      starsHtml += `<span class="complete-screen-star ${s <= stars ? 'filled' : ''} star-anim-${s}">★</span>`;
-    }
 
     const winHTML = `
-      <div class="overlay-screen fade-in glass-modal">
-        <div class="modal-card win-card animate-slide-up" style="background: rgba(8, 5, 26, 0.95); border: 2px solid rgba(0, 255, 136, 0.25); box-shadow: 0 0 25px rgba(0, 255, 136, 0.15);">
-          <div class="trophy-badge" style="font-size: 55px; filter: drop-shadow(0 0 10px rgba(255,215,0,0.5)); margin-bottom: 5px;">🏆</div>
+      <div class="overlay-screen fade-in glass-modal" style="display: flex; align-items: center; justify-content: center;">
+        <div style="transform: scale(0.8); width: 100%; display: flex; justify-content: center;">
+          <div class="modal-card win-card animate-slide-up" style="background: transparent; backdrop-filter: none; border: 2px solid rgba(0, 255, 136, 0.25); box-shadow: 0 0 25px rgba(0, 255, 136, 0.15);">
+            <div class="trophy-badge" style="font-size: 55px; filter: drop-shadow(0 0 10px rgba(255,215,0,0.5)); margin-bottom: 5px;">🎉</div>
           <h2 class="modal-title success-text" style="color: #00ff88; text-shadow: 0 0 10px rgba(0,255,136,0.4); font-size: 26px; font-weight: 800; text-transform: uppercase;">LEVEL COMPLETE!</h2>
-          <p class="modal-subtitle" style="font-weight: 800; font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 2px;">${levelConfig?.name || `Level ${levelNum}`}</p>
-
-          <div class="complete-stars-box" style="display: flex; justify-content: center; gap: 12px; margin: 15px 0; font-size: 38px;">
-            ${starsHtml}
-          </div>
 
           <div class="rewards-summary" style="margin-top: 15px; width: 100%; display: flex; flex-direction: column; gap: 8px;">
             <div class="reward-row" style="display: flex; justify-content: space-between; padding: 6px 12px; background: rgba(255,255,255,0.03); border-radius: 8px;">
@@ -2412,6 +2818,7 @@ export class UIManager {
             <button class="btn btn-secondary" id="btn-retry-level" style="width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; cursor: pointer; font-weight: 800; font-size: 13px;">REPLAY LEVEL</button>
             <button class="btn btn-secondary" id="btn-quit-levels-back" style="width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; cursor: pointer; font-weight: 800; font-size: 13px;">RETURN TO LEVELS</button>
           </div>
+        </div>
         </div>
       </div>
     `;
@@ -2570,8 +2977,7 @@ export class UIManager {
     const toast = document.createElement('div');
     toast.className = 'toast-alert glass-card fade-in';
     toast.innerHTML = `
-      <div class="toast-indicator">🔔</div>
-      <div>
+      <div style="text-align: center; width: 100%;">
         <div class="toast-title">${title}</div>
         <div class="toast-desc">${msg}</div>
       </div>
@@ -2661,7 +3067,7 @@ export class UIManager {
           font-family: 'Outfit', sans-serif;
         }
         .mode-3d-card-wrapper {
-          background: rgba(18, 12, 30, 0.65);
+          background: rgba(18, 12, 30, 0.35);
           border: 1.5px solid rgba(255, 255, 255, 0.08);
           border-radius: 24px;
           padding: 24px 20px;
@@ -2689,7 +3095,7 @@ export class UIManager {
         }
         .mode-3d-card {
           flex: 1;
-          background: linear-gradient(135deg, rgba(32, 24, 48, 0.7) 0%, rgba(16, 12, 28, 0.85) 100%);
+          background: linear-gradient(135deg, rgba(32, 24, 48, 0.4) 0%, rgba(16, 12, 28, 0.55) 100%);
           border-radius: 18px;
           position: relative;
           display: flex;
@@ -2755,11 +3161,11 @@ export class UIManager {
         /* 3D arcade buttons */
         .mode-3d-btn {
           width: 100%;
-          padding: 8px 6px;
-          font-size: 11px;
+          padding: 12px 10px;
+          font-size: 14px;
           font-weight: 900;
           text-transform: uppercase;
-          border-radius: 10px;
+          border-radius: 12px;
           border: none;
           cursor: pointer;
           transition: all 0.15s ease-out;
@@ -2767,20 +3173,20 @@ export class UIManager {
         .classic-3d-btn {
           background: linear-gradient(180deg, #ffd700 0%, #ff9900 100%);
           color: #2b1c00;
-          box-shadow: 0 4px 0 #9c6300, 0 4px 10px rgba(255, 170, 0, 0.25);
+          box-shadow: 0 5px 0 #9c6300, 0 5px 12px rgba(255, 170, 0, 0.25);
         }
         .classic-3d-btn:hover {
           background: linear-gradient(180deg, #ffe54d 0%, #ffa200 100%);
-          box-shadow: 0 4px 0 #9c6300, 0 6px 14px rgba(255, 170, 0, 0.35);
+          box-shadow: 0 5px 0 #9c6300, 0 7px 16px rgba(255, 170, 0, 0.35);
         }
         .squad-3d-btn {
           background: linear-gradient(180deg, #00f3ff 0%, #0066ff 100%);
           color: #001a33;
-          box-shadow: 0 4px 0 #004da8, 0 4px 10px rgba(0, 136, 255, 0.25);
+          box-shadow: 0 5px 0 #004da8, 0 5px 12px rgba(0, 136, 255, 0.25);
         }
         .squad-3d-btn:hover {
           background: linear-gradient(180deg, #4df7ff 0%, #1a80ff 100%);
-          box-shadow: 0 4px 0 #004da8, 0 6px 14px rgba(0, 136, 255, 0.35);
+          box-shadow: 0 5px 0 #004da8, 0 7px 16px rgba(0, 136, 255, 0.35);
         }
 
         /* Mobile Responsive 3D Styling (Lightweight & Smooth) */
@@ -2818,8 +3224,8 @@ export class UIManager {
           }
           .mode-3d-btn {
             width: auto !important;
-            padding: 6px 14px !important;
-            font-size: 11px !important;
+            padding: 10px 22px !important;
+            font-size: 13px !important;
           }
         }
       </style>
@@ -2829,7 +3235,7 @@ export class UIManager {
           <!-- Close button in corner -->
           <button id="btn-close-mode-selector" style="position: absolute; right: 15px; top: 15px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50%; color: white; width: 32px; height: 32px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">×</button>
           
-          <h2 style="color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); font-size: 22px; font-weight: 900; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">SELECT GAME MODE</h2>
+          <h2 style="color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); font-size: 18px; font-weight: 900; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">SELECT GAME MODE</h2>
           <p style="color: rgba(255, 255, 255, 0.5); font-size: 11px; margin-bottom: 6px; letter-spacing: 0.2px;">Choose your endless adventure</p>
           
           <div class="mode-3d-container">
@@ -3224,6 +3630,28 @@ export class UIManager {
       isCompleted,
       isReady
     };
+  }
+
+  /** Returns true if there is at least one unclaimed mission reward, a ready chest, or an available special offer ad. */
+  private hasClaimableRewards(): boolean {
+    const progress = this.engine.progressManager.getState();
+    const quests = progress.dailyQuests || [];
+
+    // 1. Any mission completed but not yet claimed
+    const hasUnclaimedMission = quests.some(q => q.current >= q.target && !q.claimed);
+    if (hasUnclaimedMission) return true;
+
+    // 2. Any mysterious box ready to open
+    const anyChestReady = [1, 2, 3].some(id => this.getChestStatus(id).isReady);
+    if (anyChestReady) return true;
+
+    // 3. Special offer ad cooldown has expired (can claim again)
+    const lastSpecialOffer = progress.lastSpecialOfferAdTime || 0;
+    const offerCooldown = 24 * 60 * 60 * 1000;
+    const specialOfferAvailable = (Date.now() - lastSpecialOffer) >= offerCooldown;
+    if (specialOfferAvailable) return true;
+
+    return false;
   }
 
   private getChestsHtml(): string {
@@ -3960,101 +4388,6 @@ export class UIManager {
     `;
   }
 
-  private getJungleTempleWorldIconSvg(width: string, height: string): string {
-    return `
-<svg viewBox="0 0 100 100" style="width: ${width}; height: ${height}; display: inline-block; vertical-align: middle; filter: drop-shadow(0 0 8px rgba(255,215,0,0.6));" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <!-- Background Sunset/Sacred Sky Gradient -->
-    <linearGradient id="templeBgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#1e1b4b" />
-      <stop offset="50%" stop-color="#451a03" />
-      <stop offset="100%" stop-color="#14532d" />
-    </linearGradient>
-    <!-- Gold/Light Rays Radial Gradient -->
-    <radialGradient id="sunGlow" cx="50%" cy="45%" r="55%">
-      <stop offset="0%" stop-color="#fef08a" stop-opacity="1" />
-      <stop offset="40%" stop-color="#eab308" stop-opacity="0.8" />
-      <stop offset="70%" stop-color="#ca8a04" stop-opacity="0.3" />
-      <stop offset="100%" stop-color="#ca8a04" stop-opacity="0" />
-    </radialGradient>
-    <!-- Ancient Stone Gradients -->
-    <linearGradient id="stoneGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#94a3b8" />
-      <stop offset="100%" stop-color="#475569" />
-    </linearGradient>
-    <linearGradient id="stoneGradMossy" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#6b7280" />
-      <stop offset="100%" stop-color="#1e3a1e" />
-    </linearGradient>
-  </defs>
-
-  <clipPath id="circleClipTemple">
-    <circle cx="50" cy="50" r="46" />
-  </clipPath>
-
-  <!-- Base Glow Shadow Outer Ring -->
-  <circle cx="50" cy="50" r="48" fill="none" stroke="#eab308" stroke-width="2.5" opacity="0.8" />
-  <circle cx="50" cy="50" r="46" fill="url(#templeBgGrad)" />
-
-  <g clip-path="url(#circleClipTemple)">
-    <!-- Sun Glow Behind the Temple -->
-    <circle cx="50" cy="45" r="40" fill="url(#sunGlow)" />
-    
-    <!-- Lightrays shooting outwards -->
-    <polygon points="50,45 25,-10 35,-10" fill="#fef08a" opacity="0.25" />
-    <polygon points="50,45 65,-10 75,-10" fill="#fef08a" opacity="0.25" />
-    <polygon points="50,45 -10,25 -10,35" fill="#fef08a" opacity="0.2" />
-    <polygon points="50,45 110,25 110,35" fill="#fef08a" opacity="0.2" />
-    <polygon points="50,45 10,85 18,90" fill="#fef08a" opacity="0.15" />
-    <polygon points="50,45 90,85 82,90" fill="#fef08a" opacity="0.15" />
-
-    <!-- Distant Forest/Jungle silhouette behind temple -->
-    <path d="M 0,65 Q 20,55 40,65 T 80,60 T 100,65 L 100,100 L 0,100 Z" fill="#14532d" opacity="0.75" />
-
-    <!-- Mayan/Aztec Temple Step Pyramid (Mossy Stone) -->
-    <!-- Base Layer (Bottom Step) -->
-    <polygon points="20,85 80,85 74,74 26,74" fill="url(#stoneGradMossy)" stroke="#0f172a" stroke-width="1" />
-    <!-- Middle Layer (Second Step) -->
-    <polygon points="28,74 72,74 67,63 33,63" fill="url(#stoneGrad)" stroke="#0f172a" stroke-width="1" />
-    <!-- Top Layer (Third Step / Sanctuary) -->
-    <polygon points="36,63 64,63 60,50 40,50" fill="url(#stoneGrad)" stroke="#0f172a" stroke-width="1" />
-    
-    <!-- Temple Door / Portal (leads to mystery, glows slightly) -->
-    <path d="M 45,63 L 45,54 C 45,51 55,51 55,54 L 55,63 Z" fill="#020617" />
-    <path d="M 47,63 L 47,56 C 47,54 53,54 53,56 L 53,63 Z" fill="#fef08a" opacity="0.45" />
-
-    <!-- Temple steps detail (center steps going up) -->
-    <polygon points="42,85 58,85 55,50 45,50" fill="#334155" opacity="0.5" />
-    <!-- Step line indicators -->
-    <line x1="44" y1="74" x2="56" y2="74" stroke="#0f172a" stroke-width="0.8" />
-    <line x1="45" y1="63" x2="55" y2="63" stroke="#0f172a" stroke-width="0.8" />
-    <line x1="46" y1="56" x2="54" y2="56" stroke="#0f172a" stroke-width="0.8" />
-
-    <!-- Moss and Vines hanging over the temple -->
-    <!-- Vines hanging on left of temple -->
-    <path d="M 25,74 Q 22,80 23,85" fill="none" stroke="#22c55e" stroke-width="1" />
-    <circle cx="23" cy="80" r="1.5" fill="#4ade80" />
-    <circle cx="24" cy="84" r="1.2" fill="#15803d" />
-    
-    <!-- Vines hanging on top right -->
-    <path d="M 62,50 Q 65,58 63,63" fill="none" stroke="#22c55e" stroke-width="0.8" />
-    <circle cx="64" cy="56" r="1.2" fill="#4ade80" />
-    
-    <!-- Foliage framing the bottom left/right corners -->
-    <path d="M -5,95 Q 15,80 30,105 Z" fill="#15803d" />
-    <path d="M 105,95 Q 85,80 70,105 Z" fill="#166534" />
-    <path d="M 5,105 Q 20,90 35,105 Z" fill="#22c55e" />
-    
-    <!-- Sacred golden magic particles rising around temple -->
-    <circle cx="28" cy="48" r="1.2" fill="#fef08a" opacity="0.9" />
-    <circle cx="72" cy="40" r="0.9" fill="#fef08a" opacity="0.8" />
-    <circle cx="50" cy="30" r="1.5" fill="#fef08a" opacity="0.95" />
-    <circle cx="40" cy="42" r="1.0" fill="#fef08a" opacity="0.75" />
-    <circle cx="58" cy="46" r="0.8" fill="#fef08a" opacity="0.8" />
-  </g>
-</svg>
-    `;
-  }
 
   private getIceWorldIconSvg(width: string, height: string): string {
     return `
@@ -4522,7 +4855,7 @@ export class UIManager {
     `;
   }
 
-  public showChestRewardPopup(chestName: string, coins: number, gems: number) {
+  public showChestRewardPopup(chestName: string, coins: number, gems: number, unlockedCharName?: string, unlockedWorldName?: string) {
     // Remove any existing reward popup
     const existing = document.getElementById('chest-reward-modal-overlay');
     if (existing) existing.remove();
@@ -4553,6 +4886,72 @@ export class UIManager {
       font-family: 'Outfit', sans-serif;
     `;
 
+    let rewardsHtml = '';
+    if (coins > 0 || gems > 0) {
+      rewardsHtml += `<div style="display: flex; justify-content: center; gap: 16px; margin-bottom: 20px;">`;
+      if (coins > 0) {
+        rewardsHtml += `
+          <!-- Coins Reward -->
+          <div style="
+            flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.25);
+            border-radius: 16px; padding: 12px 6px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+            box-shadow: 0 4px 12px rgba(212,175,55,0.1);
+          ">
+            <span style="width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; filter: drop-shadow(0 0 4px rgba(212,175,55,0.5));">
+              ${this.getCoinIconSvg('26px', '26px', '', 'chest-reward')}
+            </span>
+            <span style="font-size: 14px; font-weight: 900; color: #ffe47a;">+${coins}</span>
+            <span style="font-size: 7px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase;">Gold Coins</span>
+          </div>
+        `;
+      }
+      if (gems > 0) {
+        rewardsHtml += `
+          <!-- Gems Reward -->
+          <div style="
+            flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(0,168,255,0.25);
+            border-radius: 16px; padding: 12px 6px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+            box-shadow: 0 4px 12px rgba(0,168,255,0.1);
+          ">
+            <span style="font-size: 24px; filter: drop-shadow(0 0 4px rgba(0,168,255,0.5));">💎</span>
+            <span style="font-size: 14px; font-weight: 900; color: #a8e5ff;">+${gems}</span>
+            <span style="font-size: 7px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase;">Cosmic Gems</span>
+          </div>
+        `;
+      }
+      rewardsHtml += `</div>`;
+    }
+
+    if (unlockedCharName) {
+      rewardsHtml += `
+        <!-- Character Reward -->
+        <div style="
+          background: rgba(255, 0, 127, 0.05); border: 1.5px solid rgba(255, 0, 127, 0.4);
+          border-radius: 16px; padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px;
+          box-shadow: 0 4px 12px rgba(255, 0, 127, 0.2); margin-bottom: 20px;
+        ">
+          <span style="font-size: 28px; animation: chestFloat 2s ease-in-out infinite;">🐦</span>
+          <span style="font-size: 12px; font-weight: 900; color: #ff007f; letter-spacing: 0.5px; text-transform: uppercase; text-shadow: 0 0 5px rgba(255,0,127,0.3);">${unlockedCharName}</span>
+          <span style="font-size: 8px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px;">New Character Unlocked!</span>
+        </div>
+      `;
+    }
+
+    if (unlockedWorldName) {
+      rewardsHtml += `
+        <!-- World Reward -->
+        <div style="
+          background: rgba(0, 255, 136, 0.05); border: 1.5px solid rgba(0, 255, 136, 0.4);
+          border-radius: 16px; padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px;
+          box-shadow: 0 4px 12px rgba(0, 255, 136, 0.2); margin-bottom: 20px;
+        ">
+          <span style="font-size: 28px; animation: chestFloat 2.5s ease-in-out infinite;">🌍</span>
+          <span style="font-size: 12px; font-weight: 900; color: #00ffaa; letter-spacing: 0.5px; text-transform: uppercase; text-shadow: 0 0 5px rgba(0,255,136,0.3);">${unlockedWorldName}</span>
+          <span style="font-size: 8px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px;">New World Unlocked!</span>
+        </div>
+      `;
+    }
+
     overlay.innerHTML = `
       <div class="topup-modal-card glass-card" style="
         width: 85%;
@@ -4579,29 +4978,7 @@ export class UIManager {
           You successfully opened a <span style="color: #ffd700; font-weight: 900;">${chestName}</span>!
         </div>
 
-        <div style="display: flex; justify-content: center; gap: 16px; margin-bottom: 26px;">
-          <!-- Coins Reward -->
-          <div style="
-            flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.25);
-            border-radius: 16px; padding: 12px 6px; display: flex; flex-direction: column; align-items: center; gap: 6px;
-            box-shadow: 0 4px 12px rgba(212,175,55,0.1);
-          ">
-            <span style="font-size: 24px; filter: drop-shadow(0 0 4px rgba(212,175,55,0.5));">🟡</span>
-            <span style="font-size: 14px; font-weight: 900; color: #ffe47a;">+${coins}</span>
-            <span style="font-size: 7px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase;">Gold Coins</span>
-          </div>
-
-          <!-- Gems Reward -->
-          <div style="
-            flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(0,168,255,0.25);
-            border-radius: 16px; padding: 12px 6px; display: flex; flex-direction: column; align-items: center; gap: 6px;
-            box-shadow: 0 4px 12px rgba(0,168,255,0.1);
-          ">
-            <span style="font-size: 24px; filter: drop-shadow(0 0 4px rgba(0,168,255,0.5));">💎</span>
-            <span style="font-size: 14px; font-weight: 900; color: #a8e5ff;">+${gems}</span>
-            <span style="font-size: 7px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase;">Cosmic Gems</span>
-          </div>
-        </div>
+        ${rewardsHtml}
 
         <button id="chest-reward-claim-btn" style="
           width: 100%;
@@ -4632,6 +5009,74 @@ export class UIManager {
         overlay.remove();
       });
     }
+  }
+
+  private getCoinIconSvg(width: string, height: string, extraStyle: string = '', idSuffix: string = 'main'): string {
+    return `
+<svg viewBox="0 0 100 100" style="width: ${width}; height: ${height}; display: block; overflow: visible; ${extraStyle}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 3D Coin Rim Gradient (Sleek metallic gold) -->
+    <linearGradient id="goldRimGrad-${idSuffix}" x1="15%" y1="15%" x2="85%" y2="85%">
+      <stop offset="0%" stop-color="#fff8cc" />
+      <stop offset="30%" stop-color="#ffdf00" />
+      <stop offset="70%" stop-color="#cca300" />
+      <stop offset="100%" stop-color="#805000" />
+    </linearGradient>
+    
+    <!-- Coin Inner Face Gradient (Slightly darker inset for contrast) -->
+    <linearGradient id="goldFaceGrad-${idSuffix}" x1="15%" y1="15%" x2="85%" y2="85%">
+      <stop offset="0%" stop-color="#ffe680" />
+      <stop offset="50%" stop-color="#e6b800" />
+      <stop offset="100%" stop-color="#997300" />
+    </linearGradient>
+
+    <!-- Bird Logo Gradient (Bright golden metallic gold) -->
+    <linearGradient id="logoGrad-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="30%" stop-color="#ffea7a" />
+      <stop offset="70%" stop-color="#d4af37" />
+      <stop offset="100%" stop-color="#aa7c00" />
+    </linearGradient>
+  </defs>
+
+  <!-- 3D Coin Extrusion (Dark base offset downwards to give thickness) -->
+  <circle cx="50" cy="53" r="45" fill="#523200" />
+  
+  <!-- Outer Gold Rim -->
+  <circle cx="50" cy="50" r="45" fill="url(#goldRimGrad-${idSuffix})" stroke="#6b4000" stroke-width="1" />
+  
+  <!-- Inner Coin Plate (Creating a beveled inset look) -->
+  <circle cx="50" cy="50" r="38" fill="url(#goldFaceGrad-${idSuffix})" stroke="#fff8cc" stroke-width="0.8" />
+  
+  <!-- Dotted Inner Rim Details -->
+  <circle cx="50" cy="50" r="32" fill="none" stroke="#fff8cc" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.4" />
+
+  <!-- 3D Engraved Bird Head Logo -->
+  <g transform="translate(10, 10) scale(0.8)">
+    <!-- 1. Highlight / Shadow underlay (creates debossed 3D depth) -->
+    <g transform="translate(1, 1.5)" opacity="0.9">
+      <circle cx="44" cy="46" r="22" fill="#6b4000" />
+      <path d="M 62,42 C 74,42 80,46 74,52 C 68,56 62,50 62,42 Z" fill="#6b4000" />
+      <path d="M 60,48 C 70,50 72,54 66,56 C 60,58 58,51 60,48 Z" fill="#6b4000" />
+      <path d="M 28,46 C 22,32 38,20 44,32 C 48,42 38,52 28,46 Z" fill="#6b4000" />
+    </g>
+
+    <!-- 2. Main Logo body overlay -->
+    <g stroke="#6b4000" stroke-width="0.8" stroke-linejoin="round">
+      <!-- Head -->
+      <circle cx="44" cy="46" r="22" fill="url(#logoGrad-${idSuffix})" />
+      <!-- Beak (Upper & Lower) -->
+      <path d="M 62,42 C 74,42 80,46 74,52 C 68,56 62,50 62,42 Z" fill="url(#logoGrad-${idSuffix})" />
+      <path d="M 60,48 C 70,50 72,54 66,56 C 60,58 58,51 60,48 Z" fill="url(#logoGrad-${idSuffix})" />
+      <!-- Eye Inset -->
+      <circle cx="48" cy="38" r="7" fill="url(#goldFaceGrad-${idSuffix})" stroke="none" />
+      <circle cx="49.5" cy="38" r="3" fill="#6b4000" stroke="none" />
+      <!-- Wing -->
+      <path d="M 28,46 C 22,32 38,20 44,32 C 48,42 38,52 28,46 Z" fill="url(#logoGrad-${idSuffix})" />
+    </g>
+  </g>
+</svg>
+    `;
   }
 
 }

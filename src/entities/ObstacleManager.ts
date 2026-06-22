@@ -70,7 +70,7 @@ export class ObstacleManager {
   private obstacleWidth = 72;
   private currentScore = 0;
   private waveTime = 0;
-  private nextSpawnDistance = 350;
+  private nextSpawnDistance = 550;
 
   private activeLevelConfig: any = null;
   private currentPatternIdx = 0;
@@ -153,7 +153,7 @@ export class ObstacleManager {
     }
     this.spawnTimer = 0;
     this.waveTime = 0;
-    this.nextSpawnDistance = 350;
+    this.nextSpawnDistance = 550;
     this.currentPatternIdx = 0;
     this.currentScore = 0;
     this.endlessPatternQueue = [];
@@ -1388,7 +1388,7 @@ export class ObstacleManager {
               pGlow = true;
               pGlowColor = pColor;
               pShape = Math.random() > 0.5 ? 'star' : 'spark';
-            } else if (obs.worldId === 'jungle' || obs.worldId === 'jungle_temple') {
+            } else if (obs.worldId === 'jungle') {
               pColor = Math.random() < 0.5 ? '#228b22' : '#39ff14';
               pShape = 'spark';
             } else if (obs.worldId === 'ice') {
@@ -1817,6 +1817,32 @@ export class ObstacleManager {
       return;
     }
 
+    const isFirstSpawn = (this.activeLevelConfig ? this.currentPatternIdx === 0 : this.endlessObstacleCount === 0) && this.list.length === 0;
+    if (isFirstSpawn) {
+      const initialX = width > 0 ? width * 0.92 : 360;
+      const dynamicGap = zone === 'classic' ? startGap : (startGap - (startGap - minGap) * progressRatio);
+      let gapWithDifficulty = this.activeLevelConfig ? this.activeLevelConfig.gapHeight : dynamicGap;
+      if (gameMode === 'endless') {
+        if (score >= 300 && score < 500) {
+          gapWithDifficulty *= 0.88;
+        } else if (score >= 500) {
+          gapWithDifficulty *= 0.85;
+        }
+      }
+      this.spawnObstacle(worldId, width, height, gapWithDifficulty, zone, difficulty, progressRatio, score, gameMode, initialX);
+
+      if (this.activeLevelConfig) {
+        this.nextSpawnDistance = this.obstacleWidth;
+      } else {
+        let dist = 280;
+        if (gameMode === 'flock') {
+          dist = Math.max(350, Math.min(550, dist));
+        }
+        this.nextSpawnDistance = dist;
+      }
+      this.spawnTimer = 0;
+    }
+
     this.spawnTimer += actualScrollSpeed;
     if (this.spawnTimer >= this.nextSpawnDistance) {
       this.spawnTimer = 0;
@@ -1828,6 +1854,17 @@ export class ObstacleManager {
 
       // Apply endless progressive difficulty gap scaling (kept completely constant as requested)
       let gapWithDifficulty = this.activeLevelConfig ? this.activeLevelConfig.gapHeight : dynamicGap;
+
+      // Classic Mode (Endless) vertical path gap reduction:
+      // Score 300 to 500: reduce by 12%
+      // Score 500 to endless: reduce by 15%
+      if (gameMode === 'endless') {
+        if (score >= 300 && score < 500) {
+          gapWithDifficulty *= 0.88;
+        } else if (score >= 500) {
+          gapWithDifficulty *= 0.85;
+        }
+      }
 
       this.spawnObstacle(worldId, width, height, gapWithDifficulty, zone, difficulty, progressRatio, score, gameMode);
 
@@ -1914,7 +1951,8 @@ export class ObstacleManager {
     difficulty: 'easy' | 'medium' | 'hard' = 'medium',
     _progressRatio = 0,
     score = 0,
-    gameMode: 'endless' | 'level' | 'flock' | 'rescue' | 'formation' = 'endless'
+    gameMode: 'endless' | 'level' | 'flock' | 'rescue' | 'formation' = 'endless',
+    customX?: number
   ) {
     if (this.activeLevelConfig) {
       const levelNumPlayable = this.activeLevelConfig.levelNum;
@@ -1934,6 +1972,16 @@ export class ObstacleManager {
       const scaleFactor = 6 / groupSize;
       const obstacleIdx = Math.min(17, Math.floor(groupIdx * 6 + idxInGroup * scaleFactor));
       this.currentPatternIdx++;
+
+      let spawnX = width + 50;
+      if (customX !== undefined) {
+        spawnX = customX;
+      } else if (this.list.length > 0) {
+        const prevObs = this.list[this.list.length - 1];
+        if (idxInGroup !== 0) {
+          spawnX = prevObs.x + this.obstacleWidth;
+        }
+      }
 
       let triggerDistance = 220;
       let animDuration = 0.45;
@@ -2337,11 +2385,11 @@ export class ObstacleManager {
           targetCenterY = height / 2 - 50 + obstacleIdx * 15;
           localGapHeight = Math.round(gapHeight * 0.75); // 25% reduce
         } else if (actualPatternIdx < groupSize * 2) {
-          targetCenterY = height / 2 + 55 - (obstacleIdx - 6) * 20;
-          localGapHeight = Math.round(gapHeight * 0.85); // 15% reduce
+          targetCenterY = height / 2 + 44 - (obstacleIdx - 6) * 16; // 20% reduction in Y displacement amplitude (55 -> 44, 20 -> 16)
+          localGapHeight = Math.round(gapHeight * 0.85 * 1.20); // 15% reduce, increased by 20% (net 1.02)
         } else {
           targetCenterY = height / 2 - 45 + Math.sin((obstacleIdx - 12) * (Math.PI / 3)) * 30;
-          localGapHeight = Math.round(gapHeight * 0.78); // 22% reduce
+          localGapHeight = Math.round(gapHeight * 0.78 * 1.20); // 22% reduce, increased by 20% (net 0.936)
         }
         triggerDistance = 215;
         animDuration = 0.43;
@@ -2972,7 +3020,7 @@ export class ObstacleManager {
       }
 
       this.list.push(this.acquireObstacle({
-        x: width + 50,
+        x: spawnX,
         width: this.obstacleWidth,
         topHeight: closedTopHeight,
         bottomHeight: closedBottomHeight,
@@ -3118,7 +3166,7 @@ export class ObstacleManager {
     }
 
     this.list.push(this.acquireObstacle({
-      x: width + 50,
+      x: customX !== undefined ? customX : (width + 50),
       width: this.obstacleWidth,
       topHeight,
       bottomHeight,
@@ -3610,6 +3658,7 @@ export class ObstacleManager {
     ctx.shadowBlur = 0; // Disable shadows for high performance
     for (let i = 0; i < this.list.length; i++) {
       const obs = this.list[i];
+      const scoreForStyle = obs.spawnScore !== undefined ? obs.spawnScore : this.currentScore;
 
       // Store original float values to keep physics update clean and drift-free
       const origX = obs.x;
@@ -3635,11 +3684,6 @@ export class ObstacleManager {
               colorBottom = '#3c3d33';
               outlineColor = '#181914';
               break;
-            case 'jungle_temple':
-              colorTop = '#3a533c';
-              colorBottom = '#243325';
-              outlineColor = '#0b130c';
-              break;
             case 'ice':
               colorTop = '#e0ffff';
               colorBottom = '#4682b4';
@@ -3656,9 +3700,9 @@ export class ObstacleManager {
               outlineColor = '#ff1a00';
               break;
             case 'space':
-              colorTop = '#8a2be2';
-              colorBottom = '#4b0082';
-              outlineColor = '#da70d6';
+              colorTop = '#701a75';
+              colorBottom = '#1e3a8a';
+              outlineColor = '#06b6d4';
               break;
             case 'underwater':
               colorTop = '#20b2aa';
@@ -3678,40 +3722,73 @@ export class ObstacleManager {
           }
 
           this.drawCavernObstacle(ctx, obs, height, colorTop, colorBottom, outlineColor);
-        } else if (this.currentScore >= 50 && this.currentScore <= 75) {
+        } else if (scoreForStyle >= 350 && scoreForStyle <= 500) {
+          // Score 350-500: 3D Pillars (was score 50-75)
           this.draw3DPillars(ctx, obs, height);
         } else {
-          const styleIdx = Math.floor(this.currentScore / 25) % 4;
-          switch (obs.worldId) {
-            case 'jungle':
-              this.drawJunglePillars(ctx, obs, height, styleIdx);
-              break;
-            case 'jungle_temple':
-              this.drawJungleTemplePillars(ctx, obs, height, styleIdx);
-              break;
-            case 'ice':
-              this.drawIcePillars(ctx, obs, height, styleIdx);
-              break;
-            case 'desert':
-              this.drawDesertPillars(ctx, obs, height, styleIdx);
-              break;
-            case 'volcano':
-              this.drawVolcanoPillars(ctx, obs, height, styleIdx);
-              break;
-            case 'space':
-              this.drawSpaceObstacles(ctx, obs, height, styleIdx);
-              break;
-            case 'underwater':
-              this.drawUnderwaterPillars(ctx, obs, height, styleIdx);
-              break;
-            case 'heaven':
-              this.drawHeavenPillars(ctx, obs, height, styleIdx);
-              break;
-            case 'retro':
-              this.drawRetroPillars(ctx, obs, height, styleIdx);
-              break;
-            default:
-              this.drawDefaultPillars(ctx, obs, height, styleIdx);
+          // Style selection: 4 style slots → [styleIdx 0, styleIdx 1, styleIdx 3, 3D pillars]
+          // Score   1-100 → fixed styleIdx 0
+          // Score 100-200 → fixed styleIdx 1
+          // Score 200-350 → fixed styleIdx 3
+          // Score 500-600 → alternate every 4 obstacles
+          // Score 600-700 → alternate every 2 obstacles
+          // Score 700-1000→ alternate every 1 obstacle
+          let styleSlot: number; // 0-3, where 3 = 3D pillars
+          if (scoreForStyle <= 100) {
+            styleSlot = 0;
+          } else if (scoreForStyle <= 200) {
+            styleSlot = 1;
+          } else if (scoreForStyle <= 350) {
+            styleSlot = 2; // maps to styleIdx 3
+          } else if (scoreForStyle <= 600) {
+            // 500-600: change style every 4 obstacles (use persistent spawn index)
+            const idx = obs.obstacleIdx || 0;
+            styleSlot = Math.floor(idx / 4) % 4;
+          } else if (scoreForStyle <= 700) {
+            // 600-700: change style every 2 obstacles
+            const idx = obs.obstacleIdx || 0;
+            styleSlot = Math.floor(idx / 2) % 4;
+          } else {
+            // 700-1000+: change style every 1 obstacle
+            const idx = obs.obstacleIdx || 0;
+            styleSlot = idx % 4;
+          }
+
+          // Map slot to actual style: slots 0,1,2 → styleIdx 0,1,3; slot 3 → 3D pillars
+          const slotToStyle = [0, 1, 3]; // slots 0-2
+          if (styleSlot === 3) {
+            // 3D Pillars
+            this.draw3DPillars(ctx, obs, height);
+          } else {
+            const styleIdx = slotToStyle[styleSlot];
+            switch (obs.worldId) {
+              case 'jungle':
+                this.drawJunglePillars(ctx, obs, height, styleIdx);
+                break;
+              case 'ice':
+                this.drawIcePillars(ctx, obs, height, styleIdx);
+                break;
+              case 'desert':
+                this.drawDesertPillars(ctx, obs, height, styleIdx);
+                break;
+              case 'volcano':
+                this.drawVolcanoPillars(ctx, obs, height, styleIdx);
+                break;
+              case 'space':
+                this.drawSpaceObstacles(ctx, obs, height, styleIdx);
+                break;
+              case 'underwater':
+                this.drawUnderwaterPillars(ctx, obs, height, styleIdx);
+                break;
+              case 'heaven':
+                this.drawHeavenPillars(ctx, obs, height, styleIdx);
+                break;
+              case 'retro':
+                this.drawRetroPillars(ctx, obs, height, styleIdx);
+                break;
+              default:
+                this.drawDefaultPillars(ctx, obs, height, styleIdx);
+            }
           }
         }
       };
@@ -3993,12 +4070,6 @@ export class ObstacleManager {
         capColor = '#22c55e';
         strokeColor = '#1b110a';
         break;
-      case 'jungle_temple':
-        tStop0 = '#2d3a30'; tStop3 = '#4a5d4e'; tStop5 = '#81c784'; tStop7 = '#1c241e'; tStop1 = '#0d120f';
-        sideColor = '#0d120f';
-        capColor = '#ffd700';
-        strokeColor = '#0b130c';
-        break;
       case 'ice':
         tStop0 = '#00363a'; tStop3 = '#006064'; tStop5 = '#00acc1'; tStop7 = '#001d20'; tStop1 = '#000a0b';
         sideColor = '#000a0b';
@@ -4018,10 +4089,10 @@ export class ObstacleManager {
         strokeColor = '#ff1a00';
         break;
       case 'space':
-        tStop0 = '#1a237e'; tStop3 = '#3f51b5'; tStop5 = '#e040fb'; tStop7 = '#0f1337'; tStop1 = '#05071a';
-        sideColor = '#05071a';
-        capColor = '#e040fb';
-        strokeColor = '#0a0a23';
+        tStop0 = '#080321'; tStop3 = '#5b21b6'; tStop5 = '#8b5cf6'; tStop7 = '#06b6d4'; tStop1 = '#03001e';
+        sideColor = '#03001e';
+        capColor = '#ffd700';
+        strokeColor = '#06b6d4';
         break;
       case 'underwater':
         tStop0 = '#001f3f'; tStop3 = '#0f3057'; tStop5 = '#008891'; tStop7 = '#001428'; tStop1 = '#000a14';
@@ -4690,23 +4761,23 @@ export class ObstacleManager {
       return;
     }
 
-    let stop0 = '#090014', stop3 = '#2e0854', stop5 = '#da70d6', stop7 = '#18022b', stop1 = '#05000c'; // Style 0: Deep Purple
-    let capGrad0 = '#0f172a', capGrad5 = '#da70d6', capGrad1 = '#0b0f19';
-    let outlineCol = '#da70d6';
-    let beaconCol1 = '#ff1493', beaconCol2 = '#00bfff';
+    let stop0 = '#080321', stop3 = '#5b21b6', stop5 = '#8b5cf6', stop7 = '#06b6d4', stop1 = '#03001e'; // Style 0: Cosmic Violet & Neon Cyan
+    let capGrad0 = '#06b6d4', capGrad5 = '#c084fc', capGrad1 = '#080321';
+    let outlineCol = '#06b6d4';
+    let beaconCol1 = '#06b6d4', beaconCol2 = '#8b5cf6';
 
     if (styleIdx === 1) {
-      // Style 1: Supernova Red
-      stop0 = '#3f0712'; stop3 = '#881337'; stop5 = '#f43f5e'; stop7 = '#4c0519'; stop1 = '#180005';
-      capGrad0 = '#4c0519'; capGrad5 = '#ea580c'; capGrad1 = '#180005';
-      outlineCol = '#ea580c';
-      beaconCol1 = '#ea580c'; beaconCol2 = '#ffd700';
+      // Style 1: Premium Dark Red & Crimson (Score 100-200)
+      stop0 = '#1a0005'; stop3 = '#7f1d1d'; stop5 = '#ef4444'; stop7 = '#991b1b'; stop1 = '#4c0519';
+      capGrad0 = '#991b1b'; capGrad5 = '#ffd700'; capGrad1 = '#4c0519';
+      outlineCol = '#ffd700';
+      beaconCol1 = '#ef4444'; beaconCol2 = '#ffd700';
     } else if (styleIdx === 3) {
-      // Style 3: Solar Flare Gold
-      stop0 = '#78350f'; stop3 = '#ca8a04'; stop5 = '#fef08a'; stop7 = '#a16207'; stop1 = '#451a03';
-      capGrad0 = '#a16207'; capGrad5 = '#eab308'; capGrad1 = '#451a03';
-      outlineCol = '#eab308';
-      beaconCol1 = '#1e3b8a'; beaconCol2 = '#da70d6';
+      // Style 3: Premium Dark Blue & Sapphire (Score 200-350)
+      stop0 = '#030712'; stop3 = '#1d4ed8'; stop5 = '#3b82f6'; stop7 = '#1e3a8a'; stop1 = '#020617';
+      capGrad0 = '#cbd5e1'; capGrad5 = '#f8fafc'; capGrad1 = '#1d4ed8';
+      outlineCol = '#3b82f6';
+      beaconCol1 = '#3b82f6'; beaconCol2 = '#ffffff';
     }
 
     const spaceGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
@@ -5519,12 +5590,12 @@ export class ObstacleManager {
     const drawSpaceBlock = (yStart: number, h: number, _isTop: boolean) => {
       // Dark stellar carbon-alloy panel hybrid space gradient
       const carbonGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      carbonGrad.addColorStop(0, '#0c0722'); // Space indigo
-      carbonGrad.addColorStop(0.4, '#ec4899'); // Cosmic pink nebula
-      carbonGrad.addColorStop(0.7, '#6b21a8'); // Nebula violet
-      carbonGrad.addColorStop(1, '#050211');
+      carbonGrad.addColorStop(0, '#080321'); // Space dark violet
+      carbonGrad.addColorStop(0.4, '#8b5cf6'); // Purple nebula
+      carbonGrad.addColorStop(0.7, '#06b6d4'); // Cyan highlight
+      carbonGrad.addColorStop(1, '#03001e');
       ctx.fillStyle = carbonGrad;
-      ctx.strokeStyle = '#da70d6'; // Neon cosmic purple borders
+      ctx.strokeStyle = '#06b6d4'; // Cyan border
       ctx.lineWidth = 2.5;
 
       ctx.fillRect(rx, yStart, rw, h);
@@ -5533,9 +5604,9 @@ export class ObstacleManager {
       // Pulsing stellar core (quantum warp-gate)
       ctx.save();
       const coreGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      coreGrad.addColorStop(0, 'rgba(218, 112, 214, 0.15)');
-      coreGrad.addColorStop(0.5, 'rgba(0, 243, 255, 0.4)'); // glowing cyan core
-      coreGrad.addColorStop(1, 'rgba(218, 112, 214, 0.15)');
+      coreGrad.addColorStop(0, 'rgba(139, 92, 246, 0.15)');
+      coreGrad.addColorStop(0.5, 'rgba(6, 182, 212, 0.4)'); // glowing cyan core
+      coreGrad.addColorStop(1, 'rgba(139, 92, 246, 0.15)');
       ctx.fillStyle = coreGrad;
       ctx.fillRect(rx + rw * 0.35, yStart, rw * 0.3, h);
       ctx.restore();
@@ -5552,9 +5623,9 @@ export class ObstacleManager {
       // Twinkling warp ring cap at safe boundaries (attractive futuristic design)
       const capY = _isTop ? yStart + h - 22 : yStart;
       const portalGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      portalGrad.addColorStop(0, '#00f3ff');
+      portalGrad.addColorStop(0, '#06b6d4'); // Cyan
       portalGrad.addColorStop(0.5, '#ffffff'); // star bright core
-      portalGrad.addColorStop(1, '#da70d6');
+      portalGrad.addColorStop(1, '#701a75'); // Purple
       ctx.fillStyle = portalGrad;
       ctx.fillRect(rx - 6, capY, rw + 12, 22);
       ctx.strokeRect(rx - 6, capY, rw + 12, 22);
@@ -5707,195 +5778,7 @@ export class ObstacleManager {
     drawHeavenBlock(height - rBottom, rBottom + 1000, false);
   }
 
-  // Draw Jungle Temple Pillars (Standard & Mutated)
-  private drawJungleTemplePillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number, styleIdx = 0) {
-    const rx = obs.x;
-    const rw = obs.width;
-    const rTop = obs.topHeight;
-    const rBottom = obs.bottomHeight;
 
-    if (styleIdx === 2) {
-      this.drawStructuredJungleTemplePillars(ctx, obs, height);
-      return;
-    }
-
-    let stop0 = '#101511', stop3 = '#2d3d31', stop5 = '#4ade80', stop7 = '#1f2921', stop1 = '#0b0f0b'; // Style 0: Mossy green
-    let capGrad0 = '#a16207', capGrad5 = '#fef08a', capGrad1 = '#854d0e'; // stepped gold Aztec
-    let runeCol = 'rgba(212, 175, 55, 0.75)'; // ancient gold
-    let jewelCol = '#00ffaa';
-    let ivyCol = '#166534';
-    let rubyColor = '#ef4444';
-
-    if (styleIdx === 1) {
-      // Style 1: Terracotta Clay
-      stop0 = '#431407'; stop3 = '#7c2d12'; stop5 = '#ea580c'; stop7 = '#9a3412'; stop1 = '#270e04';
-      capGrad0 = '#064e3b'; capGrad5 = '#10b981'; capGrad1 = '#022c22'; // ancient jade caps
-      runeCol = 'rgba(234, 88, 12, 0.75)';
-      jewelCol = '#fbbf24'; // yellow gem
-      ivyCol = '#b45309';
-      rubyColor = '#fbbf24';
-    } else if (styleIdx === 3) {
-      // Style 3: Slate Obsidian
-      stop0 = '#020617'; stop3 = '#0f172a'; stop5 = '#1e293b'; stop7 = '#0f172a'; stop1 = '#020617';
-      capGrad0 = '#a16207'; capGrad5 = '#facc15'; capGrad1 = '#854d0e'; // gold Aztec stepped
-      runeCol = 'rgba(0, 243, 255, 0.75)'; // neon teal rune
-      jewelCol = '#00f3ff'; // cyan gem
-      ivyCol = '#0369a1';
-      rubyColor = '#00f3ff';
-    }
-
-    const drawTempleBlock = (yStart: number, h: number, isTop: boolean) => {
-      const stoneGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      stoneGrad.addColorStop(0, stop0);
-      stoneGrad.addColorStop(0.3, stop3);
-      stoneGrad.addColorStop(0.5, stop5);
-      stoneGrad.addColorStop(0.8, stop7);
-      stoneGrad.addColorStop(1, stop1);
-      ctx.fillStyle = stoneGrad;
-      ctx.strokeStyle = '#0a0d0b';
-      ctx.lineWidth = 3.0;
-
-      ctx.fillRect(rx, yStart, rw, h);
-      ctx.strokeRect(rx, yStart, rw, h);
-
-      // Aztec rune carvings
-      ctx.strokeStyle = runeCol;
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      const rY = yStart + h / 2;
-      ctx.strokeRect(rx + rw * 0.3, rY - 12, 28, 24);
-      ctx.moveTo(rx + rw * 0.3 + 7, rY);
-      ctx.lineTo(rx + rw * 0.3 + 21, rY);
-      ctx.stroke();
-
-      // Embedded gems
-      const isPerfTemple = (window as any).gameDisableShadows;
-      ctx.fillStyle = jewelCol;
-      if (!isPerfTemple) {
-        ctx.shadowBlur = 6;
-        ctx.shadowColor = jewelCol;
-      }
-      ctx.beginPath();
-      ctx.arc(rx + rw * 0.5, rY, 4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-
-      // Stepped crown cap
-      const capY = isTop ? yStart + h - 24 : yStart;
-      const goldGrad = ctx.createLinearGradient(rx - 6, 0, rx + rw + 6, 0);
-      goldGrad.addColorStop(0, capGrad0);
-      goldGrad.addColorStop(0.5, capGrad5);
-      goldGrad.addColorStop(1, capGrad1);
-      ctx.fillStyle = goldGrad;
-      ctx.strokeStyle = '#020617';
-      ctx.lineWidth = 3.0;
-
-      ctx.fillRect(rx - 6, capY, rw + 12, 24);
-      ctx.strokeRect(rx - 6, capY, rw + 12, 24);
-
-      // Flashing ruby
-      const blinkColor = isPerfTemple ? rubyColor : (Math.sin((obs.x || 0) * 0.15) > 0 ? rubyColor : '#7f1d1d');
-      ctx.fillStyle = blinkColor;
-      if (!isPerfTemple) {
-        ctx.shadowBlur = 6;
-        ctx.shadowColor = rubyColor;
-      }
-      ctx.beginPath();
-      ctx.arc(rx + rw / 2, capY + 12, 4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-
-      // Hanging ivy leaves
-      ctx.fillStyle = ivyCol;
-      ctx.beginPath();
-      if (isTop) {
-        ctx.ellipse(rx + 14, yStart + h + 12, 8, 4, Math.PI / 6, 0, Math.PI * 2);
-      } else {
-        ctx.ellipse(rx + rw - 14, yStart - 12, 8, 4, -Math.PI / 6, 0, Math.PI * 2);
-      }
-      ctx.fill();
-    };
-
-    drawTempleBlock(-1000, rTop + 1000, true);
-    drawTempleBlock(height - rBottom, rBottom + 1000, false);
-  }
-
-  // Draw Jungle Temple Structured Stepped Pillars (Score 50-70)
-  private drawStructuredJungleTemplePillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
-    const rx = obs.x;
-    const rw = obs.width;
-    const rTop = obs.topHeight;
-    const rBottom = obs.bottomHeight;
-    const isPerformance = (window as any).gameDisableShadows;
-    if (isPerformance) {
-      ctx.fillStyle = '#344237';
-      ctx.strokeStyle = '#0a0d0b';
-      ctx.lineWidth = 3.0;
-      ctx.fillRect(rx, -1000, rw, rTop + 1000);
-      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-      ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
-      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
-      return;
-    }
-
-    const stoneGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    stoneGrad.addColorStop(0, '#2d382f');
-    stoneGrad.addColorStop(0.3, '#435446');
-    stoneGrad.addColorStop(0.7, '#344237');
-    stoneGrad.addColorStop(1, '#1b241e');
-
-    ctx.fillStyle = stoneGrad;
-    ctx.strokeStyle = '#0a0d0b';
-    ctx.lineWidth = 3.0;
-
-    ctx.beginPath();
-    for (let y = rTop - 150; y < rTop - 20; y += 45) {
-      ctx.moveTo(rx, y);
-      ctx.lineTo(rx + rw, y);
-    }
-    for (let y = height - rBottom + 45; y < height - rBottom + 150; y += 45) {
-      ctx.moveTo(rx, y);
-      ctx.lineTo(rx + rw, y);
-    }
-    ctx.stroke();
-
-    ctx.fillStyle = '#d4af37';
-    ctx.fillRect(rx + rw * 0.42, rTop - 120, rw * 0.16, 12);
-    ctx.fillRect(rx + rw * 0.42, rTop - 75, rw * 0.16, 12);
-    ctx.fillRect(rx + rw * 0.42, height - rBottom + 70, rw * 0.16, 12);
-    ctx.fillRect(rx + rw * 0.42, height - rBottom + 115, rw * 0.16, 12);
-
-    const goldGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    goldGrad.addColorStop(0, '#cda225');
-    goldGrad.addColorStop(0.5, '#fef08a');
-    goldGrad.addColorStop(1, '#aa7e18');
-    ctx.fillStyle = goldGrad;
-    ctx.strokeStyle = '#0a0d0b';
-    ctx.lineWidth = 2.5;
-
-    ctx.fillRect(rx - 8, rTop - 36, rw + 16, 12);
-    ctx.strokeRect(rx - 8, rTop - 36, rw + 16, 12);
-    ctx.fillRect(rx - 4, rTop - 24, rw + 8, 12);
-    ctx.strokeRect(rx - 4, rTop - 24, rw + 8, 12);
-    ctx.fillRect(rx - 1, rTop - 12, rw + 2, 12);
-    ctx.strokeRect(rx - 1, rTop - 12, rw + 2, 12);
-
-    ctx.fillRect(rx - 8, height - rBottom + 24, rw + 16, 12);
-    ctx.strokeRect(rx - 8, height - rBottom + 24, rw + 16, 12);
-    ctx.fillRect(rx - 4, height - rBottom + 12, rw + 8, 12);
-    ctx.strokeRect(rx - 4, height - rBottom + 12, rw + 8, 12);
-    ctx.fillRect(rx - 1, height - rBottom, rw + 2, 12);
-    ctx.strokeRect(rx - 1, height - rBottom, rw + 2, 12);
-
-    ctx.strokeStyle = '#22542a';
-    ctx.lineWidth = 2.0;
-    ctx.beginPath();
-    ctx.moveTo(rx - 8, rTop - 30);
-    ctx.lineTo(rx + rw + 8, rTop - 30);
-    ctx.moveTo(rx - 8, height - rBottom + 30);
-    ctx.lineTo(rx + rw + 8, height - rBottom + 30);
-    ctx.stroke();
-  }
 
 
 }
