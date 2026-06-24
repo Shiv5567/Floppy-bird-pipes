@@ -1258,34 +1258,9 @@ export class ObstacleManager {
 
           // Apply custom different-direction split opening animation for special obstacles
           if (obs.isSpecialSplit && progress < 1) {
-            const levelNum = obs.levelNum || 1;
-            const splitStyle = Math.floor((levelNum - 1) / 5) % 5;
-
-            // The split slide magnitude decays as it fully opens (made smooth using easedOpen for Level 1)
-            const decay = (levelNum === 1) ? (1 - easedOpen) : (1 - progress);
-
-            if (splitStyle === 0) {
-              // Style 0 (Levels 1-5, 26-30...): Diagonal Split (Top left, Bottom right)
-              obs.shakeX += -50 * decay;
-              obs.shakeX2 = (obs.shakeX2 || 0) + 50 * decay;
-            } else if (splitStyle === 1) {
-              // Style 1 (Levels 6-10, 31-35...): Horizontal Opposite Split (Top left, Bottom right larger)
-              obs.shakeX += -65 * decay;
-              obs.shakeX2 = (obs.shakeX2 || 0) + 65 * decay;
-            } else if (splitStyle === 2) {
-              // Style 2 (Levels 11-15, 36-40...): Scissors Opposite Split (Top right, Bottom left)
-              obs.shakeX += 65 * decay;
-              obs.shakeX2 = (obs.shakeX2 || 0) - 65 * decay;
-            } else if (splitStyle === 3) {
-              // Style 3 (Levels 16-20, 41-45...): Diagonal Reverse Split
-              obs.shakeX += 50 * decay;
-              obs.shakeX2 = (obs.shakeX2 || 0) - 50 * decay;
-            } else {
-              // Style 4 (Levels 21-25, 46-50...): Rotational Sine Swing Split
-              const swing = Math.sin((1 - progress) * Math.PI) * 55;
-              obs.shakeX += -swing;
-              obs.shakeX2 = (obs.shakeX2 || 0) + swing;
-            }
+            // Horizontal left-right split movements removed as requested
+            obs.shakeX = 0;
+            obs.shakeX2 = 0;
           }
 
           // Smooth reveal interpolation
@@ -1488,29 +1463,7 @@ export class ObstacleManager {
             obs.bottomHeight = obs.closedBottomHeight! + (obs.targetBottomHeight! - obs.closedBottomHeight!) * ease;
 
             // Apply custom different-direction split opening animation for special obstacles in endless mode
-            if (obs.isSpecialSplit && progress < 1) {
-              const levelNum = obs.levelNum || 11;
-              const splitStyle = Math.floor((levelNum - 1) / 5) % 5;
-              const decay = 1 - progress;
-
-              if (splitStyle === 0) {
-                obs.shakeX = -50 * decay;
-                obs.shakeX2 = 50 * decay;
-              } else if (splitStyle === 1) {
-                obs.shakeX = -65 * decay;
-                obs.shakeX2 = 65 * decay;
-              } else if (splitStyle === 2) {
-                obs.shakeX = 65 * decay;
-                obs.shakeX2 = -65 * decay;
-              } else if (splitStyle === 3) {
-                obs.shakeX = 50 * decay;
-                obs.shakeX2 = -50 * decay;
-              } else {
-                const swing = Math.sin((1 - progress) * Math.PI) * 55;
-                obs.shakeX = -swing;
-                obs.shakeX2 = swing;
-              }
-            } else if (obs.isSpecialSplit && progress >= 1) {
+            if (obs.isSpecialSplit) {
               obs.shakeX = 0;
               obs.shakeX2 = 0;
             }
@@ -1518,24 +1471,8 @@ export class ObstacleManager {
             obs.topHeight = obs.closedTopHeight!;
             obs.bottomHeight = obs.closedBottomHeight!;
             if (obs.isSpecialSplit) {
-              const levelNum = obs.levelNum || 11;
-              const splitStyle = Math.floor((levelNum - 1) / 5) % 5;
-              if (splitStyle === 0) {
-                obs.shakeX = -50;
-                obs.shakeX2 = 50;
-              } else if (splitStyle === 1) {
-                obs.shakeX = -65;
-                obs.shakeX2 = 65;
-              } else if (splitStyle === 2) {
-                obs.shakeX = 65;
-                obs.shakeX2 = -65;
-              } else if (splitStyle === 3) {
-                obs.shakeX = 50;
-                obs.shakeX2 = -50;
-              } else {
-                obs.shakeX = 0;
-                obs.shakeX2 = 0;
-              }
+              obs.shakeX = 0;
+              obs.shakeX2 = 0;
             }
           }
         } else {
@@ -3681,17 +3618,7 @@ export class ObstacleManager {
       const obs = this.list[i];
       const scoreForStyle = obs.spawnScore !== undefined ? obs.spawnScore : this.currentScore;
 
-      // Store original float values to keep physics update clean and drift-free
-      const origX = obs.x;
-      const origTopHeight = obs.topHeight;
-      const origBottomHeight = obs.bottomHeight;
-      const origWidth = obs.width;
-
-      // Wrap drawing values in Math.round to force perfect alignment to screen pixels
-      obs.x = Math.round(obs.x);
-      obs.topHeight = Math.round(obs.topHeight);
-      obs.bottomHeight = Math.round(obs.bottomHeight);
-      obs.width = Math.round(obs.width);
+      // Use original float values for sub-pixel accuracy and ultra-smooth motion
 
       const drawPillars = () => {
         if (obs.isCavern) {
@@ -4062,11 +3989,6 @@ export class ObstacleManager {
       // Restore context state back to standard
       ctx.restore();
 
-      // Restore original float values for smooth physics simulation
-      obs.x = origX;
-      obs.topHeight = origTopHeight;
-      obs.bottomHeight = origBottomHeight;
-      obs.width = origWidth;
     }
   }
 

@@ -79,6 +79,12 @@ class MainActivity : ComponentActivity() {
 
         // 1. Fullscreen Settings Configuration
         try {
+            // Force hardware acceleration at the window level for ultra-smooth 2D canvas rendering
+            window.setFlags(
+                android.view.WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                android.view.WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
+            )
+
             // Draw edge-to-edge so the game fills the entire screen including notch areas
             WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -124,6 +130,10 @@ class MainActivity : ComponentActivity() {
                     // Allow cross-origin requests from file/local URLs
                     allowFileAccessFromFileURLs = true
                     allowUniversalAccessFromFileURLs = true
+                    
+                    // Disable zoom controls to save layout pass and gestures overhead
+                    builtInZoomControls = false
+                    displayZoomControls = false
                     
                     // Use LAYER_TYPE_NONE so WebView draws directly to the window's GPU surface,
                     // which is much faster and smoother on modern Android devices than off-screen hardware layers.

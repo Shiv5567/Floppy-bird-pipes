@@ -1584,11 +1584,9 @@ export class GameEngine {
 
     if (this.state === 'PLAYING' && !this.firstTapDone) {
       this.firstTapDone = true;
-      if (this.gameMode === 'endless' || this.gameMode === 'level') {
-        const currentCount = parseInt(localStorage.getItem('legends_tap_instruction_count') || '0', 10);
-        if (currentCount < 10) {
-          localStorage.setItem('legends_tap_instruction_count', (currentCount + 1).toString());
-        }
+      const currentCount = parseInt(localStorage.getItem('legends_tap_instruction_count') || '0', 10);
+      if (currentCount < 10) {
+        localStorage.setItem('legends_tap_instruction_count', (currentCount + 1).toString());
       }
     }
     this.bird.jump(this.soundManager, this.score);

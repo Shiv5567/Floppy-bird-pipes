@@ -7,19 +7,28 @@ android {
     namespace = "com.example.flightoflegends"
     compileSdk = 36
     defaultConfig {
-        applicationId = "com.example.flightoflegends"
+        applicationId = "com.advance.flappylegends"
         minSdk = 24
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.0.1"
+        versionCode = 3
+        versionName = "1.1.2"
     }
 
     layout.buildDirectory.set(file("C:/Users/Admin/.gemini/antigravity-ide/scratch/build-app"))
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("${rootProject.projectDir}/flappy-legends-release.keystore")
+            storePassword = "FlappyLegends2026"
+            keyAlias = "flappy-legends"
+            keyPassword = "FlappyLegends2026"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }

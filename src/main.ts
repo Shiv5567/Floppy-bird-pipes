@@ -138,9 +138,26 @@ let gameEngine: GameEngine;
 let uiManager: UIManager;
 
 let lastTime = 0;
+const deltaHistory: number[] = [];
 
-// Snaps raw delta times to VSync targets (120Hz, 90Hz, 60Hz, 30Hz) to eliminate micro-jitter
+// Snaps raw delta times to VSync targets (120Hz, 90Hz, 60Hz, 30Hz) to eliminate micro-jitter.
+// Uses a rolling average filter to smooth out sudden frame fluctuations on WebView/mobile.
 function snapDeltaTime(rawDt: number): number {
+  // Clamp delta time to reasonable limits [0.004, 0.1] to prevent huge jumps on sudden spikes
+  const clamped = Math.max(0.004, Math.min(0.1, rawDt));
+  
+  deltaHistory.push(clamped);
+  if (deltaHistory.length > 10) {
+    deltaHistory.shift();
+  }
+
+  // Calculate simple moving average of recent frame times
+  let sum = 0;
+  for (let i = 0; i < deltaHistory.length; i++) {
+    sum += deltaHistory[i];
+  }
+  const avg = sum / deltaHistory.length;
+
   const targetIntervals = [
     1 / 120, // ~0.008333
     1 / 90,  // ~0.011111
@@ -148,13 +165,14 @@ function snapDeltaTime(rawDt: number): number {
     1 / 30   // ~0.033333
   ];
 
+  // Snap to VSync target if close to average (wider window of 0.0035s to absorb minor WebView jitter)
   for (let i = 0; i < targetIntervals.length; i++) {
     const target = targetIntervals[i];
-    if (Math.abs(rawDt - target) < 0.0018) {
+    if (Math.abs(avg - target) < 0.0035) {
       return target;
     }
   }
-  return rawDt;
+  return avg;
 }
 
 let lastScore = 0;

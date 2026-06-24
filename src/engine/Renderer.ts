@@ -103,46 +103,61 @@ export class Renderer {
 
   private generateParallaxCache(worldId: string) {
     this.cachedProfiles = [[], [], [], []];
+    const P_LEN = 16000; // Expanded to 16000 for ultra-wide seamless looping and wider waves
     for (let layer = 1; layer <= 3; layer++) {
-      const profile = new Float32Array(2000);
-      for (let x = 0; x < 2000; x++) {
+      const profile = new Float32Array(P_LEN);
+      for (let x = 0; x < P_LEN; x++) {
         let dy = 0;
         const lookupX = x;
+        const baseFreq = (2 * Math.PI) / P_LEN; // Periodic frequency unit
+        
         switch (worldId) {
           case 'jungle':
-            dy += Math.sin(lookupX * 0.003 * (4 - layer)) * 80 * (4 - layer);
-            dy += Math.sin(lookupX * 0.015) * 8;
+            dy += Math.sin(lookupX * baseFreq * 8 * (4 - layer)) * 80 * (4 - layer);
+            dy += Math.sin(lookupX * baseFreq * 38) * 8;
             break;
           case 'ice':
-            dy += Math.sin(lookupX * 0.004) * 90 * (4 - layer);
-            dy += Math.abs(Math.sin(lookupX * 0.02) * 20);
+            dy += Math.sin(lookupX * baseFreq * 10) * 90 * (4 - layer);
+            dy += Math.abs(Math.sin(lookupX * baseFreq * 50) * 20);
             break;
           case 'desert':
-            dy += Math.cos(lookupX * 0.002 * (4 - layer)) * 70 * (4 - layer);
+            dy += Math.cos(lookupX * baseFreq * 6 * (4 - layer)) * 70 * (4 - layer);
             break;
           case 'volcano':
-            dy += Math.sin(lookupX * 0.003) * 100 * (4 - layer);
-            if (lookupX % 180 < 30) {
+            dy += Math.sin(lookupX * baseFreq * 8) * 100 * (4 - layer);
+            if (lookupX % 200 < 30) {
               dy -= 40;
             }
             break;
           case 'space':
-            dy += Math.sin(lookupX * 0.0015) * 60;
-            dy += Math.cos(lookupX * 0.008) * 15;
+            dy += Math.sin(lookupX * baseFreq * 4) * 60;
+            dy += Math.cos(lookupX * baseFreq * 20) * 15;
             break;
           case 'underwater':
-            dy += Math.sin(lookupX * 0.003 * layer) * 50 * (4 - layer);
-            dy += Math.cos(lookupX * 0.01) * 10;
+            dy += Math.sin(lookupX * baseFreq * 8 * layer) * 50 * (4 - layer);
+            dy += Math.cos(lookupX * baseFreq * 26) * 10;
             break;
           case 'heaven':
-            dy += Math.sin(lookupX * 0.0025 * (4 - layer)) * 40 * (4 - layer);
-            dy += Math.sin(lookupX * 0.01) * 15;
+            // Structured all 3 layers with completely different wave patterns, shapes, and phases for dynamic depth
+            if (layer === 1) {
+              // Layer 1 (Furthest background): massive slow-undulating smooth clouds
+              dy += Math.sin(lookupX * baseFreq * 1) * 35;
+              dy += Math.cos(lookupX * baseFreq * 4) * 5;
+            } else if (layer === 2) {
+              // Layer 2 (Middle ground): medium waves with a phase offset to break alignment
+              dy += Math.cos(lookupX * baseFreq * 2 + Math.PI / 4) * 22;
+              dy += Math.sin(lookupX * baseFreq * 6) * 4;
+            } else {
+              // Layer 3 (Closest foreground): flatter, fluffier details
+              dy += Math.sin(lookupX * baseFreq * 3 + Math.PI / 2) * 12;
+              dy += Math.cos(lookupX * baseFreq * 8) * 3;
+            }
             break;
           case 'retro':
             dy = -30 * layer;
             break;
           default:
-            dy += Math.sin(lookupX * 0.004 * (4 - layer)) * 50 * (4 - layer);
+            dy += Math.sin(lookupX * baseFreq * 10 * (4 - layer)) * 50 * (4 - layer);
         }
         profile[x] = dy;
       }
@@ -163,7 +178,7 @@ export class Renderer {
 
     // Update parallax offsets
     for (let i = 0; i < this.offsets.length; i++) {
-      this.offsets[i] = (this.offsets[i] + this.speeds[i] * speedMultiplier) % 2000;
+      this.offsets[i] = (this.offsets[i] + this.speeds[i] * speedMultiplier) % 16000;
     }
 
     // Camera smoothly follows the bird vertically to keep it in focus
@@ -876,66 +891,56 @@ export class Renderer {
       case 'heaven': {
         const isMobile = (window as any).gameIsMobile;
 
-        // --- 1. Draw Giant Radiant Celestial Sun (Center-Top) ---
+        // --- 1. Draw Subtle Radiant Celestial Sun Glow (No sharp half moon outline) ---
         const sunX = width * 0.5;
         const sunY = -60;
-        const sunGlowRad = isMobile ? 120 : 450; // Smaller sun glow radius on mobile devices
+        const sunGlowRad = isMobile ? 220 : 450; // Soft wide glow
         
         this.ctx.save();
-        if (isMobile) {
-          // Flat sun core without radial blending gradients to boost mobile FPS
-          this.ctx.fillStyle = '#fff8dc'; // warm celestial cream
+        const sunGrad = this.ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, sunGlowRad);
+        sunGrad.addColorStop(0, 'rgba(255, 248, 220, 0.35)'); // Soft warm cream
+        sunGrad.addColorStop(0.3, 'rgba(255, 235, 180, 0.18)'); // Soft golden white
+        sunGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        this.ctx.fillStyle = sunGrad;
+        this.ctx.beginPath();
+        this.ctx.arc(sunX, sunY, sunGlowRad, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.restore();
+
+        // --- 2. Draw Static Volumetric God Rays (Light Rays - Now Enabled and Optimized on Mobile as well) ---
+        this.ctx.save();
+        this.ctx.translate(sunX, sunY);
+        this.ctx.globalCompositeOperation = 'screen';
+
+        const numRays = isMobile ? 4 : 7;
+        const maxOpacity = isMobile ? 0.12 : 0.18;
+        for (let i = 0; i < numRays; i++) {
+          const baseAngle = (i - (numRays - 1) / 2) * (isMobile ? 0.4 : 0.35);
+          const rayAngle = Math.PI / 2 + baseAngle;
+
+          const rayWidth = isMobile ? 0.08 : 0.09;
+          const rayOpacity = maxOpacity;
+
+          const rayLen = height * 1.8;
+          const leftX = Math.cos(rayAngle - rayWidth) * rayLen;
+          const leftY = Math.sin(rayAngle - rayWidth) * rayLen;
+          const rightX = Math.cos(rayAngle + rayWidth) * rayLen;
+          const rightY = Math.sin(rayAngle + rayWidth) * rayLen;
+
+          const grad = this.ctx.createLinearGradient(0, 0, (leftX + rightX) / 2, (leftY + rightY) / 2);
+          grad.addColorStop(0, `rgba(255, 244, 215, ${rayOpacity})`);
+          grad.addColorStop(0.3, `rgba(255, 250, 235, ${rayOpacity * 0.6})`);
+          grad.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+
+          this.ctx.fillStyle = grad;
           this.ctx.beginPath();
-          this.ctx.arc(sunX, sunY, sunGlowRad, 0, Math.PI * 2);
-          this.ctx.fill();
-        } else {
-          const sunGrad = this.ctx.createRadialGradient(sunX, sunY, 30, sunX, sunY, sunGlowRad);
-          sunGrad.addColorStop(0, 'rgba(255, 248, 220, 0.48)'); // Soft warm cream
-          sunGrad.addColorStop(0.3, 'rgba(255, 235, 180, 0.28)'); // Golden white
-          sunGrad.addColorStop(0.65, 'rgba(219, 234, 254, 0.12)'); // Soft heavenly blue
-          sunGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-          this.ctx.fillStyle = sunGrad;
-          this.ctx.beginPath();
-          this.ctx.arc(sunX, sunY, sunGlowRad, 0, Math.PI * 2);
+          this.ctx.moveTo(0, 0);
+          this.ctx.lineTo(leftX, leftY);
+          this.ctx.lineTo(rightX, rightY);
+          this.ctx.closePath();
           this.ctx.fill();
         }
         this.ctx.restore();
-
-        // --- 2. Draw Static Volumetric God Rays (Light Rays - Disabled on Mobile) ---
-        if (!isMobile) {
-          this.ctx.save();
-          this.ctx.translate(sunX, sunY);
-          this.ctx.globalCompositeOperation = 'screen';
-
-          const numRays = 6;
-          for (let i = 0; i < numRays; i++) {
-            const baseAngle = (i - (numRays - 1) / 2) * 0.35;
-            const rayAngle = Math.PI / 2 + baseAngle;
-
-            const rayWidth = 0.09;
-            const rayOpacity = 0.18;
-
-            const rayLen = height * 1.6;
-            const leftX = Math.cos(rayAngle - rayWidth) * rayLen;
-            const leftY = Math.sin(rayAngle - rayWidth) * rayLen;
-            const rightX = Math.cos(rayAngle + rayWidth) * rayLen;
-            const rightY = Math.sin(rayAngle + rayWidth) * rayLen;
-
-            const grad = this.ctx.createLinearGradient(0, 0, (leftX + rightX) / 2, (leftY + rightY) / 2);
-            grad.addColorStop(0, `rgba(255, 244, 215, ${rayOpacity})`);
-            grad.addColorStop(0.3, `rgba(255, 250, 235, ${rayOpacity * 0.6})`);
-            grad.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
-
-            this.ctx.fillStyle = grad;
-            this.ctx.beginPath();
-            this.ctx.moveTo(0, 0);
-            this.ctx.lineTo(leftX, leftY);
-            this.ctx.lineTo(rightX, rightY);
-            this.ctx.closePath();
-            this.ctx.fill();
-          }
-          this.ctx.restore();
-        }
 
         // --- 4. Draw Floating Sparkles & Halo particles (Rising slowly) ---
         this.ctx.save();
@@ -1066,7 +1071,7 @@ export class Renderer {
       this.ctx.beginPath();
       this.ctx.moveTo(0, height);
 
-      const segmentWidth = 100;
+      const segmentWidth = 600;
       
       // Dynamically adjust step size per world to cut path complexity by 60-70%
       // On mobile devices, we double stepX to dramatically optimize draw paths!
@@ -1085,8 +1090,8 @@ export class Renderer {
       const hasProfile = profile && profile.length > 0;
 
       // Loop over the screen width to draw the mountains/skyscrapers
-      for (let x = -segmentWidth; x < width + segmentWidth; x += stepX) {
-        const lookupX = Math.floor(Math.abs(x + offset)) % 2000;
+      for (let x = -segmentWidth; x < width + segmentWidth + stepX; x += stepX) {
+        const lookupX = ((Math.floor(x + offset) % 16000) + 16000) % 16000;
         let y = height * 0.55 + layer * 70; // baseline height
 
         if (hasProfile) {
@@ -1269,9 +1274,8 @@ export class Renderer {
     this.ctx.scale(this.zoomFactor, this.zoomFactor);
     this.ctx.translate(-width / 2, -height / 2);
 
-    // Translate standard coordinate space downwards by active cameraY with pixel-perfect rounding to avoid sub-pixel blur
-    const roundedCameraY = Math.round(this.cameraY);
-    this.ctx.translate(0, -roundedCameraY);
+    // Translate standard coordinate space downwards by active cameraY with float precision for smooth tracking
+    this.ctx.translate(0, -this.cameraY);
   }
 
   public endCamera() {

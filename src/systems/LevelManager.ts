@@ -410,9 +410,10 @@ export class LevelManager {
       lvl47.gapHeight = Math.round(lvl47.gapHeight * 1.12);
     }
 
-    // Add 45 extra obstacles/pillars to every single level (1 to 50)
+    // Add 45 extra obstacles/pillars to every single level (1 to 50) and increase vertical gap by 12%
     for (const lvl of this.levels) {
       lvl.targetScore += 45;
+      lvl.gapHeight = Math.round(lvl.gapHeight * 1.12);
     }
   }
 

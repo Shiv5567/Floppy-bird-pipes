@@ -2152,7 +2152,7 @@ export class UIManager {
     
     let tapInstructionHTML = '';
     const tapCount = parseInt(localStorage.getItem('legends_tap_instruction_count') || '0', 10);
-    if (!this.engine.firstTapDone && (this.engine.gameMode === 'endless' || this.engine.gameMode === 'level') && tapCount < 10) {
+    if (!this.engine.firstTapDone && tapCount < 10) {
       tapInstructionHTML = `
         <div class="tap-instruction-overlay fade-in" style="
           position: absolute;
