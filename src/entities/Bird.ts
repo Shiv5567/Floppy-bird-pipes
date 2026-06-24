@@ -85,7 +85,7 @@ export class Bird {
   private getLevelVelocityReduction(engine: any): number {
     if (engine && engine.gameMode === 'level') {
       const lvlNum = engine.currentLevelNum;
-      if (lvlNum === 1) return 0.80; // 20% reduction
+      if (lvlNum === 1) return 0.65; // 35% reduction
       if (lvlNum === 2) return 0.85; // 15% reduction
       if (lvlNum === 3) return 0.88; // 12% reduction
       if (lvlNum >= 4 && lvlNum <= 10) {
