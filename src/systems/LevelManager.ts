@@ -421,6 +421,8 @@ export class LevelManager {
         lvl.gapHeight = Math.round(lvl.gapHeight * 1.20 * 1.07 * 1.07);
       } else if (lvl.levelNum >= 6 && lvl.levelNum <= 10) {
         lvl.gapHeight = Math.round(lvl.gapHeight * 1.20 * 1.07);
+      } else if (lvl.levelNum >= 11 && lvl.levelNum <= 20) {
+        lvl.gapHeight = Math.round(lvl.gapHeight * 1.20 * 1.10);
       }
     }
   }
