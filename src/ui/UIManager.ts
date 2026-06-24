@@ -1208,7 +1208,7 @@ export class UIManager {
               return `<div class="level-select-card placeholder" style="opacity: 0; pointer-events: none;"></div>`;
             }
             const unlockedLevel = progress.levelModeUnlockedLevel || 1;
-            const isLocked = lvl.levelNum > unlockedLevel;
+            const isLocked = false; // Always unlocked for testing
             const isLatest = lvl.levelNum === unlockedLevel;
 
             let levelColor = 'inherit';

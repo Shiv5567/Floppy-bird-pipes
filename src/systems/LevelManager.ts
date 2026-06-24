@@ -414,6 +414,14 @@ export class LevelManager {
     for (const lvl of this.levels) {
       lvl.targetScore += 45;
       lvl.gapHeight = Math.round(lvl.gapHeight * 1.12);
+      
+      // Reduce 10 obstacles and increase path gap by 20% + 7% + 7% for levels 1 to 5
+      if (lvl.levelNum >= 1 && lvl.levelNum <= 5) {
+        lvl.targetScore -= 10;
+        lvl.gapHeight = Math.round(lvl.gapHeight * 1.20 * 1.07 * 1.07);
+      } else if (lvl.levelNum >= 6 && lvl.levelNum <= 10) {
+        lvl.gapHeight = Math.round(lvl.gapHeight * 1.20 * 1.07);
+      }
     }
   }
 

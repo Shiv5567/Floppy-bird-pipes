@@ -1956,7 +1956,7 @@ export class ObstacleManager {
         targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.35) * 48;
         // Dynamically scale trigger distance to ensure the splitting animation starts on-screen on both mobile and desktop viewports (shifted 20% left)
         triggerDistance = Math.min(500, width * 0.65) * 0.80;
-        animDuration = 0.65; // 30% slower animation (0.50 * 1.3 = 0.65)
+        animDuration = 0.675; // 35% slower and smooth animation (0.50 * 1.35 = 0.675)
       } else if (patternType === 'level2_diamond') {
         // LEVEL 2: "The Wave Gauntlet" (Smooth continuous wave pattern aligned side-by-side)
         localGapHeight = gapHeight - 5;
@@ -2913,9 +2913,14 @@ export class ObstacleManager {
       }
 
       // Enable special different-direction split opening animation specifically for all obstacles in Levels 1-20 (excluding Levels 2, 4-14, 16-20), special legacy levels, and the Chrono Warp Miniboss Group 1
-      const isSpecialSplit =
+      let isSpecialSplit =
         (levelNum !== undefined && levelNum >= 1 && levelNum <= 20 && levelNum !== 11 && levelNum !== 2 && levelNum !== 4 && levelNum !== 5 && levelNum !== 6 && levelNum !== 7 && levelNum !== 8 && levelNum !== 9 && levelNum !== 10 && levelNum !== 12 && levelNum !== 13 && levelNum !== 14 && levelNum !== 16 && levelNum !== 17 && levelNum !== 18 && levelNum !== 19 && levelNum !== 20) ||
         (patternType === 'level40_miniboss' && groupIdx === 0 && levelNumPlayable !== 30);
+
+      // Disable splitting for the last 2 obstacles of Level 1
+      if (levelNum === 1 && this.activeLevelConfig && (actualPatternIdx >= this.activeLevelConfig.targetScore - 2)) {
+        isSpecialSplit = false;
+      }
 
       // Level 11 gets a dedicated smooth slide-in from edges (not a split) - disabled to spawn fully open
       const isLevel11SmoothEntry = false;
