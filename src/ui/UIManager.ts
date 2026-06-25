@@ -758,41 +758,6 @@ export class UIManager {
           <button class="top-bar-settings-btn" id="btn-open-settings">⚙️</button>
         </div>
 
-        <!-- Game Logo Banner (Premium AAA Presentation) -->
-        <div class="menu-logo-banner" style="
-          text-align: center;
-          margin-top: 18px;
-          margin-bottom: -15px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
-          animation: floatAnim 4s ease-in-out infinite;
-          z-index: 5;
-        ">
-          <img src="/logo.png" style="
-            width: 72px;
-            height: 72px;
-            border-radius: 18px;
-            border: 2.2px solid rgba(255, 215, 0, 0.45);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 0 12px rgba(255, 215, 0, 0.2);
-            object-fit: cover;
-            margin-bottom: 3px;
-          " alt="Game Logo" />
-          <h1 style="
-            font-family: 'Outfit', sans-serif;
-            font-size: 21px;
-            font-weight: 900;
-            letter-spacing: 1.5px;
-            background: linear-gradient(135deg, #ffd700, #ff8800);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin: 0;
-            text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.15);
-          ">FLAPPY LEGENDS</h1>
-        </div>
-
         <!-- ===== CENTER STAGE ===== -->
         <div class="center-stage">
 
