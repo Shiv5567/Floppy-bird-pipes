@@ -23,6 +23,7 @@ export class GameEngine {
   public hasRevivedThisRun = false;
   public revivesUsedThisRun = 0;
   public reviveCountdown = 5.0;
+  public reviveCardVisible = false;
   private preReviveState: GameState = 'PLAYING';
   public waitingForDoubleTapAfterRevive = false;
   public reviveFloatY = 300;
@@ -155,6 +156,7 @@ export class GameEngine {
     this.soundManager.init(); // Warm up Web Audio context on user gesture
     this.hasRevivedThisRun = false;
     this.revivesUsedThisRun = 0;
+    this.reviveCardVisible = false;
     this.shieldBrokenThisRun = false;
     this.score = 0;
     this.coinsCollectedThisRun = 0;
@@ -805,6 +807,8 @@ export class GameEngine {
                 } else {
                   // Eliminate this specific bird
                   this.soundManager.playExplosion();
+                  this.particleEngine.emitExplosion(b.x, b.y, b.getSkin().glowColor || '#ff5500', 20);
+                  this.renderer.triggerScreenShake(12, 0.25);
                   
                   this.flock.splice(i, 1);
                   
@@ -861,7 +865,12 @@ export class GameEngine {
         }
 
         // Trigger Level Completion sequence directly once all Level Mode obstacles have been passed and cleared from screen
-        if (this.gameMode === 'level' && this.activeLevelConfig && this.score >= this.activeLevelConfig.targetScore) {
+        // For Levels 1–5: effective score cap is targetScore - 2 (last 2 obstacles removed)
+        const _levelNumForComplete = this.activeLevelConfig ? this.activeLevelConfig.levelNum : -1;
+        const _effectiveTargetScore = (_levelNumForComplete >= 1 && _levelNumForComplete <= 5)
+          ? this.activeLevelConfig!.targetScore - 2
+          : (this.activeLevelConfig ? this.activeLevelConfig.targetScore : 0);
+        if (this.gameMode === 'level' && this.activeLevelConfig && this.score >= _effectiveTargetScore) {
           if (this.obstacleManager.getList().length === 0) {
             this.triggerLevelComplete();
           }
@@ -1118,10 +1127,13 @@ export class GameEngine {
   private handleCrash() {
     this.bird.isCrashing = true;
     this.soundManager.playExplosion();
-    if (this.gameMode === 'level') {
-      this.renderer.triggerScreenShake(25, 0.5);
-      this.particleEngine.emitExplosion(this.bird.x, this.bird.y, this.bird.getSkin().glowColor, 35);
-    }
+    
+    // Crash animation effects in all game modes (reduced by 45%)
+    this.renderer.triggerScreenShake(16, 0.33);
+    const skinGlow = this.bird.getSkin().glowColor || '#ff3c2e';
+    this.particleEngine.emitExplosion(this.bird.x, this.bird.y, skinGlow, 22);
+    this.particleEngine.emitRing(this.bird.x, this.bird.y, '#ffffff', 11);
+    this.particleEngine.emitRing(this.bird.x, this.bird.y, skinGlow, 19);
     
     // Check if player owns an automatic Revive safety feather powerup active
     if (this.activePowerupsList['revive']) {
@@ -1145,6 +1157,13 @@ export class GameEngine {
     this.preReviveState = this.state === 'BOSS_WARNING' || this.state === 'BOSS_FIGHT' ? this.state : 'PLAYING';
     this.state = 'REVIVE_CHOICE';
     this.reviveCountdown = 5.0;
+    this.reviveCardVisible = false;
+    setTimeout(() => {
+      if (this.state === 'REVIVE_CHOICE') {
+        this.reviveCardVisible = true;
+        window.dispatchEvent(new CustomEvent('game_revived'));
+      }
+    }, 2000);
   }
 
   public confirmGameOver() {
@@ -1167,7 +1186,6 @@ export class GameEngine {
   }
 
   public attemptRevive(): boolean {
-    if (this.revivesUsedThisRun >= 3) return false;
     const progress = this.progressManager.getState();
     if (progress.gems < 5) return false;
 
@@ -1229,7 +1247,6 @@ export class GameEngine {
   }
 
   public attemptReviveFree(): void {
-    if (this.revivesUsedThisRun >= 3) return;
     this.revivesUsedThisRun++;
     this.hasRevivedThisRun = false;
     

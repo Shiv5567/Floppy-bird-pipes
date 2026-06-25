@@ -291,7 +291,11 @@ export class UIManager {
     } else if (state === 'PHOTO_MODE') {
       this.renderPhotoModePanel();
     } else if (state === 'REVIVE_CHOICE') {
-      this.renderReviveScreen();
+      if (this.engine.reviveCardVisible) {
+        this.renderReviveScreen();
+      } else {
+        this.renderHUD();
+      }
     } else if (state as any === 'LEVEL_COMPLETE') {
       this.renderLevelComplete();
     } else if (state === 'DEMO_COMPLETE') {
@@ -2683,9 +2687,9 @@ export class UIManager {
     const canAfford = gems >= price;
 
     const reviveHTML = `
-      <div class="overlay-screen fade-in" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center;">
+      <div class="overlay-screen fade-in" style="background: rgba(0,0,0,0.4) !important; backdrop-filter: blur(5.6px) !important; -webkit-backdrop-filter: blur(5.6px) !important; display: flex; align-items: center; justify-content: center;">
         <div style="transform: scale(1.024, 0.84) translateY(-20%); transform-origin: bottom center; width: 100%; display: flex; justify-content: center;">
-          <div style="background: rgba(20, 20, 30, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 40px 32px; text-align: center; width: 95%; max-width: 911px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); animation: slideUp 0.3s ease-out; position: relative;">
+          <div style="background: rgba(20,20,30,0.28) !important; backdrop-filter: blur(11.2px) !important; -webkit-backdrop-filter: blur(11.2px) !important; border: 1px solid rgba(255,255,255,0.07) !important; border-radius: 24px; padding: 40px 32px; text-align: center; width: 95%; max-width: 911px; box-shadow: 0 20px 40px rgba(0,0,0,0.35) !important; animation: slideUp 0.3s ease-out; position: relative;">
             
             <button id="btn-home-revive" style="position: absolute; left: 20px; top: 20px; font-size: 33px; color: #fff; font-weight: 800; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; cursor: pointer; line-height: 1; display: flex; align-items: center; justify-content: center; width: 63px; height: 63px; transition: background 0.2s;" title="Return Home">↩</button>
             
@@ -2713,14 +2717,13 @@ export class UIManager {
   
   
   
-            ${this.engine.revivesUsedThisRun < 3 ? `
             <div class="revive-heartbeat-box">
               <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
                 <div style="font-size: 12px; font-weight: 800; color: #aaa; letter-spacing: 1px;">
                   REVIVE
                 </div>
                 <div style="font-size: 10px; font-weight: 800; color: #666;">
-                  ${3 - this.engine.revivesUsedThisRun} / 3
+                  REVIVES USED: ${this.engine.revivesUsedThisRun}
                 </div>
               </div>
               <div style="display: flex; gap: 10px; width: 100%; margin-top: 10px;">
@@ -2732,11 +2735,6 @@ export class UIManager {
                 </button>
               </div>
             </div>
-            ` : `
-            <div style="background: rgba(255,0,0,0.15); border: 1px solid rgba(255,0,0,0.3); border-radius: 16px; padding: 16px; margin-bottom: 24px;">
-              <div style="font-size: 14px; color: #ff5252; font-weight: 800; letter-spacing: 1px; text-shadow: 0 0 8px rgba(255,82,82,0.5);">MAXIMUM REVIVES REACHED</div>
-            </div>
-            `}
             
             <div style="display: flex; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 8px; padding-top: 16px; gap: 12px;">
               <button id="btn-skip-revive" style="flex: 1; background: rgba(255,255,255,0.1); border: none; border-radius: 12px; color: #fff; font-size: 18px; font-weight: 700; cursor: pointer; padding: 16px; transition: background 0.2s;">TRY AGAIN</button>

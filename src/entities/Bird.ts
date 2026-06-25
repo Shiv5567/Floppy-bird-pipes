@@ -325,7 +325,16 @@ export class Bird {
     
     // Add organic airbeat body bobbing (lift-push response)
     const yBob = !this.isCrashing ? Math.sin(this.flapCycle) * 2.2 : 0;
-    ctx.translate(this.x, this.y + yBob);
+    
+    // Add a high-frequency shake/vibration effect when the bird is crashing
+    let shakeX = 0;
+    let shakeY = 0;
+    if (this.isCrashing) {
+      shakeX = (Math.random() - 0.5) * 8;
+      shakeY = (Math.random() - 0.5) * 8;
+    }
+    
+    ctx.translate(this.x + shakeX, this.y + yBob + shakeY);
     ctx.rotate(this.angle);
 
     // Apply scaling

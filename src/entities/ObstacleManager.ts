@@ -404,11 +404,11 @@ export class ObstacleManager {
             obs.targetBottomHeight = obs.baseBottomHeight! - slam;
           } else if (obs.patternType === 'level2_diamond') {
             // LEVEL 2: "The Wave Gauntlet" (Ceiling and floor surfaces wave in parallel harmony with slow overall sway + sequential parallel ripple, horizontal opposite shift remains active)
-            obs.shakeX = Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 20;
-            obs.shakeX2 = -Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 20;
+            obs.shakeX = Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 24; // Increased amplitude by 20% (20 * 1.2 = 24)
+            obs.shakeX2 = -Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 24; // Increased amplitude by 20% (20 * 1.2 = 24)
 
-            const overallSway = Math.sin(this.waveTime * 1.3) * 24;
-            const ripple = Math.sin(this.waveTime * 2.4 + actualIdx * 0.16) * 12;
+            const overallSway = Math.sin(this.waveTime * 1.3) * 28.8; // Increased amplitude by 20% (24 * 1.2 = 28.8)
+            const ripple = Math.sin(this.waveTime * 2.4 + actualIdx * 0.16) * 14.4; // Increased amplitude by 20% (12 * 1.2 = 14.4)
             const slam = overallSway + ripple;
 
             obs.targetTopHeight = obs.baseTopHeight! + slam;
@@ -1750,7 +1750,11 @@ export class ObstacleManager {
 
     // Procedural Spawning using distance-based logic (extremely robust)
     const maxPillars = this.activeLevelConfig ? this.activeLevelConfig.targetScore : 150;
-    if (this.activeLevelConfig && this.currentPatternIdx >= maxPillars) {
+    // For Levels 1–5: remove the last 2 standalone obstacles that appear at the end
+    const levelNumForCap = this.activeLevelConfig ? this.activeLevelConfig.levelNum : undefined;
+    const effectiveMaxPillars = (levelNumForCap !== undefined && levelNumForCap >= 1 && levelNumForCap <= 5)
+      ? maxPillars - 2 : maxPillars;
+    if (this.activeLevelConfig && this.currentPatternIdx >= effectiveMaxPillars) {
       return;
     }
 
@@ -1780,9 +1784,11 @@ export class ObstacleManager {
       if (this.activeLevelConfig) {
         this.nextSpawnDistance = this.obstacleWidth;
       } else {
-        let dist = 280;
+        let dist = 280 * 1.45;
         if (gameMode === 'flock') {
-          dist = Math.max(350, Math.min(550, dist));
+          dist = Math.max(490, Math.min(770, dist));
+        } else if (gameMode === 'endless') {
+          dist = Math.max(350, Math.min(600, dist));
         }
         this.nextSpawnDistance = dist;
       }
@@ -1820,7 +1826,7 @@ export class ObstacleManager {
         const idx = this.currentPatternIdx - 1;
         const isLevel6 = activeEffectiveLevelNum === 6;
         if (idx === groupSize - 1 || idx === (groupSize * 2) - 1) {
-          this.nextSpawnDistance = this.obstacleWidth * 3.5; // Safe transition gap between obstacle groups
+          this.nextSpawnDistance = this.obstacleWidth * 5.5; // Safe transition gap between obstacle groups (increased from 3.5)
         } else {
           // Level 6: horizontal path gap increased by 25% for more breathing room between pillars
           this.nextSpawnDistance = isLevel6 ? this.obstacleWidth * 1.25 : this.obstacleWidth; // Connected side-by-side inside group
@@ -1836,6 +1842,8 @@ export class ObstacleManager {
         if (gameMode === 'flock') {
           dist *= 1.134; // 10% reduction from 1.26 (1.26 * 0.90 = 1.134)
         }
+        // Increase horizontal spacing by 45% to make pipes spawn much fewer/less frequently
+        dist *= 1.45;
 
         // Dynamic Spacing Balance: Increase horizontal distance by 50% if the next pipe has a maximum vertical alignment difference
         if (this.list.length > 0) {
@@ -1880,7 +1888,9 @@ export class ObstacleManager {
         }
 
         if (gameMode === 'flock') {
-          dist = Math.max(350, Math.min(550, dist)); // Clamp horizontal gap between 350px and 550px
+          dist = Math.max(490, Math.min(770, dist)); // Clamp horizontal gap between 490px and 770px
+        } else if (gameMode === 'endless') {
+          dist = Math.max(350, Math.min(600, dist)); // Clamp horizontal gap between 350px and 600px
         }
 
         this.nextSpawnDistance = dist;
@@ -1928,16 +1938,22 @@ export class ObstacleManager {
       this.currentPatternIdx++;
 
       let spawnX = offscreenSpawnX;
-      if (customX !== undefined) {
-        if (this.activeLevelConfig) {
-          spawnX = offscreenSpawnX;
-        } else {
-          spawnX = customX;
-        }
-      } else if (this.list.length > 0) {
-        const prevObs = this.list[this.list.length - 1];
-        if (idxInGroup !== 0) {
+      if (this.activeLevelConfig) {
+        if (idxInGroup === 0) {
+          // Shift the start of each obstacle group to the right by 280px in Level Mode
+          spawnX = offscreenSpawnX + 280;
+        } else if (this.list.length > 0) {
+          const prevObs = this.list[this.list.length - 1];
           spawnX = prevObs.x + this.obstacleWidth;
+        }
+      } else {
+        if (customX !== undefined) {
+          spawnX = customX;
+        } else if (this.list.length > 0) {
+          const prevObs = this.list[this.list.length - 1];
+          if (idxInGroup !== 0) {
+            spawnX = prevObs.x + this.obstacleWidth;
+          }
         }
       }
 
@@ -1962,7 +1978,7 @@ export class ObstacleManager {
         localGapHeight = gapHeight - 5;
 
         // Base center wave Y
-        const baseCenterY = height / 2 + Math.sin(obstacleIdx * 0.28) * 65;
+        const baseCenterY = height / 2 + Math.sin(obstacleIdx * 0.28) * 78; // Increased amplitude by 20% (65 * 1.2 = 78)
 
         // Alternating 30% gap shift every 10 obstacles with a smooth transition over 3 obstacles
         const period = 20;
@@ -2912,15 +2928,8 @@ export class ObstacleManager {
         targetBottomHeight = height - targetCenterY - localGapHeight / 2;
       }
 
-      // Enable special different-direction split opening animation specifically for all obstacles in Levels 1-20 (excluding Levels 2, 4-14, 16-20), special legacy levels, and the Chrono Warp Miniboss Group 1
-      let isSpecialSplit =
-        (levelNum !== undefined && levelNum >= 1 && levelNum <= 20 && levelNum !== 11 && levelNum !== 2 && levelNum !== 4 && levelNum !== 5 && levelNum !== 6 && levelNum !== 7 && levelNum !== 8 && levelNum !== 9 && levelNum !== 10 && levelNum !== 12 && levelNum !== 13 && levelNum !== 14 && levelNum !== 16 && levelNum !== 17 && levelNum !== 18 && levelNum !== 19 && levelNum !== 20) ||
-        (patternType === 'level40_miniboss' && groupIdx === 0 && levelNumPlayable !== 30);
-
-      // Disable splitting for the last 2 obstacles of Level 1
-      if (levelNum === 1 && this.activeLevelConfig && (actualPatternIdx >= this.activeLevelConfig.targetScore - 2)) {
-        isSpecialSplit = false;
-      }
+      // Enable special split opening animation only for Level 1
+      let isSpecialSplit = (levelNum === 1);
 
       // Level 11 gets a dedicated smooth slide-in from edges (not a split) - disabled to spawn fully open
       const isLevel11SmoothEntry = false;
@@ -2933,9 +2942,9 @@ export class ObstacleManager {
       if (isSpecialSplit) {
         initTriggered = false;
         initAnimTimer = 0;
-        // Start closed at centerX to show the slide apart on approach
-        closedTopHeight = targetCenterY - 15;
-        closedBottomHeight = height - targetCenterY - 15;
+        // Start closed exactly at the center of the gap (targetCenterY) to show the slide apart on approach
+        closedTopHeight = targetCenterY;
+        closedBottomHeight = height - targetCenterY;
       } else if (isLevel11SmoothEntry) {
         // Level 11: pillars start flush with screen edges, then smoothly slide inward
         initTriggered = false;
@@ -3460,15 +3469,15 @@ export class ObstacleManager {
     height: number,
     difficulty: 'easy' | 'medium' | 'hard' = 'medium'
   ): Obstacle | null {
-    let effectiveRadius = bird.radius * 0.40;
-    let effectiveRadiusBottom = bird.vy > 0 ? bird.radius * 0.16 : bird.radius * 0.26;
+    let effectiveRadius = bird.radius * 0.48;
+    let effectiveRadiusBottom = bird.vy > 0 ? bird.radius * 0.192 : bird.radius * 0.312;
 
     if (difficulty === 'easy') {
-      effectiveRadius = bird.radius * 0.28;
-      effectiveRadiusBottom = bird.vy > 0 ? bird.radius * 0.08 : bird.radius * 0.18;
+      effectiveRadius = bird.radius * 0.336;
+      effectiveRadiusBottom = bird.vy > 0 ? bird.radius * 0.096 : bird.radius * 0.216;
     } else if (difficulty === 'hard') {
-      effectiveRadius = bird.radius * 0.58;
-      effectiveRadiusBottom = bird.vy > 0 ? bird.radius * 0.38 : bird.radius * 0.48;
+      effectiveRadius = bird.radius * 0.696;
+      effectiveRadiusBottom = bird.vy > 0 ? bird.radius * 0.456 : bird.radius * 0.576;
     }
 
     // 1. Check floor/ceiling boundaries with generous collision tolerance
@@ -4474,7 +4483,7 @@ export class ObstacleManager {
       // Style 1: Frozen Sapphire
       stop0 = '#1e3a8a'; stop3 = '#3b82f6'; stop5 = '#93c5fd'; stop7 = '#1d4ed8'; stop1 = '#172554';
       capGrad0 = '#1d4ed8'; capGrad5 = '#93c5fd'; capGrad1 = '#172554';
-      outlineCol = 'rgba(147, 197, 253, 0.9)';
+      outlineCol = '#0f172a'; // Dark solid border like other obstacles
       icicleColor = '#93c5fd';
     } else if (styleIdx === 3) {
       // Style 3: Amethyst Purple
@@ -4885,7 +4894,7 @@ export class ObstacleManager {
       // Style 1: Rose Quartz Pink
       stop0 = '#fdf2f8'; stop3 = '#fbcfe8'; stop5 = '#f472b6'; stop7 = '#db2777'; stop1 = '#9d174d';
       capGrad0 = '#ca8a04'; capGrad5 = '#fbcfe8'; capGrad1 = '#a16207'; // rose gold cap
-      outlineCol = '#f472b6';
+      outlineCol = '#ff0000'; // Red border
       fluteColor = 'rgba(244, 114, 182, 0.45)';
       starColorVal = '#ffd700'; // yellow star
     } else if (styleIdx === 3) {

@@ -567,6 +567,7 @@ function loop(time: number) {
     if (hudFrameCount % 3 === 0) {
       uiManager.render();
     }
+    lastState = gameEngine.state;
   } else {
     // Standard state change checks for menus, pause screen, and game over
     const currentBossHealth = gameEngine.bossManager.isBossActive() ? gameEngine.bossManager.getHealth() : 0;
