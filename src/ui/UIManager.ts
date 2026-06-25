@@ -383,6 +383,7 @@ export class UIManager {
         if (!this.ultIcon) this.ultIcon = this.btnUltimate.querySelector('.ult-icon');
         if (this.ultIcon) {
           this.ultIcon.innerText = ultActive ? '⚡' : '✨';
+          (this.ultIcon as HTMLElement).style.display = (ultReady && !ultActive) ? 'none' : 'block';
         }
 
         if (!this.ultFill) this.ultFill = this.btnUltimate.querySelector('.ult-progress-fill');
@@ -395,7 +396,8 @@ export class UIManager {
 
         if (!this.ultText) this.ultText = this.btnUltimate.querySelector('.ult-text');
         if (this.ultText) {
-          this.ultText.innerText = ultActive ? 'ACTIVE' : ultReady ? 'READY!' : `${ultPercent}%`;
+          this.ultText.innerText = 'READY';
+          (this.ultText as HTMLElement).style.display = (ultReady && !ultActive) ? 'block' : 'none';
         }
       }
     }
@@ -2480,7 +2482,8 @@ export class UIManager {
                         stroke-dasharray="157" stroke-dashoffset="${157 - (157 * ultPercent) / 100}" 
                         stroke-linecap="round" class="ult-progress-fill" style="transition: stroke-dashoffset 0.15s ease-out; stroke: ${ultBarBg};"></circle>
               </svg>
-              <span class="ult-icon" style="font-size: 24px; z-index: 2; transition: transform 0.2s ease; margin: 0; line-height: 1;">${ultActive ? '⚡' : '✨'}</span>
+              <span class="ult-icon" style="font-size: 24px; z-index: 2; transition: transform 0.2s ease; margin: 0; line-height: 1; display: ${ultReady && !ultActive ? 'none' : 'block'};">${ultActive ? '⚡' : '✨'}</span>
+              <span class="ult-text" style="font-size: 11px; font-weight: 900; color: #ffd700; z-index: 2; font-family: 'Outfit', sans-serif; letter-spacing: 0.5px; text-shadow: 0 0 4px rgba(255,215,0,0.5); display: ${ultReady && !ultActive ? 'block' : 'none'};">READY</span>
             </div>
           </div>
         </div>
