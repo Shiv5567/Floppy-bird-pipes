@@ -1171,7 +1171,7 @@ export class GameEngine {
     this.soundManager.stopMusic();
 
     // Process highscores
-    this.progressManager.addScore(this.score);
+    this.progressManager.addScore(this.score, this.gameMode);
     
     // Progress Squad Survival time achievement on game over
     if (this.gameMode === 'flock') {

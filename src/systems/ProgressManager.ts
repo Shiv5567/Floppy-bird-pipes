@@ -37,6 +37,8 @@ export interface PlayerProgressState {
   coins: number;
   gems: number;
   highscore: number;
+  highscoreClassic?: number;
+  highscoreSquad?: number;
   activeSkin: string;
   activeWorld: string;
   unlockedSkins: string[];
@@ -319,9 +321,24 @@ export class ProgressManager {
     this.save();
   }
 
-  public addScore(score: number) {
-    if (score > this.state.highscore) {
-      this.state.highscore = score;
+  public addScore(score: number, gameMode?: 'endless' | 'level' | 'flock') {
+    if (gameMode === 'flock') {
+      if (!this.state.highscoreSquad) this.state.highscoreSquad = 0;
+      if (score > this.state.highscoreSquad) {
+        this.state.highscoreSquad = score;
+      }
+    } else if (gameMode === 'endless') {
+      if (!this.state.highscoreClassic) this.state.highscoreClassic = 0;
+      if (score > this.state.highscoreClassic) {
+        this.state.highscoreClassic = score;
+      }
+      if (score > this.state.highscore) {
+        this.state.highscore = score;
+      }
+    } else {
+      if (score > this.state.highscore) {
+        this.state.highscore = score;
+      }
     }
     this.save();
   }
@@ -511,6 +528,8 @@ export class ProgressManager {
           coins: loadedState.coins || 0,
           gems: loadedState.gems || 0,
           highscore: loadedState.highscore || 0,
+          highscoreClassic: loadedState.highscoreClassic || loadedState.highscore || 0,
+          highscoreSquad: loadedState.highscoreSquad || 0,
           activeSkin: loadedState.activeSkin || 'default',
           activeWorld: (loadedState.activeWorld && loadedState.activeWorld !== 'cyberpunk' && loadedState.activeWorld !== 'jungle_temple') ? loadedState.activeWorld : 'jungle',
           unlockedSkins: loadedState.unlockedSkins || ['default'],
@@ -597,6 +616,8 @@ export class ProgressManager {
       coins: 0,
       gems: 0,
       highscore: 0,
+      highscoreClassic: 0,
+      highscoreSquad: 0,
       activeSkin: 'default',
       activeWorld: 'jungle',
       unlockedSkins: ['default'],

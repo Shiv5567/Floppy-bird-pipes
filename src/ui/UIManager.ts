@@ -344,7 +344,11 @@ export class UIManager {
 
     // 1.5 Best Score (endless only)
     if (this.engine.gameMode !== 'level') {
-      const bestScoreVal = Math.max(this.engine.progressManager.getState().highscore, scoreVal);
+      const state = this.engine.progressManager.getState();
+      const currentHighScore = this.engine.gameMode === 'flock'
+        ? (state.highscoreSquad || 0)
+        : (state.highscoreClassic || state.highscore || 0);
+      const bestScoreVal = Math.max(currentHighScore, scoreVal);
       if (this.bestScoreEl) {
         this.bestScoreEl.innerText = `BEST: ${bestScoreVal}`;
       }
@@ -2186,7 +2190,10 @@ export class UIManager {
       `;
     }
 
-    const highscore = this.engine.progressManager.getState().highscore;
+    const stateVal = this.engine.progressManager.getState();
+    const highscore = this.engine.gameMode === 'flock'
+      ? (stateVal.highscoreSquad || 0)
+      : (stateVal.highscoreClassic || stateVal.highscore || 0);
 
 
     
@@ -2625,7 +2632,10 @@ export class UIManager {
 
   private renderGameOver() {
     const progress = this.engine.progressManager.getState();
-    const isNewHigh = this.engine.score >= progress.highscore;
+    const currentHighScore = this.engine.gameMode === 'flock'
+      ? (progress.highscoreSquad || 0)
+      : (progress.highscoreClassic || progress.highscore || 0);
+    const isNewHigh = this.engine.score >= currentHighScore;
 
     const goHTML = `
       <div class="overlay-screen fade-in glass-modal" style="display: flex; align-items: center; justify-content: center;">
@@ -2638,6 +2648,7 @@ export class UIManager {
             <div class="final-score-box glass-card">
               <div class="score-label">${isNewHigh ? '🏆 NEW HIGH SCORE! 🏆' : 'FINAL SCORE'}</div>
               <div class="score-number pop-scale">${this.engine.score}</div>
+              ${this.engine.gameMode !== 'level' ? `<div style="font-size: 14px; font-weight: 800; color: #ffd700; margin-top: 6px; letter-spacing: 1px;">BEST: ${Math.max(currentHighScore, this.engine.score)}</div>` : ''}
             </div>
   
             <div class="rewards-summary">
@@ -2700,7 +2711,7 @@ export class UIManager {
             <div style="background: rgba(0,0,0,0.3); border-radius: 16px; padding: 16px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05);">
               <div style="font-size: 12px; font-weight: 800; color: #ffd700; letter-spacing: 1.5px; text-transform: uppercase;">SCORE</div>
               <div style="font-size: 48px; font-weight: 900; color: #fff; text-shadow: 0 4px 10px rgba(0,0,0,0.5);">${this.engine.score}</div>
-              <div style="font-size: 14px; font-weight: 800; color: #ffd700; margin-top: 6px; letter-spacing: 1px;">BEST: ${Math.max(progress.highscore, this.engine.score)}</div>
+              <div style="font-size: 14px; font-weight: 800; color: #ffd700; margin-top: 6px; letter-spacing: 1px;">BEST: ${Math.max(this.engine.gameMode === 'flock' ? (progress.highscoreSquad || 0) : (progress.highscoreClassic || progress.highscore || 0), this.engine.score)}</div>
             </div>
             ` : ''}
   
@@ -3047,6 +3058,7 @@ export class UIManager {
   }
 
   private showEndlessModeSelection() {
+    const progress = this.engine.progressManager.getState();
     this.container.innerHTML = `
       <style>
         .mode-3d-overlay {
@@ -3274,6 +3286,7 @@ export class UIManager {
                 </svg>
               </div>
               <div class="mode-3d-label">Classic</div>
+              <div style="font-size: 12px; font-weight: 800; color: #ffd700; margin: 4px 0 8px 0; letter-spacing: 0.5px; opacity: 0.9;">BEST: ${progress.highscoreClassic || progress.highscore || 0}</div>
               <button id="btn-select-classic" class="mode-3d-btn classic-3d-btn">Fly</button>
             </div>
 
@@ -3323,6 +3336,7 @@ export class UIManager {
                 </svg>
               </div>
               <div class="mode-3d-label">Squad</div>
+              <div style="font-size: 12px; font-weight: 800; color: #00f3ff; margin: 4px 0 8px 0; letter-spacing: 0.5px; opacity: 0.9;">BEST: ${progress.highscoreSquad || 0}</div>
               <button id="btn-select-flock" class="mode-3d-btn squad-3d-btn">Fly</button>
             </div>
           </div>
