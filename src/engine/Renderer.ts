@@ -72,7 +72,7 @@ export class Renderer {
     this.lightningFlash = 0;
     switch (worldId) {
       case 'jungle':
-        this.weather = { type: 'rain', windSpeed: 1, density: 56, lightning: true };
+        this.weather = { type: 'rain', windSpeed: 1, density: 68, lightning: true }; // 20% increased density
         break;
       case 'ice':
         this.weather = { type: 'snow', windSpeed: 2, density: 35, lightning: false };
@@ -286,34 +286,34 @@ export class Renderer {
     if (Math.random() < spawnRate) {
       switch (this.weather.type) {
         case 'rain': {
-          // Spawn rain drops falling fast diagonally, reacting to flight wind speed
+          // Spawn rain drops falling fast diagonally, reacting to flight wind speed (size increased by 30%)
           this.particleEngine.spawn(
             Math.random() * (width + 300) - 100,
             -10,
             -3 - Math.random() * 3 - this.currentSpeed * 1.4, // Wind sweeps backwards based on scrolling speed
             12 + Math.random() * 5,
             'rgba(174, 219, 240, 0.45)',
-            1.5 + Math.random() * 1.5,
+            (1.5 + Math.random() * 1.5) * 1.3, // 30% larger rain drops
             0.8,
             0.015,
             'square'
           );
           
-          // Spawn a splash ripple on the bottom boundary
-          if (Math.random() < 0.3) {
+          // Spawn a splash ripple on the bottom boundary (frequency increased by 20% to 0.36)
+          if (Math.random() < 0.36) {
             this.particleEngine.spawn(
               Math.random() * width,
               height - 15 - Math.random() * 10,
               -this.currentSpeed * 0.2, // Drifts slightly with speed
               0,
               'rgba(174, 219, 240, 0.35)',
-              1.0,
+              1.3, // 30% larger splash ripples
               0.7,
               0.04,
               'bubble',
               false,
               undefined,
-              0.3 // Grow bubble outwards simulating splash ripples!
+              0.39 // 30% larger growth factor (0.3 * 1.3)
             );
           }
           break;
