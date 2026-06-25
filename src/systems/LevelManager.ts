@@ -386,6 +386,12 @@ export class LevelManager {
       lvl39.gapHeight = Math.round(lvl39.gapHeight * 1.20);
     }
     
+    // Reduce Level 1 scroll speed (horizontal velocity) by 20%
+    const lvl1Speed = this.levels.find(l => l.levelNum === 1);
+    if (lvl1Speed) {
+      lvl1Speed.scrollSpeed = lvl1Speed.scrollSpeed * 0.80;
+    }
+
     // Reduce Level 8 scroll speed by 15%
     const lvl8Speed = this.levels.find(l => l.levelNum === 8);
     if (lvl8Speed) {
@@ -423,6 +429,12 @@ export class LevelManager {
         lvl.gapHeight = Math.round(lvl.gapHeight * 1.20 * 1.07);
       } else if (lvl.levelNum >= 11 && lvl.levelNum <= 20) {
         lvl.gapHeight = Math.round(lvl.gapHeight * 1.20 * 1.10);
+      } else if (lvl.levelNum >= 21 && lvl.levelNum <= 30) {
+        lvl.gapHeight = Math.round(lvl.gapHeight * 1.23);
+      } else if (lvl.levelNum >= 31 && lvl.levelNum <= 40) {
+        lvl.gapHeight = Math.round(lvl.gapHeight * 1.18);
+      } else if (lvl.levelNum >= 41 && lvl.levelNum <= 50) {
+        lvl.gapHeight = Math.round(lvl.gapHeight * 1.13);
       }
     }
   }
