@@ -213,6 +213,13 @@ class MainActivity : ComponentActivity() {
                         val url = request?.url?.toString()
                         Log.e("FLIGHT_OF_LEGENDS_STARTUP", "WebView Resource Error: $description (URL: $url)")
                     }
+
+                    override fun onPageFinished(view: WebView?, url: String?) {
+                        super.onPageFinished(view, url)
+                        val isOnline = isNetworkAvailable()
+                        Log.d("FLIGHT_OF_LEGENDS_STARTUP", "onPageFinished: Initial online status: $isOnline")
+                        webView.evaluateJavascript("javascript:if(window.setOnlineStatus) window.setOnlineStatus($isOnline);", null)
+                    }
                 }
 
                 // Register Javascript interfaces
@@ -259,6 +266,14 @@ class MainActivity : ComponentActivity() {
                     super.onAvailable(network)
                     runOnUiThread {
                         onNetworkConnected()
+                        webView.evaluateJavascript("javascript:if(window.setOnlineStatus) window.setOnlineStatus(true);", null)
+                    }
+                }
+                override fun onLost(network: Network) {
+                    super.onLost(network)
+                    runOnUiThread {
+                        Log.d("FLIGHT_OF_LEGENDS_STARTUP", "Network Callback: Network is offline.")
+                        webView.evaluateJavascript("javascript:if(window.setOnlineStatus) window.setOnlineStatus(false);", null)
                     }
                 }
             })
@@ -466,7 +481,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    fun showInterstitialAd() {
+    fun showInterstitialAd(callbackName: String? = null) {
         try {
             val ad = interstitialAd
             if (ad != null) {
@@ -474,20 +489,24 @@ class MainActivity : ComponentActivity() {
                     override fun onAdDismissedFullScreenContent() {
                         interstitialAd = null
                         loadInterstitialAd()
+                        callbackName?.let { webView.evaluateJavascript("javascript:$it(true)", null) }
                     }
                     override fun onAdFailedToShowFullScreenContent(error: com.google.android.gms.ads.AdError) {
                         Log.e("FLIGHT_OF_LEGENDS_STARTUP", "AdMob Interstitial failed to show: ${error.message}")
                         interstitialAd = null
                         loadInterstitialAd()
+                        callbackName?.let { webView.evaluateJavascript("javascript:$it(false)", null) }
                     }
                 }
                 ad.show(this)
             } else {
                 Log.w("FLIGHT_OF_LEGENDS_STARTUP", "Interstitial Ad requested but not loaded. Reloading...")
                 loadInterstitialAd()
+                callbackName?.let { webView.evaluateJavascript("javascript:$it(false)", null) }
             }
         } catch (e: Exception) {
             Log.e("FLIGHT_OF_LEGENDS_STARTUP", "Exception in showInterstitialAd()", e)
+            callbackName?.let { webView.evaluateJavascript("javascript:$it(false)", null) }
         }
     }
 
@@ -665,7 +684,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    fun showUnityInterstitialAd() {
+    fun showUnityInterstitialAd(callbackName: String? = null) {
         try {
             if (isUnityInterstitialLoaded) {
                 UnityAds.show(this, unityInterstitialPlacement, UnityAdsShowOptions(), object : IUnityAdsShowListener {
@@ -673,6 +692,7 @@ class MainActivity : ComponentActivity() {
                         Log.e("FLIGHT_OF_LEGENDS_STARTUP", "Unity Interstitial show failed: $message (Error: $error)")
                         isUnityInterstitialLoaded = false
                         loadUnityInterstitialAd()
+                        callbackName?.let { webView.evaluateJavascript("javascript:$it(false)", null) }
                     }
 
                     override fun onUnityAdsShowStart(placementId: String?) {
@@ -688,14 +708,17 @@ class MainActivity : ComponentActivity() {
                         isUnityInterstitialLoaded = false
                         loadUnityInterstitialAd()
                         Log.d("FLIGHT_OF_LEGENDS_STARTUP", "Unity Interstitial Ad completed. State: $state")
+                        callbackName?.let { webView.evaluateJavascript("javascript:$it(true)", null) }
                     }
                 })
             } else {
                 Log.w("FLIGHT_OF_LEGENDS_STARTUP", "Unity Interstitial Ad requested but not loaded. Reloading...")
                 loadUnityInterstitialAd()
+                callbackName?.let { webView.evaluateJavascript("javascript:$it(false)", null) }
             }
         } catch (e: Exception) {
             Log.e("FLIGHT_OF_LEGENDS_STARTUP", "Exception in showUnityInterstitialAd()", e)
+            callbackName?.let { webView.evaluateJavascript("javascript:$it(false)", null) }
         }
     }
 
@@ -742,18 +765,36 @@ class MainActivity : ComponentActivity() {
         @JavascriptInterface
         fun showAdMobInterstitial() {
             try {
-                runOnUiThread { showInterstitialAd() }
+                runOnUiThread { showInterstitialAd(null) }
             } catch (e: Exception) {
                 Log.e("FLIGHT_OF_LEGENDS_STARTUP", "Exception in AndroidBridgeInterface.showAdMobInterstitial()", e)
             }
         }
 
         @JavascriptInterface
+        fun showAdMobInterstitial(callbackName: String) {
+            try {
+                runOnUiThread { showInterstitialAd(callbackName) }
+            } catch (e: Exception) {
+                Log.e("FLIGHT_OF_LEGENDS_STARTUP", "Exception in AndroidBridgeInterface.showAdMobInterstitial(callbackName)", e)
+            }
+        }
+
+        @JavascriptInterface
         fun showUnityInterstitial() {
             try {
-                runOnUiThread { showUnityInterstitialAd() }
+                runOnUiThread { showUnityInterstitialAd(null) }
             } catch (e: Exception) {
                 Log.e("FLIGHT_OF_LEGENDS_STARTUP", "Exception in AndroidBridgeInterface.showUnityInterstitial()", e)
+            }
+        }
+
+        @JavascriptInterface
+        fun showUnityInterstitial(callbackName: String) {
+            try {
+                runOnUiThread { showUnityInterstitialAd(callbackName) }
+            } catch (e: Exception) {
+                Log.e("FLIGHT_OF_LEGENDS_STARTUP", "Exception in AndroidBridgeInterface.showUnityInterstitial(callbackName)", e)
             }
         }
 
@@ -773,6 +814,31 @@ class MainActivity : ComponentActivity() {
             } catch (e: Exception) {
                 Log.e("FLIGHT_OF_LEGENDS_STARTUP", "Exception in AndroidBridgeInterface.showUnityRewarded()", e)
             }
+        }
+
+        @JavascriptInterface
+        fun preloadAds() {
+            try {
+                runOnUiThread {
+                    Log.d("FLIGHT_OF_LEGENDS_STARTUP", "JavaScript triggered preloadAds.")
+                    onNetworkConnected()
+                }
+            } catch (e: Exception) {
+                Log.e("FLIGHT_OF_LEGENDS_STARTUP", "Exception in AndroidBridgeInterface.preloadAds()", e)
+            }
+        }
+
+        @JavascriptInterface
+        fun isAdReady(adType: String): Boolean {
+            val ready = when (adType) {
+                "AdMobInterstitial" -> interstitialAd != null
+                "UnityInterstitial" -> isUnityInterstitialLoaded
+                "AdMobRewarded" -> rewardedAd != null
+                "UnityRewarded" -> isUnityRewardedLoaded
+                else -> false
+            }
+            Log.d("FLIGHT_OF_LEGENDS_STARTUP", "isAdReady($adType): $ready")
+            return ready
         }
 
         @JavascriptInterface

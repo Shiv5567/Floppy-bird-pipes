@@ -1,11 +1,13 @@
 declare global {
   interface Window {
     AndroidBridge?: {
-      showAdMobInterstitial(): void;
-      showUnityInterstitial(): void;
+      showAdMobInterstitial(callbackName?: string): void;
+      showUnityInterstitial(callbackName?: string): void;
       showAdMobRewarded(callbackName: string): void;
       showUnityRewarded(callbackName: string): void;
       showInterstitial?(): void;
+      preloadAds?(): void;
+      isAdReady?(adType: string): boolean;
     };
     AndroidAdMob?: {
       showBanner(): void;
@@ -15,6 +17,8 @@ declare global {
     };
     onAdMobRewardedCallback?: (success: boolean) => void;
     onUnityRewardedCallback?: (success: boolean) => void;
+    onReviveInterstitialCallback?: (success: boolean) => void;
+    setOnlineStatus?: (online: boolean) => void;
     gameEngine?: any;
   }
 }
@@ -38,6 +42,170 @@ export class AdManager {
   private static nextReviveNetwork: 'AdMob' | 'Unity' = 'AdMob';
 
   private static updateTimer: any = null;
+
+  // 4. Online state
+  private static isOnline: boolean = navigator.onLine;
+
+  public static initializeOnlineTracking() {
+    this.updateOnlineStatus(navigator.onLine);
+
+    window.addEventListener('online', () => {
+      console.log("[AdManager] Browser went online.");
+      this.updateOnlineStatus(true);
+    });
+    window.addEventListener('offline', () => {
+      console.log("[AdManager] Browser went offline.");
+      this.updateOnlineStatus(false);
+    });
+
+    window.setOnlineStatus = (online: boolean) => {
+      console.log(`[AdManager] Native pushed online status: ${online}`);
+      this.updateOnlineStatus(online);
+    };
+  }
+
+  private static updateOnlineStatus(online: boolean) {
+    this.isOnline = online;
+
+    let dot = document.getElementById('online-indicator');
+    if (!dot) {
+      dot = document.createElement('div');
+      dot.id = 'online-indicator';
+      dot.style.cssText = `
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #00d2ff;
+        z-index: 99999;
+        box-shadow: 0 0 10px #00d2ff, 0 0 20px #00d2ff;
+        pointer-events: none;
+        transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        opacity: 0;
+        transform: scale(0.5);
+        animation: pulseDot 2s infinite ease-in-out;
+      `;
+
+      if (!document.getElementById('pulse-dot-style')) {
+        const style = document.createElement('style');
+        style.id = 'pulse-dot-style';
+        style.textContent = `
+          @keyframes pulseDot {
+            0%, 100% {
+              box-shadow: 0 0 8px #00d2ff, 0 0 16px rgba(0, 210, 255, 0.4);
+              transform: scale(1);
+            }
+            50% {
+              box-shadow: 0 0 14px #00d2ff, 0 0 24px rgba(0, 210, 255, 0.7);
+              transform: scale(1.15);
+            }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      document.body.appendChild(dot);
+    }
+
+    if (online) {
+      dot.style.display = 'block';
+      requestAnimationFrame(() => {
+        if (dot) {
+          dot.style.opacity = '1';
+          dot.style.transform = 'scale(1)';
+        }
+      });
+
+      if (typeof window.AndroidBridge !== 'undefined' && window.AndroidBridge.preloadAds) {
+        console.log("[AdManager] Requesting native ad preload since device is online.");
+        window.AndroidBridge.preloadAds();
+      }
+    } else {
+      dot.style.opacity = '0';
+      dot.style.transform = 'scale(0.5)';
+      setTimeout(() => {
+        if (!this.isOnline && dot) {
+          dot.style.display = 'none';
+        }
+      }, 300);
+    }
+  }
+
+  private static showAdLoadingOverlay(): HTMLDivElement {
+    const overlay = document.createElement('div');
+    overlay.id = 'ad-loading-overlay';
+    overlay.style.cssText = `
+      position: fixed;
+      inset: 0;
+      background: rgba(6, 5, 11, 0.88);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 1000000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      font-family: 'Outfit', sans-serif;
+      animation: fadeInAdOverlay 0.3s ease forwards;
+    `;
+
+    overlay.innerHTML = `
+      <div style="position: relative; width: 64px; height: 64px;">
+        <div style="
+          position: absolute;
+          inset: 0;
+          border: 4px solid rgba(0, 243, 255, 0.08);
+          border-top: 4px solid #00f3ff;
+          border-radius: 50%;
+          animation: spinClockwiseAd 1s infinite linear;
+          box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
+        "></div>
+        <div style="
+          position: absolute;
+          inset: 8px;
+          border: 4px solid rgba(255, 0, 127, 0.08);
+          border-bottom: 4px solid #ff007f;
+          border-radius: 50%;
+          animation: spinCounterClockwiseAd 0.8s infinite linear;
+          box-shadow: 0 0 12px rgba(255, 0, 127, 0.3);
+        "></div>
+      </div>
+      <div style="color: #ffffff; font-size: 16px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; text-shadow: 0 0 8px rgba(255,255,255,0.2);">
+        Preparing Ad...
+      </div>
+      <div style="color: rgba(255, 255, 255, 0.45); font-size: 11px; letter-spacing: 0.5px; font-weight: 600;">
+        Optimizing connection for mobile delivery
+      </div>
+      <style>
+        @keyframes fadeInAdOverlay {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes spinClockwiseAd {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes spinCounterClockwiseAd {
+          0% { transform: rotate(360deg); }
+          100% { transform: rotate(0deg); }
+        }
+      </style>
+    `;
+
+    document.body.appendChild(overlay);
+    return overlay;
+  }
+
+  private static isAdAvailable(network: 'AdMob' | 'Unity', type: 'Rewarded' | 'Interstitial'): boolean {
+    if (typeof window.AndroidBridge === 'undefined' || !window.AndroidBridge.isAdReady) {
+      return true;
+    }
+    const key = network + type;
+    return window.AndroidBridge.isAdReady(key);
+  }
 
   /**
    * Helper to check if the user is currently in an active game run.
@@ -114,12 +282,20 @@ export class AdManager {
     }
   }
 
+  private static notifyUser(title: string, message: string) {
+    const engine = window.gameEngine;
+    if (engine && engine.uiManager && typeof engine.uiManager.showToastNotification === 'function') {
+      engine.uiManager.showToastNotification(title, message);
+    } else {
+      alert(`${title}: ${message}`);
+    }
+  }
+
   /**
    * Triggers a rewarded ad for the Economy / Booster system.
    * Enforces a 3-minute cooldown.
    */
   public static showEconomyRewarded(onCompleted: (success: boolean) => void) {
-    const now = Date.now();
     const remaining = this.getEconomyCooldownRemaining();
 
     if (remaining > 0) {
@@ -128,11 +304,44 @@ export class AdManager {
       return;
     }
 
-    // Lock cooldown immediately
-    this.lastEconomyRewardedTime = now;
-    this.updateAdButtonsDOM();
+    if (!this.isOnline) {
+      this.notifyUser('OFFLINE', 'Please connect to the internet to watch ads.');
+      onCompleted(false);
+      return;
+    }
 
     const network = this.nextEconomyRewardNetwork;
+    const isReady = this.isAdAvailable(network, 'Rewarded');
+
+    if (isReady) {
+      this.executeRewardedNow(network, onCompleted);
+    } else {
+      console.log(`[AdManager] Economy rewarded ad not ready on ${network}. Triggering preload and waiting...`);
+      if (typeof window.AndroidBridge !== 'undefined' && window.AndroidBridge.preloadAds) {
+        window.AndroidBridge.preloadAds();
+      }
+
+      const spinner = this.showAdLoadingOverlay();
+      let elapsed = 0;
+      const interval = setInterval(() => {
+        elapsed += 500;
+        const ready = this.isAdAvailable(network, 'Rewarded');
+        if (ready) {
+          clearInterval(interval);
+          spinner.remove();
+          this.executeRewardedNow(network, onCompleted);
+        } else if (elapsed >= 6000) {
+          clearInterval(interval);
+          spinner.remove();
+          console.warn(`[AdManager] Economy rewarded ad load timeout.`);
+          this.notifyUser('AD NOT READY', 'Ad is taking longer to load. Please try again.');
+          onCompleted(false);
+        }
+      }, 500);
+    }
+  }
+
+  private static executeRewardedNow(network: 'AdMob' | 'Unity', onCompleted: (success: boolean) => void) {
     console.log(`[AdManager] Requesting Economy ad from network: ${network}`);
 
     if (network === 'AdMob') {
@@ -140,6 +349,10 @@ export class AdManager {
 
       if (typeof window.AndroidBridge !== 'undefined' && window.AndroidBridge.showAdMobRewarded) {
         window.onAdMobRewardedCallback = (success: boolean) => {
+          if (success) {
+            this.lastEconomyRewardedTime = Date.now();
+            this.updateAdButtonsDOM();
+          }
           onCompleted(success);
           delete window.onAdMobRewardedCallback;
         };
@@ -147,6 +360,8 @@ export class AdManager {
       } else {
         console.log("[AdManager Mock] showAdMobRewarded(Economy) - simulating ad completion");
         setTimeout(() => {
+          this.lastEconomyRewardedTime = Date.now();
+          this.updateAdButtonsDOM();
           onCompleted(true);
         }, 1500);
       }
@@ -155,6 +370,10 @@ export class AdManager {
 
       if (typeof window.AndroidBridge !== 'undefined' && window.AndroidBridge.showUnityRewarded) {
         window.onUnityRewardedCallback = (success: boolean) => {
+          if (success) {
+            this.lastEconomyRewardedTime = Date.now();
+            this.updateAdButtonsDOM();
+          }
           onCompleted(success);
           delete window.onUnityRewardedCallback;
         };
@@ -162,6 +381,8 @@ export class AdManager {
       } else {
         console.log("[AdManager Mock] showUnityRewarded(Economy) - simulating ad completion");
         setTimeout(() => {
+          this.lastEconomyRewardedTime = Date.now();
+          this.updateAdButtonsDOM();
           onCompleted(true);
         }, 1500);
       }
@@ -173,7 +394,6 @@ export class AdManager {
    * Enforces an independent 2-minute cooldown.
    */
   public static showReviveInterstitial(onCompleted: (success: boolean) => void) {
-    const now = Date.now();
     const remaining = this.getReviveCooldownRemaining();
 
     if (remaining > 0) {
@@ -182,37 +402,90 @@ export class AdManager {
       return;
     }
 
-    // Lock cooldown immediately
-    this.lastReviveRewardedTime = now;
-    this.updateAdButtonsDOM();
+    if (!this.isOnline) {
+      this.notifyUser('OFFLINE', 'Please connect to the internet to watch ads.');
+      onCompleted(false);
+      return;
+    }
 
     const network = this.nextReviveNetwork;
+    const isReady = this.isAdAvailable(network, 'Interstitial');
+
+    if (isReady) {
+      this.executeInterstitialNow(network, onCompleted);
+    } else {
+      console.log(`[AdManager] Revive interstitial ad not ready on ${network}. Triggering preload and waiting...`);
+      if (typeof window.AndroidBridge !== 'undefined' && window.AndroidBridge.preloadAds) {
+        window.AndroidBridge.preloadAds();
+      }
+
+      const spinner = this.showAdLoadingOverlay();
+      let elapsed = 0;
+      const interval = setInterval(() => {
+        elapsed += 500;
+        const ready = this.isAdAvailable(network, 'Interstitial');
+        if (ready) {
+          clearInterval(interval);
+          spinner.remove();
+          this.executeInterstitialNow(network, onCompleted);
+        } else if (elapsed >= 6000) {
+          clearInterval(interval);
+          spinner.remove();
+          console.warn(`[AdManager] Revive interstitial ad load timeout.`);
+          this.notifyUser('AD NOT READY', 'Ad is taking longer to load. Please try again.');
+          onCompleted(false);
+        }
+      }, 500);
+    }
+  }
+
+  private static executeInterstitialNow(network: 'AdMob' | 'Unity', onCompleted: (success: boolean) => void) {
     console.log(`[AdManager] Requesting Revive Interstitial ad from network: ${network}`);
 
     if (network === 'AdMob') {
       this.nextReviveNetwork = 'Unity';
 
       if (typeof window.AndroidBridge !== 'undefined' && window.AndroidBridge.showAdMobInterstitial) {
-        window.AndroidBridge.showAdMobInterstitial();
+        window.onReviveInterstitialCallback = (success: boolean) => {
+          if (success) {
+            this.lastReviveRewardedTime = Date.now();
+            this.updateAdButtonsDOM();
+          }
+          onCompleted(success);
+          delete window.onReviveInterstitialCallback;
+        };
+        window.AndroidBridge.showAdMobInterstitial("onReviveInterstitialCallback");
       } else if (typeof window.AndroidAdMob !== 'undefined' && window.AndroidAdMob.showInterstitial) {
         window.AndroidAdMob.showInterstitial();
+        this.lastReviveRewardedTime = Date.now();
+        this.updateAdButtonsDOM();
+        setTimeout(() => onCompleted(true), 1500);
       } else {
         console.log("[AdManager Mock] showAdMobInterstitial(Revive)");
+        this.lastReviveRewardedTime = Date.now();
+        this.updateAdButtonsDOM();
+        setTimeout(() => onCompleted(true), 1500);
       }
     } else {
       this.nextReviveNetwork = 'AdMob';
 
       if (typeof window.AndroidBridge !== 'undefined' && window.AndroidBridge.showUnityInterstitial) {
-        window.AndroidBridge.showUnityInterstitial();
+        window.onReviveInterstitialCallback = (success: boolean) => {
+          if (success) {
+            this.lastReviveRewardedTime = Date.now();
+            this.updateAdButtonsDOM();
+          }
+          onCompleted(success);
+          delete window.onReviveInterstitialCallback;
+        };
+        window.AndroidBridge.showUnityInterstitial("onReviveInterstitialCallback");
       } else {
         console.log("[AdManager Mock] showUnityInterstitial(Revive)");
+        this.lastReviveRewardedTime = Date.now();
+        this.updateAdButtonsDOM();
+        setTimeout(() => onCompleted(true), 1500);
       }
     }
-
-    // Grant the revive after a short delay (1.5 seconds) simulating ad completion
-    setTimeout(() => {
-      onCompleted(true);
-    }, 1500);
   }
 
   /**
@@ -247,6 +520,8 @@ export class AdManager {
    * Scans and updates DOM ad elements, injecting the ticking "Time Lap" digital timer.
    */
   public static updateAdButtonsDOM() {
+    const isOffline = !this.isOnline;
+
     // A. Economy & Booster buttons (3-minute timeline)
     const ecoRemaining = this.getEconomyCooldownRemaining();
     const isEcoCooldownActive = ecoRemaining > 0;
@@ -255,7 +530,11 @@ export class AdManager {
     // 1. Plus Coins Icon Button
     const plusCoinsBtn = document.getElementById('btn-plus-coins') as HTMLButtonElement | null;
     if (plusCoinsBtn) {
-      if (isEcoCooldownActive) {
+      if (isOffline) {
+        plusCoinsBtn.disabled = true;
+        plusCoinsBtn.classList.add('disabled-ad-btn');
+        plusCoinsBtn.innerText = '🔌';
+      } else if (isEcoCooldownActive) {
         plusCoinsBtn.disabled = true;
         plusCoinsBtn.classList.add('disabled-ad-btn');
         plusCoinsBtn.innerText = ecoTimeText;
@@ -269,7 +548,11 @@ export class AdManager {
     // 2. Plus Gems Icon Button
     const plusGemsBtn = document.getElementById('btn-plus-gems') as HTMLButtonElement | null;
     if (plusGemsBtn) {
-      if (isEcoCooldownActive) {
+      if (isOffline) {
+        plusGemsBtn.disabled = true;
+        plusGemsBtn.classList.add('disabled-ad-btn');
+        plusGemsBtn.innerText = '🔌';
+      } else if (isEcoCooldownActive) {
         plusGemsBtn.disabled = true;
         plusGemsBtn.classList.add('disabled-ad-btn');
         plusGemsBtn.innerText = ecoTimeText;
@@ -299,6 +582,10 @@ export class AdManager {
         const mins = Math.floor((totalSecs % 3600) / 60);
         const secs = totalSecs % 60;
         extraRewardsBtn.innerText = `⏳ ${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      } else if (isOffline) {
+        extraRewardsBtn.disabled = true;
+        extraRewardsBtn.classList.add('disabled-ad-btn');
+        extraRewardsBtn.innerText = 'OFFLINE 🔌';
       } else if (isEcoCooldownActive) {
         extraRewardsBtn.disabled = true;
         extraRewardsBtn.classList.add('disabled-ad-btn');
@@ -318,7 +605,13 @@ export class AdManager {
     // 4. Revive Screen Button ("WATCH AD TO REVIVE")
     const reviveBtn = document.getElementById('btn-ad-revive') as HTMLButtonElement | null;
     if (reviveBtn) {
-      if (isRevCooldownActive) {
+      if (isOffline) {
+        reviveBtn.disabled = true;
+        reviveBtn.classList.add('disabled-ad-btn');
+        reviveBtn.style.opacity = '0.5';
+        reviveBtn.style.cursor = 'not-allowed';
+        reviveBtn.innerHTML = `<span>🔌 OFFLINE</span>`;
+      } else if (isRevCooldownActive) {
         reviveBtn.disabled = true;
         reviveBtn.classList.add('disabled-ad-btn');
         reviveBtn.style.opacity = '0.5';
@@ -365,3 +658,4 @@ export class AdManager {
 
 // Start timer automatically when the class file executes
 AdManager.startCooldownTimer();
+AdManager.initializeOnlineTracking();
