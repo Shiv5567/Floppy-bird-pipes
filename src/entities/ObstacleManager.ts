@@ -1788,7 +1788,7 @@ export class ObstacleManager {
         if (gameMode === 'flock') {
           dist = Math.max(490, Math.min(770, dist));
         } else if (gameMode === 'endless') {
-          dist = Math.max(350, Math.min(600, dist));
+          dist = Math.max(215, Math.min(340, dist));
         }
         this.nextSpawnDistance = dist;
       }
@@ -1890,7 +1890,7 @@ export class ObstacleManager {
         if (gameMode === 'flock') {
           dist = Math.max(490, Math.min(770, dist)); // Clamp horizontal gap between 490px and 770px
         } else if (gameMode === 'endless') {
-          dist = Math.max(350, Math.min(600, dist)); // Clamp horizontal gap between 350px and 600px
+          dist = Math.max(215, Math.min(340, dist)); // Clamp horizontal gap between 215px and 340px
         }
 
         this.nextSpawnDistance = dist;
