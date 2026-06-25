@@ -1348,9 +1348,6 @@ export class GameEngine {
     // Play subtle chime on score pass
     this.soundManager.playCoin();
 
-    // Spawn point sparkles
-    this.particleEngine.emitCoinSparkle(this.bird.x + 30, this.bird.y, '#00ffcc');
-
     // Demo completion checks were removed  
   }
 
