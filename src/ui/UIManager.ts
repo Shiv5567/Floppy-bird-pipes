@@ -3058,7 +3058,6 @@ export class UIManager {
   }
 
   private showEndlessModeSelection() {
-    const progress = this.engine.progressManager.getState();
     this.container.innerHTML = `
       <style>
         .mode-3d-overlay {
@@ -3286,7 +3285,6 @@ export class UIManager {
                 </svg>
               </div>
               <div class="mode-3d-label">Classic</div>
-              <div style="font-size: 12px; font-weight: 800; color: #ffd700; margin: 4px 0 8px 0; letter-spacing: 0.5px; opacity: 0.9;">BEST: ${progress.highscoreClassic || progress.highscore || 0}</div>
               <button id="btn-select-classic" class="mode-3d-btn classic-3d-btn">Fly</button>
             </div>
 
@@ -3336,7 +3334,6 @@ export class UIManager {
                 </svg>
               </div>
               <div class="mode-3d-label">Squad</div>
-              <div style="font-size: 12px; font-weight: 800; color: #00f3ff; margin: 4px 0 8px 0; letter-spacing: 0.5px; opacity: 0.9;">BEST: ${progress.highscoreSquad || 0}</div>
               <button id="btn-select-flock" class="mode-3d-btn squad-3d-btn">Fly</button>
             </div>
           </div>
