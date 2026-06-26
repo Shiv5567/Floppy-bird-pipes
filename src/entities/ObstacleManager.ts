@@ -561,11 +561,11 @@ export class ObstacleManager {
             obs.targetBottomHeight = obs.baseBottomHeight! + pulse * sign;
           } else if (obs.patternType === 'level16_rotatingarc') {
             // Level 16: Infinity Loops
-            // Lemniscate figure-eight criss-cross dynamic pattern
+            // Lemniscate figure-eight criss-cross dynamic pattern (animation reduced by 25%)
             const tVal = this.waveTime * 1.8 - actualIdx * 0.55;
-            obs.shakeX = Math.sin(tVal * 2) * 14;
-            obs.shakeX2 = -Math.sin(tVal * 2) * 14;
-            const loopY = Math.sin(tVal) * 18;
+            obs.shakeX = Math.sin(tVal * 2) * 10.5; // was 14
+            obs.shakeX2 = -Math.sin(tVal * 2) * 10.5; // was 14
+            const loopY = Math.sin(tVal) * 13.5; // was 18
             obs.targetTopHeight = obs.baseTopHeight! + loopY;
             obs.targetBottomHeight = obs.baseBottomHeight! - loopY;
           } else if (obs.patternType === 'level17_heartbeat') {
@@ -2215,23 +2215,23 @@ export class ObstacleManager {
         triggerDistance = 210;
         animDuration = 0.42;
       } else if (patternType === 'level16_rotatingarc') {
-        // LEVEL 16: Infinity Loops (Lemniscate figure-eight loop patterns)
+        // LEVEL 16: Infinity Loops (Lemniscate figure-eight loop patterns) (spawning layout shifts reduced by 25%)
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
           // Group 1: Lemniscate X-Y mapping
           const t = (obstacleIdx / 5) * Math.PI * 2;
           localGapHeight = gapHeight + 10;
-          targetTopHeight = height / 2 - localGapHeight / 2 + Math.sin(t) * Math.cos(t) * 75;
+          targetTopHeight = height / 2 - localGapHeight / 2 + Math.sin(t) * Math.cos(t) * 56.25; // was 75
         } else if (obstacleIdx <= 11) {
           // Group 2: Inverted Lemniscate
           const t = ((obstacleIdx - 6) / 5) * Math.PI * 2;
           localGapHeight = gapHeight + 10;
-          targetTopHeight = height / 2 - localGapHeight / 2 - Math.sin(t) * Math.cos(t) * 75;
+          targetTopHeight = height / 2 - localGapHeight / 2 - Math.sin(t) * Math.cos(t) * 56.25; // was 75
         } else {
           // Group 3: Double infinity crossover
           const t = ((obstacleIdx - 12) / 5) * Math.PI * 4;
           localGapHeight = gapHeight - 15;
-          targetTopHeight = height / 2 - localGapHeight / 2 + Math.sin(t) * 45;
+          targetTopHeight = height / 2 - localGapHeight / 2 + Math.sin(t) * 33.75; // was 45
         }
         triggerDistance = 200;
         animDuration = 0.45;
