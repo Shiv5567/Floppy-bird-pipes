@@ -521,14 +521,13 @@ export class ObstacleManager {
             obs.targetTopHeight = obs.baseTopHeight! + ripple;
             obs.targetBottomHeight = obs.baseBottomHeight! - ripple;
           } else if (obs.patternType === 'level14_zigzag') {
-            // Level 14: Zigzag bounce — alternating opposite-phase bounce + lateral shake
-            const isEven = (actualIdx % 2 === 0);
-            const phase = isEven ? 0 : Math.PI;
-            const bounce = Math.sin(this.waveTime * 2.5 + phase) * 7;
-            obs.shakeX = Math.cos(this.waveTime * 2.0 + phase) * 4;
-            obs.shakeX2 = -obs.shakeX;
-            obs.targetTopHeight = obs.baseTopHeight! + bounce;
-            obs.targetBottomHeight = obs.baseBottomHeight! - bounce;
+            // Replaced with Level 22 first group behavior (rotating_17 with animScale = 1.30)
+            const angle = this.waveTime * 2.0 + actualIdx * 0.5;
+            obs.shakeX = Math.sin(angle) * (20 * 1.30);
+            obs.shakeX2 = Math.cos(angle) * (20 * 1.30);
+            const centerY = obs.spawnCenterY!;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
           } else if (obs.patternType === 'level14_crossflow') {
             // Level 18 (swapped): "The Wormhole Vortex" — path gap shifting reduced 60% (×0.40)
             const p14group = Math.floor((actualIdx % 18) / 6); // 0=spiral, 1=shockwave, 2=gravity
@@ -2146,24 +2145,12 @@ export class ObstacleManager {
         triggerDistance = 240;
         animDuration = 0.72;
       } else if (patternType === 'level14_zigzag') {
-        // LEVEL 14: "Zigzag Corridor" — path shifting reduced 60% (×0.40)
-        hasAsymmetricHeights = true;
-        const zigStep = obstacleIdx % 12;
-        const isHigh = (zigStep % 2 === 0);
-        if (zigStep <= 5) {
-          localGapHeight = gapHeight;
-          targetTopHeight = height / 2 - localGapHeight / 2 + (isHigh ? -22 : 22);
-        } else if (zigStep <= 8) {
-          const step = zigStep - 6;
-          const amp = 17 + step * 8;
-          localGapHeight = gapHeight;
-          targetTopHeight = height / 2 - localGapHeight / 2 + (isHigh ? -amp : amp);
-        } else {
-          localGapHeight = gapHeight - 10;
-          targetTopHeight = height / 2 - localGapHeight / 2 + (isHigh ? -39 : 39);
-        }
-        triggerDistance = 200;
-        animDuration = 0.38;
+        // Replaced with Level 22 first group behavior (rotating_17 with animScale = 1.30)
+        hasAsymmetricHeights = false;
+        targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 4)) * (40 * 1.30);
+        localGapHeight = gapHeight;
+        triggerDistance = 210;
+        animDuration = 0.45;
       } else if (patternType === 'level14_crossflow') {
         // LEVEL 18 (swapped): "The Wormhole Vortex" — vertical shifts from midline reduced 40% (×0.60), triggerDistance increased for surface alignment
         // Group 1: Spiral Funnel — gap center orbits asymmetrically (cos top, -sin bottom)
