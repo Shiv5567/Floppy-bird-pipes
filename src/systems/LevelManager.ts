@@ -451,6 +451,12 @@ export class LevelManager {
     if (lvl16GapAdjust) {
       lvl16GapAdjust.gapHeight = Math.round(lvl16GapAdjust.gapHeight * 1.15);
     }
+
+    // Assign level18_group2 pattern to Level 18
+    const lvl18PatternOverride = this.levels.find(l => l.levelNum === 18);
+    if (lvl18PatternOverride) {
+      lvl18PatternOverride.patterns = ['level18_group2'];
+    }
   }
 
   public static getLevel(levelNum: number): LevelConfig | undefined {

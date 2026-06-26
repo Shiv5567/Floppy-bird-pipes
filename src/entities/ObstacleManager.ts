@@ -528,6 +528,13 @@ export class ObstacleManager {
             const centerY = obs.spawnCenterY!;
             obs.targetTopHeight = centerY - obs.gapHeight! / 2;
             obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+          } else if (obs.patternType === 'level18_group2') {
+            obs.shakeX = 0;
+            obs.shakeX2 = 0;
+            const shift = Math.sin(this.waveTime * 2.2 + obs.obstacleIdx! * 0.3) * (35 * 1.30);
+            const centerY = obs.spawnCenterY! + shift;
+            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
           } else if (obs.patternType === 'level14_crossflow') {
             // Level 18 (swapped): "The Wormhole Vortex" — path gap shifting reduced 60% (×0.40)
             const p14group = Math.floor((actualIdx % 18) / 6); // 0=spiral, 1=shockwave, 2=gravity
@@ -2149,6 +2156,13 @@ export class ObstacleManager {
         hasAsymmetricHeights = false;
         targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 4)) * (40 * 1.30);
         localGapHeight = gapHeight;
+        triggerDistance = 210;
+        animDuration = 0.45;
+      } else if (patternType === 'level18_group2') {
+        hasAsymmetricHeights = false;
+        const offsets = [-80, -40, 0, 40, 80, 40, 0, -40];
+        targetCenterY = height / 2 + offsets[actualPatternIdx % offsets.length] * 1.30;
+        localGapHeight = Math.round(gapHeight * 0.859625);
         triggerDistance = 210;
         animDuration = 0.45;
       } else if (patternType === 'level14_crossflow') {
