@@ -3397,6 +3397,7 @@ export class UIManager {
         }
 
         /* 3D arcade buttons */
+        /* 3D arcade buttons with light border effect */
         .mode-3d-btn {
           width: 100%;
           padding: 15px 12px;
@@ -3404,36 +3405,41 @@ export class UIManager {
           font-weight: 900;
           text-transform: uppercase;
           border-radius: 14px;
-          border: none;
           cursor: pointer;
           transition: all 0.15s ease-out;
         }
         .classic-3d-btn {
           background: linear-gradient(180deg, #ffd700 0%, #ff9900 100%);
           color: #2b1c00;
-          box-shadow: 0 6px 0 #9c6300, 0 6px 14px rgba(255, 170, 0, 0.25);
+          border: 2px solid rgba(255, 215, 0, 0.5);
+          box-shadow: 0 6px 0 #9c6300, 0 6px 14px rgba(255, 170, 0, 0.25), inset 0 0 8px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 215, 0, 0.3);
         }
         .classic-3d-btn:hover {
           background: linear-gradient(180deg, #ffe54d 0%, #ffa200 100%);
-          box-shadow: 0 6px 0 #9c6300, 0 8px 18px rgba(255, 170, 0, 0.35);
+          border-color: #fff099;
+          box-shadow: 0 6px 0 #9c6300, 0 8px 18px rgba(255, 170, 0, 0.35), inset 0 0 12px rgba(255, 215, 0, 0.9), 0 0 16px rgba(255, 215, 0, 0.7);
         }
         .squad-3d-btn {
           background: linear-gradient(180deg, #00f3ff 0%, #0066ff 100%);
           color: #001a33;
-          box-shadow: 0 6px 0 #004da8, 0 6px 14px rgba(0, 136, 255, 0.25);
+          border: 2px solid rgba(0, 243, 255, 0.5);
+          box-shadow: 0 6px 0 #004da8, 0 6px 14px rgba(0, 136, 255, 0.25), inset 0 0 8px rgba(0, 243, 255, 0.5), 0 0 10px rgba(0, 243, 255, 0.3);
         }
         .squad-3d-btn:hover {
           background: linear-gradient(180deg, #4df7ff 0%, #1a80ff 100%);
-          box-shadow: 0 6px 0 #004da8, 0 8px 18px rgba(0, 136, 255, 0.35);
+          border-color: #b3f5ff;
+          box-shadow: 0 6px 0 #004da8, 0 8px 18px rgba(0, 136, 255, 0.35), inset 0 0 12px rgba(0, 243, 255, 0.9), 0 0 16px rgba(0, 243, 255, 0.7);
         }
         .chaos-3d-btn {
           background: linear-gradient(180deg, #d946ef 0%, #ff007f 100%);
           color: #ffffff;
-          box-shadow: 0 6px 0 #9d174d, 0 6px 14px rgba(217, 70, 239, 0.25);
+          border: 2px solid rgba(217, 70, 239, 0.5);
+          box-shadow: 0 6px 0 #9d174d, 0 6px 14px rgba(217, 70, 239, 0.25), inset 0 0 8px rgba(217, 70, 239, 0.5), 0 0 10px rgba(217, 70, 239, 0.3);
         }
         .chaos-3d-btn:hover {
           background: linear-gradient(180deg, #e879f9 0%, #ff3b9a 100%);
-          box-shadow: 0 6px 0 #9d174d, 0 8px 18px rgba(217, 70, 239, 0.35);
+          border-color: #e879f9;
+          box-shadow: 0 6px 0 #9d174d, 0 8px 18px rgba(217, 70, 239, 0.35), inset 0 0 12px rgba(217, 70, 239, 0.9), 0 0 16px rgba(217, 70, 239, 0.7);
         }
 
         /* Mobile Responsive 3D Styling (Lightweight & Smooth) */
