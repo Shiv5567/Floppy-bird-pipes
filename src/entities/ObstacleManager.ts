@@ -61,6 +61,10 @@ export interface Obstacle {
   energyBallRadius?: number;
   isOrbitalSway?: boolean;
   isGoldSplitGate?: boolean;
+  isDestructible?: boolean;
+  hp?: number;
+  maxHp?: number;
+  isDestroyed?: boolean;
 }
 
 export class ObstacleManager {
@@ -133,7 +137,11 @@ export class ObstacleManager {
       energyBallSpeedY: undefined,
       energyBallRadius: undefined,
       isOrbitalSway: false,
-      isGoldSplitGate: false
+      isGoldSplitGate: false,
+      isDestructible: false,
+      hp: 0,
+      maxHp: 0,
+      isDestroyed: false
     }, props);
     return obs;
   }
@@ -170,11 +178,11 @@ export class ObstacleManager {
     width: number,
     height: number,
     timeScale: number,
-    zone: 'classic' | 'wave' = 'classic',
+    zone: 'classic' | 'wave' | 'chaos' = 'classic',
     difficulty: 'easy' | 'medium' | 'hard' = 'medium',
     _birdX?: number,
     _particleEngine?: any,
-    gameMode: 'endless' | 'level' | 'flock' | 'rescue' | 'formation' = 'endless'
+    gameMode: 'endless' | 'level' | 'flock' | 'rescue' | 'formation' | 'chaos' = 'endless'
   ) {
     this.currentScore = score;
     const dtCoeff = deltaTime * 60 * timeScale;
@@ -237,30 +245,30 @@ export class ObstacleManager {
     // Smooth, step-by-step progressive difficulty scaling ratio over 60 points
     const progressRatio = Math.min(1.0, score / 60.0);
 
-    // Dynamic difficulty limits (enforce the constant vertical gap of 255 - representing a 30% increase from 196)
-    let startGap = 255;
-    let minGap = 255;
+    // Dynamic difficulty limits (enforce the constant vertical gap of 281 - representing a 10% increase from 255)
+    let startGap = 281;
+    let minGap = 281;
     let distMultiplier = 1.0;
 
     if (gameMode === 'rescue') {
-      startGap = 345;
-      minGap = 345;
+      startGap = 386;
+      minGap = 386;
       distMultiplier = 1.45; // Generous horizontal spacing for the flock
     } else if (gameMode === 'flock') {
-      startGap = 270; // Set minimum vertical gap to 270 (was 256)
-      minGap = 270;   // Set minimum vertical gap to 270 (was 256)
+      startGap = 302; // Set minimum vertical gap to 302 (12% increase from 270)
+      minGap = 302;   // Set minimum vertical gap to 302 (12% increase from 270)
       distMultiplier = 1.575; // 30% reduction from 2.25 (2.25 * 0.7 = 1.575)
     } else if (gameMode === 'formation') {
       startGap = 320;
       minGap = 320;
       distMultiplier = 1.25; // Slightly wider spacing for other multi-bird modes
     } else if (difficulty === 'easy') {
-      startGap = 255;
-      minGap = 255;
+      startGap = 281;
+      minGap = 281;
       distMultiplier = 1.3;
     } else if (difficulty === 'hard') {
-      startGap = 255;
-      minGap = 255;
+      startGap = 281;
+      minGap = 281;
       distMultiplier = 0.80;
     }
 
@@ -302,7 +310,7 @@ export class ObstacleManager {
       // Update moving energy ball Y position inside the gap
       if (obs.hasEnergyBall && obs.energyBallY !== undefined && obs.energyBallSpeedY !== undefined && !isJadeLotusUltimate) {
         let currentBallSpeed = obs.energyBallSpeedY * dtCoeff;
-        if (obs.levelNum !== undefined && obs.levelNum >= 40 && obs.levelNum <= 50) {
+        if (obs.levelNum !== undefined && obs.levelNum >= 40 && obs.levelNum <= 60) {
           const groupSize = Math.floor((this.activeLevelConfig?.targetScore || 150) / 3);
           const actualIdx = obs.obstacleIdx || 0;
           const groupIdx = Math.min(2, Math.floor(actualIdx / groupSize));
@@ -394,147 +402,423 @@ export class ObstacleManager {
           const groupSize = Math.floor(this.activeLevelConfig.targetScore / 3);
           const actualIdx = obs.obstacleIdx || 0;
           const groupIdx = Math.min(2, Math.floor(actualIdx / groupSize));
-
           if (obs.patternType === 'level1_funnel') {
-            // LEVEL 1: "The Winding Cavern" (Smooth active vertical motion: slow overall sway + sequential parallel ripple)
-            const overallSway = Math.sin(this.waveTime * 1.4) * 22;
-            const ripple = Math.sin(this.waveTime * 2.2 + actualIdx * 0.18) * 8;
-            const slam = overallSway + ripple;
-            obs.targetTopHeight = obs.baseTopHeight! + slam;
-            obs.targetBottomHeight = obs.baseBottomHeight! - slam;
+            // LEVEL 1: "The Winding Cavern" - Gentle beginner friendly animations
+            if (groupIdx === 1) {
+              // Group 2: "Stepped Zig-Zag Cavern" - Pure horizontal shearing (no vertical bobbing)
+              obs.isLaser = false;
+              const shear = Math.sin(this.waveTime * 1.6 + actualIdx * 0.3) * 12;
+              obs.shakeX = shear;
+              obs.shakeX2 = -shear;
+              obs.targetTopHeight = obs.baseTopHeight!;
+              obs.targetBottomHeight = obs.baseBottomHeight!;
+            } else if (groupIdx === 2) {
+              // Group 3: "Spiral Cavern Twist" - Elastic pincer breathing on lasers (no horizontal shake)
+              obs.isLaser = true;
+              const breath = Math.sin(this.waveTime * 2.0 + actualIdx * 0.2) * 15;
+              obs.targetTopHeight = obs.baseTopHeight! + breath;
+              obs.targetBottomHeight = obs.baseBottomHeight! + breath;
+              obs.shakeX = 0;
+              obs.shakeX2 = 0;
+            } else {
+              // Group 1: Original behavior (smooth parallel vertical bobbing on standard pipes)
+              obs.isLaser = false;
+              const overallSway = Math.sin(this.waveTime * 0.8) * 10;
+              const ripple = Math.sin(this.waveTime * 1.2 + actualIdx * 0.18) * 4;
+              const slam = overallSway + ripple;
+              obs.targetTopHeight = obs.baseTopHeight! + slam;
+              obs.targetBottomHeight = obs.baseBottomHeight! - slam;
+              obs.shakeX = 0;
+              obs.shakeX2 = 0;
+            }
           } else if (obs.patternType === 'level2_diamond') {
-            // LEVEL 2: "The Wave Gauntlet" (Ceiling and floor surfaces wave in parallel harmony with slow overall sway + sequential parallel ripple, horizontal opposite shift remains active)
-            obs.shakeX = Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 24; // Increased amplitude by 20% (20 * 1.2 = 24)
-            obs.shakeX2 = -Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 24; // Increased amplitude by 20% (20 * 1.2 = 24)
-
-            const overallSway = Math.sin(this.waveTime * 1.3) * 28.8; // Increased amplitude by 20% (24 * 1.2 = 28.8)
-            const ripple = Math.sin(this.waveTime * 2.4 + actualIdx * 0.16) * 14.4; // Increased amplitude by 20% (12 * 1.2 = 14.4)
-            const slam = overallSway + ripple;
-
-            obs.targetTopHeight = obs.baseTopHeight! + slam;
-            obs.targetBottomHeight = obs.baseBottomHeight! - slam;
+            // LEVEL 2: "The Wave Gauntlet"
+            if (groupIdx === 1) {
+              // Group 2: "Steep Peak-Valley Maze" - Parallel vertical bobbing (no horizontal shake)
+              obs.isLaser = false;
+              const verticalShift = Math.sin(this.waveTime * 2.2 + actualIdx * 0.4) * 18;
+              obs.targetTopHeight = obs.baseTopHeight! + verticalShift;
+              obs.targetBottomHeight = obs.baseBottomHeight! - verticalShift;
+              obs.shakeX = 0;
+              obs.shakeX2 = 0;
+            } else if (groupIdx === 2) {
+              // Group 3: "Funneling Spiral Tunnel" - Circular orbital spin on lasers (no vertical bobbing)
+              obs.isLaser = true;
+              const spinAngle = this.waveTime * 1.5 + actualIdx * 0.4;
+              obs.shakeX = Math.sin(spinAngle) * 14;
+              obs.shakeX2 = -Math.cos(spinAngle) * 14;
+              obs.targetTopHeight = obs.baseTopHeight!;
+              obs.targetBottomHeight = obs.baseBottomHeight!;
+            } else {
+              // Group 1: Original gentle wave (opposite horizontal shake + vertical bobbing)
+              obs.isLaser = false;
+              obs.shakeX = Math.sin(this.waveTime * 1.5 + actualIdx * 0.5) * 8;
+              obs.shakeX2 = -Math.sin(this.waveTime * 1.5 + actualIdx * 0.5) * 8;
+              const overallSway = Math.sin(this.waveTime * 0.8) * 12;
+              const ripple = Math.sin(this.waveTime * 1.4 + actualIdx * 0.16) * 6;
+              const slam = overallSway + ripple;
+              obs.targetTopHeight = obs.baseTopHeight! + slam;
+              obs.targetBottomHeight = obs.baseBottomHeight! - slam;
+            }
           } else if (obs.patternType === 'level3_arc') {
-            // Dimensional Distortion Warp Grid: Aggressive out-of-phase sliding see-saws with rapid shake joint offsets
-            const phase = this.waveTime * 3.5 + (actualIdx % 3) * (Math.PI * 2 / 3);
-            const shift = Math.sin(phase) * 50;
-            const shake = Math.cos(this.waveTime * 4.0 + actualIdx * 0.5) * 15;
-            obs.shakeX = shake;
-            obs.shakeX2 = -shake;
-            obs.targetTopHeight = obs.baseTopHeight! + shift;
-            obs.targetBottomHeight = obs.baseBottomHeight! - shift;
+            // Dimensional Distortion Warp Grid
+            if (groupIdx === 1) {
+              // Group 2: "Double-Step See-saw" - Pure vertical breathing on standard pipes (no horizontal shake)
+              obs.isLaser = false;
+              const rippleVal = Math.sin(this.waveTime * 1.4 + actualIdx * 0.5) * 16;
+              obs.targetTopHeight = obs.baseTopHeight! + rippleVal;
+              obs.targetBottomHeight = obs.baseBottomHeight! + rippleVal;
+              obs.shakeX = 0;
+              obs.shakeX2 = 0;
+            } else if (groupIdx === 2) {
+              // Group 3: "Void Singularity / Central Gate" - Pure horizontal shearing on lasers (no vertical bobbing)
+              obs.isLaser = true;
+              const shear = Math.sin(this.waveTime * 1.8 + actualIdx * 0.4) * 20;
+              obs.shakeX = shear;
+              obs.shakeX2 = -shear;
+              obs.targetTopHeight = obs.baseTopHeight!;
+              obs.targetBottomHeight = obs.baseBottomHeight!;
+            } else {
+              // Group 1: Original behavior (see-saw vertical bobbing + opposite shake on standard pipes)
+              obs.isLaser = false;
+              const phase = this.waveTime * 1.8 + (actualIdx % 3) * (Math.PI * 2 / 3);
+              const shift = Math.sin(phase) * 18;
+              const shake = Math.cos(this.waveTime * 2.0 + actualIdx * 0.5) * 6;
+              obs.shakeX = shake;
+              obs.shakeX2 = -shake;
+              obs.targetTopHeight = obs.baseTopHeight! + shift;
+              obs.targetBottomHeight = obs.baseBottomHeight! - shift;
+            }
           } else if (obs.patternType === 'level4_snake') {
-            // LEVEL 4: "The Laser Grid Gauntlet" (Smooth neon/electronic oscillating gates: lasers active, vertical height moves smoothly)
-            obs.isLaser = true;
-            const neonBlink = Math.sin(this.waveTime * 1.25 + actualIdx * 0.5) * 15;
-            obs.targetTopHeight = obs.baseTopHeight! + neonBlink;
-            obs.targetBottomHeight = obs.baseBottomHeight! - neonBlink;
+            // LEVEL 4: "The Laser Grid Gauntlet" - Gentle sentinel beams
+            if (groupIdx === 1) {
+              // Group 2: "Binary Switch Gates" - Alternating blocky elevator jumps on standard pipes (no horizontal shake)
+              obs.isLaser = false;
+              const timeBlock = Math.floor(this.waveTime * 0.67); // switches every 1.5 seconds
+              const isUp = (timeBlock + (actualIdx % 2)) % 2 === 0;
+              const jumpOffset = isUp ? 22 : -22;
+              obs.targetTopHeight = obs.baseTopHeight! + jumpOffset;
+              obs.targetBottomHeight = obs.baseBottomHeight! - jumpOffset;
+              obs.shakeX = 0;
+              obs.shakeX2 = 0;
+            } else if (groupIdx === 2) {
+              // Group 3: "Slanted Ramp Corridor" - Pure horizontal sweeping on lasers (no vertical bobbing)
+              obs.isLaser = true;
+              const sweep = Math.sin(this.waveTime * 1.6 + actualIdx * 0.3) * 24;
+              obs.shakeX = sweep;
+              obs.shakeX2 = sweep;
+              obs.targetTopHeight = obs.baseTopHeight!;
+              obs.targetBottomHeight = obs.baseBottomHeight!;
+            } else {
+              // Group 1: Original behavior (slow parallel vertical bobbing on lasers)
+              obs.isLaser = true;
+              const neonBlink = Math.sin(this.waveTime * 0.8 + actualIdx * 0.5) * 6;
+              obs.targetTopHeight = obs.baseTopHeight! + neonBlink;
+              obs.targetBottomHeight = obs.baseBottomHeight! - neonBlink;
+              obs.shakeX = 0;
+              obs.shakeX2 = 0;
+            }
           } else if (obs.patternType === 'level5_hourglass') {
-            // LEVEL 5: "The Helix Vortex" (Spiral orbital loops: circular horizontal and vertical shaking - gap kept constant)
-            const angle = this.waveTime * 2.5 + actualIdx * 0.6;
-            obs.shakeX = Math.sin(angle) * 25;
-            obs.shakeX2 = Math.cos(angle) * 25;
-            obs.targetTopHeight = obs.baseTopHeight!;
-            obs.targetBottomHeight = obs.baseBottomHeight!;
+            // LEVEL 5: "The Helix Vortex" - Slow orbital shifts
+            if (groupIdx === 1) {
+              // Group 2: "Hourglass Squeeze Corridor" - Pure vertical breathing squeeze on lasers (no horizontal shake)
+              obs.isLaser = true;
+              const pulse = Math.sin(this.waveTime * 1.6 + actualIdx * 0.4) * 16;
+              obs.targetTopHeight = obs.baseTopHeight! + pulse;
+              obs.targetBottomHeight = obs.baseBottomHeight! + pulse;
+              obs.shakeX = 0;
+              obs.shakeX2 = 0;
+            } else if (groupIdx === 2) {
+              // Group 3: "Blocky Checkerboard Step" - Diagonal blocky step slides on standard pipes
+              obs.isLaser = false;
+              const timeBlock = Math.floor(this.waveTime * 0.67); // switches every 1.5 seconds
+              const isUp = (timeBlock + (actualIdx % 2)) % 2 === 0;
+              const stepY = isUp ? 22 : -22;
+              obs.targetTopHeight = obs.baseTopHeight! + stepY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - stepY;
+              const slideX = Math.sin(this.waveTime * 1.8 + actualIdx * 0.4) * 18;
+              obs.shakeX = slideX;
+              obs.shakeX2 = -slideX;
+            } else {
+              // Group 1: Original behavior (circular orbit shake, zero vertical animation on standard pipes)
+              obs.isLaser = false;
+              const angle = this.waveTime * 1.5 + actualIdx * 0.4;
+              obs.shakeX = Math.sin(angle) * 10;
+              obs.shakeX2 = Math.cos(angle) * 10;
+              obs.targetTopHeight = obs.baseTopHeight!;
+              obs.targetBottomHeight = obs.baseBottomHeight!;
+            }
           } else if (obs.patternType === 'level6_infinity') {
-            // LEVEL 6: "The Folding Accordion Gates" (Quadrature phase-shifted horizontal/vertical twisting accordion motion - 30% speed reduction)
-            const phaseTop = this.waveTime * 1.96 + actualIdx * 0.5;
-            const phaseBottom = phaseTop + Math.PI / 2; // 90 degrees out of phase!
-
-            obs.shakeX = Math.sin(phaseTop) * 26;
-            obs.shakeX2 = Math.cos(phaseBottom) * 26;
-
-            const topBob = Math.cos(phaseTop) * 53 * 0.20; // Bobbing range reduced by 80%
-            const botBob = Math.sin(phaseBottom) * 53 * 0.20; // Bobbing range reduced by 80%
-            obs.targetTopHeight = obs.baseTopHeight! + topBob;
-            obs.targetBottomHeight = obs.baseBottomHeight! - botBob;
+            // LEVEL 6: "The Folding Accordion Gates"
+            if (groupIdx === 1) {
+              // Group 2: "Pendulum Swing Doors" - Top and bottom swing opposite like a pendulum (no vertical bob)
+              obs.isLaser = false;
+              const pendAngle = this.waveTime * 2.4 + actualIdx * 0.55;
+              const pendAmp = Math.sin(pendAngle) * 22;
+              obs.shakeX = pendAmp;
+              obs.shakeX2 = -pendAmp;
+              // Pendulum twist: top pipe and bottom pipe tilt in counter-rhythm
+              const pendTilt = Math.cos(pendAngle) * 14;
+              obs.targetTopHeight = obs.baseTopHeight! + pendTilt;
+              obs.targetBottomHeight = obs.baseBottomHeight! - pendTilt;
+            } else if (groupIdx === 2) {
+              // Group 3: "Neon Pulse Zipper" - Lasers with ripple-wave zipper: alternating columns open/close in a travelling wave
+              obs.isLaser = true;
+              const zipPhase = this.waveTime * 2.8 - actualIdx * 0.6;
+              const zipAmp = Math.sin(zipPhase) * 20;
+              obs.targetTopHeight = obs.baseTopHeight! + zipAmp;
+              obs.targetBottomHeight = obs.baseBottomHeight! - zipAmp;
+              obs.shakeX = Math.cos(zipPhase * 0.5) * 10;
+              obs.shakeX2 = -Math.cos(zipPhase * 0.5) * 10;
+            } else {
+              // Group 1: Original quadrature accordion motion
+              const phaseTop = this.waveTime * 1.96 + actualIdx * 0.5;
+              const phaseBottom = phaseTop + Math.PI / 2;
+              obs.shakeX = Math.sin(phaseTop) * 26;
+              obs.shakeX2 = Math.cos(phaseBottom) * 26;
+              const topBob = Math.cos(phaseTop) * 53 * 0.20;
+              const botBob = Math.sin(phaseBottom) * 53 * 0.20;
+              obs.targetTopHeight = obs.baseTopHeight! + topBob;
+              obs.targetBottomHeight = obs.baseBottomHeight! - botBob;
+            }
           } else if (obs.patternType === 'level7_dna') {
-            // LEVEL 7: "The Magnetic Pull Chambers" (Proximity gap contraction/expansion attractor: proximity-based gap pulsing)
-            const force = Math.sin(this.waveTime * 3.2 + actualIdx * 0.8) * 30;
-            obs.targetTopHeight = obs.baseTopHeight! - force;
-            obs.targetBottomHeight = obs.baseBottomHeight! - force;
+            // LEVEL 7: "The Magnetic Pull Chambers"
+            if (groupIdx === 1) {
+              // Group 2: "Spiral Vortex Lasers" - Lasers with counter-rotating corkscrew spiral (horizontal+vertical spiral)
+              obs.isLaser = true;
+              const spiralAngle = this.waveTime * 2.2 + actualIdx * 0.7;
+              obs.shakeX = Math.sin(spiralAngle) * 18;
+              obs.shakeX2 = -Math.sin(spiralAngle + Math.PI * 0.6) * 18;
+              const spiralY = Math.cos(spiralAngle * 0.8) * 16;
+              obs.targetTopHeight = obs.baseTopHeight! + spiralY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - spiralY;
+            } else if (groupIdx === 2) {
+              // Group 3: "Clap & Release Gates" - Pipes snap shut and open in a slow rhythmic clap pattern
+              obs.isLaser = false;
+              const clapCycle = (this.waveTime * 1.1 + actualIdx * 0.3) % (Math.PI * 2);
+              const clapAmp = Math.pow(Math.abs(Math.sin(clapCycle)), 0.4) * 26 * Math.sign(Math.sin(clapCycle));
+              obs.targetTopHeight = obs.baseTopHeight! + clapAmp;
+              obs.targetBottomHeight = obs.baseBottomHeight! - clapAmp;
+              obs.shakeX = 0;
+              obs.shakeX2 = 0;
+            } else {
+              // Group 1: Original magnetic pull
+              const force = Math.sin(this.waveTime * 3.2 + actualIdx * 0.8) * 30;
+              obs.targetTopHeight = obs.baseTopHeight! - force;
+              obs.targetBottomHeight = obs.baseBottomHeight! - force;
+            }
           } else if (obs.patternType === 'level8_lightning') {
-            // LEVEL 8: "The Tremor Cascades" (Tectonic earthquake: high-frequency visual vibration and offset ridges)
-            obs.shakeX = Math.sin(this.waveTime * 20) * 8;
-            obs.shakeX2 = -Math.sin(this.waveTime * 20) * 8;
-            const tremorY = Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 15;
-            obs.targetTopHeight = obs.baseTopHeight! + tremorY;
-            obs.targetBottomHeight = obs.baseBottomHeight! - tremorY;
+            // LEVEL 8: "The Tremor Cascades"
+            if (groupIdx === 1) {
+              // Group 2: "Criss-Cross Laser Scissors" - Lasers that scissor cross diagonally in opposite directions
+              obs.isLaser = true;
+              const scissorT = this.waveTime * 1.8 + actualIdx * 0.5;
+              obs.shakeX = Math.cos(scissorT) * 24;        // top pipe slides right
+              obs.shakeX2 = -Math.cos(scissorT) * 24;     // bottom pipe slides left (opposite)
+              const scissorY = Math.sin(scissorT * 1.3) * 14;
+              obs.targetTopHeight = obs.baseTopHeight! + scissorY;
+              obs.targetBottomHeight = obs.baseBottomHeight! + scissorY; // same direction = gap shifts up/down
+            } else if (groupIdx === 2) {
+              // Group 3: "Stacked Bounce Columns" - Alternating columns bounced in an outward-inward piston rhythm
+              obs.isLaser = false;
+              const isEven = (actualIdx % 2 === 0);
+              const bounceT = this.waveTime * 2.6 + actualIdx * 0.35;
+              const bounce = Math.abs(Math.sin(bounceT)) * 24 * (isEven ? 1 : -1);
+              obs.targetTopHeight = obs.baseTopHeight! + bounce;
+              obs.targetBottomHeight = obs.baseBottomHeight! - bounce;
+              obs.shakeX = Math.sin(this.waveTime * 3.5 + actualIdx) * 6;
+              obs.shakeX2 = -Math.sin(this.waveTime * 3.5 + actualIdx) * 6;
+            } else {
+              // Group 1: Original earthquake tremor
+              obs.shakeX = Math.sin(this.waveTime * 20) * 8;
+              obs.shakeX2 = -Math.sin(this.waveTime * 20) * 8;
+              const tremorY = Math.sin(this.waveTime * 2.8 + actualIdx * 0.5) * 12;
+              obs.targetTopHeight = obs.baseTopHeight! + tremorY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - tremorY;
+            }
           } else if (obs.patternType === 'level9_magnetic') {
-            // LEVEL 9: "The Quantum Entangled Gates" (Anti-phase entangled mirror sliding where adjacent columns expand/contract in exact opposition - additional 30% speed reduction)
-            const isEven = (actualIdx % 2 === 0);
-            const entangleTime = this.waveTime * 1.57;
-            const slide = Math.sin(entangleTime + (actualIdx * 0.5)) * 25 * 0.35; // reduced 65%
-
-            const dir = isEven ? 1 : -1;
-            obs.targetTopHeight = obs.baseTopHeight! + (dir * slide);
-            obs.targetBottomHeight = obs.baseBottomHeight! - (dir * slide);
-
-            obs.shakeX = isEven ? Math.cos(entangleTime) * 20 : -Math.cos(entangleTime) * 20;
-            obs.shakeX2 = isEven ? -Math.cos(entangleTime) * 20 : Math.cos(entangleTime) * 20;
+            // LEVEL 9: "The Quantum Entangled Gates"
+            if (groupIdx === 1) {
+              // Group 2: "Wave Cascade Lasers" - Lasers with a sinusoidal travelling ripple (each column offset in phase like a stadium wave)
+              obs.isLaser = true;
+              const wavePhase = this.waveTime * 2.0 - actualIdx * 0.5;
+              const waveCrash = Math.sin(wavePhase) * 20;
+              obs.targetTopHeight = obs.baseTopHeight! + waveCrash;
+              obs.targetBottomHeight = obs.baseBottomHeight! - waveCrash;
+              obs.shakeX = Math.cos(wavePhase * 0.7) * 14;
+              obs.shakeX2 = -Math.cos(wavePhase * 0.7) * 14;
+            } else if (groupIdx === 2) {
+              // Group 3: "Tick-Tock Clock Gates" - Pipes swing like clock hands, alternating left-right pivot with vertical oscillation
+              obs.isLaser = false;
+              const tickPhase = this.waveTime * 1.5 + actualIdx * 0.4;
+              const swingX = Math.sin(tickPhase) * 20;
+              const swingY = -Math.abs(Math.cos(tickPhase)) * 18; // rises at extremes, falls at center
+              obs.shakeX = swingX;
+              obs.shakeX2 = swingX * 0.5; // slight different scale for visual depth
+              obs.targetTopHeight = obs.baseTopHeight! + swingY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - swingY;
+            } else {
+              // Group 1: Original quantum entanglement
+              const isEven = (actualIdx % 2 === 0);
+              const entangleTime = this.waveTime * 1.57;
+              const slide = Math.sin(entangleTime + (actualIdx * 0.5)) * 25 * 0.35;
+              const dir = isEven ? 1 : -1;
+              obs.targetTopHeight = obs.baseTopHeight! + (dir * slide);
+              obs.targetBottomHeight = obs.baseBottomHeight! - (dir * slide);
+              obs.shakeX = isEven ? Math.cos(entangleTime) * 20 : -Math.cos(entangleTime) * 20;
+              obs.shakeX2 = isEven ? -Math.cos(entangleTime) * 20 : Math.cos(entangleTime) * 20;
+            }
           } else if (obs.patternType === 'level10_miniboss') {
-            // LEVEL 10: "The Chrono Warp Horizon" (Space-time warp compression with dynamic time-dilation ripples propagating through columns - additional 20% speed reduction)
-            const timeDilation = 1.0 + Math.sin(this.waveTime * 0.84) * 0.4;
-            const warpTime = this.waveTime * 1.96 * timeDilation;
-            const ripplePhase = warpTime - actualIdx * 0.45;
-
-            obs.shakeX = Math.sin(ripplePhase) * 26;
-            obs.shakeX2 = Math.cos(ripplePhase) * 26;
-
-            const compression = Math.sin(ripplePhase + Math.PI / 4) * 22;
-            obs.targetTopHeight = obs.baseTopHeight! + compression;
-            obs.targetBottomHeight = obs.baseBottomHeight! - compression;
+            // LEVEL 10: "The Chrono Warp Horizon"
+            if (groupIdx === 1) {
+              // Group 2: "Plasma Surge Lasers" - Lasers with high-frequency electric jolt bursts (rapid micro-stutter + slow drift)
+              obs.isLaser = true;
+              const surgeDrift = Math.sin(this.waveTime * 1.4 + actualIdx * 0.6) * 18;
+              const surgeJolt = Math.sin(this.waveTime * 12 + actualIdx * 1.2) * 5; // rapid micro-jitter
+              obs.targetTopHeight = obs.baseTopHeight! + surgeDrift + surgeJolt;
+              obs.targetBottomHeight = obs.baseBottomHeight! - surgeDrift + surgeJolt;
+              obs.shakeX = Math.cos(this.waveTime * 2.0 + actualIdx * 0.5) * 16;
+              obs.shakeX2 = -Math.cos(this.waveTime * 2.0 + actualIdx * 0.5) * 16;
+            } else if (groupIdx === 2) {
+              // Group 3: "Orbital Figure-8 Pipes" - Standard pipes trace a figure-8 Lissajous path (2:1 frequency ratio)
+              obs.isLaser = false;
+              const figT = this.waveTime * 1.6 + actualIdx * 0.45;
+              obs.shakeX = Math.sin(figT * 2) * 22;          // horizontal at 2x frequency
+              obs.shakeX2 = Math.sin(figT * 2 + Math.PI) * 22;
+              const figY = Math.sin(figT) * 20;              // vertical at 1x frequency
+              obs.targetTopHeight = obs.baseTopHeight! + figY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - figY;
+            } else {
+              // Group 1: Original chrono warp ripple
+              const timeDilation = 1.0 + Math.sin(this.waveTime * 0.84) * 0.4;
+              const warpTime = this.waveTime * 1.96 * timeDilation;
+              const ripplePhase = warpTime - actualIdx * 0.45;
+              obs.shakeX = Math.sin(ripplePhase) * 26;
+              obs.shakeX2 = Math.cos(ripplePhase) * 26;
+              const compression = Math.sin(ripplePhase + Math.PI / 4) * 22;
+              obs.targetTopHeight = obs.baseTopHeight! + compression;
+              obs.targetBottomHeight = obs.baseBottomHeight! - compression;
+            }
           } else if (obs.patternType === 'level11_diamond') {
-            // Level 11: Structure-Aligned Animations matching each Group's distinct layout
+            // Level 11: Structure-Aligned Animations
             const idx = actualIdx % 12;
             if (groupIdx === 0) {
-              // Group 1 (Deep V-Shape): "Sinking Valley" oscillation. The sides stay stable while center valley bobs.
+              // Group 1: "Sinking Valley" — center columns bob while edges stay stable
+              obs.isLaser = false;
               const centerDist = Math.abs(idx - 5.5);
               const centerFactor = 1.0 - (centerDist / 5.5);
               const breath = Math.sin(this.waveTime * 2.5) * 22 * centerFactor;
               obs.targetTopHeight = obs.baseTopHeight! + breath;
               obs.targetBottomHeight = obs.baseBottomHeight! - breath;
             } else if (groupIdx === 1) {
-              // Group 2 (Asymmetric Slanted Peak): "Tilted pivots". The entire ridge tilts up/down like a see-saw.
-              const tiltFactor = (idx - 4) / 7.0;
-              const wave = Math.sin(this.waveTime * 2.2) * 20 * tiltFactor;
-              obs.targetTopHeight = obs.baseTopHeight! + wave;
-              obs.targetBottomHeight = obs.baseBottomHeight! - wave;
+              // Group 2: "Neon Ripple Curtain" — lasers with a slow travelling sine wave from left to right
+              obs.isLaser = true;
+              const ripT = this.waveTime * 1.9 - actualIdx * 0.55;
+              const ripAmp = Math.sin(ripT) * 22;
+              obs.targetTopHeight = obs.baseTopHeight! + ripAmp;
+              obs.targetBottomHeight = obs.baseBottomHeight! - ripAmp;
+              obs.shakeX = Math.cos(ripT * 0.6) * 12;
+              obs.shakeX2 = -Math.cos(ripT * 0.6) * 12;
             } else {
-              // Group 3: "Tilted pivots" (same as Group 2)
-              const tiltFactor = (idx - 4) / 7.0;
-              const wave = Math.sin(this.waveTime * 2.2) * 20 * tiltFactor;
-              obs.targetTopHeight = obs.baseTopHeight! + wave;
-              obs.targetBottomHeight = obs.baseBottomHeight! - wave;
+              // Group 3: "Accordion Clap Pipes" — standard pipes squeeze & release in alternating columns
+              obs.isLaser = false;
+              const isOdd = actualIdx % 2 === 1;
+              const clapT = this.waveTime * 2.6 + (isOdd ? Math.PI : 0);
+              const clap = Math.sin(clapT) * 20;
+              obs.targetTopHeight = obs.baseTopHeight! + clap;
+              obs.targetBottomHeight = obs.baseBottomHeight! - clap;
+              obs.shakeX = 0;
+              obs.shakeX2 = 0;
             }
           } else if (obs.patternType === 'level12_doublewave') {
-            // Level 12: "The Pincer Maze" — net ×0.805 (−30%+15%)
-            const tidal = Math.sin(this.waveTime * 1.6) * 14.5 * 0.80;
-            const isOdd = (actualIdx % 2 === 1);
-            const zigzag = Math.sin(this.waveTime * 3.0 + actualIdx * 0.9) * 11.3 * (isOdd ? 1 : -1) * 0.80;
-            const pincerSqueeze = Math.pow(Math.sin(this.waveTime * 2.2 - actualIdx * 0.4), 2) * 16;
-            obs.targetTopHeight = obs.baseTopHeight! + tidal + zigzag + pincerSqueeze;
-            obs.targetBottomHeight = obs.baseBottomHeight! - tidal - zigzag + pincerSqueeze;
+            // Level 12: "The Pincer Maze"
+            if (groupIdx === 1) {
+              // Group 2: "Laser Tide Surge" — lasers drift together in slow tidal sway + horizontal shimmer
+              obs.isLaser = true;
+              const tide = Math.sin(this.waveTime * 1.4 + actualIdx * 0.35) * 20;
+              obs.targetTopHeight = obs.baseTopHeight! + tide;
+              obs.targetBottomHeight = obs.baseBottomHeight! + tide;
+              obs.shakeX = Math.cos(this.waveTime * 2.0 + actualIdx * 0.5) * 14;
+              obs.shakeX2 = -Math.cos(this.waveTime * 2.0 + actualIdx * 0.5) * 14;
+            } else if (groupIdx === 2) {
+              // Group 3: "Staggered Fan Sweep" — pipes sweep in alternating fan arcs (even columns up, odd columns down)
+              obs.isLaser = false;
+              const fanDir = actualIdx % 2 === 0 ? 1 : -1;
+              const fanT = this.waveTime * 2.2 + actualIdx * 0.4;
+              const fanAmp = Math.sin(fanT) * 24 * fanDir;
+              obs.targetTopHeight = obs.baseTopHeight! + fanAmp;
+              obs.targetBottomHeight = obs.baseBottomHeight! - fanAmp;
+              obs.shakeX = Math.sin(fanT * 0.7) * 8;
+              obs.shakeX2 = -Math.sin(fanT * 0.7) * 8;
+            } else {
+              // Group 1: Original pincer maze
+              obs.isLaser = false;
+              const tidal = Math.sin(this.waveTime * 1.6) * 14.5 * 0.80;
+              const isOdd = (actualIdx % 2 === 1);
+              const zigzag = Math.sin(this.waveTime * 3.0 + actualIdx * 0.9) * 11.3 * (isOdd ? 1 : -1) * 0.80;
+              const pincerSqueeze = Math.pow(Math.sin(this.waveTime * 2.2 - actualIdx * 0.4), 2) * 16;
+              obs.targetTopHeight = obs.baseTopHeight! + tidal + zigzag + pincerSqueeze;
+              obs.targetBottomHeight = obs.baseBottomHeight! - tidal - zigzag + pincerSqueeze;
+            }
           } else if (obs.patternType === 'level13_scurve') {
-            // Level 13: W-shape "Double Peristaltic Wave" (Level 11 Group 3 — all obstacles)
-            const rippleAngle = (actualIdx / 11) * Math.PI * 2;
-            const ripple = Math.sin(this.waveTime * 2.8 + rippleAngle * 2) * 16;
-            obs.targetTopHeight = obs.baseTopHeight! + ripple;
-            obs.targetBottomHeight = obs.baseBottomHeight! - ripple;
+            // Level 13: "Double Peristaltic Wave"
+            if (groupIdx === 1) {
+              // Group 2: "Electric Lash Lasers" — lasers crack like a whip with fast horizontal snap + vertical drift
+              obs.isLaser = true;
+              const whipT = this.waveTime * 3.0 + actualIdx * 0.65;
+              obs.shakeX = Math.sin(whipT) * 22;
+              obs.shakeX2 = -Math.sin(whipT + 0.8) * 22;
+              const drift = Math.cos(this.waveTime * 1.2 + actualIdx * 0.3) * 14;
+              obs.targetTopHeight = obs.baseTopHeight! + drift;
+              obs.targetBottomHeight = obs.baseBottomHeight! - drift;
+            } else if (groupIdx === 2) {
+              // Group 3: "Double Bounce Pistons" — pipes thrust outward at double the wave frequency, bouncing like pistons
+              obs.isLaser = false;
+              const pistonT = this.waveTime * 3.6 + actualIdx * 0.45;
+              const piston = Math.abs(Math.sin(pistonT)) * 26 - 13; // oscillates 0→26 becoming -13 to +13
+              obs.targetTopHeight = obs.baseTopHeight! + piston;
+              obs.targetBottomHeight = obs.baseBottomHeight! - piston;
+              obs.shakeX = 0;
+              obs.shakeX2 = 0;
+            } else {
+              // Group 1: Original peristaltic ripple
+              obs.isLaser = false;
+              const rippleAngle = (actualIdx / 11) * Math.PI * 2;
+              const ripple = Math.sin(this.waveTime * 2.8 + rippleAngle * 2) * 16;
+              obs.targetTopHeight = obs.baseTopHeight! + ripple;
+              obs.targetBottomHeight = obs.baseBottomHeight! - ripple;
+            }
           } else if (obs.patternType === 'level14_zigzag') {
-            // Replaced with Level 22 first group behavior (rotating_17 with animScale = 1.30)
-            const angle = this.waveTime * 2.0 + actualIdx * 0.5;
-            obs.shakeX = Math.sin(angle) * (20 * 1.30);
-            obs.shakeX2 = Math.cos(angle) * (20 * 1.30);
-            const centerY = obs.spawnCenterY!;
-            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
-          } else if (obs.patternType === 'level18_group2') {
-            obs.shakeX = 0;
-            obs.shakeX2 = 0;
-            const shift = Math.sin(this.waveTime * 2.2 + obs.obstacleIdx! * 0.3) * (35 * 1.30);
-            const centerY = obs.spawnCenterY! + shift;
-            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            // Level 14: Zigzag Orbital
+            if (groupIdx === 1) {
+              // Group 2: "Phase-Locked Laser Gate" — lasers oscillate vertically in two interlocked phases
+              obs.isLaser = true;
+              const lockPhase = this.waveTime * 2.4 + actualIdx * 0.6;
+              const locked = Math.sin(lockPhase) * 22;
+              obs.targetTopHeight = obs.baseTopHeight! + locked;
+              obs.targetBottomHeight = obs.baseBottomHeight! - locked;
+              obs.shakeX = Math.cos(lockPhase * 0.5) * 14;
+              obs.shakeX2 = -Math.cos(lockPhase * 0.5) * 14;
+            } else if (groupIdx === 2) {
+              // Group 3: "Tectonic Plate Shift" — pipes slide horizontally in block-steps, reversing direction every 1.2s
+              obs.isLaser = false;
+              const blockT = Math.floor(this.waveTime * 0.83); // toggles every 1.2s
+              const slideDir = (blockT + (actualIdx % 2)) % 2 === 0 ? 1 : -1;
+              obs.shakeX = slideDir * 20;
+              obs.shakeX2 = slideDir * 20;
+              const plateY = Math.sin(this.waveTime * 1.6 + actualIdx * 0.4) * 14;
+              obs.targetTopHeight = obs.baseTopHeight! + plateY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - plateY;
+            } else {
+              // Group 1: Original orbital rotation
+              obs.isLaser = false;
+              const angle = this.waveTime * 2.0 + actualIdx * 0.5;
+              obs.shakeX = Math.sin(angle) * (20 * 1.30);
+              obs.shakeX2 = Math.cos(angle) * (20 * 1.30);
+              const centerY = obs.spawnCenterY!;
+              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            }
           } else if (obs.patternType === 'level14_crossflow') {
             // Level 18 (swapped): "The Wormhole Vortex" — path gap shifting reduced 60% (×0.40)
             const p14group = Math.floor((actualIdx % 18) / 6); // 0=spiral, 1=shockwave, 2=gravity
@@ -561,50 +845,185 @@ export class ObstacleManager {
             }
           } else if (obs.patternType === 'level15_elevatorstair') {
             // Level 15: Diamond Chambers
-            // Pincer contraction: vertical diamond chamber squeeze pulsing
-            const pulse = Math.sin(this.waveTime * 2.2) * 20;
-            const sign = (actualIdx % 2 === 0 ? 1 : -1);
-            obs.targetTopHeight = obs.baseTopHeight! + pulse * sign;
-            obs.targetBottomHeight = obs.baseBottomHeight! + pulse * sign;
+            if (groupIdx === 1) {
+              // Group 2: "Rotating Laser Vortex" — lasers spin in a corkscrew with counter-phase top/bottom
+              obs.isLaser = true;
+              const vortexT = this.waveTime * 2.0 + actualIdx * 0.7;
+              obs.shakeX = Math.sin(vortexT) * 20;
+              obs.shakeX2 = -Math.sin(vortexT + Math.PI * 0.5) * 20;
+              const vortexY = Math.cos(vortexT * 0.8) * 18;
+              obs.targetTopHeight = obs.baseTopHeight! + vortexY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - vortexY;
+            } else if (groupIdx === 2) {
+              // Group 3: "Galloping Gate Rush" — pipes jump in triplet rhythm: 3 fast hops then a pause
+              obs.isLaser = false;
+              const gallopCycle = (this.waveTime * 2.5 + actualIdx * 0.3) % (Math.PI * 2);
+              const gallopAmp = (gallopCycle < Math.PI * 1.5)
+                ? Math.sin(gallopCycle * 2) * 22
+                : 0; // pause during the last quarter of the cycle
+              obs.targetTopHeight = obs.baseTopHeight! + gallopAmp;
+              obs.targetBottomHeight = obs.baseBottomHeight! - gallopAmp;
+              obs.shakeX = 0;
+              obs.shakeX2 = 0;
+            } else {
+              // Group 1: Original diamond pincer pulse
+              obs.isLaser = false;
+              const pulse = Math.sin(this.waveTime * 2.2) * 20;
+              const sign = (actualIdx % 2 === 0 ? 1 : -1);
+              obs.targetTopHeight = obs.baseTopHeight! + pulse * sign;
+              obs.targetBottomHeight = obs.baseBottomHeight! + pulse * sign;
+            }
           } else if (obs.patternType === 'level16_rotatingarc') {
             // Level 16: Infinity Loops
-            // Lemniscate figure-eight criss-cross dynamic pattern (animation reduced by 25%)
-            const tVal = this.waveTime * 1.8 - actualIdx * 0.55;
-            obs.shakeX = Math.sin(tVal * 2) * 10.5; // was 14
-            obs.shakeX2 = -Math.sin(tVal * 2) * 10.5; // was 14
-            const loopY = Math.sin(tVal) * 13.5; // was 18
-            obs.targetTopHeight = obs.baseTopHeight! + loopY;
-            obs.targetBottomHeight = obs.baseBottomHeight! - loopY;
+            if (groupIdx === 1) {
+              // Group 2: "Heartbeat Pulse Lasers" — lasers throb in a heartbeat double-beat rhythm
+              obs.isLaser = true;
+              const beatT = (this.waveTime * 2.8 + actualIdx * 0.4) % (Math.PI * 2);
+              // Heartbeat: sharp peak, quick second peak, then rest
+              const beat1 = Math.exp(-Math.pow((beatT - 1.2), 2) / 0.15) * 22;
+              const beat2 = Math.exp(-Math.pow((beatT - 2.0), 2) / 0.20) * 14;
+              const heartbeat = beat1 + beat2;
+              obs.targetTopHeight = obs.baseTopHeight! + heartbeat;
+              obs.targetBottomHeight = obs.baseBottomHeight! - heartbeat;
+              obs.shakeX = Math.sin(this.waveTime * 4.0 + actualIdx * 0.5) * 10;
+              obs.shakeX2 = -Math.sin(this.waveTime * 4.0 + actualIdx * 0.5) * 10;
+            } else if (groupIdx === 2) {
+              // Group 3: "Twisting Braid Pipes" — top and bottom pipes sway in opposite arcs forming a braid
+              obs.isLaser = false;
+              const braidT = this.waveTime * 1.7 + actualIdx * 0.5;
+              obs.shakeX = Math.sin(braidT) * 18;           // top pipe sways right
+              obs.shakeX2 = -Math.sin(braidT + Math.PI) * 18; // bottom pipe sways left (opposite)
+              const braidY = Math.cos(braidT * 0.9) * 16;
+              obs.targetTopHeight = obs.baseTopHeight! + braidY;
+              obs.targetBottomHeight = obs.baseBottomHeight! + braidY; // same direction = gap drifts together
+            } else {
+              // Group 1: Original lemniscate figure-eight
+              obs.isLaser = false;
+              const tVal = this.waveTime * 1.8 - actualIdx * 0.55;
+              obs.shakeX = Math.sin(tVal * 2) * 10.5;
+              obs.shakeX2 = -Math.sin(tVal * 2) * 10.5;
+              const loopY = Math.sin(tVal) * 13.5;
+              obs.targetTopHeight = obs.baseTopHeight! + loopY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - loopY;
+            }
           } else if (obs.patternType === 'level17_heartbeat') {
             // Level 17: Volcanic Crags
-            // Tectonic tremors: fast jittery horizontal shaking with volcanic vertical eruptions
-            const tremor = (Math.sin(this.waveTime * 14) * 4) + (Math.sin(this.waveTime * 2.2) * 10);
-            obs.shakeX = Math.sin(this.waveTime * 22) * 6;
-            obs.shakeX2 = -Math.sin(this.waveTime * 22) * 6;
-            obs.targetTopHeight = obs.baseTopHeight! + tremor;
-            obs.targetBottomHeight = obs.baseBottomHeight! - tremor;
+            if (groupIdx === 1) {
+              // Group 2: "Lava Pulse Lasers" — lasers surge upward like lava fountains with asymmetric burst
+              obs.isLaser = true;
+              const lavaBurst = Math.max(0, Math.sin(this.waveTime * 2.6 - actualIdx * 0.5)) * 28;
+              obs.targetTopHeight = obs.baseTopHeight! - lavaBurst;
+              obs.targetBottomHeight = obs.baseBottomHeight! + lavaBurst;
+              obs.shakeX = Math.sin(this.waveTime * 18 + actualIdx) * 7;
+              obs.shakeX2 = -Math.sin(this.waveTime * 18 + actualIdx) * 7;
+            } else if (groupIdx === 2) {
+              // Group 3: "Seismic Ripple Pipes" — pipes shake in a travelling seismic wave with growing amplitude
+              obs.isLaser = false;
+              const seismicT = this.waveTime * 2.4 - actualIdx * 0.55;
+              const seismicAmp = 14 + Math.sin(this.waveTime * 0.5) * 8; // amplitude breathes slowly
+              const seismic = Math.sin(seismicT) * seismicAmp;
+              obs.targetTopHeight = obs.baseTopHeight! + seismic;
+              obs.targetBottomHeight = obs.baseBottomHeight! - seismic;
+              obs.shakeX = Math.cos(seismicT * 0.7) * 10;
+              obs.shakeX2 = -Math.cos(seismicT * 0.7) * 10;
+            } else {
+              // Group 1: Original tectonic tremor
+              obs.isLaser = false;
+              const tremor = (Math.sin(this.waveTime * 14) * 4) + (Math.sin(this.waveTime * 2.2) * 10);
+              obs.shakeX = Math.sin(this.waveTime * 22) * 6;
+              obs.shakeX2 = -Math.sin(this.waveTime * 22) * 6;
+              obs.targetTopHeight = obs.baseTopHeight! + tremor;
+              obs.targetBottomHeight = obs.baseBottomHeight! - tremor;
+            }
           } else if (obs.patternType === 'level18_serpent') {
             // Level 18: Magnetic Slingshots
-            // High-intensity proximity-based magnetic contraction/expansion
-            const mag = Math.sin(this.waveTime * 3.5 - actualIdx * 0.3) * 24;
-            obs.targetTopHeight = obs.baseTopHeight! - mag;
-            obs.targetBottomHeight = obs.baseBottomHeight! - mag;
+            if (groupIdx === 1) {
+              // Group 2: "Slipstream Lasers" — lasers flow in a smooth sinusoidal current, top and bottom out of phase
+              obs.isLaser = true;
+              const slipT = this.waveTime * 2.2 + actualIdx * 0.5;
+              obs.targetTopHeight = obs.baseTopHeight! + Math.sin(slipT) * 22;
+              obs.targetBottomHeight = obs.baseBottomHeight! - Math.sin(slipT + Math.PI * 0.6) * 22;
+              obs.shakeX = Math.cos(slipT * 0.6) * 16;
+              obs.shakeX2 = -Math.cos(slipT * 0.6) * 16;
+            } else if (groupIdx === 2) {
+              // Group 3: "Yo-Yo Chain Pipes" — alternating columns yo-yo up and down with elastic bounce feel
+              obs.isLaser = false;
+              const yoyoT = this.waveTime * 2.8 + actualIdx * 0.55;
+              const yoyo = Math.pow(Math.sin(yoyoT), 3) * 26; // cubic gives snappy elastic feel
+              const colDir = actualIdx % 2 === 0 ? 1 : -1;
+              obs.targetTopHeight = obs.baseTopHeight! + yoyo * colDir;
+              obs.targetBottomHeight = obs.baseBottomHeight! - yoyo * colDir;
+              obs.shakeX = 0;
+              obs.shakeX2 = 0;
+            } else {
+              // Group 1: Original magnetic slingshot
+              obs.isLaser = false;
+              const mag = Math.sin(this.waveTime * 3.5 - actualIdx * 0.3) * 24;
+              obs.targetTopHeight = obs.baseTopHeight! - mag;
+              obs.targetBottomHeight = obs.baseBottomHeight! - mag;
+            }
           } else if (obs.patternType === 'level19_magnetic') {
             // Level 19: Crossflow Intercepting Gates
-            // Zipping vertical gates moving in alternating opposite directions
-            const phaseSign = (actualIdx % 2 === 0 ? 1 : -1);
-            const gateMove = Math.sin(this.waveTime * 2.8) * 24 * phaseSign;
-            obs.targetTopHeight = obs.baseTopHeight! + gateMove;
-            obs.targetBottomHeight = obs.baseBottomHeight! - gateMove;
+            if (groupIdx === 1) {
+              // Group 2: "Storm Surge Lasers" — lasers heave with fast tidal-surge vertical motion + shimmering X sway
+              obs.isLaser = true;
+              const surgeT = this.waveTime * 3.2 - actualIdx * 0.45;
+              const surge = Math.sin(surgeT) * 24;
+              obs.targetTopHeight = obs.baseTopHeight! + surge;
+              obs.targetBottomHeight = obs.baseBottomHeight! - surge;
+              obs.shakeX = Math.sin(surgeT * 0.5) * 18;
+              obs.shakeX2 = -Math.sin(surgeT * 0.5) * 18;
+            } else if (groupIdx === 2) {
+              // Group 3: "Swing & Lock Pipes" — pipes swing wide then lock in place briefly before swinging back
+              obs.isLaser = false;
+              const lockT = (this.waveTime * 1.8 + actualIdx * 0.4) % (Math.PI * 2);
+              const swingVal = lockT < Math.PI
+                ? Math.sin(lockT) * 26       // swing phase
+                : Math.sin(Math.PI) * 26;    // lock phase (frozen at extreme)
+              obs.targetTopHeight = obs.baseTopHeight! + swingVal;
+              obs.targetBottomHeight = obs.baseBottomHeight! - swingVal;
+              obs.shakeX = Math.cos(this.waveTime * 2.2 + actualIdx * 0.3) * 8;
+              obs.shakeX2 = -Math.cos(this.waveTime * 2.2 + actualIdx * 0.3) * 8;
+            } else {
+              // Group 1: Original alternating gate
+              obs.isLaser = false;
+              const phaseSign = (actualIdx % 2 === 0 ? 1 : -1);
+              const gateMove = Math.sin(this.waveTime * 2.8) * 24 * phaseSign;
+              obs.targetTopHeight = obs.baseTopHeight! + gateMove;
+              obs.targetBottomHeight = obs.baseBottomHeight! - gateMove;
+            }
           } else if (obs.patternType === 'level20_masterhybrid') {
-            // Level 20: Master Boss Hybrid — animation 22% slowed (waveTime ×0.78)
-            const orbital = this.waveTime * 1.95 + actualIdx * 0.6; // 2.5×0.78=1.95
-            obs.shakeX = Math.sin(orbital) * 20;
-            obs.shakeX2 = Math.cos(orbital) * 20;
-            const hybridSign = (actualIdx % 2 === 0 ? 1 : -1);
-            const hybridMove = Math.sin(this.waveTime * 2.028 - actualIdx * 0.4) * 16 + (Math.sin(this.waveTime * 2.496) * 8 * hybridSign); // 2.6→2.028, 3.2→2.496
-            obs.targetTopHeight = obs.baseTopHeight! + hybridMove;
-            obs.targetBottomHeight = obs.baseBottomHeight! - hybridMove;
+            // Level 20: Master Boss Hybrid
+            if (groupIdx === 1) {
+              // Group 2: "Quantum Flash Lasers" — lasers flicker with rapid sine bursts layered over a slow orbital drift
+              obs.isLaser = true;
+              const flashDrift = Math.sin(this.waveTime * 1.5 + actualIdx * 0.55) * 20;
+              const flashBurst = Math.sin(this.waveTime * 9.0 + actualIdx * 0.8) * 6;
+              obs.targetTopHeight = obs.baseTopHeight! + flashDrift + flashBurst;
+              obs.targetBottomHeight = obs.baseBottomHeight! - flashDrift + flashBurst;
+              obs.shakeX = Math.cos(this.waveTime * 2.2 + actualIdx * 0.5) * 18;
+              obs.shakeX2 = -Math.cos(this.waveTime * 2.2 + actualIdx * 0.5) * 18;
+            } else if (groupIdx === 2) {
+              // Group 3: "Hyper Spiral Pipes" — pipes trace tight outward spirals with increasing radius over time
+              obs.isLaser = false;
+              const spiralBase = this.waveTime * 2.0 + actualIdx * 0.6;
+              const spiralRadius = 16 + Math.sin(this.waveTime * 0.6) * 8; // slowly breathing radius
+              obs.shakeX = Math.sin(spiralBase * 2) * spiralRadius;
+              obs.shakeX2 = Math.sin(spiralBase * 2 + Math.PI) * spiralRadius;
+              const spiralY = Math.cos(spiralBase) * (spiralRadius * 0.9);
+              obs.targetTopHeight = obs.baseTopHeight! + spiralY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - spiralY;
+            } else {
+              // Group 1: Original master hybrid orbital
+              obs.isLaser = false;
+              const orbital = this.waveTime * 1.95 + actualIdx * 0.6;
+              obs.shakeX = Math.sin(orbital) * 20;
+              obs.shakeX2 = Math.cos(orbital) * 20;
+              const hybridSign = (actualIdx % 2 === 0 ? 1 : -1);
+              const hybridMove = Math.sin(this.waveTime * 2.028 - actualIdx * 0.4) * 16 + (Math.sin(this.waveTime * 2.496) * 8 * hybridSign);
+              obs.targetTopHeight = obs.baseTopHeight! + hybridMove;
+              obs.targetBottomHeight = obs.baseBottomHeight! - hybridMove;
+            }
           } else if (obs.patternType === 'level30_hybridwave') {
             // Wave flow + breathing effect
             const groupSize = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 10;
@@ -899,7 +1318,7 @@ export class ObstacleManager {
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
               obs.shakeX = 0;
               obs.shakeX2 = 0;
-            } else if (obs.levelNum === 46) {
+            } else if (obs.levelNum === 46 || obs.levelNum === 56) {
               // Single obstacles arrangement: always use Group 2 Chrono pincer layout and behavior
               const idx = obstacleIdx - groupSize;
               const pincer = Math.sin(this.waveTime * 3.0 + idx * 0.4) * 28;
@@ -943,95 +1362,664 @@ export class ObstacleManager {
               }
             }
           } else if (obs.patternType === 'level41_doublew') {
-            // Galactic Blackhole Horizon: Orbiting vortex shake and gravity-induced horizontal/vertical shifts
-            const angle = this.waveTime * 2.8 + obs.obstacleIdx! * 0.6;
-            obs.shakeX = Math.cos(angle) * 25;
-            obs.shakeX2 = Math.sin(angle) * 25;
-            const gravityShift = Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.4) * 30;
-            const centerY = obs.spawnCenterY! + gravityShift;
-            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            // LEVEL 41: Galactic Blackhole Horizon
+            const obsIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
+            const gs41 = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
+            if (obsIdx >= gs41 && obsIdx < gs41 * 2) {
+              // Group 2: "Polar Warp Lasers" — lasers twist in a counter-rotating double-helix pattern
+              obs.isLaser = true;
+              const helixT = this.waveTime * 2.6 + obsIdx * 0.55;
+              obs.shakeX = Math.sin(helixT) * 28;
+              obs.shakeX2 = -Math.sin(helixT + Math.PI * 0.75) * 28;
+              const helixY = Math.cos(helixT * 0.8) * 24;
+              obs.targetTopHeight = obs.baseTopHeight! + helixY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - helixY;
+            } else if (obsIdx >= gs41 * 2) {
+              // Group 3: "Gravity Collapse Pipes" — pipes slam toward center and rebound elastically
+              obs.isLaser = false;
+              const collapseT = this.waveTime * 1.8 + obsIdx * 0.4;
+              const slam = Math.pow(Math.sin(collapseT), 3) * 32; // cubic snap feel
+              obs.targetTopHeight = obs.baseTopHeight! + slam;
+              obs.targetBottomHeight = obs.baseBottomHeight! - slam;
+              obs.shakeX = Math.cos(collapseT * 1.4) * 14;
+              obs.shakeX2 = -Math.cos(collapseT * 1.4) * 14;
+            } else {
+              // Group 1: Original orbiting vortex
+              const angle = this.waveTime * 2.8 + obs.obstacleIdx! * 0.6;
+              obs.shakeX = Math.cos(angle) * 25;
+              obs.shakeX2 = Math.sin(angle) * 25;
+              const gravityShift = Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.4) * 30;
+              const centerY = obs.spawnCenterY! + gravityShift;
+              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
+              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            }
           } else if (obs.patternType === 'level42_infinity') {
-            // Cosmo-Quantum Gravity singularity: Dual-frequency Bernoulli figure-8 motion with high-speed out-of-phase breathing gaps
+            // LEVEL 42: Cosmo-Quantum Gravity Singularity
+            const obsIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
+            const gs42 = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
             const isLevel47 = (this.activeLevelConfig && this.activeLevelConfig.levelNum === 47);
             const speedScale = isLevel47 ? 0.80 : 1.0;
-            const angle = this.waveTime * (3.2 * speedScale) + obs.obstacleIdx! * 0.65;
-            const shiftY = Math.sin(angle) * Math.cos(angle) * 55;
-            const breathingGap = obs.gapHeight! + Math.sin(this.waveTime * (4.5 * speedScale) + obs.obstacleIdx! * 0.5) * 20;
-            const centerY = obs.spawnCenterY! + shiftY;
-            obs.targetTopHeight = centerY - breathingGap / 2;
-            obs.targetBottomHeight = height - centerY - breathingGap / 2;
+            if (obsIdx >= gs42 && obsIdx < gs42 * 2) {
+              // Group 2: "Quantum Ribbon Lasers" — lasers flow in a ribbon wave with out-of-phase horizontal sliding
+              obs.isLaser = true;
+              const ribbonT = this.waveTime * (2.4 * speedScale) + obsIdx * 0.5;
+              const ribbonY = Math.sin(ribbonT) * 28;
+              obs.targetTopHeight = obs.baseTopHeight! + ribbonY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - ribbonY;
+              obs.shakeX = Math.cos(ribbonT * 0.7) * 20;
+              obs.shakeX2 = -Math.cos(ribbonT * 0.7) * 20;
+            } else if (obsIdx >= gs42 * 2) {
+              // Group 3: "Piston Crusher Pipes" — pipes slam open/shut rapidly with staggered timing per column
+              obs.isLaser = false;
+              const pistonT = this.waveTime * (3.8 * speedScale) + obsIdx * 0.6;
+              const piston = Math.abs(Math.sin(pistonT)) * 30 - 15;
+              obs.targetTopHeight = obs.baseTopHeight! + piston;
+              obs.targetBottomHeight = obs.baseBottomHeight! - piston;
+              obs.shakeX = Math.sin(pistonT * 0.5) * 10;
+              obs.shakeX2 = -Math.sin(pistonT * 0.5) * 10;
+            } else {
+              // Group 1: Original Bernoulli figure-8
+              const angle42 = this.waveTime * (3.2 * speedScale) + obs.obstacleIdx! * 0.65;
+              const shiftY42 = Math.sin(angle42) * Math.cos(angle42) * 55;
+              const breathingGap42 = obs.gapHeight! + Math.sin(this.waveTime * (4.5 * speedScale) + obs.obstacleIdx! * 0.5) * 20;
+              const centerY42 = obs.spawnCenterY! + shiftY42;
+              obs.targetTopHeight = centerY42 - breathingGap42 / 2;
+              obs.targetBottomHeight = height - centerY42 - breathingGap42 / 2;
+            }
           } else if (obs.patternType === 'level43_dnahelix') {
-            // DNA Double Helix strands rotation
-            const phase = obs.obstacleIdx! % 2 === 0 ? 0 : Math.PI;
-            const helix = Math.sin(this.waveTime * 2.5 + obs.obstacleIdx! * 0.5 + phase) * 35;
-            const centerY = obs.spawnCenterY! + helix;
-            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            // LEVEL 43: DNA Double Helix
+            const obsIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
+            const gs43 = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
+            if (obsIdx >= gs43 && obsIdx < gs43 * 2) {
+              // Group 2: "Pulse Laser Rings" — lasers throb in expanding/contracting rings with fast horizontal shimmer
+              obs.isLaser = true;
+              const ringT = this.waveTime * 3.0 + obsIdx * 0.55;
+              const ring = Math.sin(ringT) * 26;
+              obs.targetTopHeight = obs.baseTopHeight! + ring;
+              obs.targetBottomHeight = obs.baseBottomHeight! - ring;
+              obs.shakeX = Math.cos(ringT * 0.6) * 18;
+              obs.shakeX2 = -Math.cos(ringT * 0.6) * 18;
+            } else if (obsIdx >= gs43 * 2) {
+              // Group 3: "Tidal Crush Pipes" — even/odd alternating columns slam downward/upward in heavy tide swings
+              obs.isLaser = false;
+              const tideDir = obsIdx % 2 === 0 ? 1 : -1;
+              const tideT = this.waveTime * 2.2 + obsIdx * 0.45;
+              const tide = Math.sin(tideT) * 32 * tideDir;
+              obs.targetTopHeight = obs.baseTopHeight! + tide;
+              obs.targetBottomHeight = obs.baseBottomHeight! - tide;
+              obs.shakeX = Math.sin(tideT * 1.3) * 10;
+              obs.shakeX2 = -Math.sin(tideT * 1.3) * 10;
+            } else {
+              // Group 1: Original DNA double helix
+              const phase43 = obs.obstacleIdx! % 2 === 0 ? 0 : Math.PI;
+              const helix43 = Math.sin(this.waveTime * 2.5 + obs.obstacleIdx! * 0.5 + phase43) * 35;
+              const centerY43 = obs.spawnCenterY! + helix43;
+              obs.targetTopHeight = centerY43 - obs.gapHeight! / 2;
+              obs.targetBottomHeight = height - centerY43 - obs.gapHeight! / 2;
+            }
           } else if (obs.patternType === 'level44_pendulum') {
-            // High-amplitude swinging pendulum rotation and gap attraction-repulsion
-            const swingAngle = Math.sin(this.waveTime * 1.8 + obs.obstacleIdx! * 0.35) * 0.4;
-            obs.shakeX = Math.sin(swingAngle) * 35;
-            obs.shakeX2 = obs.shakeX;
-            const pulse = Math.sin(this.waveTime * 2.5) * 20;
-            const finalGap = obs.gapHeight! + (obs.obstacleIdx! % 2 === 0 ? pulse : -pulse);
-            const centerY = obs.spawnCenterY!;
-            obs.targetTopHeight = centerY - finalGap / 2;
-            obs.targetBottomHeight = height - centerY - finalGap / 2;
+            // LEVEL 44: High-amplitude Pendulum
+            const obsIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
+            const gs44 = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
+            if (obsIdx >= gs44 && obsIdx < gs44 * 2) {
+              // Group 2: "Vortex Storm Lasers" — lasers spin in a tight vortex with growing amplitude
+              obs.isLaser = true;
+              const vortexT = this.waveTime * 2.8 + obsIdx * 0.6;
+              const vortexR = 20 + Math.sin(this.waveTime * 0.8) * 8;
+              obs.shakeX = Math.sin(vortexT) * vortexR;
+              obs.shakeX2 = -Math.sin(vortexT + Math.PI * 0.5) * vortexR;
+              const vortexY = Math.cos(vortexT * 0.9) * (vortexR * 0.85);
+              obs.targetTopHeight = obs.baseTopHeight! + vortexY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - vortexY;
+            } else if (obsIdx >= gs44 * 2) {
+              // Group 3: "Snapping Gate Pipes" — pipes snap open/close in pairs, every 2 columns in sync
+              obs.isLaser = false;
+              const pairPhase = Math.floor(obsIdx / 2) * 0.7;
+              const snapT = this.waveTime * 2.4 + pairPhase;
+              const snap = Math.sign(Math.sin(snapT)) * 28; // square wave snap
+              obs.targetTopHeight = obs.baseTopHeight! + snap;
+              obs.targetBottomHeight = obs.baseBottomHeight! - snap;
+              obs.shakeX = Math.cos(this.waveTime * 3.0 + obsIdx * 0.4) * 12;
+              obs.shakeX2 = -Math.cos(this.waveTime * 3.0 + obsIdx * 0.4) * 12;
+            } else {
+              // Group 1: Original pendulum swing
+              const swingAngle44 = Math.sin(this.waveTime * 1.8 + obs.obstacleIdx! * 0.35) * 0.4;
+              obs.shakeX = Math.sin(swingAngle44) * 35;
+              obs.shakeX2 = obs.shakeX;
+              const pulse44 = Math.sin(this.waveTime * 2.5) * 20;
+              const finalGap44 = obs.gapHeight! + (obs.obstacleIdx! % 2 === 0 ? pulse44 : -pulse44);
+              const centerY44 = obs.spawnCenterY!;
+              obs.targetTopHeight = centerY44 - finalGap44 / 2;
+              obs.targetBottomHeight = height - centerY44 - finalGap44 / 2;
+            }
           } else if (obs.patternType === 'level45_scurve') {
-            // Solar Flare Ignition Corridor: High-frequency coronal bobbing and breathing solar wind gap expansions
-            const solarWind = Math.sin(this.waveTime * 3.5 + obs.obstacleIdx! * 0.4) * 35;
-            const breath = Math.sin(this.waveTime * 4.0) * 18;
-            const finalGap = obs.gapHeight! + breath;
-            const centerY = obs.spawnCenterY! + solarWind;
-            obs.targetTopHeight = centerY - finalGap / 2;
-            obs.targetBottomHeight = height - centerY - finalGap / 2;
+            // LEVEL 45: Solar Flare Ignition Corridor
+            const obsIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
+            const gs45 = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
+            if (obsIdx >= gs45 && obsIdx < gs45 * 2) {
+              // Group 2: "Coronal Loop Lasers" — lasers arch up/down in coronal loop patterns with criss-cross shake
+              obs.isLaser = true;
+              const coronalT = this.waveTime * 2.8 + obsIdx * 0.5;
+              const coronal = Math.sin(coronalT) * 30;
+              obs.targetTopHeight = obs.baseTopHeight! + coronal;
+              obs.targetBottomHeight = obs.baseBottomHeight! - coronal;
+              obs.shakeX = Math.cos(coronalT * 0.6) * 20;
+              obs.shakeX2 = -Math.cos(coronalT * 0.6) * 20;
+            } else if (obsIdx >= gs45 * 2) {
+              // Group 3: "Solar Wind Drift Pipes" — pipes caught in a solar wind, sweeping diagonally with slow oscillation
+              obs.isLaser = false;
+              const windT = this.waveTime * 1.6 + obsIdx * 0.4;
+              obs.shakeX = Math.sin(windT) * 24;        // drift right
+              obs.shakeX2 = Math.sin(windT + 0.9) * 24; // slight phase offset for depth
+              const windY = Math.cos(windT * 1.2) * 22;
+              obs.targetTopHeight = obs.baseTopHeight! + windY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - windY;
+            } else {
+              // Group 1: Original solar flare vertical bob
+              const solarWind45 = Math.sin(this.waveTime * 3.5 + obs.obstacleIdx! * 0.4) * 35;
+              const breath45 = Math.sin(this.waveTime * 4.0) * 18;
+              const finalGap45 = obs.gapHeight! + breath45;
+              const centerY45 = obs.spawnCenterY! + solarWind45;
+              obs.targetTopHeight = centerY45 - finalGap45 / 2;
+              obs.targetBottomHeight = height - centerY45 - finalGap45 / 2;
+            }
           } else if (obs.patternType === 'level46_triplespiral') {
-            // Multi-layered 3D rotational illusion using orbiting horizontal and vertical shake joints
-            const rotateAngle = this.waveTime * 2.0 + obs.obstacleIdx! * 0.6;
-            obs.shakeX = Math.sin(rotateAngle) * 24;
-            obs.shakeX2 = Math.cos(rotateAngle) * 24;
-            const shift = Math.sin(this.waveTime * 1.5) * 15;
-            const centerY = obs.spawnCenterY! + shift;
-            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            // LEVEL 46: Multi-layered 3D Rotational Illusion
+            const obsIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
+            const gs46 = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
+            if (obsIdx >= gs46 && obsIdx < gs46 * 2) {
+              // Group 2: "Plasma Braid Lasers" — two laser streams braid around each other in counter-rotating spirals
+              obs.isLaser = true;
+              const braidT = this.waveTime * 3.2 + obsIdx * 0.65;
+              obs.shakeX = Math.sin(braidT) * 26;
+              obs.shakeX2 = -Math.sin(braidT + Math.PI * 0.6) * 26;
+              const braidY = Math.cos(braidT * 0.85) * 22;
+              obs.targetTopHeight = obs.baseTopHeight! + braidY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - braidY;
+            } else if (obsIdx >= gs46 * 2) {
+              // Group 3: "Compression Wave Pipes" — pipes squeeze inward in a compression wave travelling front-to-back
+              obs.isLaser = false;
+              const compT = this.waveTime * 2.4 - obsIdx * 0.5;
+              const comp = Math.pow(Math.sin(compT), 2) * 30; // always positive = always squeezing toward center
+              obs.targetTopHeight = obs.baseTopHeight! + comp;
+              obs.targetBottomHeight = obs.baseBottomHeight! - comp;
+              obs.shakeX = Math.cos(compT * 1.5) * 14;
+              obs.shakeX2 = -Math.cos(compT * 1.5) * 14;
+            } else {
+              // Group 1: Original 3D rotation
+              const rotateAngle46 = this.waveTime * 2.0 + obs.obstacleIdx! * 0.6;
+              obs.shakeX = Math.sin(rotateAngle46) * 24;
+              obs.shakeX2 = Math.cos(rotateAngle46) * 24;
+              const shift46 = Math.sin(this.waveTime * 1.5) * 15;
+              const centerY46 = obs.spawnCenterY! + shift46;
+              obs.targetTopHeight = centerY46 - obs.gapHeight! / 2;
+              obs.targetBottomHeight = height - centerY46 - obs.gapHeight! / 2;
+            }
           } else if (obs.patternType === 'level47_diamond') {
-            // Expanding/contracting diamond gaps and dynamic shifting
-            const expand = Math.sin(this.waveTime * 2.4) * 20;
-            const shift = Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.5) * 25;
-            const finalGap = obs.gapHeight! + expand;
-            const centerY = obs.spawnCenterY! + shift;
-            obs.targetTopHeight = centerY - finalGap / 2;
-            obs.targetBottomHeight = height - centerY - finalGap / 2;
+            // LEVEL 47: Expanding/Contracting Diamond
+            const obsIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
+            const gs47 = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
+            if (obsIdx >= gs47 && obsIdx < gs47 * 2) {
+              // Group 2: "Phase Laser Arc" — lasers swing through arcs in opposing phases, like a clock pendulum
+              obs.isLaser = true;
+              const arcT = this.waveTime * 2.2 + obsIdx * 0.5;
+              obs.shakeX = Math.sin(arcT) * 26;
+              obs.shakeX2 = -Math.sin(arcT + Math.PI * 0.4) * 26;
+              const arcY = Math.cos(arcT * 0.8) * 22;
+              obs.targetTopHeight = obs.baseTopHeight! + arcY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - arcY;
+            } else if (obsIdx >= gs47 * 2) {
+              // Group 3: "Stutter Step Pipes" — pipes jump in jittery step-function hops, pausing briefly between each
+              obs.isLaser = false;
+              const stepPhase = Math.floor(this.waveTime * 2.0 + obsIdx * 0.35);
+              const stepAmt = (stepPhase % 5) * 10 - 20; // steps: -20,-10,0,10,20
+              obs.targetTopHeight = obs.baseTopHeight! + stepAmt;
+              obs.targetBottomHeight = obs.baseBottomHeight! - stepAmt;
+              obs.shakeX = Math.sin(this.waveTime * 5.0 + obsIdx * 0.8) * 8;
+              obs.shakeX2 = -Math.sin(this.waveTime * 5.0 + obsIdx * 0.8) * 8;
+            } else {
+              // Group 1: Original expanding diamond
+              const expand47 = Math.sin(this.waveTime * 2.4) * 20;
+              const shift47 = Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.5) * 25;
+              const finalGap47 = obs.gapHeight! + expand47;
+              const centerY47 = obs.spawnCenterY! + shift47;
+              obs.targetTopHeight = centerY47 - finalGap47 / 2;
+              obs.targetBottomHeight = height - centerY47 - finalGap47 / 2;
+            }
           } else if (obs.patternType === 'level48_tornado') {
-            // High-speed tornado swirl animation and continuous spiraling
-            const swirl = this.waveTime * 3.0 + obs.obstacleIdx! * 0.8;
-            obs.shakeX = Math.sin(swirl) * 30;
-            obs.shakeX2 = Math.cos(swirl) * 30;
-            const centerY = obs.spawnCenterY! + Math.sin(this.waveTime * 2.0) * 18;
-            obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-            obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+            // LEVEL 48: High-speed Tornado Swirl
+            const obsIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
+            const gs48 = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
+            if (obsIdx >= gs48 && obsIdx < gs48 * 2) {
+              // Group 2: "Eye of the Storm Lasers" — lasers create a calm vortex center then erupt outward
+              obs.isLaser = true;
+              const eyeT = this.waveTime * 2.0 + obsIdx * 0.45;
+              const eyeRadius = 14 + Math.sin(this.waveTime * 1.2) * 10;
+              obs.shakeX = Math.sin(eyeT) * eyeRadius;
+              obs.shakeX2 = -Math.cos(eyeT) * eyeRadius;
+              const eyeY = Math.cos(eyeT * 1.3) * 26;
+              obs.targetTopHeight = obs.baseTopHeight! + eyeY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - eyeY;
+            } else if (obsIdx >= gs48 * 2) {
+              // Group 3: "Shockwave Blast Pipes" — pipes radiate outward in shockwave rings that compress and release
+              obs.isLaser = false;
+              const shockT = this.waveTime * 3.5 + obsIdx * 0.55;
+              const shock = Math.sin(shockT) * 28;
+              obs.targetTopHeight = obs.baseTopHeight! + shock;
+              obs.targetBottomHeight = obs.baseBottomHeight! - shock;
+              obs.shakeX = Math.cos(shockT * 1.8) * 16;
+              obs.shakeX2 = Math.cos(shockT * 1.8 + Math.PI) * 16;
+            } else {
+              // Group 1: Original tornado swirl
+              const swirl48 = this.waveTime * 3.0 + obs.obstacleIdx! * 0.8;
+              obs.shakeX = Math.sin(swirl48) * 30;
+              obs.shakeX2 = Math.cos(swirl48) * 30;
+              const centerY48 = obs.spawnCenterY! + Math.sin(this.waveTime * 2.0) * 18;
+              obs.targetTopHeight = centerY48 - obs.gapHeight! / 2;
+              obs.targetBottomHeight = height - centerY48 - obs.gapHeight! / 2;
+            }
           } else if (obs.patternType === 'level49_fractal') {
-            // Multi-stage recursive staircase movements and breathing gaps
-            const recursive = Math.sin(this.waveTime * 2.0 + (obs.obstacleIdx! % 3) * Math.PI) * 25 + Math.cos(this.waveTime * 1.0) * 12;
-            const centerY = obs.spawnCenterY! + recursive;
-            const breathingGap = obs.gapHeight! + Math.sin(this.waveTime * 2.5) * 10;
-            obs.targetTopHeight = centerY - breathingGap / 2;
-            obs.targetBottomHeight = height - centerY - breathingGap / 2;
+            // LEVEL 49: Multi-stage Fractal Staircase
+            const obsIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
+            const gs49 = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
+            if (obsIdx >= gs49 && obsIdx < gs49 * 2) {
+              // Group 2: "Recursive Laser Sine" — lasers oscillate with a nested double-frequency wave
+              obs.isLaser = true;
+              const fracT = this.waveTime * 2.4 + obsIdx * 0.5;
+              const fracY = Math.sin(fracT) * 24 + Math.sin(fracT * 2.3) * 12;
+              obs.targetTopHeight = obs.baseTopHeight! + fracY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - fracY;
+              obs.shakeX = Math.cos(fracT * 0.8) * 18;
+              obs.shakeX2 = -Math.cos(fracT * 0.8) * 18;
+            } else if (obsIdx >= gs49 * 2) {
+              // Group 3: "Zigzag Staircase Pipes" — pipes march up-right in stair steps and snap back to start
+              obs.isLaser = false;
+              const stairStep = Math.floor(this.waveTime * 1.5 + obsIdx * 0.4) % 5;
+              const stairY = (stairStep - 2) * 14; // -28, -14, 0, +14, +28
+              obs.targetTopHeight = obs.baseTopHeight! + stairY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - stairY;
+              obs.shakeX = Math.sin(this.waveTime * 4.0 + obsIdx * 0.6) * 10;
+              obs.shakeX2 = -Math.sin(this.waveTime * 4.0 + obsIdx * 0.6) * 10;
+            } else {
+              // Group 1: Original fractal recursive
+              const recursive49 = Math.sin(this.waveTime * 2.0 + (obs.obstacleIdx! % 3) * Math.PI) * 25 + Math.cos(this.waveTime * 1.0) * 12;
+              const centerY49 = obs.spawnCenterY! + recursive49;
+              const breathingGap49 = obs.gapHeight! + Math.sin(this.waveTime * 2.5) * 10;
+              obs.targetTopHeight = centerY49 - breathingGap49 / 2;
+              obs.targetBottomHeight = height - centerY49 - breathingGap49 / 2;
+            }
           } else if (obs.patternType === 'level50_finalboss') {
-            // Ultimate Final Boss Layout: synthesis of snake crawl, wave undulations, magnetic pulse, pendulum, orbits, and reactive openings
-            const wave = Math.sin((obs.x * 0.01) - this.waveTime * 4.0) * 30;
-            const pulse = Math.sin(this.waveTime * 3.0) * 15;
-            const swing = Math.sin(this.waveTime * 1.5 + obs.obstacleIdx! * 0.5) * 0.3;
-            const orbit = this.waveTime * 2.5 + obs.obstacleIdx! * 0.4;
+            // LEVEL 50: Ultimate Final Boss
+            const obsIdx = obs.obstacleIdx !== undefined ? obs.obstacleIdx : 0;
+            const gs50 = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
+            if (obsIdx >= gs50 && obsIdx < gs50 * 2) {
+              // Group 2: "Chaos Cascade Lasers" — lasers combine 3 interference waves creating chaotic beating motion
+              obs.isLaser = true;
+              const wave1 = Math.sin(this.waveTime * 2.3 + obsIdx * 0.55) * 18;
+              const wave2 = Math.sin(this.waveTime * 3.7 + obsIdx * 0.4) * 12;
+              const wave3 = Math.sin(this.waveTime * 5.1 + obsIdx * 0.3) * 7;
+              const chaos = wave1 + wave2 + wave3;
+              obs.targetTopHeight = obs.baseTopHeight! + chaos;
+              obs.targetBottomHeight = obs.baseBottomHeight! - chaos;
+              obs.shakeX = Math.sin(this.waveTime * 4.5 + obsIdx * 0.6) * 18;
+              obs.shakeX2 = -Math.sin(this.waveTime * 4.5 + obsIdx * 0.6) * 18;
+            } else if (obsIdx >= gs50 * 2) {
+              // Group 3: "Titan Crusher Pipes" — massive columns slam in alternating tectonic half-cycles with shockwave shake
+              obs.isLaser = false;
+              const titanT = this.waveTime * 1.9 + obsIdx * 0.5;
+              const titan = Math.sin(titanT) * 36;
+              obs.targetTopHeight = obs.baseTopHeight! + titan;
+              obs.targetBottomHeight = obs.baseBottomHeight! - titan;
+              obs.shakeX = Math.sin(this.waveTime * 6.0 + obsIdx * 0.7) * 14;  // fast tremor
+              obs.shakeX2 = -Math.sin(this.waveTime * 6.0 + obsIdx * 0.7) * 14;
+            } else {
+              // Group 1: Original final boss synthesis
+              const wave50 = Math.sin((obs.x * 0.01) - this.waveTime * 4.0) * 30;
+              const pulse50 = Math.sin(this.waveTime * 3.0) * 15;
+              const swing50 = Math.sin(this.waveTime * 1.5 + obs.obstacleIdx! * 0.5) * 0.3;
+              const orbit50 = this.waveTime * 2.5 + obs.obstacleIdx! * 0.4;
+              obs.shakeX = Math.sin(orbit50) * 24 + Math.sin(swing50) * 15;
+              obs.shakeX2 = Math.cos(orbit50) * 24 + Math.sin(swing50) * 15;
+              const finalGap50 = obs.gapHeight! + pulse50;
+              const centerY50 = obs.spawnCenterY! + wave50 + Math.sin(this.waveTime * 2.0) * 15;
+              obs.targetTopHeight = centerY50 - finalGap50 / 2;
+              obs.targetBottomHeight = height - centerY50 - finalGap50 / 2;
+            }
 
-            obs.shakeX = Math.sin(orbit) * 24 + Math.sin(swing) * 15;
-            obs.shakeX2 = Math.cos(orbit) * 24 + Math.sin(swing) * 15;
+          // ===== HEAVEN CLOUD KINGDOM: Levels 51–60 =====
+          } else if (obs.patternType === 'level51_cloudrift') {
+            // L51: Cloud Rift
+            const oIdx = obs.obstacleIdx ?? 0;
+            const gs51 = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
+            if (oIdx < gs51) {
+              // G1: Liquid staircase — columns float up/down like a slow river current
+              obs.isLaser = false;
+              const riverT = this.waveTime * 1.6 + oIdx * 0.42;
+              const river = Math.sin(riverT) * 28 + Math.sin(riverT * 0.5) * 14;
+              obs.targetTopHeight = obs.baseTopHeight! + river;
+              obs.targetBottomHeight = obs.baseBottomHeight! - river;
+              obs.shakeX = Math.cos(riverT * 0.7) * 12;
+              obs.shakeX2 = -Math.cos(riverT * 0.7) * 12;
+            } else if (oIdx < gs51 * 2) {
+              // G2: Portal Arch Lasers — paired laser gates open/close in alternating arch rhythm
+              obs.isLaser = true;
+              const archT = this.waveTime * 2.4 + oIdx * 0.55;
+              const archOpen = Math.abs(Math.sin(archT)) * 26 - 13;
+              obs.targetTopHeight = obs.baseTopHeight! + archOpen;
+              obs.targetBottomHeight = obs.baseBottomHeight! - archOpen;
+              obs.shakeX = Math.sin(archT * 0.8) * 18;
+              obs.shakeX2 = -Math.sin(archT * 0.8) * 18;
+            } else {
+              // G3: Diagonal Cascade Pipes — staggered columns cascade diagonally like falling dominoes
+              obs.isLaser = false;
+              const diaT = this.waveTime * 2.0 - oIdx * 0.5;
+              obs.shakeX = Math.sin(diaT) * 22;
+              obs.shakeX2 = Math.sin(diaT + 0.6) * 22;
+              const diaY = Math.cos(diaT * 1.3) * 24;
+              obs.targetTopHeight = obs.baseTopHeight! + diaY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - diaY;
+            }
+          } else if (obs.patternType === 'level52_aurorapulse') {
+            // L52: Aurora Pulse
+            const oIdx = obs.obstacleIdx ?? 0;
+            const gs52 = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
+            if (oIdx < gs52) {
+              // G1: Concentric ring ripple — laser rings expand/collapse inward
+              obs.isLaser = true;
+              const ringT = this.waveTime * 1.8 + oIdx * 0.48;
+              const ringY = Math.sin(ringT) * 22 + Math.cos(ringT * 1.5) * 10;
+              obs.targetTopHeight = obs.baseTopHeight! + ringY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - ringY;
+              obs.shakeX = Math.cos(ringT * 0.6) * 16;
+              obs.shakeX2 = -Math.cos(ringT * 0.6) * 16;
+            } else if (oIdx < gs52 * 2) {
+              // G2: Chevron wings — pipes sweep in synchronized V-shape arcs
+              obs.isLaser = false;
+              const chevT = this.waveTime * 2.2 + oIdx * 0.5;
+              const chevAmp = Math.sin(chevT) * 28;
+              const chevDir = oIdx % 2 === 0 ? 1 : -1;
+              obs.targetTopHeight = obs.baseTopHeight! + chevAmp * chevDir;
+              obs.targetBottomHeight = obs.baseBottomHeight! - chevAmp * chevDir;
+              obs.shakeX = 0; obs.shakeX2 = 0;
+            } else {
+              // G3: Double-sine clash laser — two interference frequencies fighting each other
+              obs.isLaser = true;
+              const clashT1 = this.waveTime * 2.6 + oIdx * 0.45;
+              const clashT2 = this.waveTime * 4.1 + oIdx * 0.3;
+              const clash = Math.sin(clashT1) * 18 + Math.sin(clashT2) * 12;
+              obs.targetTopHeight = obs.baseTopHeight! + clash;
+              obs.targetBottomHeight = obs.baseBottomHeight! - clash;
+              obs.shakeX = Math.sin(clashT1 * 0.7) * 14;
+              obs.shakeX2 = -Math.sin(clashT2 * 0.7) * 14;
+            }
+          } else if (obs.patternType === 'level53_starlattice') {
+            // L53: Star Lattice
+            const oIdx = obs.obstacleIdx ?? 0;
+            const gs53 = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
+            if (oIdx < gs53) {
+              // G1: Crosshatch grid — every 3rd column is static, others tilt in opposite phases
+              obs.isLaser = false;
+              const gridT = this.waveTime * 2.0 + oIdx * 0.6;
+              const tilt = oIdx % 3 === 1 ? 0 : Math.sin(gridT) * 24 * (oIdx % 3 === 0 ? 1 : -1);
+              obs.targetTopHeight = obs.baseTopHeight! + tilt;
+              obs.targetBottomHeight = obs.baseBottomHeight! - tilt;
+              obs.shakeX = Math.cos(gridT * 0.5) * 10;
+              obs.shakeX2 = -Math.cos(gridT * 0.5) * 10;
+            } else if (oIdx < gs53 * 2) {
+              // G2: Diagonal star lines — lasers trace diagonal paths with counter-motion
+              obs.isLaser = true;
+              const starT = this.waveTime * 2.4 - oIdx * 0.5;
+              obs.shakeX = Math.sin(starT) * 24;
+              obs.shakeX2 = -Math.sin(starT + Math.PI * 0.6) * 24;
+              const starY = Math.cos(starT * 0.8) * 20;
+              obs.targetTopHeight = obs.baseTopHeight! + starY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - starY;
+            } else {
+              // G3: Hexagonal pulse pipes — columns breathe in hexagonal cluster rhythm
+              obs.isLaser = false;
+              const hexT = this.waveTime * 1.9 + (oIdx % 6) * (Math.PI / 3);
+              const hexPulse = Math.sin(hexT) * 26;
+              obs.targetTopHeight = obs.baseTopHeight! + hexPulse;
+              obs.targetBottomHeight = obs.baseBottomHeight! - hexPulse;
+              obs.shakeX = Math.cos(hexT * 0.6) * 12;
+              obs.shakeX2 = -Math.cos(hexT * 0.6) * 12;
+            }
+          } else if (obs.patternType === 'level54_celestialmaze') {
+            // L54: Celestial Maze
+            const oIdx = obs.obstacleIdx ?? 0;
+            const gs54 = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
+            if (oIdx < gs54) {
+              // G1: Inward spiral lasers — laser shrinks toward center in a tight corkscrew
+              obs.isLaser = true;
+              const spiralT = this.waveTime * 2.2 + oIdx * 0.65;
+              const spiralR = 22 - (oIdx % gs54) * 0.4;
+              obs.shakeX = Math.sin(spiralT) * Math.max(spiralR, 6);
+              obs.shakeX2 = -Math.sin(spiralT + Math.PI * 0.5) * Math.max(spiralR, 6);
+              const spiralY = Math.cos(spiralT * 0.9) * (Math.max(spiralR, 6) * 0.8);
+              obs.targetTopHeight = obs.baseTopHeight! + spiralY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - spiralY;
+            } else if (oIdx < gs54 * 2) {
+              // G2: Labyrinth step pipes — pipes hop between preset vertical positions like maze walls
+              obs.isLaser = false;
+              const mazePhase = Math.floor(this.waveTime * 1.4 + oIdx * 0.3) % 5;
+              const mazeSteps = [-28, -14, 0, 14, 28];
+              obs.targetTopHeight = obs.baseTopHeight! + mazeSteps[mazePhase];
+              obs.targetBottomHeight = obs.baseBottomHeight! - mazeSteps[mazePhase];
+              obs.shakeX = Math.sin(this.waveTime * 3.5 + oIdx * 0.6) * 10;
+              obs.shakeX2 = -Math.sin(this.waveTime * 3.5 + oIdx * 0.6) * 10;
+            } else {
+              // G3: Orbiting beacon lasers — each column orbits its own path like a celestial body
+              obs.isLaser = true;
+              const orbitT = this.waveTime * 1.7 + oIdx * 0.7;
+              obs.shakeX = Math.cos(orbitT) * 20;
+              obs.shakeX2 = -Math.cos(orbitT + Math.PI * 0.4) * 20;
+              const orbitY = Math.sin(orbitT * 1.2) * 22;
+              obs.targetTopHeight = obs.baseTopHeight! + orbitY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - orbitY;
+            }
+          } else if (obs.patternType === 'level55_ethervortex') {
+            // L55: Ether Vortex
+            const oIdx = obs.obstacleIdx ?? 0;
+            const gs55 = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
+            if (oIdx < gs55) {
+              // G1: Dual helix twist — pipes spiral in two intertwined helixes
+              obs.isLaser = false;
+              const helixT = this.waveTime * 2.3 + oIdx * 0.6;
+              const helixY = (oIdx % 2 === 0 ? 1 : -1) * Math.sin(helixT) * 28;
+              obs.targetTopHeight = obs.baseTopHeight! + helixY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - helixY;
+              obs.shakeX = Math.cos(helixT * 0.8) * 14;
+              obs.shakeX2 = -Math.cos(helixT * 0.8) * 14;
+            } else if (oIdx < gs55 * 2) {
+              // G2: Plasma Zigzag Zippers — lasers with horizontal wave shift and dynamic breathing gaps
+              obs.isLaser = true;
+              const zipT = this.waveTime * 2.5 + oIdx * 0.45;
+              obs.shakeX = Math.sin(zipT) * 16;
+              obs.shakeX2 = -Math.sin(zipT + Math.PI / 2) * 16;
+              const pulse = Math.sin(this.waveTime * 3.0) * 12;
+              obs.targetTopHeight = obs.baseTopHeight! + pulse;
+              obs.targetBottomHeight = obs.baseBottomHeight! + pulse;
+            } else {
+              // G3: Quantum Phase Portals — pipes weave in alternating gates that open/close dynamically
+              obs.isLaser = false;
+              const portalT = this.waveTime * 2.2 + oIdx * 0.6;
+              const slide = Math.sin(portalT) * 24;
+              obs.targetTopHeight = obs.baseTopHeight! + slide;
+              obs.targetBottomHeight = obs.baseBottomHeight! + slide;
+              obs.shakeX = Math.cos(portalT * 0.8) * 10;
+              obs.shakeX2 = -Math.cos(portalT * 0.8) * 10;
+            }
+          } else if (obs.patternType === 'level56_prismaticwave') {
+            // L56: Prismatic Wave
+            const oIdx = obs.obstacleIdx ?? 0;
+            const gs56 = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
+            if (oIdx < gs56) {
+              // G1: Chromatic tier split — 3 tiers of pipes shift in separate color-coded phases
+              obs.isLaser = false;
+              const tier56 = oIdx % 3;
+              const tierOffset = tier56 === 0 ? 0 : tier56 === 1 ? Math.PI * 0.667 : Math.PI * 1.333;
+              const tierT = this.waveTime * 1.9 + tierOffset + oIdx * 0.3;
+              obs.targetTopHeight = obs.baseTopHeight! + Math.sin(tierT) * 26;
+              obs.targetBottomHeight = obs.baseBottomHeight! - Math.sin(tierT) * 26;
+              obs.shakeX = Math.cos(tierT * 0.7) * 12;
+              obs.shakeX2 = -Math.cos(tierT * 0.7) * 12;
+            } else if (oIdx < gs56 * 2) {
+              // G2: Ripple cascade lasers — laser wave pulses travel outward like a water ripple
+              obs.isLaser = true;
+              const ripT = this.waveTime * 2.5 - oIdx * 0.48;
+              obs.shakeX = Math.sin(ripT) * 22;
+              obs.shakeX2 = -Math.sin(ripT + Math.PI * 0.5) * 22;
+              const ripY = Math.sin(ripT * 0.7 + 0.9) * 18;
+              obs.targetTopHeight = obs.baseTopHeight! + ripY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - ripY;
+            } else {
+              // G3: Interference pattern — two perpendicular waves collide and create unpredictable beating
+              obs.isLaser = false;
+              const i56 = oIdx - gs56 * 2;
+              const intT1 = this.waveTime * 2.1 + i56 * 0.6;
+              const intT2 = this.waveTime * 3.3 + i56 * 0.4;
+              const interference = Math.sin(intT1) * 18 + Math.sin(intT2) * 12;
+              obs.targetTopHeight = obs.baseTopHeight! + interference;
+              obs.targetBottomHeight = obs.baseBottomHeight! - interference;
+              obs.shakeX = Math.cos(intT1 * 0.5) * 14;
+              obs.shakeX2 = -Math.cos(intT2 * 0.5) * 14;
+            }
+          } else if (obs.patternType === 'level57_angelbraid') {
+            // L57: Angel Braid
+            const oIdx = obs.obstacleIdx ?? 0;
+            const gs57 = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
+            if (oIdx < gs57) {
+              // G1: Interleaved braid — two pipe streams braid over/under each other
+              obs.isLaser = false;
+              const braidT = this.waveTime * 2.0 + oIdx * 0.55;
+              const braidSide = oIdx % 4 < 2 ? 1 : -1;
+              const braidAmp = Math.sin(braidT) * 26 * braidSide;
+              obs.targetTopHeight = obs.baseTopHeight! + braidAmp;
+              obs.targetBottomHeight = obs.baseBottomHeight! - braidAmp;
+              obs.shakeX = Math.cos(braidT * 0.8) * 14 * braidSide;
+              obs.shakeX2 = -Math.cos(braidT * 0.8) * 14 * braidSide;
+            } else if (oIdx < gs57 * 2) {
+              // G2: Wing spread lasers — arc widens from center out then folds back like wings
+              obs.isLaser = true;
+              const wingT = this.waveTime * 2.4 + oIdx * 0.5;
+              const wingSpan = 18 + Math.sin(this.waveTime * 0.9) * 10;
+              obs.shakeX = Math.sin(wingT) * wingSpan;
+              obs.shakeX2 = -Math.sin(wingT + Math.PI * 0.4) * wingSpan;
+              const wingY = Math.cos(wingT * 0.85) * 22;
+              obs.targetTopHeight = obs.baseTopHeight! + wingY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - wingY;
+            } else {
+              // G3: Feather cascade pipes — columns drop in a staggered feather-fall rhythm
+              obs.isLaser = false;
+              const featT = this.waveTime * 2.8 + oIdx * 0.45;
+              const featFall = Math.cos(featT) * 24 + Math.cos(featT * 2.1) * 10;
+              obs.targetTopHeight = obs.baseTopHeight! + featFall;
+              obs.targetBottomHeight = obs.baseBottomHeight! - featFall;
+              obs.shakeX = Math.sin(featT * 1.4) * 10;
+              obs.shakeX2 = -Math.sin(featT * 1.4) * 10;
+            }
+          } else if (obs.patternType === 'level58_serenitystorm') {
+            // L58: Serenity Storm
+            const oIdx = obs.obstacleIdx ?? 0;
+            const gs58 = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
+            if (oIdx < gs58) {
+              // G1: Calm wide breath — pipes sway in a very slow wide peaceful oscillation
+              obs.isLaser = false;
+              const calmT = this.waveTime * 1.2 + oIdx * 0.35;
+              obs.targetTopHeight = obs.baseTopHeight! + Math.sin(calmT) * 22;
+              obs.targetBottomHeight = obs.baseBottomHeight! - Math.sin(calmT) * 22;
+              obs.shakeX = Math.cos(calmT * 0.5) * 8;
+              obs.shakeX2 = -Math.cos(calmT * 0.5) * 8;
+            } else if (oIdx < gs58 * 2) {
+              // G2: Sudden turbulence laser spikes — calm then sudden violent jolt
+              obs.isLaser = true;
+              const stormT = this.waveTime * 3.5 + oIdx * 0.6;
+              const spike58 = Math.pow(Math.sin(stormT), 5) * 32; // 5th power = extreme sharp peak
+              obs.targetTopHeight = obs.baseTopHeight! + spike58;
+              obs.targetBottomHeight = obs.baseBottomHeight! - spike58;
+              obs.shakeX = Math.sin(this.waveTime * 7 + oIdx) * 12;
+              obs.shakeX2 = -Math.sin(this.waveTime * 7 + oIdx) * 12;
+            } else {
+              // G3: Eye-of-storm pipes — mostly calm center, with wild outer columns
+              obs.isLaser = false;
+              const eyeT = this.waveTime * 2.2 + oIdx * 0.5;
+              const distFromEdge = Math.abs((oIdx % gs58) - gs58 / 2) / (gs58 / 2);
+              const eyeAmp = 8 + distFromEdge * 24;
+              obs.targetTopHeight = obs.baseTopHeight! + Math.sin(eyeT) * eyeAmp;
+              obs.targetBottomHeight = obs.baseBottomHeight! - Math.sin(eyeT) * eyeAmp;
+              obs.shakeX = Math.cos(eyeT * 0.7) * (4 + distFromEdge * 12);
+              obs.shakeX2 = -Math.cos(eyeT * 0.7) * (4 + distFromEdge * 12);
+            }
+          } else if (obs.patternType === 'level59_ascendant') {
+            // L59: Ascendant
+            const oIdx = obs.obstacleIdx ?? 0;
+            const gs59 = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
+            if (oIdx < gs59) {
+              // G1: Ascending spiral — columns gradually rise in ever-higher sine arcs
+              obs.isLaser = false;
+              const ascT = this.waveTime * 1.8 + oIdx * 0.5;
+              const ascRise = (oIdx / gs59) * 14; // slowly rising offset
+              obs.targetTopHeight = obs.baseTopHeight! + Math.sin(ascT) * 26 - ascRise;
+              obs.targetBottomHeight = obs.baseBottomHeight! - Math.sin(ascT) * 26 - ascRise;
+              obs.shakeX = Math.cos(ascT * 0.7) * 14;
+              obs.shakeX2 = -Math.cos(ascT * 0.7) * 14;
+            } else if (oIdx < gs59 * 2) {
+              // G2: Pinnacle peak lasers — lasers shoot up to extreme peaks and valley in sharp rhythm
+              obs.isLaser = true;
+              const peakT = this.waveTime * 3.0 + oIdx * 0.6;
+              const peakAmp = Math.abs(Math.sin(peakT)) * 32 - 16;
+              obs.targetTopHeight = obs.baseTopHeight! + peakAmp;
+              obs.targetBottomHeight = obs.baseBottomHeight! - peakAmp;
+              obs.shakeX = Math.sin(peakT * 0.5) * 18;
+              obs.shakeX2 = -Math.sin(peakT * 0.5) * 18;
+            } else {
+              // G3: Transcendent orbit — columns trace complex multi-axis orbital paths
+              obs.isLaser = false;
+              const transT = this.waveTime * 2.1 + oIdx * 0.7;
+              obs.shakeX = Math.sin(transT) * 20 + Math.sin(transT * 2.7) * 8;
+              obs.shakeX2 = -Math.sin(transT + Math.PI * 0.4) * 20 + Math.sin(transT * 2.7 + 0.8) * 8;
+              const transY = Math.cos(transT * 1.1) * 22 + Math.cos(transT * 2.3) * 10;
+              obs.targetTopHeight = obs.baseTopHeight! + transY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - transY;
+            }
+          } else if (obs.patternType === 'level60_divineapex') {
+            // L60: Divine Apex — the ultimate heaven level
+            const oIdx = obs.obstacleIdx ?? 0;
+            const gs60 = this.activeLevelConfig ? Math.floor(this.activeLevelConfig.targetScore / 3) : 50;
+            if (oIdx < gs60) {
+              // G1: Mandala rotation — all columns rotate in perfect mandala symmetry
+              obs.isLaser = true;
+              const mandalaT = this.waveTime * 2.4 + (oIdx % 8) * (Math.PI / 4);
+              obs.shakeX = Math.sin(mandalaT) * 24;
+              obs.shakeX2 = -Math.sin(mandalaT + Math.PI * 0.5) * 24;
+              const mandalaY = Math.cos(mandalaT * 0.9) * 20;
+              obs.targetTopHeight = obs.baseTopHeight! + mandalaY;
+              obs.targetBottomHeight = obs.baseBottomHeight! - mandalaY;
+            } else if (oIdx < gs60 * 2) {
+              // G2: Judgment wave — massive combined 3-frequency interference creates unpredictable motion
+              obs.isLaser = true;
+              const j60 = oIdx - gs60;
+              const jT1 = this.waveTime * 2.1 + j60 * 0.55;
+              const jT2 = this.waveTime * 3.5 + j60 * 0.4;
+              const jT3 = this.waveTime * 5.2 + j60 * 0.3;
+              const judgment = Math.sin(jT1) * 16 + Math.sin(jT2) * 12 + Math.sin(jT3) * 8;
+              obs.targetTopHeight = obs.baseTopHeight! + judgment;
+              obs.targetBottomHeight = obs.baseBottomHeight! - judgment;
+              obs.shakeX = Math.cos(jT1 * 0.6) * 18;
+              obs.shakeX2 = -Math.cos(jT2 * 0.6) * 18;
+            } else {
+              // G3: Apex convergence pipes — all columns converge to center then explode outward
+              obs.isLaser = false;
+              const c60 = oIdx - gs60 * 2;
+              const convT = this.waveTime * 1.9 + c60 * 0.5;
+              const spreadAmp = 10 + Math.abs(Math.sin(this.waveTime * 0.7)) * 28;
+              const conv = Math.sin(convT) * spreadAmp;
+              obs.targetTopHeight = obs.baseTopHeight! + conv;
+              obs.targetBottomHeight = obs.baseBottomHeight! - conv;
+              obs.shakeX = Math.sin(this.waveTime * 5.5 + c60 * 0.7) * 14;
+              obs.shakeX2 = -Math.sin(this.waveTime * 5.5 + c60 * 0.7) * 14;
+            }
 
-            const finalGap = obs.gapHeight! + pulse;
-            const centerY = obs.spawnCenterY! + wave + Math.sin(this.waveTime * 2.0) * 15;
-            obs.targetTopHeight = centerY - finalGap / 2;
-            obs.targetBottomHeight = height - centerY - finalGap / 2;
           } else if (obs.patternType === 'wave_10') {
             const centerY = height / 2 + Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.5) * 55;
             obs.targetTopHeight = centerY - obs.gapHeight! / 2;
@@ -1232,8 +2220,9 @@ export class ObstacleManager {
               obs.targetTopHeight = centerY - obs.gapHeight! / 2;
               obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
             } else if (subPattern === 'magnetic_27') {
-              const magnet = Math.sin(this.waveTime * 2.0) * 20;
-              const verticalShift = levelNum === 25 ? Math.sin(this.waveTime * 2.0 + obs.obstacleIdx! * 0.5) * (obs.gapHeight! * 0.35) : 0;
+              const animSpeed = (this.activeLevelConfig && this.activeLevelConfig.levelNum === 39) ? 1.7 : 2.0;
+              const magnet = Math.sin(this.waveTime * animSpeed) * 20;
+              const verticalShift = levelNum === 25 ? Math.sin(this.waveTime * animSpeed + obs.obstacleIdx! * 0.5) * (obs.gapHeight! * 0.35) : 0;
               const centerY = obs.spawnCenterY! + verticalShift;
               obs.targetTopHeight = centerY - (obs.gapHeight! + magnet) / 2;
               obs.targetBottomHeight = height - centerY - (obs.gapHeight! - magnet) / 2;
@@ -1425,15 +2414,300 @@ export class ObstacleManager {
         }
       } else {
         // Endless mode obstacle movement
-        const isStaticEndless = gameMode === 'endless' && (score < 50 || (obs.spawnScore !== undefined && obs.spawnScore < 50));
+        const isEndlessAnimationZone = gameMode === 'endless' && (obs.spawnScore !== undefined ? obs.spawnScore : score) <= 80;
+        const isStaticEndless = gameMode === 'endless' && (score < 50 || (obs.spawnScore !== undefined && obs.spawnScore < 50)) && !isEndlessAnimationZone;
         
-        if (isStaticEndless) {
+        const isChaosMode = zone === 'chaos';
+        if (isChaosMode) {
+          obs.shakeX = 0;
+          obs.shakeX2 = 0;
+          let centerY = obs.spawnCenterY !== undefined ? obs.spawnCenterY : (obs.initialTopHeight + (height - obs.initialBottomHeight - obs.initialTopHeight) / 2);
+          const currentGap = obs.gapHeight !== undefined ? obs.gapHeight : (height - obs.initialBottomHeight - obs.initialTopHeight);
+          let verticalShift = 0;
+          let breathingOffset = 0;
+          const idx = obs.obstacleIdx || 0;
+          const phaseSign = idx % 2 === 0 ? 1 : -1;
+
+          if (score <= 30) {
+            // 1. Drifting Breath (Horizontal Slide + Vertical Breathing)
+            const t = this.waveTime * 1.5 + idx * 0.4;
+            obs.shakeX = Math.sin(t) * 22;
+            obs.shakeX2 = obs.shakeX;
+            breathingOffset = Math.cos(t * 1.3) * 14; 
+          } else if (score <= 60) {
+            // 2. Springing Shear (Diagonal Shear + Counterphase Piston Spring)
+            const t = this.waveTime * 1.6 + idx * 0.5;
+            obs.shakeX = Math.sin(t) * 26 * phaseSign;
+            obs.shakeX2 = -obs.shakeX;
+            // Piston spring formula
+            const period = 2.4;
+            const pt = t % period;
+            const spring = pt < 0.8 ? Math.sin((pt / 0.8) * Math.PI * 3.0) * 22 * Math.exp(-pt * 2.2) : 0;
+            verticalShift = spring * phaseSign;
+          } else if (score <= 100) {
+            // 3. Glitch Elevator (Stepwise Elevator + Fast Glitch Shearing)
+            const t = this.waveTime * 1.8 + idx * 0.5;
+            // Stepwise vertical elevator
+            const stepVal = Math.sin(t);
+            verticalShift = Math.tanh(stepVal * 4.0) * 24;
+            // Glitch horizontal shear
+            if ((Math.floor(this.waveTime * 5.0) + idx) % 4 === 0) {
+              obs.shakeX = phaseSign * 24;
+              obs.shakeX2 = -phaseSign * 24;
+            } else {
+              obs.shakeX = 0;
+              obs.shakeX2 = 0;
+            }
+          } else if (score <= 150) {
+            // 4. Trembling Lissajous Vortex (3:2 Orbit + High-Frequency Tremor)
+            const t = this.waveTime * 1.8 + idx * 0.6;
+            // Lissajous base
+            const orbitX = Math.sin(t * 2.0) * 22;
+            const orbitY = Math.cos(t * 3.0) * 18;
+            // Tremor jitter
+            const jitterX = Math.sin(this.waveTime * 25.0) * 6;
+            const jitterY = Math.cos(this.waveTime * 25.0) * 6;
+            obs.shakeX = orbitX + jitterX;
+            obs.shakeX2 = obs.shakeX;
+            verticalShift = orbitY + jitterY;
+          } else if (score <= 220) {
+            // 5. Elastic Sling-Surge (Slingshot vertical snap + Opposing horizontal jolting)
+            const period = 2.2;
+            const t = (this.waveTime * 1.2 + idx * 0.4) % period;
+            // Slingshot pull/release
+            if (t < 1.4) {
+              verticalShift = (t / 1.4) * 26;
+            } else {
+              const progress = (t - 1.4) / 0.8;
+              verticalShift = 26 - (progress * 52) + Math.sin(progress * Math.PI * 3.0) * 12 * Math.exp(-progress * 2.0);
+            }
+            // Opposing horizontal jolts
+            const jt = this.waveTime % 2.5;
+            if (jt < 0.4) {
+              const progress = jt / 0.4;
+              obs.shakeX = Math.sin(progress * Math.PI) * 32 * phaseSign;
+            } else {
+              obs.shakeX = 0;
+            }
+            obs.shakeX2 = -obs.shakeX;
+          } else if (score <= 300) {
+            // 6. Triple Phase Orbit (3-position vertical snap + Circular shearing orbit)
+            const t = this.waveTime * 1.8 + idx * 0.5;
+            // Orbit component
+            const orbitX = Math.cos(t) * 24;
+            const orbitY = Math.sin(t) * 18;
+            // Snap component
+            const positions = [-28, 0, 28];
+            const posIdx = Math.floor((this.waveTime * 1.5 + idx * 0.7) % 3);
+            const snapY = positions[Math.abs(posIdx) % 3];
+            obs.shakeX = orbitX * phaseSign;
+            obs.shakeX2 = -orbitX * phaseSign;
+            verticalShift = orbitY + snapY;
+          } else {
+            // 7. Apocalyptic Chaos Storm (Tremor + Slingshot + Orbit + Surge + Phase Snap combined)
+            let diffScale = 1.0;
+            if (score >= 330 && score <= 400) {
+              diffScale = 1.25;
+            } else if (score > 400 && score <= 500) {
+              diffScale = 1.35;
+            } else if (score > 500 && score <= 700) {
+              diffScale = 1.50;
+            } else if (score > 700) {
+              diffScale = 1.70;
+            }
+
+            let speedScale = 1.0;
+            if (score >= 300 && score <= 400) {
+              speedScale = 0.70; // 30% reduction
+            } else if (score > 400 && score <= 500) {
+              speedScale = 0.80; // 20% reduction
+            }
+
+            const t = this.waveTime * 2.0 * speedScale + idx * 0.6;
+            // Orbit + Tremor Horizontal
+            obs.shakeX = (Math.cos(t) * 28 + Math.sin(this.waveTime * 24.0 * speedScale) * 8) * diffScale * phaseSign;
+            obs.shakeX2 = -obs.shakeX;
+            // Slingshot + Phase Snap Vertical
+            const positions = [-32, 0, 32];
+            const posIdx = Math.floor((this.waveTime * 1.8 * speedScale + idx * 0.8) % 3);
+            const snapY = positions[Math.abs(posIdx) % 3];
+            const surgeY = Math.sin(t * 2.5) * 24 * diffScale;
+            verticalShift = (snapY + surgeY) * diffScale;
+          }
+
+          // Apply 15% animation difficulty reduction
+          verticalShift *= 0.85;
+          obs.shakeX *= 0.85;
+          obs.shakeX2 *= 0.85;
+          breathingOffset *= 0.85;
+
+          // Apply boundary clamping
+          centerY += verticalShift;
+          const minCY = 45 + currentGap / 2;
+          const maxCY = height - 45 - currentGap / 2;
+          centerY = Math.max(minCY, Math.min(maxCY, centerY));
+          obs.topHeight = centerY - currentGap / 2 - breathingOffset;
+          obs.bottomHeight = height - centerY - currentGap / 2 - breathingOffset;
+        } else if (isStaticEndless) {
           obs.shakeX = 0;
           obs.shakeX2 = 0;
           const centerY = obs.spawnCenterY !== undefined ? obs.spawnCenterY : (obs.initialTopHeight + (height - obs.initialBottomHeight - obs.initialTopHeight) / 2);
           const currentGap = obs.gapHeight !== undefined ? obs.gapHeight : (height - obs.initialBottomHeight - obs.initialTopHeight);
           obs.topHeight = centerY - currentGap / 2;
           obs.bottomHeight = height - centerY - currentGap / 2;
+        } else if (isEndlessAnimationZone) {
+          const spawnScoreVal = obs.spawnScore !== undefined ? obs.spawnScore : score;
+          let centerY = obs.spawnCenterY !== undefined ? obs.spawnCenterY : (obs.initialTopHeight + (height - obs.initialBottomHeight - obs.initialTopHeight) / 2);
+          const currentGap = obs.gapHeight !== undefined ? obs.gapHeight : (height - obs.initialBottomHeight - obs.initialTopHeight);
+          let verticalShift = 0;
+          let isDirectHeightSet = false;
+          
+          obs.shakeX = 0;
+          obs.shakeX2 = 0;
+          
+          if (spawnScoreVal <= 20) {
+            // First Zone: Score <= 20 (every 5 obstacles, 4 patterns)
+            const animGroup = Math.floor((obs.obstacleIdx || 0) / 5) % 4;
+            if (animGroup === 0) {
+              // Group 0: Piston Spring Bounce - periodic springy vertical bounce followed by static settle
+              const period = 2.4; // cycle every 2.4 seconds
+              const t = this.waveTime % period;
+              if (t < 0.8) {
+                const progress = t / 0.8;
+                // Damped elastic wave
+                verticalShift = Math.sin(progress * Math.PI * 3.0) * 25 * Math.exp(-progress * 2.2);
+              } else {
+                verticalShift = 0;
+              }
+            } else if (animGroup === 1) {
+              // Group 1: Diagonal Shear Drift - opposing horizontal drifting (top goes left, bottom goes right, then swaps)
+              const driftTime = this.waveTime * 1.8;
+              const cycle = driftTime % (Math.PI * 2);
+              const triangle = Math.abs((cycle / Math.PI) - 1.0) * 2.0 - 1.0; // range -1 to 1
+              obs.shakeX = triangle * 28;
+              obs.shakeX2 = -triangle * 28;
+              verticalShift = 0;
+            } else if (animGroup === 2) {
+              // Group 2: Seismic Tremor - intense high-frequency vibration combined with a slow vertical wave
+              // Slow heavy vertical wave
+              verticalShift = Math.sin(this.waveTime * 0.9 + (obs.obstacleIdx || 0) * 0.4) * 14;
+              // Tremor vibrations
+              obs.shakeX = Math.sin(this.waveTime * 24.0) * 6;
+              obs.shakeX2 = Math.cos(this.waveTime * 24.0) * 6;
+            } else if (animGroup === 3) {
+              // Group 3: Robotic Smooth Step Elevator - discrete snaps up and down, holding position in between
+              const t = this.waveTime * 1.6;
+              const stepVal = Math.sin(t + (obs.obstacleIdx || 0) * 0.5);
+              // Math.tanh creates quick transitions between -1 and 1
+              verticalShift = Math.tanh(stepVal * 4.0) * 22;
+            }
+          } else if (spawnScoreVal <= 40) {
+            // Second Zone: Score 21 to 40 (every 5 obstacles, 4 patterns)
+            const animGroup = Math.floor((obs.obstacleIdx || 0) / 5) % 4;
+            if (animGroup === 0) {
+              // Group 0: Elastic Rubberband Gap (Breathing Gap Height)
+              const breathing = Math.sin(this.waveTime * 2.5) * 20; // Oscillates gap size dynamically
+              obs.topHeight = (centerY - currentGap / 2) - breathing;
+              obs.bottomHeight = height - (centerY + currentGap / 2) - breathing;
+              isDirectHeightSet = true;
+            } else if (animGroup === 1) {
+              // Group 1: Circular Shearing Vortex (opposing circular phase lag)
+              const t = this.waveTime * 2.2;
+              obs.shakeX = Math.cos(t) * 22;
+              obs.shakeX2 = Math.sin(t) * 22;
+              verticalShift = Math.sin(t * 1.5) * 15;
+            } else if (animGroup === 2) {
+              // Group 2: Wave Speed Burst (accelerated vertical bobbing)
+              const waveMod = Math.sin(this.waveTime * 1.2) * 0.5 + 0.5;
+              const t = this.waveTime * (1.0 + waveMod * 3.5);
+              verticalShift = Math.sin(t) * 18;
+            } else if (animGroup === 3) {
+              // Group 3: Diagonal Glitch Steps (L-shape step movements)
+              const t = this.waveTime * 1.5;
+              const stepX = Math.tanh(Math.sin(t) * 5.0) * 25;
+              const stepY = Math.tanh(Math.cos(t) * 5.0) * 18;
+              obs.shakeX = stepX;
+              obs.shakeX2 = stepX;
+              verticalShift = stepY;
+            }
+          } else {
+            // Third Zone: Score 41 to 80 (every 5 obstacles, 8 patterns)
+            const animGroup = Math.floor((obs.obstacleIdx || 0) / 5) % 8;
+            if (animGroup === 0) {
+              // Group 0: Gravity Wave (vertical bounce acceleration)
+              const period = 2.0;
+              const t = this.waveTime % period;
+              if (t < 1.0) {
+                verticalShift = -20 + (t * t * 40);
+              } else {
+                const progress = t - 1.0;
+                verticalShift = Math.sin(progress * Math.PI) * 15;
+              }
+            } else if (animGroup === 1) {
+              // Group 1: Sawtooth Wave (linear vertical sliding slider)
+              const period = 2.2;
+              const t = this.waveTime % period;
+              const progress = t / period;
+              const triangle = progress < 0.5 ? (progress * 4.0 - 1.0) : (3.0 - progress * 4.0);
+              verticalShift = triangle * 25;
+            } else if (animGroup === 2) {
+              // Group 2: Horizontal Jolt (periodic sudden side dodge)
+              const period = 2.5;
+              const t = this.waveTime % period;
+              if (t < 0.4) {
+                const progress = t / 0.4;
+                obs.shakeX = Math.sin(progress * Math.PI) * 35;
+              } else {
+                obs.shakeX = 0;
+              }
+              obs.shakeX2 = obs.shakeX;
+              verticalShift = 0;
+            } else if (animGroup === 3) {
+              // Group 3: Chaotic Flutter (high-frequency flutter)
+              verticalShift = Math.sin(this.waveTime * 15.0) * 8 + Math.sin(this.waveTime * 0.8) * 12;
+              obs.shakeX = Math.cos(this.waveTime * 1.5) * 15;
+              obs.shakeX2 = obs.shakeX;
+            } else if (animGroup === 4) {
+              // Group 4: Expand-Contract Loop (double shear horizontal shake + vertical wave)
+              const t = this.waveTime * 3.0;
+              obs.shakeX = Math.sin(t) * 20;
+              obs.shakeX2 = -Math.sin(t) * 20;
+              verticalShift = Math.sin(this.waveTime * 1.0) * 15;
+            } else if (animGroup === 5) {
+              // Group 5: Spiral Lissajous (3:2 frequency ratio bow shape path)
+              const t = this.waveTime * 1.5;
+              obs.shakeX = Math.sin(t * 2.0) * 20;
+              obs.shakeX2 = obs.shakeX;
+              verticalShift = Math.cos(t * 3.0) * 15;
+            } else if (animGroup === 6) {
+              // Group 6: Double-Step Ladder
+              const t = this.waveTime * 1.5;
+              const step = Math.sin(t) + Math.sin(t * 0.5);
+              verticalShift = Math.tanh(step * 3.0) * 24;
+            } else if (animGroup === 7) {
+              // Group 7: Elastic Slingshot (slow pull up, sudden snap down)
+              const period = 2.6;
+              const t = this.waveTime % period;
+              if (t < 1.8) {
+                const progress = t / 1.8;
+                verticalShift = progress * 25;
+              } else {
+                const progress = (t - 1.8) / 0.8;
+                verticalShift = 25 - (progress * 50) + Math.sin(progress * Math.PI * 3.0) * 10 * Math.exp(-progress * 2.0);
+              }
+            }
+          }
+          
+          if (!isDirectHeightSet) {
+            centerY += verticalShift;
+            // Playability Clamp boundary checking
+            const minCenterY = 45 + currentGap / 2;
+            const maxCenterY = height - 45 - currentGap / 2;
+            centerY = Math.max(minCenterY, Math.min(maxCenterY, centerY));
+            
+            obs.topHeight = centerY - currentGap / 2;
+            obs.bottomHeight = height - centerY - currentGap / 2;
+          }
         } else if (obs.approachAnimType !== undefined) {
           // Check near approach trigger
           if (_birdX !== undefined) {
@@ -1490,6 +2764,7 @@ export class ObstacleManager {
 
           // Pipe gaps are kept completely constant and unchanged as requested, only shifting centerY up and down!
           let verticalShift = 0;
+          let breathingOffset = 0;
 
           // Use the score at spawn time to keep transitions completely smooth and stutter-free!
           const activeScore = obs.spawnScore !== undefined ? obs.spawnScore : score;
@@ -1515,9 +2790,71 @@ export class ObstacleManager {
           } else if (obs.isGoldSplitGate) {
             // Electric Gold Split Gate gentle electric bobbing/sway once opened
             verticalShift = Math.sin(this.waveTime * 4.0 + (obs.obstacleIdx || 0) * 0.8) * 8;
-          } else if (gameMode !== 'flock' || activeScore >= 100) {
-            // Apply Progressive Cos-based Out-of-Phase Oscillation for Classic Endless Mode (Score 100 to 500)
-            if ((zone === 'classic' || gameMode === 'endless') && effectiveScore >= 100 && effectiveScore < 500) {
+          } else {
+            // Apply custom animations for squad (flock) mode in specific score ranges
+            let isFlockCustomAnimApplied = false;
+            if (gameMode === 'flock') {
+              if (activeScore >= 50 && activeScore <= 100) {
+                // Elastic Rubberband Gap animation
+                breathingOffset = Math.sin(this.waveTime * 2.0) * 15;
+                isFlockCustomAnimApplied = true;
+              } else if (activeScore >= 101 && activeScore <= 150) {
+                // Diagonal Glitch Steps
+                const stepTime = 1.0;
+                const t = (this.waveTime + (obs.obstacleIdx || 0) * 0.4) % (stepTime * 3);
+                let stepDrift = 0;
+                if (t < stepTime) {
+                  stepDrift = -20;
+                } else if (t < stepTime * 2) {
+                  stepDrift = 0;
+                } else {
+                  stepDrift = 20;
+                }
+                obs.shakeX = stepDrift;
+                obs.shakeX2 = -stepDrift;
+                verticalShift = Math.sin(this.waveTime * 1.5) * 15;
+                isFlockCustomAnimApplied = true;
+              } else if (activeScore >= 151 && activeScore <= 200) {
+                // Robotic Smooth Step Elevator
+                const period = 3.0;
+                const stepTime = period / 4;
+                const t = (this.waveTime + (obs.obstacleIdx || 0) * 0.5) % period;
+                const amp = 25;
+                let targetPos = 0;
+                if (t < stepTime) {
+                  targetPos = -amp;
+                } else if (t < stepTime * 2) {
+                  const progress = (t - stepTime) / stepTime;
+                  const smoothProgress = progress * progress * (3 - 2 * progress);
+                  targetPos = -amp + smoothProgress * (2 * amp);
+                } else if (t < stepTime * 3) {
+                  targetPos = amp;
+                } else {
+                  const progress = (t - stepTime * 3) / stepTime;
+                  const smoothProgress = progress * progress * (3 - 2 * progress);
+                  targetPos = amp - smoothProgress * (2 * amp);
+                }
+                verticalShift = targetPos;
+                isFlockCustomAnimApplied = true;
+              } else if (activeScore >= 201 && activeScore <= 250) {
+                // Horizontal Jolt
+                const period = 2.0;
+                const t = this.waveTime % period;
+                if (t < 0.4) {
+                  const progress = t / 0.4;
+                  obs.shakeX = Math.sin(progress * Math.PI) * 28;
+                } else {
+                  obs.shakeX = 0;
+                }
+                obs.shakeX2 = obs.shakeX;
+                verticalShift = Math.sin(this.waveTime * 1.8) * 18;
+                isFlockCustomAnimApplied = true;
+              }
+            }
+
+            if (!isFlockCustomAnimApplied && (gameMode !== 'flock' || activeScore >= 100)) {
+              // Apply Progressive Cos-based Out-of-Phase Oscillation for Classic Endless Mode (Score 100 to 500)
+              if (zone === 'classic' && effectiveScore >= 100 && effectiveScore < 500) {
               const phaseSign = (obs.obstacleIdx || 0) % 2 === 0 ? 1 : -1;
               if (effectiveScore < 150) {
                 // Cos-based Out-of-Phase Oscillation (Standard: 100-150)
@@ -1535,6 +2872,101 @@ export class ObstacleManager {
                 const primary = Math.cos(this.waveTime * 2.8 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.8) * 48;
                 const secondary = Math.cos(this.waveTime * 1.4 * motionSpeedMult + (obs.obstacleIdx || 0) * 0.4) * 17;
                 verticalShift = (primary + secondary) * phaseSign * motionAmpMult;
+              }
+
+              // Layer additional animations as requested:
+              if (effectiveScore >= 100 && effectiveScore <= 125) {
+                // Diagonal Shear Drift (top goes left, bottom goes right, then swaps)
+                const driftTime = this.waveTime * 1.8;
+                const cycle = driftTime % (Math.PI * 2);
+                const triangle = Math.abs((cycle / Math.PI) - 1.0) * 2.0 - 1.0;
+                obs.shakeX = triangle * 28;
+                obs.shakeX2 = -triangle * 28;
+              } else if (effectiveScore >= 126 && effectiveScore < 150) {
+                // Piston Spring Bounce (periodic springy vertical bounce)
+                const period = 2.4;
+                const t = this.waveTime % period;
+                if (t < 0.8) {
+                  const progress = t / 0.8;
+                  verticalShift += Math.sin(progress * Math.PI * 3.0) * 25 * Math.exp(-progress * 2.2);
+                }
+              } else if (effectiveScore >= 150 && effectiveScore < 175) {
+                // Seismic Tremor (high-frequency vibration combined with slow vertical wave)
+                obs.shakeX = Math.sin(this.waveTime * 24.0) * 6;
+                obs.shakeX2 = Math.cos(this.waveTime * 24.0) * 6;
+                verticalShift += Math.sin(this.waveTime * 0.9 + (obs.obstacleIdx || 0) * 0.4) * 14;
+              } else if (effectiveScore >= 175 && effectiveScore <= 200) {
+                // Elastic Rubberband Gap (Breathing Gap Height)
+                breathingOffset = Math.sin(this.waveTime * 2.5) * 20;
+              } else if (effectiveScore >= 200 && effectiveScore <= 225) {
+                // Horizontal Jolt (periodic sudden side dodge)
+                const period = 2.5;
+                const t = this.waveTime % period;
+                if (t < 0.4) {
+                  const progress = t / 0.4;
+                  obs.shakeX = Math.sin(progress * Math.PI) * 35;
+                } else {
+                  obs.shakeX = 0;
+                }
+                obs.shakeX2 = obs.shakeX;
+              } else if (effectiveScore >= 226 && effectiveScore < 250) {
+                // Chaotic Flutter (high-frequency flutter)
+                verticalShift += Math.sin(this.waveTime * 15.0) * 8 + Math.sin(this.waveTime * 0.8) * 12;
+                obs.shakeX = Math.cos(this.waveTime * 1.5) * 15;
+                obs.shakeX2 = obs.shakeX;
+              } else if (effectiveScore >= 250 && effectiveScore < 275) {
+                // Spiral Lissajous (3:2 frequency ratio bow shape path)
+                const t = this.waveTime * 1.5;
+                obs.shakeX = Math.sin(t * 2.0) * 20;
+                obs.shakeX2 = obs.shakeX;
+                verticalShift += Math.cos(t * 3.0) * 15;
+              } else if (effectiveScore >= 275 && effectiveScore <= 300) {
+                // Gravity Wave (vertical bounce acceleration)
+                const period = 2.0;
+                const t = this.waveTime % period;
+                if (t < 1.0) {
+                  verticalShift += -20 + (t * t * 40);
+                } else {
+                  const progress = t - 1.0;
+                  verticalShift += Math.sin(progress * Math.PI) * 15;
+                }
+              } else if (effectiveScore >= 325 && effectiveScore <= 370) {
+                // Seismic Tremor (Obstacle 325 to 370)
+                obs.shakeX = Math.sin(this.waveTime * 24.0) * 6;
+                obs.shakeX2 = Math.cos(this.waveTime * 24.0) * 6;
+                verticalShift += Math.sin(this.waveTime * 0.9 + (obs.obstacleIdx || 0) * 0.4) * 14;
+              } else if (effectiveScore >= 371 && effectiveScore <= 430) {
+                // Robotic Smooth Step Elevator (Obstacle 371 to 430)
+                const period = 3.0; // cycle period
+                const stepTime = period / 4; // 4 stages: hold bottom, step up, hold top, step down
+                const t = (this.waveTime + (obs.obstacleIdx || 0) * 0.5) % period;
+                const amp = 35; // displacement amplitude
+                
+                let targetPos = 0;
+                if (t < stepTime) {
+                  targetPos = -amp;
+                } else if (t < stepTime * 2) {
+                  const progress = (t - stepTime) / stepTime;
+                  const smoothProgress = progress * progress * (3 - 2 * progress); // smoothstep
+                  targetPos = -amp + smoothProgress * (2 * amp);
+                } else if (t < stepTime * 3) {
+                  targetPos = amp;
+                } else {
+                  const progress = (t - stepTime * 3) / stepTime;
+                  const smoothProgress = progress * progress * (3 - 2 * progress); // smoothstep
+                  targetPos = amp - smoothProgress * (2 * amp);
+                }
+                verticalShift += targetPos;
+              } else if (effectiveScore >= 431 && effectiveScore <= 500) {
+                // Gravity Wave (Obstacle 431 to 500)
+                const period = 2.0;
+                const t = this.waveTime % period;
+                if (t < 1.0) {
+                  verticalShift += -20 + (t * t * 40);
+                } else {
+                  const progress = t - 1.0;
+                  verticalShift += Math.sin(progress * Math.PI) * 15;
+                }
               }
             } else {
               // Existing non-classic endless or other ranges logic (remains untouched!)
@@ -1598,6 +3030,7 @@ export class ObstacleManager {
               }
             }
           }
+          }
 
           // Playability Safeguard: Clamp vertical shift to prevent physically impossible transitions
           let isTightHorizontalGap = false;
@@ -1654,8 +3087,8 @@ export class ObstacleManager {
           centerY = Math.max(minCenterY, Math.min(maxCenterY, centerY));
 
           // Apply coordinates
-          obs.topHeight = centerY - currentGap / 2;
-          obs.bottomHeight = height - centerY - currentGap / 2;
+          obs.topHeight = centerY - currentGap / 2 - breathingOffset;
+          obs.bottomHeight = height - centerY - currentGap / 2 - breathingOffset;
         }
 
         // 4. Visual effects - spawn dynamic movement particles
@@ -1778,6 +3211,9 @@ export class ObstacleManager {
       }
       const dynamicGap = zone === 'classic' ? startGap : (startGap - (startGap - minGap) * progressRatio);
       let gapWithDifficulty = this.activeLevelConfig ? this.activeLevelConfig.gapHeight : dynamicGap;
+      if (zone === 'chaos') {
+        gapWithDifficulty *= 1.10; // 10% vertical path gap increase
+      }
       if (gameMode === 'endless') {
         if (score >= 300 && score < 500) {
           gapWithDifficulty *= 0.88;
@@ -1794,7 +3230,10 @@ export class ObstacleManager {
         if (gameMode === 'flock') {
           dist = Math.max(490, Math.min(770, dist));
         } else if (gameMode === 'endless') {
-          dist = Math.max(215, Math.min(340, dist));
+          const isChaos = zone === 'chaos';
+          const minClamp = isChaos ? 420 : 215;
+          const maxClamp = isChaos ? 500 : 340;
+          dist = Math.max(minClamp, Math.min(maxClamp, dist));
         }
         this.nextSpawnDistance = dist;
       }
@@ -1812,6 +3251,10 @@ export class ObstacleManager {
 
       // Apply endless progressive difficulty gap scaling (kept completely constant as requested)
       let gapWithDifficulty = this.activeLevelConfig ? this.activeLevelConfig.gapHeight : dynamicGap;
+
+      if (zone === 'chaos') {
+        gapWithDifficulty *= 1.10; // 10% vertical path gap increase
+      }
 
       // Classic Mode (Endless) vertical path gap reduction:
       // Score 300 to 500: reduce by 12%
@@ -1896,7 +3339,10 @@ export class ObstacleManager {
         if (gameMode === 'flock') {
           dist = Math.max(490, Math.min(770, dist)); // Clamp horizontal gap between 490px and 770px
         } else if (gameMode === 'endless') {
-          dist = Math.max(215, Math.min(340, dist)); // Clamp horizontal gap between 215px and 340px
+          const isChaos = zone === 'chaos';
+          const minClamp = isChaos ? 420 : 215;
+          const maxClamp = isChaos ? 500 : 340;
+          dist = Math.max(minClamp, Math.min(maxClamp, dist));
         }
 
         this.nextSpawnDistance = dist;
@@ -1909,11 +3355,11 @@ export class ObstacleManager {
     width: number,
     height: number,
     gapHeight: number,
-    _zone: 'classic' | 'vertical' | 'wave' = 'classic',
+    _zone: 'classic' | 'vertical' | 'wave' | 'chaos' = 'classic',
     difficulty: 'easy' | 'medium' | 'hard' = 'medium',
     _progressRatio = 0,
     score = 0,
-    gameMode: 'endless' | 'level' | 'flock' | 'rescue' | 'formation' = 'endless',
+    gameMode: 'endless' | 'level' | 'flock' | 'rescue' | 'formation' | 'chaos' = 'endless',
     customX?: number
   ) {
     let zoom = 1.0;
@@ -1973,76 +3419,130 @@ export class ObstacleManager {
       let targetBottomHeight = 0;
 
       if (patternType === 'level1_funnel') {
-        // LEVEL 1: "The Winding Cavern" (Smooth continuous undulating wave path aligned with the surfaces, touching side-by-side)
+        // LEVEL 1: "The Winding Cavern" - Made very gentle and beginner friendly
         hasAsymmetricHeights = false;
-        targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.35) * 48;
+        if (groupIdx === 1) {
+          // Group 2: "Stepped Zig-Zag Cavern" - climbs up then descends gently
+          const halfGroup = groupSize / 2;
+          const step = (idxInGroup < halfGroup ? idxInGroup : groupSize - idxInGroup) - halfGroup / 2;
+          targetCenterY = height / 2 + step * 3.5;
+        } else {
+          // Group 1 & 3: Gentle smooth sine wave path
+          targetCenterY = height / 2 + Math.sin(idxInGroup * 0.35) * 32;
+        }
         // Dynamically scale trigger distance to ensure the splitting animation starts on-screen on both mobile and desktop viewports (shifted 20% left)
         triggerDistance = Math.min(500, width * 0.65) * 0.80;
         animDuration = 0.675; // 35% slower and smooth animation (0.50 * 1.35 = 0.675)
       } else if (patternType === 'level2_diamond') {
-        // LEVEL 2: "The Wave Gauntlet" (Smooth continuous wave pattern aligned side-by-side)
-        localGapHeight = gapHeight - 5;
-
-        // Base center wave Y
-        const baseCenterY = height / 2 + Math.sin(obstacleIdx * 0.28) * 78; // Increased amplitude by 20% (65 * 1.2 = 78)
-
-        // Alternating 30% gap shift every 10 obstacles with a smooth transition over 3 obstacles
-        const period = 20;
-        const rampWidth = 3;
-        const amplitude = localGapHeight * 0.30;
-        const t = actualPatternIdx % period;
-
-        let verticalShift = 0;
-        if (t < rampWidth) {
-          // Smooth ramp from -amplitude to +amplitude
-          const ratio = t / rampWidth;
-          verticalShift = -amplitude + ratio * (2 * amplitude);
-        } else if (t < period / 2) {
-          verticalShift = amplitude;
-        } else if (t < period / 2 + rampWidth) {
-          // Smooth ramp from +amplitude to -amplitude
-          const ratio = (t - period / 2) / rampWidth;
-          verticalShift = amplitude - ratio * (2 * amplitude);
+        // LEVEL 2: "The Wave Gauntlet" - Widened gaps and reduced wave shifts
+        if (groupIdx === 1) {
+          // Group 2: "Steep Peak-Valley Maze" - very gentle peak/valley layout with wide gaps
+          localGapHeight = gapHeight + 15;
+          const peakValley = (Math.floor(idxInGroup / 3) % 2 === 0) ? -35 : 35;
+          targetCenterY = height / 2 + peakValley;
+        } else if (groupIdx === 2) {
+          // Group 3: "Funneling Spiral Tunnel" - gradual and wide tunnel
+          const narrowFactor = (idxInGroup / groupSize) * 15;
+          localGapHeight = Math.max(160, gapHeight + 10 - narrowFactor);
+          targetCenterY = height / 2 + Math.cos(idxInGroup * 0.4) * 35;
         } else {
-          verticalShift = -amplitude;
-        }
+          // Group 1: Gentle wave pattern with wide gaps
+          localGapHeight = gapHeight + 10;
+          const baseCenterY = height / 2 + Math.sin(idxInGroup * 0.28) * 45;
 
-        targetCenterY = baseCenterY + verticalShift;
+          // Alternating gap shift every 10 obstacles with a smooth transition over 3 obstacles
+          const period = 20;
+          const rampWidth = 3;
+          const amplitude = localGapHeight * 0.15; // halved shift amplitude
+          const t = actualPatternIdx % period;
+
+          let verticalShift = 0;
+          if (t < rampWidth) {
+            // Smooth ramp from -amplitude to +amplitude
+            const ratio = t / rampWidth;
+            verticalShift = -amplitude + ratio * (2 * amplitude);
+          } else if (t < period / 2) {
+            verticalShift = amplitude;
+          } else if (t < period / 2 + rampWidth) {
+            // Smooth ramp from +amplitude to -amplitude
+            const ratio = (t - period / 2) / rampWidth;
+            verticalShift = amplitude - ratio * (2 * amplitude);
+          } else {
+            verticalShift = -amplitude;
+          }
+          targetCenterY = baseCenterY + verticalShift;
+        }
         triggerDistance = 220;
         animDuration = 0.45;
       } else if (patternType === 'level3_arc') {
-        // Playable Level 46: Dimensional Distortion Warp Grid
-        // Group 1: Warp Grid, Group 2: Seismic see-saw steps, Group 3: Void Singularity
-        if (obstacleIdx <= 5) {
-          targetCenterY = height / 2 + Math.sin(obstacleIdx * 1.1) * 50;
-        } else if (obstacleIdx <= 11) {
-          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -50 : 50) + Math.cos(obstacleIdx * 0.8) * 20;
+        // Playable Level 46: Dimensional Distortion Warp Grid - smoothed out
+        if (groupIdx === 1) {
+          // Group 2: "Double-Step See-saw" - pairs of two stepping gently (different layout)
+          const stepIdx = Math.floor(idxInGroup / 2) % 3;
+          const stepOffset = (stepIdx === 0) ? -35 : (stepIdx === 1) ? 0 : 35;
+          targetCenterY = height / 2 + stepOffset;
+          localGapHeight = gapHeight + 20;
+          hasAsymmetricHeights = false;
+        } else if (groupIdx === 2) {
+          // Group 3: "Void Singularity / Central Gate" - straight wide central tunnel (very easy)
+          targetCenterY = height / 2;
+          localGapHeight = gapHeight + 25;
+          hasAsymmetricHeights = false;
         } else {
-          targetCenterY = height / 2 + Math.sin(obstacleIdx * 1.6) * 40;
+          // Group 1: original warp grid flattened
+          if (obstacleIdx <= 5) {
+            targetCenterY = height / 2 + Math.sin(obstacleIdx * 1.1) * 25;
+          } else if (obstacleIdx <= 11) {
+            targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? -25 : 25) + Math.cos(obstacleIdx * 0.8) * 10;
+          } else {
+            targetCenterY = height / 2 + Math.sin(obstacleIdx * 1.6) * 20;
+          }
+          localGapHeight = gapHeight + 10;
+          hasAsymmetricHeights = false;
         }
-        hasAsymmetricHeights = false;
         triggerDistance = 180;
         animDuration = 0.32;
       } else if (patternType === 'level4_snake') {
-        // LEVEL 4: "The Laser Grid Gauntlet" (Electronic cyberpunk-themed columns with narrow gaps)
-        targetCenterY = height / 2 + Math.sin(obstacleIdx) * 50;
+        // LEVEL 4: "The Laser Grid Gauntlet" - beginner friendly lasers
+        if (groupIdx === 1) {
+          // Group 2: "Binary Switch Gates" - alternate gently with wide gaps
+          localGapHeight = gapHeight + 15;
+          targetCenterY = height / 2 + (Math.floor(idxInGroup / 3) % 2 === 0 ? -35 : 35);
+        } else if (groupIdx === 2) {
+          // Group 3: "Slanted Ramp Corridor" - straight ramp slanting gently (different from sine wave, very easy)
+          const ramp = Math.min(45, idxInGroup * 2.5);
+          targetCenterY = height / 2 + ramp - 22;
+          localGapHeight = gapHeight + 20;
+        } else {
+          // Group 1: Gentle sine wave
+          localGapHeight = gapHeight + 10;
+          targetCenterY = height / 2 + Math.sin(idxInGroup) * 25;
+        }
         triggerDistance = 320;
         animDuration = 0.42;
       } else if (patternType === 'level5_hourglass') {
-        // LEVEL 5: Stair-step arrangement (5 pipes ascending, 5 pipes descending) - Removed 20% gap reduction (now 100% of base gap)
-        localGapHeight = gapHeight;
-
-        const cycleIdx = actualPatternIdx % 10;
-        let stepOffset = 0;
-        if (cycleIdx < 5) {
-          // Ascend: Y decreases, going up in space
-          stepOffset = 90 - cycleIdx * 45; // 90, 45, 0, -45, -90
+        // LEVEL 5: Stair-step arrangement
+        if (groupIdx === 1) {
+          // Group 2: "Hourglass Squeeze Corridor" - straight corridor with wider gaps, never narrows below base
+          localGapHeight = gapHeight + (idxInGroup % 2 === 0 ? 30 : 10);
+          targetCenterY = height / 2;
+        } else if (groupIdx === 2) {
+          // Group 3: "Blocky Checkerboard Step" - alternates height in blocky step pattern (different, very easy)
+          const step = (Math.floor(idxInGroup / 4) % 2 === 0) ? -25 : 25;
+          targetCenterY = height / 2 + step;
+          localGapHeight = gapHeight + 20;
         } else {
-          // Descend: Y increases, going down in space
-          stepOffset = -90 + (cycleIdx - 5) * 45; // -90, -45, 0, 45, 90
+          // Group 1: Gentle stair-step arrangement
+          localGapHeight = gapHeight + 10;
+          const cycleIdx = actualPatternIdx % 10;
+          let stepOffset = 0;
+          if (cycleIdx < 5) {
+            stepOffset = 40 - cycleIdx * 20; // gentle steps
+          } else {
+            stepOffset = -40 + (cycleIdx - 5) * 20;
+          }
+          targetCenterY = height / 2 + stepOffset;
         }
-
-        targetCenterY = height / 2 + stepOffset;
         triggerDistance = 300;
         animDuration = 0.45;
       } else if (patternType === 'level6_infinity') {
@@ -2156,13 +3656,6 @@ export class ObstacleManager {
         hasAsymmetricHeights = false;
         targetCenterY = height / 2 + Math.sin(obstacleIdx * (Math.PI / 4)) * (40 * 1.30);
         localGapHeight = gapHeight;
-        triggerDistance = 210;
-        animDuration = 0.45;
-      } else if (patternType === 'level18_group2') {
-        hasAsymmetricHeights = false;
-        const offsets = [-80, -40, 0, 40, 80, 40, 0, -40];
-        targetCenterY = height / 2 + offsets[actualPatternIdx % offsets.length] * 1.30;
-        localGapHeight = Math.round(gapHeight * 0.859625);
         triggerDistance = 210;
         animDuration = 0.45;
       } else if (patternType === 'level14_crossflow') {
@@ -2641,6 +4134,148 @@ export class ObstacleManager {
         }
         triggerDistance = 160;
         animDuration = 0.28;
+      } else if (patternType === 'level51_cloudrift') {
+        // L51: Cloud Rift — G1: Rising staircase with wide zigzag, G2: Paired arch portals, G3: Diagonal cascade
+        if (actualPatternIdx < groupSize) {
+          targetCenterY = height / 2 - 60 + (obstacleIdx % 4) * 40; // 4-step stair: -60,-20,+20,+60
+        } else if (actualPatternIdx < groupSize * 2) {
+          const pair = Math.floor((obstacleIdx % 6) / 2);
+          targetCenterY = height / 2 + [-45, 0, 45][pair]; // arch portal pairs
+        } else {
+          targetCenterY = height / 2 + Math.sin(obstacleIdx * 0.7) * 55 - (obstacleIdx % 3) * 12;
+        }
+        triggerDistance = 168;
+        animDuration = 0.30;
+      } else if (patternType === 'level52_aurorapulse') {
+        // L52: Aurora Pulse — G1: Concentric wave rings, G2: Chevron V-shapes, G3: Double sine clash
+        if (actualPatternIdx < groupSize) {
+          const ring = Math.floor(obstacleIdx / 2);
+          targetCenterY = height / 2 + (obstacleIdx % 2 === 0 ? 1 : -1) * (ring * 18 + 10);
+        } else if (actualPatternIdx < groupSize * 2) {
+          const chevron = obstacleIdx % 6;
+          const chevronOffset = chevron <= 2 ? -55 + chevron * 22 : 55 - (chevron - 3) * 22;
+          targetCenterY = height / 2 + chevronOffset;
+        } else {
+          const phase1 = Math.sin(obstacleIdx * 0.9) * 40;
+          const phase2 = Math.cos(obstacleIdx * 1.4) * 25;
+          targetCenterY = height / 2 + phase1 + phase2;
+        }
+        triggerDistance = 172;
+        animDuration = 0.31;
+      } else if (patternType === 'level53_starlattice') {
+        // L53: Star Lattice — G1: Crosshatch grid, G2: Diagonal star lines, G3: Pulsing hexagon
+        if (actualPatternIdx < groupSize) {
+          targetCenterY = height / 2 + (obstacleIdx % 3 === 0 ? -50 : obstacleIdx % 3 === 1 ? 0 : 50);
+        } else if (actualPatternIdx < groupSize * 2) {
+          targetCenterY = height / 2 + (obstacleIdx - groupSize) * 14 - 42;
+        } else {
+          const hex = obstacleIdx % 6;
+          const hexY = [0, 30, 52, 60, 52, 30][hex];
+          targetCenterY = height / 2 - 30 + hexY;
+        }
+        triggerDistance = 175;
+        animDuration = 0.32;
+      } else if (patternType === 'level54_celestialmaze') {
+        // L54: Celestial Maze — G1: Spiral inward, G2: Labyrinth steps, G3: Orbiting beacons
+        if (actualPatternIdx < groupSize) {
+          const t = obstacleIdx / 5;
+          targetCenterY = height / 2 + Math.sin(t * Math.PI * 2) * (55 - t * 8);
+        } else if (actualPatternIdx < groupSize * 2) {
+          const idx2 = obstacleIdx % 8;
+          const steps = [-60, -30, 0, 30, 60, 30, 0, -30];
+          targetCenterY = height / 2 + steps[idx2];
+        } else {
+          const angle = (obstacleIdx % 5) * (2 * Math.PI / 5);
+          targetCenterY = height / 2 + Math.sin(angle) * 52;
+        }
+        triggerDistance = 170;
+        animDuration = 0.29;
+      } else if (patternType === 'level55_ethervortex') {
+        // L55: Ether Vortex — G1: Double helix twist, G2: Plasma Zigzag Zippers, G3: Quantum Phase Portals
+        if (actualPatternIdx < groupSize) {
+          localGapHeight = Math.round(gapHeight * 1.10);
+          targetCenterY = height / 2 + (idxInGroup % 2 === 0 ? -1 : 1) * (20 + (idxInGroup % 3) * 20);
+        } else if (actualPatternIdx < groupSize * 2) {
+          const stepIndex = idxInGroup % 8;
+          const offsets = [-55, -28, 0, 28, 55, 28, 0, -28];
+          targetCenterY = height / 2 + offsets[stepIndex];
+        } else {
+          localGapHeight = Math.round(gapHeight * 1.20);
+          targetCenterY = height / 2 + (idxInGroup % 2 === 0 ? -55 : 55);
+        }
+        triggerDistance = 165;
+        animDuration = 0.28;
+      } else if (patternType === 'level56_prismaticwave') {
+        // L56: Prismatic Wave — G1: Chromatic split (3-tier), G2: Ripple cascade, G3: Interference pattern
+        if (actualPatternIdx < groupSize) {
+          const tier = idxInGroup % 3;
+          targetCenterY = height / 2 + (tier === 0 ? -50 : tier === 1 ? 0 : 50);
+        } else if (actualPatternIdx < groupSize * 2) {
+          localGapHeight = Math.round(gapHeight * 0.75); // 25% reduction
+          targetCenterY = height / 2 + Math.sin(idxInGroup * 0.9) * 50 + Math.cos(idxInGroup * 1.4) * 20;
+        } else {
+          localGapHeight = Math.round(gapHeight * 0.75); // 25% reduction
+          targetCenterY = height / 2 + Math.sin(idxInGroup * 1.1) * 35 + Math.sin(idxInGroup * 2.3) * 20;
+        }
+        triggerDistance = 172;
+        animDuration = 0.30;
+      } else if (patternType === 'level57_angelbraid') {
+        // L57: Angel Braid — G1: Interleaved braid paths, G2: Wing spread arc, G3: Feather cascade
+        if (actualPatternIdx < groupSize) {
+          targetCenterY = height / 2 + (idxInGroup % 4 < 2 ? -40 : 40) * (1 - (idxInGroup % 2) * 0.3);
+        } else if (actualPatternIdx < groupSize * 2) {
+          const wing = idxInGroup % 8;
+          const wingOffsets = [-65, -45, -20, 0, 20, 45, 65, 45];
+          targetCenterY = height / 2 + wingOffsets[wing];
+        } else {
+          targetCenterY = height / 2 + Math.cos(idxInGroup * 0.8) * 42 + (idxInGroup % 3 - 1) * 18;
+        }
+        triggerDistance = 168;
+        animDuration = 0.31;
+      } else if (patternType === 'level58_serenitystorm') {
+        // L58: Serenity Storm — G1: Calm wide wave, G2: Sudden turbulence spikes, G3: Eye of the storm
+        if (actualPatternIdx < groupSize) {
+          targetCenterY = height / 2 + Math.sin(idxInGroup * 0.5) * 30;
+        } else if (actualPatternIdx < groupSize * 2) {
+          const spike = idxInGroup % 4;
+          targetCenterY = height / 2 + [0, -65, 0, 65][spike];
+        } else {
+          const t3 = idxInGroup % 8;
+          targetCenterY = height / 2 + (t3 === 4 ? 0 : Math.sin(t3 * 0.78) * 50);
+        }
+        triggerDistance = 162;
+        animDuration = 0.28;
+      } else if (patternType === 'level59_ascendant') {
+        // L59: Ascendant — G1: Ascending spiral columns, G2: Pinnacle peaks, G3: Transcendent orbit
+        if (actualPatternIdx < groupSize) {
+          const cycle = idxInGroup % 18;
+          targetCenterY = height / 2 + 55 - cycle * 10; // ascends from bottom to top
+        } else if (actualPatternIdx < groupSize * 2) {
+          const peakIdx = idxInGroup % 6;
+          const peaks = [-60, -30, 30, 60, 30, -30];
+          targetCenterY = height / 2 + peaks[peakIdx];
+        } else {
+          const angle59 = idxInGroup * 0.7;
+          const radius59 = 42 + Math.sin(angle59) * 12;
+          targetCenterY = height / 2 + Math.sin(angle59 * 1.8) * radius59;
+        }
+        triggerDistance = 158;
+        animDuration = 0.27;
+      } else if (patternType === 'level60_divineapex') {
+        // L60: Divine Apex — G1: Mandala rotation, G2: Judgment wave, G3: Apex convergence
+        if (actualPatternIdx < groupSize) {
+          const a60 = (idxInGroup % 8) * (Math.PI / 4);
+          targetCenterY = height / 2 + Math.sin(a60) * 55;
+        } else if (actualPatternIdx < groupSize * 2) {
+          const j60 = idxInGroup;
+          targetCenterY = height / 2 + Math.sin(j60 * 0.9) * 45 + Math.sin(j60 * 1.7) * 20;
+        } else {
+          const c60 = idxInGroup;
+          const spread = Math.max(0, 60 - c60 * 6); // converges toward center
+          targetCenterY = height / 2 + (c60 % 2 === 0 ? -spread : spread);
+        }
+        triggerDistance = 155;
+        animDuration = 0.25;
       } else if (patternType.indexOf('_progress') !== -1) {
         // Levels 21 to 29: 3 completely different wave patterns per level!
         subPattern = 'wave_10';
@@ -2688,7 +4323,7 @@ export class ObstacleManager {
         } else if (levelNum === 25) {
           subPattern = actualPatternIdx < groupSize ? 'pendulum_28' : (actualPatternIdx < groupSize * 2 ? 'magnetic_27' : 'elevator_26'); // Swapped first and last group
         } else if (levelNum === 26) {
-          if (levelNumPlayable === 39) {
+          if (levelNumPlayable === 39 || levelNumPlayable === 35) {
             subPattern = actualPatternIdx < groupSize ? 'elevator_26' : (actualPatternIdx < groupSize * 2 ? 'rotating_24' : 'pendulum_39');
           } else {
             subPattern = 'elevator_26'; // All groups use high-amplitude elevator_26 updown animation
@@ -2802,17 +4437,23 @@ export class ObstacleManager {
         }
 
         if (levelNum === 25 && subPattern === 'elevator_26') {
-          localGapHeight = Math.round(localGapHeight * 0.92); // 15% increase for Level 25 Group 3 (0.80 * 1.15 = 0.92)
+          if (levelNumPlayable === 39) {
+            localGapHeight = Math.round(localGapHeight * 0.92 * 0.70); // G3: reduced 30% for Level 39
+          } else {
+            localGapHeight = Math.round(localGapHeight * 0.92); // 15% increase for Level 25 Group 3 (0.80 * 1.15 = 0.92)
+          }
         } else if (levelNum === 25 && subPattern === 'pendulum_28') {
           localGapHeight = Math.round(localGapHeight * 0.594); // G1: 0.675×0.88=0.594 (12% reduced)
         } else if (levelNum === 25 && subPattern === 'magnetic_27') {
           if (levelNumPlayable === 35) {
             localGapHeight = Math.round(localGapHeight * 0.6336 * 1.20); // 20% increase for Level 35 Group 2
+          } else if (levelNumPlayable === 39) {
+            localGapHeight = Math.round(localGapHeight * 0.6336 * 1.15); // G2: increased 15% for Level 39
           } else {
             localGapHeight = Math.round(localGapHeight * 0.6336); // G2: 0.72×0.88=0.6336 (12% reduced)
           }
         } else if (levelNum === 26) {
-          if (levelNumPlayable === 39) {
+          if (levelNumPlayable === 39 || levelNumPlayable === 35) {
             if (actualPatternIdx < groupSize) {
               localGapHeight = Math.round(localGapHeight * 0.60); // Group 1 reduced 40%
             } else if (actualPatternIdx < groupSize * 2) {
@@ -2963,25 +4604,38 @@ export class ObstacleManager {
       let hasEnergyBall = false;
       let initEnergyBallY: number | undefined = undefined;
       let initEnergyBallSpeedY: number | undefined = undefined;
-      if (levelNumPlayable !== undefined && levelNumPlayable >= 41 && levelNumPlayable <= 50 && levelNumPlayable !== 3) {
-        if (levelNumPlayable === 45) {
-          // Level 45 ONLY: Increased by another 25% (cumulative ~70% from base rate of 1 in 9, going from 27/180 to 34/180 obstacles)
+      if (levelNumPlayable !== undefined && levelNumPlayable >= 41 && levelNumPlayable <= 60 && levelNumPlayable !== 3) {
+        if (levelNumPlayable === 45 || levelNumPlayable === 55) {
+          // Level 45 / 55: Increased rate (~70% from base rate)
           const subIdx = actualPatternIdx % 180;
           const isBaseBall = (actualPatternIdx % 9 === 0);
           const isSupplementalBall = [5, 14, 23, 32, 41, 50, 59, 68, 77, 86, 95, 104, 113, 122].includes(subIdx);
           hasEnergyBall = isBaseBall || isSupplementalBall;
         } else if (levelNumPlayable === 50) {
-          // Level 50: Reduced by 30% from the base rate of 1 in 6 (30/180 -> 21/180 obstacles)
+          // Level 50: Reduced rate (1 in 9 with extra)
           hasEnergyBall = (actualPatternIdx % 9 === 0 || actualPatternIdx % 180 === 5);
-        } else if (levelNumPlayable >= 46) {
-          // Levels 46-49: Reduced by 30% from the base rate of 1 in 9 (~30.8% reduction to 1 in 13 rate)
-          hasEnergyBall = (actualPatternIdx % 13 === 0);
-        } else if (levelNumPlayable >= 41 && levelNumPlayable <= 44) {
-          // Levels 41-44: Increased by 10% from previous modulo 22 rate (using additional modulo 220 to add 1 extra ball per 220 obstacles)
-          hasEnergyBall = (actualPatternIdx % 22 === 0 || actualPatternIdx % 220 === 11);
+        } else if (levelNumPlayable === 60) {
+          // Level 60: Group 1 has base rate, Group 2 & Group 3 have double rate
+          if (actualPatternIdx < groupSize) {
+            hasEnergyBall = (actualPatternIdx % 9 === 0 || actualPatternIdx % 180 === 5);
+          } else {
+            // Group 2 & 3: Double quantity (doubled 1-in-9 rate)
+            hasEnergyBall = (actualPatternIdx % 9 === 0 || actualPatternIdx % 9 === 4 || actualPatternIdx % 180 === 5);
+          }
+        } else if (levelNumPlayable >= 51 && levelNumPlayable <= 54) {
+          // Levels 51-54: 35% increase (approx 1 in 16 + 1 in 160 rate)
+          hasEnergyBall = (actualPatternIdx % 16 === 0 || actualPatternIdx % 160 === 8);
+        } else if (levelNumPlayable >= 46 && levelNumPlayable <= 49) {
+          // Levels 46-49: 25% increase (approx 1 in 10 rate)
+          hasEnergyBall = (actualPatternIdx % 10 === 0);
         } else {
-          // Reduced by an additional 40% (down from 15% rate to ~9% rate, using modulo 22)
-          hasEnergyBall = (actualPatternIdx % 22 === 0 || actualPatternIdx % 22 === 11);
+          // Others (41-44 / 56-59 / etc.)
+          const mirroredLevel = levelNumPlayable <= 50 ? levelNumPlayable : levelNumPlayable - 10;
+          if (mirroredLevel >= 46) {
+            hasEnergyBall = (actualPatternIdx % 13 === 0);
+          } else {
+            hasEnergyBall = (actualPatternIdx % 22 === 0 || actualPatternIdx % 220 === 11);
+          }
         }
 
         if (hasEnergyBall) {
@@ -3138,6 +4792,11 @@ export class ObstacleManager {
       }
     }
 
+    const isChaos = _zone === 'chaos';
+    const isDestructible = isChaos && Math.random() < 0.35;
+    const hp = isDestructible ? 3 : 0;
+    const maxHp = isDestructible ? 3 : 0;
+
     this.list.push(this.acquireObstacle({
       x: customX !== undefined ? customX : offscreenSpawnX,
       width: this.obstacleWidth,
@@ -3165,6 +4824,10 @@ export class ObstacleManager {
       gapHeight: currentStepGap,
       spawnCenterY: targetCenterY,
       obstacleIdx: this.endlessObstacleCount++,
+      isDestructible,
+      hp,
+      maxHp,
+      isDestroyed: false,
       spawnScore: score,
       approachAnimType,
       targetTopHeight: targetCenterY - currentStepGap / 2,
@@ -3181,7 +4844,7 @@ export class ObstacleManager {
     }));
   }
 
-  private generateEndlessPattern(gameMode: 'endless' | 'level' | 'flock' | 'rescue' | 'formation' = 'endless') {
+  private generateEndlessPattern(gameMode: 'endless' | 'level' | 'flock' | 'rescue' | 'formation' | 'chaos' = 'endless') {
     interface EndlessPatternDef {
       name: string;
       offsets: number[];
@@ -3482,16 +5145,26 @@ export class ObstacleManager {
     }
 
     // 1. Check floor/ceiling boundaries with generous collision tolerance
-    // Ceiling is a fixed clamped boundary like classic endless (no death)
+    const isChaos = (window as any).gameEngine && ((window as any).gameEngine.gameMode === 'chaos' || (window as any).gameEngine.progressManager.getState().selectedZone === 'chaos');
+
     if (bird.y - effectiveRadius <= 5) {
       bird.y = 5 + effectiveRadius;
       if (bird.vy < 0) bird.vy = 0;
     } else if (bird.y + effectiveRadiusBottom >= height - 35) {
-      return {} as Obstacle; // Collided with floor
+      if (isChaos) {
+        bird.y = height - 35 - effectiveRadiusBottom;
+        if (bird.vy > 0) bird.vy = 0;
+      } else {
+        console.log("COLLIDED WITH FLOOR! bird.y =", bird.y, "effectiveRadiusBottom =", effectiveRadiusBottom, "height =", height);
+        return {} as Obstacle; // Collided with floor
+      }
     }
 
     for (let i = 0; i < this.list.length; i++) {
       const obs = this.list[i];
+      if (obs.isDestroyed) {
+        continue;
+      }
 
       // Circle-to-circle collision with the moving energy ball
       if (obs.hasEnergyBall && obs.energyBallY !== undefined) {
@@ -3543,6 +5216,16 @@ export class ObstacleManager {
       const isCollidingBottom = (distBottomX * distBottomX + distBottomY * distBottomY) <= effectiveRadiusBottom * effectiveRadiusBottom;
 
       if (isCollidingTop || isCollidingBottom) {
+        console.log("COLLIDED WITH OBSTACLE!", {
+          obstacleIdx: obs.obstacleIdx,
+          x: obs.x,
+          width: obs.width,
+          topHeight: obs.topHeight,
+          bottomHeight: obs.bottomHeight,
+          isCollidingTop,
+          isCollidingBottom,
+          birdY: bird.y
+        });
         // Enforce physical blocking / clamping with the new hitboxes
         if (isCollidingTop) {
           if (bird.x >= leftTop && bird.x <= rightTop) {
@@ -3631,6 +5314,9 @@ export class ObstacleManager {
     ctx.shadowBlur = 0; // Disable shadows for high performance
     for (let i = 0; i < this.list.length; i++) {
       const obs = this.list[i];
+      if (obs.isDestroyed) {
+        continue;
+      }
       const scoreForStyle = obs.spawnScore !== undefined ? obs.spawnScore : this.currentScore;
 
       // Use original float values for sub-pixel accuracy and ultra-smooth motion
@@ -3788,6 +5474,8 @@ export class ObstacleManager {
         drawPillars();
         ctx.restore();
       }
+
+      this.drawDestructibleOverlay(ctx, obs, height);
 
       // Pulsing neon gap-border glow along inner lips of moving Level columns
       if (obs.levelNum !== undefined && obs.isMoving && !(window as any).gameDisableShadows) {
@@ -4172,6 +5860,57 @@ export class ObstacleManager {
 
     // Right Collar Cap Extrusion
     drawExtrusionSide(rx + rw - depth, botY + depth, rx + rw - depth, botY + depth + collarH, depth, depth);
+    // Blinking donut — heaven world only
+    if (obs.worldId === 'heaven') {
+      const timeVal = (window as any).gameEngine ? (window as any).gameEngine.weatherTime : Date.now() * 0.001;
+      const blink = Math.abs(Math.sin(timeVal * 3.5));
+      const pulse = 0.5 + 0.5 * Math.sin(timeVal * 5.0);
+
+      const hue = (timeVal * 80) % 360;
+      const donutColor = `hsl(${hue}, 100%, 65%)`;
+      const donutGlowColor = `hsla(${hue}, 100%, 70%, ${0.3 + pulse * 0.5})`;
+
+      const drawDonut = (cx: number, cy: number) => {
+        ctx.save();
+        const outerR = Math.min(rw * 0.22, 14);
+        const innerR = outerR * 0.45;
+
+        if (!(window as any).gameDisableShadows) {
+          ctx.shadowBlur = 12 + pulse * 8;
+          ctx.shadowColor = donutColor;
+        }
+        ctx.globalAlpha = 0.55 + blink * 0.45;
+
+        ctx.fillStyle = donutGlowColor;
+        ctx.beginPath();
+        ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = 'rgba(0,0,0,1)';
+        ctx.beginPath();
+        ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalCompositeOperation = 'source-over';
+
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 0.7 + blink * 0.3;
+        ctx.strokeStyle = donutColor;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy, outerR - 1, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(cx, cy, innerR + 1, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.restore();
+      };
+
+      const capCenterX = rx + (rw - depth) / 2;
+      drawDonut(capCenterX, rTop + depth / 2);
+      drawDonut(capCenterX, height - rBottom + depth / 2);
+    }
     ctx.restore();
   }
 
@@ -4738,6 +6477,9 @@ export class ObstacleManager {
       beaconCol1 = '#3b82f6'; beaconCol2 = '#ffffff';
     }
 
+    ctx.save();
+
+    // 1. Draw Semi-Transparent Holographic Pillar Fills
     const spaceGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
     spaceGrad.addColorStop(0, stop0);
     spaceGrad.addColorStop(0.3, stop3);
@@ -4749,12 +6491,59 @@ export class ObstacleManager {
     ctx.strokeStyle = outlineCol;
     ctx.lineWidth = 2.5;
 
+    // Fill with transparency
+    ctx.globalAlpha = 0.72;
     ctx.fillRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
     ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
+
+    // Stroke with higher opacity
+    ctx.globalAlpha = 0.9;
+    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
     ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
-    // High-tech cap pylons
+    // 2. Draw Dynamic Holographic Effects (Clipping inside the pillars)
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(rx, 0, rw, rTop);
+    ctx.rect(rx, height - rBottom, rw, rBottom);
+    ctx.clip();
+
+    // A. Scrolling Horizontal Scanlines
+    ctx.strokeStyle = outlineCol;
+    ctx.lineWidth = 1.5;
+    const scanlineSpacing = 16;
+    const timeVal = (window as any).gameEngine ? (window as any).gameEngine.weatherTime : Date.now() * 0.001;
+    const scrollOffset = (obs.x * 0.15 - timeVal * 45) % scanlineSpacing;
+    
+    ctx.globalAlpha = 0.22;
+    for (let y = 0; y < height; y += scanlineSpacing) {
+      const currY = y + scrollOffset;
+      ctx.beginPath();
+      ctx.moveTo(rx, currY);
+      ctx.lineTo(rx + rw, currY);
+      ctx.stroke();
+    }
+
+    // B. Bright Rising/Falling Energy Pulse Line
+    const pulseY = (timeVal * 110) % height;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3;
+    ctx.globalAlpha = 0.55;
+    
+    const isPerfSpace = (window as any).gameDisableShadows;
+    if (!isPerfSpace) {
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = outlineCol;
+    }
+    ctx.beginPath();
+    ctx.moveTo(rx, pulseY);
+    ctx.lineTo(rx + rw, pulseY);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    ctx.restore(); // end of clipping
+
+    // 3. High-tech cap pylons
     const capY1 = rTop - 24;
     const capY2 = height - rBottom;
 
@@ -4766,15 +6555,16 @@ export class ObstacleManager {
     ctx.strokeStyle = '#e9d5ff';
     ctx.lineWidth = 3.5;
 
+    ctx.globalAlpha = 0.85;
     ctx.fillRect(rx - 6, capY1, rw + 12, 24);
     ctx.strokeRect(rx - 6, capY1, rw + 12, 24);
     ctx.fillRect(rx - 6, capY2, rw + 12, 24);
     ctx.strokeRect(rx - 6, capY2, rw + 12, 24);
 
-    // Flashing beacons
-    const isPerfSpace = (window as any).gameDisableShadows;
+    // 4. Flashing beacons
     const beaconColor = isPerfSpace ? beaconCol1 : (Math.sin((obs.x || 0) * 0.15) > 0 ? beaconCol1 : beaconCol2);
     ctx.fillStyle = beaconColor;
+    ctx.globalAlpha = 1.0;
     if (!isPerfSpace) {
       ctx.shadowBlur = 8;
       ctx.shadowColor = beaconColor;
@@ -4783,7 +6573,8 @@ export class ObstacleManager {
     ctx.arc(rx + rw / 2, capY1 + 12, 3.5, 0, Math.PI * 2);
     ctx.arc(rx + rw / 2, capY2 + 12, 3.5, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
+    
+    ctx.restore(); // restore all
   }
 
   private drawUnderwaterPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number, styleIdx = 0) {
@@ -4971,6 +6762,97 @@ export class ObstacleManager {
     ctx.arc(rx + rw / 2, capY2 + 12, 4.5, 0, Math.PI * 2);
     ctx.fill();
     ctx.shadowBlur = 0;
+  }
+
+  private drawDestructibleOverlay(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+    if (!obs.isDestructible || obs.isDestroyed) return;
+
+    const topShift = obs.shakeX || 0;
+    const bottomShift = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
+
+    const drawOverlayForColumn = (x: number, y: number, w: number, h: number) => {
+      ctx.save();
+      
+      const gameEngine = (window as any).gameEngine;
+      const isVolcano = gameEngine && gameEngine.progressManager && gameEngine.progressManager.getState().activeWorld === 'volcano';
+      
+      // Set up deep glowing shadow for 3D depth (reduced by 30% if not volcano)
+      if (!(window as any).gameDisableShadows) {
+        ctx.shadowColor = '#ff1a00';
+        ctx.shadowBlur = isVolcano ? 8 : 5.6;
+      }
+      
+      // Draw a pulsing crimson warning border (reduced by 30% in thickness and opacity if not volcano)
+      const pulse = 0.5 + 0.5 * Math.sin(performance.now() * 0.007);
+      const borderThickness = isVolcano ? 3.9 : 2.7;
+      const minOpacity = isVolcano ? 0.45 : 0.31;
+      const maxOpacityOffset = isVolcano ? 0.55 : 0.38;
+      
+      ctx.strokeStyle = `rgba(255, 10, 0, ${minOpacity + pulse * maxOpacityOffset})`;
+      ctx.lineWidth = borderThickness;
+      
+      ctx.beginPath();
+      // Left vertical line
+      ctx.moveTo(x, y);
+      ctx.lineTo(x, y + h);
+      // Right vertical line
+      ctx.moveTo(x + w, y);
+      ctx.lineTo(x + w, y + h);
+      
+      // Horizontal edge facing the gap
+      if (y === 0) {
+        // Top column: draw bottom horizontal cap
+        ctx.moveTo(x, y + h);
+        ctx.lineTo(x + w, y + h);
+      } else {
+        // Bottom column: draw top horizontal cap
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + w, y);
+      }
+      ctx.stroke();
+      
+      // Draw cracks based on current HP (hp = 3, 2, 1) - reverted back to gray
+      const hp = obs.hp || 3;
+      if (hp === 3) {
+        ctx.strokeStyle = 'rgba(210, 210, 210, 0.75)'; // Light gray
+        ctx.lineWidth = 2.4;
+      } else if (hp === 2) {
+        ctx.strokeStyle = 'rgba(180, 180, 180, 0.85)'; // Medium gray
+        ctx.lineWidth = 2.4;
+      } else {
+        ctx.strokeStyle = 'rgba(140, 140, 140, 0.95)'; // Dark steel gray
+        ctx.lineWidth = 3.9;
+      }
+      
+      ctx.beginPath();
+      // Crack 1 (always present)
+      ctx.moveTo(x + w * 0.2, y + h * 0.15);
+      ctx.lineTo(x + w * 0.4, y + h * 0.45);
+      ctx.lineTo(x + w * 0.25, y + h * 0.75);
+      
+      // Crack 2 (HP <= 2)
+      if (hp <= 2) {
+        ctx.moveTo(x + w * 0.8, y + h * 0.25);
+        ctx.lineTo(x + w * 0.55, y + h * 0.55);
+        ctx.lineTo(x + w * 0.7, y + h * 0.85);
+      }
+      
+      // Crack 3 (HP <= 1)
+      if (hp <= 1) {
+        ctx.moveTo(x + w * 0.5, y + h * 0.05);
+        ctx.lineTo(x + w * 0.35, y + h * 0.5);
+        ctx.lineTo(x + w * 0.6, y + h * 0.95);
+      }
+      ctx.stroke();
+      
+      ctx.restore();
+    };
+
+    // Draw top column overlay
+    drawOverlayForColumn(obs.x + topShift, 0, obs.width, obs.topHeight);
+    
+    // Draw bottom column overlay
+    drawOverlayForColumn(obs.x + bottomShift, height - obs.bottomHeight, obs.width, obs.bottomHeight);
   }
 
   private drawCavernObstacle(
@@ -5535,6 +7417,8 @@ export class ObstacleManager {
     const rBottom = obs.bottomHeight;
     const isPerformance = (window as any).gameDisableShadows;
     if (isPerformance) {
+      ctx.save();
+      ctx.globalAlpha = 0.72;
       ctx.fillStyle = '#15062b';
       ctx.strokeStyle = '#a855f7';
       ctx.lineWidth = 2.5;
@@ -5542,8 +7426,11 @@ export class ObstacleManager {
       ctx.strokeRect(rx, -1000, rw, rTop + 1000);
       ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
       ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+      ctx.restore();
       return;
     }
+
+    ctx.save();
 
     const drawSpaceBlock = (yStart: number, h: number, _isTop: boolean) => {
       // Dark stellar carbon-alloy panel hybrid space gradient
@@ -5552,15 +7439,25 @@ export class ObstacleManager {
       carbonGrad.addColorStop(0.4, '#8b5cf6'); // Purple nebula
       carbonGrad.addColorStop(0.7, '#06b6d4'); // Cyan highlight
       carbonGrad.addColorStop(1, '#03001e');
+      
+      // Fill with transparency
+      ctx.save();
+      ctx.globalAlpha = 0.72;
       ctx.fillStyle = carbonGrad;
+      ctx.fillRect(rx, yStart, rw, h);
+      ctx.restore();
+
+      // Stroke with higher opacity
+      ctx.save();
+      ctx.globalAlpha = 0.9;
       ctx.strokeStyle = '#06b6d4'; // Cyan border
       ctx.lineWidth = 2.5;
-
-      ctx.fillRect(rx, yStart, rw, h);
       ctx.strokeRect(rx, yStart, rw, h);
+      ctx.restore();
 
       // Pulsing stellar core (quantum warp-gate)
       ctx.save();
+      ctx.globalAlpha = 0.55;
       const coreGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
       coreGrad.addColorStop(0, 'rgba(139, 92, 246, 0.15)');
       coreGrad.addColorStop(0.5, 'rgba(6, 182, 212, 0.4)'); // glowing cyan core
@@ -5570,6 +7467,8 @@ export class ObstacleManager {
       ctx.restore();
 
       // Constellation vectors (glowing starry geometric patterns)
+      ctx.save();
+      ctx.globalAlpha = 0.65;
       ctx.strokeStyle = '#e0f2fe'; // star white
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -5577,6 +7476,7 @@ export class ObstacleManager {
       ctx.lineTo(rx + rw * 0.5, yStart + 80);
       ctx.lineTo(rx + rw - 10, yStart + 40);
       ctx.stroke();
+      ctx.restore();
 
       // Twinkling warp ring cap at safe boundaries (attractive futuristic design)
       const capY = _isTop ? yStart + h - 22 : yStart;
@@ -5584,19 +7484,71 @@ export class ObstacleManager {
       portalGrad.addColorStop(0, '#06b6d4'); // Cyan
       portalGrad.addColorStop(0.5, '#ffffff'); // star bright core
       portalGrad.addColorStop(1, '#701a75'); // Purple
+      
+      ctx.save();
+      ctx.globalAlpha = 0.85;
       ctx.fillStyle = portalGrad;
+      ctx.strokeStyle = '#06b6d4';
+      ctx.lineWidth = 2;
       ctx.fillRect(rx - 6, capY, rw + 12, 22);
       ctx.strokeRect(rx - 6, capY, rw + 12, 22);
+      ctx.restore();
 
       // Orbiting cosmic star
+      ctx.save();
       ctx.fillStyle = '#ffffff';
+      ctx.globalAlpha = 0.95;
       ctx.beginPath();
       ctx.arc(rx + rw / 2, capY + 11, 4, 0, Math.PI * 2);
       ctx.fill();
+      ctx.restore();
     };
 
     drawSpaceBlock(-1000, rTop + 1000, true);
     drawSpaceBlock(height - rBottom, rBottom + 1000, false);
+
+    // 2. Draw Dynamic Holographic Effects (Clipping inside the pillars)
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(rx, 0, rw, rTop);
+    ctx.rect(rx, height - rBottom, rw, rBottom);
+    ctx.clip();
+
+    // A. Scrolling Horizontal Scanlines
+    ctx.strokeStyle = '#06b6d4';
+    ctx.lineWidth = 1.5;
+    const scanlineSpacing = 16;
+    const timeVal = (window as any).gameEngine ? (window as any).gameEngine.weatherTime : Date.now() * 0.001;
+    const scrollOffset = (obs.x * 0.15 - timeVal * 45) % scanlineSpacing;
+    
+    ctx.globalAlpha = 0.22;
+    for (let y = 0; y < height; y += scanlineSpacing) {
+      const currY = y + scrollOffset;
+      ctx.beginPath();
+      ctx.moveTo(rx, currY);
+      ctx.lineTo(rx + rw, currY);
+      ctx.stroke();
+    }
+
+    // B. Bright Rising/Falling Energy Pulse Line
+    const pulseY = (timeVal * 110) % height;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3;
+    ctx.globalAlpha = 0.55;
+    
+    if (!isPerformance) {
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = '#06b6d4';
+    }
+    ctx.beginPath();
+    ctx.moveTo(rx, pulseY);
+    ctx.lineTo(rx + rw, pulseY);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    ctx.restore(); // end of clipping
+
+    ctx.restore(); // restore all
   }
 
   private drawStructuredUnderwaterPillars(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {

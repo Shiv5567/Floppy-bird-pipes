@@ -24,6 +24,7 @@ declare global {
 }
 
 export class AdManager {
+  private static readonly OFFLINE_EMOJI_SVG = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="display: inline-block; vertical-align: middle; filter: drop-shadow(0 0 4px rgba(255, 51, 102, 0.4));"><path d="M12 18a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" fill="#00d2ff"/><path d="M8.5 11.5a5 5 0 017 0" stroke="#00d2ff" stroke-width="2" stroke-linecap="round"/><path d="M5.5 8.5a9.2 9.2 0 0113 0" stroke="#00d2ff" stroke-width="2" stroke-linecap="round"/><path d="M2.5 5.5a13.4 13.4 0 0119 0" stroke="#00d2ff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="10" stroke="#ff3366" stroke-width="2.5"/><line x1="5" y1="5" x2="19" y2="19" stroke="#ff3366" stroke-width="2.5"/></svg>`;
   private static readonly INTERSTITIAL_COOLDOWN = 300000; // 5 minutes (300,000 ms)
   private static readonly ECONOMY_COOLDOWN = 180000; // 3 minutes (180,000 ms)
   private static readonly REVIVE_COOLDOWN = 120000; // 2 minutes (120,000 ms)
@@ -44,7 +45,7 @@ export class AdManager {
   private static updateTimer: any = null;
 
   // 4. Online state
-  private static isOnline: boolean = navigator.onLine;
+  public static isOnline: boolean = navigator.onLine;
 
   public static initializeOnlineTracking() {
     this.updateOnlineStatus(navigator.onLine);
@@ -531,9 +532,9 @@ export class AdManager {
     const plusCoinsBtn = document.getElementById('btn-plus-coins') as HTMLButtonElement | null;
     if (plusCoinsBtn) {
       if (isOffline) {
-        plusCoinsBtn.disabled = true;
-        plusCoinsBtn.classList.add('disabled-ad-btn');
-        plusCoinsBtn.innerText = '🔌';
+        plusCoinsBtn.disabled = false;
+        plusCoinsBtn.classList.remove('disabled-ad-btn');
+        plusCoinsBtn.innerText = '+';
       } else if (isEcoCooldownActive) {
         plusCoinsBtn.disabled = true;
         plusCoinsBtn.classList.add('disabled-ad-btn');
@@ -549,9 +550,9 @@ export class AdManager {
     const plusGemsBtn = document.getElementById('btn-plus-gems') as HTMLButtonElement | null;
     if (plusGemsBtn) {
       if (isOffline) {
-        plusGemsBtn.disabled = true;
-        plusGemsBtn.classList.add('disabled-ad-btn');
-        plusGemsBtn.innerText = '🔌';
+        plusGemsBtn.disabled = false;
+        plusGemsBtn.classList.remove('disabled-ad-btn');
+        plusGemsBtn.innerText = '+';
       } else if (isEcoCooldownActive) {
         plusGemsBtn.disabled = true;
         plusGemsBtn.classList.add('disabled-ad-btn');
@@ -610,7 +611,7 @@ export class AdManager {
         reviveBtn.classList.add('disabled-ad-btn');
         reviveBtn.style.opacity = '0.5';
         reviveBtn.style.cursor = 'not-allowed';
-        reviveBtn.innerHTML = `<span>🔌 OFFLINE</span>`;
+        reviveBtn.innerHTML = `<span style="display: inline-flex; align-items: center; gap: 6px;">${this.OFFLINE_EMOJI_SVG} WATCH AD</span>`;
       } else if (isRevCooldownActive) {
         reviveBtn.disabled = true;
         reviveBtn.classList.add('disabled-ad-btn');

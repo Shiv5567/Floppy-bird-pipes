@@ -11,7 +11,7 @@ export interface Particle {
   growth: number;
   glow: boolean;
   glowColor?: string;
-  shape: 'circle' | 'square' | 'snowflake' | 'star' | 'bubble' | 'spark' | 'leaf' | 'flower';
+  shape: 'circle' | 'square' | 'snowflake' | 'star' | 'bubble' | 'spark' | 'leaf' | 'flower' | 'feather';
   angle: number;
   rotationSpeed: number;
 }
@@ -305,6 +305,21 @@ export class ParticleEngine {
           ctx.beginPath();
           ctx.moveTo(0, -p.size * 1.5);
           ctx.lineTo(0, p.size * 1.5);
+          ctx.stroke();
+          break;
+
+        case 'feather':
+          ctx.beginPath();
+          ctx.moveTo(0, p.size);
+          ctx.quadraticCurveTo(p.size * 0.8, p.size * 0.2, p.size * 0.2, -p.size);
+          ctx.quadraticCurveTo(-p.size * 0.4, 0, 0, p.size);
+          ctx.fill();
+          
+          ctx.beginPath();
+          ctx.moveTo(0, p.size);
+          ctx.quadraticCurveTo(p.size * 0.2, 0, p.size * 0.1, -p.size * 0.8);
+          ctx.strokeStyle = 'rgba(200, 200, 200, 0.4)';
+          ctx.lineWidth = Math.max(1, p.size * 0.1);
           ctx.stroke();
           break;
 

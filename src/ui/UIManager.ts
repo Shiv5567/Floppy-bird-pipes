@@ -5,6 +5,7 @@ import { LevelManager } from '../systems/LevelManager.ts';
 import { AdManager } from '../systems/AdManager.ts';
 
 export class UIManager {
+  private static readonly OFFLINE_EMOJI_SVG = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="display: inline-block; vertical-align: middle; filter: drop-shadow(0 0 4px rgba(255, 51, 102, 0.4));"><path d="M12 18a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" fill="#00d2ff"/><path d="M8.5 11.5a5 5 0 017 0" stroke="#00d2ff" stroke-width="2" stroke-linecap="round"/><path d="M5.5 8.5a9.2 9.2 0 0113 0" stroke="#00d2ff" stroke-width="2" stroke-linecap="round"/><path d="M2.5 5.5a13.4 13.4 0 0119 0" stroke="#00d2ff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="10" stroke="#ff3366" stroke-width="2.5"/><line x1="5" y1="5" x2="19" y2="19" stroke="#ff3366" stroke-width="2.5"/></svg>`;
   private engine: GameEngine;
   private container: HTMLElement;
   private activeTab: 'main' | 'skins' | 'worlds' | 'photo' | 'rewards' | 'settings' | 'levels' | 'powerups' | 'achievements' = 'main';
@@ -20,6 +21,7 @@ export class UIManager {
   private ultText: HTMLElement | null = null;
   private runStatsCoins: HTMLElement | null = null;
   private runStatsGems: HTMLElement | null = null;
+  private runStatsPipes: HTMLElement | null = null;
   private powerupsHolder: HTMLElement | null = null;
   private bossContainer: HTMLElement | null = null;
   private bossHealthVal: HTMLElement | null = null;
@@ -39,13 +41,16 @@ export class UIManager {
   private boosterBtnProgressFill: HTMLElement | null = null;
   private flockMergeBtn: HTMLElement | null = null;
   private flockMergeBtnLabel: HTMLElement | null = null;
+  private levelProgressFill: HTMLElement | null = null;
   private tapOverlayRemoved: boolean = false;
 
   // Cached HUD state values to avoid layout thrashing
   private lastScore: number = -1;
   private lastCoins: number = -1;
   private lastGems: number = -1;
+  private lastPipesDestroyed: number = -1;
   private lastFlockLength: number = -1;
+  private lastLevelProgressPct: number = -1;
   private lastUltimateEnergy: number = -1;
   private lastUltimateActive: boolean = false;
   private lastBoosterTimer: number = -1;
@@ -64,7 +69,9 @@ export class UIManager {
     this.lastScore = -1;
     this.lastCoins = -1;
     this.lastGems = -1;
+    this.lastPipesDestroyed = -1;
     this.lastFlockLength = -1;
+    this.lastLevelProgressPct = -1;
     this.lastUltimateEnergy = -1;
     this.lastUltimateActive = false;
     this.lastBoosterTimer = -1;
@@ -419,12 +426,32 @@ export class UIManager {
       }
     }
 
+    const pipesVal = this.engine.destroyedPipesCount;
+    if (this.lastPipesDestroyed !== pipesVal) {
+      this.lastPipesDestroyed = pipesVal;
+      if (this.runStatsPipes) {
+        this.runStatsPipes.innerText = `☣️ ${pipesVal}`;
+      }
+    }
+
     // Squad indicator
     const flockLen = this.engine.flock.length;
     if (this.lastFlockLength !== flockLen) {
       this.lastFlockLength = flockLen;
       if (this.flockIndicatorEl) {
         this.flockIndicatorEl.innerText = `🪽 SQUAD: ${flockLen}`;
+      }
+    }
+
+    // Level progress bar
+    if (this.engine.gameMode === 'level' && this.engine.activeLevelConfig) {
+      const target = this.engine.activeLevelConfig.targetScore;
+      const pct = Math.max(0, Math.min(100, (this.engine.score / target) * 100));
+      if (this.lastLevelProgressPct !== pct) {
+        this.lastLevelProgressPct = pct;
+        if (this.levelProgressFill) {
+          this.levelProgressFill.style.width = `${pct}%`;
+        }
       }
     }
 
@@ -642,7 +669,7 @@ export class UIManager {
     const worldNames: Record<string, string> = {
       jungle:     'AMAZON RAINFOREST',
       ice:        'FROZEN ICE KINGDOM',
-      desert:     'DESERT RUINS',
+      desert:     'ANCIENT EGYPT : THE DESERT',
       volcano:    'VOLCANIC SPRING',
       space:      'COSMIC MEADOW',
       underwater: 'DEEP UNDERWATER',
@@ -769,7 +796,7 @@ export class UIManager {
             </button>
             <button class="side-btn" id="side-btn-worlds">
               ${this.getWorldsIconSvg('60px', '60px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(123, 47, 255, 0.5));', 'home')}
-              <span class="side-btn-label">MAPS</span>
+              <span class="side-btn-label">LOCATIONS</span>
             </button>
           </div>
 
@@ -890,14 +917,14 @@ export class UIManager {
     const progress = this.engine.progressManager.getState();
 
     const tabMeta: Record<string, { icon: string; title: string; color: string; heroIcon: string; heroSubtitle: string }> = {
-      skins:        { icon: this.getCharacterIconSvg('32px', '32px', 'vertical-align: middle; display: inline-block;', 'tab'), title: 'SELECT YOUR CHARACTER',  color: '#00f3ff', heroIcon: this.getCharacterIconSvg('72px', '72px', 'animation: floatBird 4s ease-in-out infinite;', 'hero'), heroSubtitle: '' },
-      worlds:       { icon: this.getWorldsIconSvg('32px', '32px', 'vertical-align: middle; display: inline-block;', 'tab'), title: 'CHOOSE YOUR FLYING LOCATION',   color: '#7b2fff', heroIcon: this.getWorldsIconSvg('72px', '72px', 'animation: floatBird 4s ease-in-out infinite;', 'hero'), heroSubtitle: '' },
-      bp:           { icon: '🎫', title: 'SEASON 1 BATTLE PASS', color: '#ff007f', heroIcon: '⚔️', heroSubtitle: 'Unlock exclusive rewards' },
-      achievements: { icon: '🏆', title: 'HALL OF TROPHIES',     color: '#ffd700', heroIcon: '🏅', heroSubtitle: 'Track your legendary feats' },
-      rewards:      { icon: this.getRewardBoxSvg('32px', '32px', 'vertical-align: middle; display: inline-block;', 'tab'), title: 'REWARDS & PROGRESSION HUB', color: '#ffaa00', heroIcon: this.getRewardBoxSvg('72px', '72px', 'animation: floatBird 4s ease-in-out infinite;', 'hero'), heroSubtitle: 'Claim your daily logs, trophies, and battle pass!' },
-      settings:     { icon: '⚙️', title: 'GAME CONFIGURATION',   color: '#00ff88', heroIcon: '⚙️', heroSubtitle: 'Configure your flight difficulty mode' },
-      levels:       { icon: '', title: 'LEVEL SELECT MODE',    color: '#7b2fff', heroIcon: '', heroSubtitle: '' },
-      powerups:     { icon: `<span style="font-size: 24px; vertical-align: middle; display: inline-block;">🔮</span>`, title: 'POWERS-UPS BUBBLE UPGRADES',   color: '#00f3ff', heroIcon: `<span style="font-size: 72px; display: inline-block; animation: floatBird 4s ease-in-out infinite;">🔮</span>`, heroSubtitle: 'Upgrade bubble durations & effectiveness' }
+      skins:        { icon: this.getCharacterIconSvg('32px', '32px', 'vertical-align: middle; display: inline-block;', 'tab'), title: 'SELECT CHARACTER',  color: '#00f3ff', heroIcon: this.getCharacterIconSvg('72px', '72px', 'animation: floatBird 4s ease-in-out infinite;', 'hero'), heroSubtitle: '' },
+      worlds:       { icon: this.getWorldsIconSvg('32px', '32px', 'vertical-align: middle; display: inline-block;', 'tab'), title: 'SELECT LOCATION',   color: '#7b2fff', heroIcon: this.getWorldsIconSvg('72px', '72px', 'animation: floatBird 4s ease-in-out infinite;', 'hero'), heroSubtitle: '' },
+      bp:           { icon: '🎫', title: 'BATTLE PASS', color: '#ff007f', heroIcon: '⚔️', heroSubtitle: 'Unlock exclusive rewards' },
+      achievements: { icon: '🏆', title: 'TROPHIES',     color: '#ffd700', heroIcon: '🏅', heroSubtitle: 'Track your legendary feats' },
+      rewards:      { icon: this.getRewardBoxSvg('32px', '32px', 'vertical-align: middle; display: inline-block;', 'tab'), title: 'REWARDS HUB', color: '#ffaa00', heroIcon: this.getRewardBoxSvg('72px', '72px', 'animation: floatBird 4s ease-in-out infinite;', 'hero'), heroSubtitle: 'Claim your daily logs, trophies, and battle pass!' },
+      settings:     { icon: '⚙️', title: 'SETTINGS',   color: '#00ff88', heroIcon: '⚙️', heroSubtitle: 'Configure your flight difficulty mode' },
+      levels:       { icon: '', title: 'SELECT TRANSFORMING LEVEL',    color: '#7b2fff', heroIcon: '', heroSubtitle: '' },
+      powerups:     { icon: `<span style="font-size: 24px; vertical-align: middle; display: inline-block;">🔮</span>`, title: 'POWER-UPS',   color: '#00f3ff', heroIcon: `<span style="font-size: 72px; display: inline-block; animation: floatBird 4s ease-in-out infinite;">🔮</span>`, heroSubtitle: 'Upgrade bubble durations & effectiveness' }
     };
     const meta = tabMeta[this.activeTab] || tabMeta['skins'];
 
@@ -1023,12 +1050,14 @@ export class UIManager {
                 ${s.abilityDesc ? `<div style="font-size:8px;color:rgba(230,200,255,0.8);line-height:1.4;padding:0 4px;">${s.abilityDesc}<br><span style="color:#ffd700;font-weight:bold;">Duration: ${currentDuration}s</span></div>` : '<div style="font-size:8px;color:rgba(230,200,255,0.6);">No special ability.</div>'}
               </div>
               ${isSelected ? `<div style="font-size:9px;color:#00ff88;font-weight:800;margin-top:4px">✓ SELECTED</div>` : ''}
+              ${s.unlocked ? `
               <div class="upgrade-row">
                 <span class="level-indicator">Lvl ${s.upgradeLevel}/5</span>
-                ${s.unlocked && s.upgradeLevel < s.maxUpgrade
+                ${s.upgradeLevel < s.maxUpgrade
                   ? `<button class="btn-upgrade-skin" data-id="${s.id}">⬆ (${upgradeCost}🟡)</button>`
                   : ''}
               </div>
+              ` : ''}
               <div class="buy-row">
                 ${s.unlocked
                   ? (isSelected
@@ -1114,21 +1143,6 @@ export class UIManager {
           const renderQuestCard = (q: any) => {
             const progressPct = Math.min(100, Math.round((q.current / q.target) * 100));
             const isCompleted = q.current >= q.target;
-            const isClaimed = q.claimed;
-
-            let claimBtnClass = '';
-            let claimBtnText = 'CLAIM 🎁';
-            let claimDisabled = '';
-
-            if (isClaimed) {
-              claimBtnClass = 'claimed';
-              claimBtnText = 'CLAIMED';
-              claimDisabled = 'disabled';
-            } else if (!isCompleted) {
-              claimBtnClass = 'locked';
-              claimBtnText = 'LOCKED';
-              claimDisabled = 'disabled';
-            }
 
             return `
               <div class="quest-card">
@@ -1149,16 +1163,14 @@ export class UIManager {
                     </span>
                     <span>💎+${q.rewardGems}</span>
                   </div>
-                  <button class="btn-quest-claim ${claimBtnClass}" data-quest-id="${q.id}" ${claimDisabled}>
-                    ${claimBtnText}
-                  </button>
+                  ${isCompleted ? `<button class="btn-quest-claim" data-quest-id="${q.id}">CLAIM</button>` : ''}
                 </div>
               </div>
             `;
           };
 
-          const shortMissions = quests.filter(q => q.id.startsWith('short_'));
-          const longMissions = quests.filter(q => q.id.startsWith('long_'));
+          const shortMissions = quests.filter(q => q.id.startsWith('short_') && !q.claimed);
+          const longMissions = quests.filter(q => q.id.startsWith('long_') && !q.claimed);
 
           const shortHtml = shortMissions.map(renderQuestCard).join('');
           const longHtml = longMissions.map(renderQuestCard).join('');
@@ -1183,13 +1195,18 @@ export class UIManager {
               <div class="hangar-section-title" style="margin-top: 15px; color: #ffaa00; border-left: 3px solid #ffaa00; padding-left: 8px;">SPECIAL OFFERS</div>
               <div class="quests-list">
                 <!-- WATCH AD FOR EXTRA COINS & GEMS -->
-                <div class="quest-card" style="background: rgba(255, 170, 0, 0.08); border: 1px solid rgba(255, 170, 0, 0.2);">
+                <div class="quest-card" style="background: rgba(255, 170, 0, 0.08); border: 1px solid rgba(255, 170, 0, 0.2); display: flex; align-items: center; gap: 10px;">
+                  ${!AdManager.isOnline ? `
+                  <div style="flex-shrink: 0; padding-left: 8px; display: flex; align-items: center; justify-content: center;">
+                    ${UIManager.OFFLINE_EMOJI_SVG}
+                  </div>
+                  ` : ''}
                   <div class="quest-details">
                     <div class="quest-desc" style="font-weight: 800; font-size: 11px; color: #fff;">Watch an ad to get 200 Coins & 10 Gems instantly!</div>
                   </div>
-                  <div style="display: flex; align-items: center; justify-content: flex-end;">
+                  <div style="display: flex; align-items: center; justify-content: flex-end; margin-left: auto;">
                     <button class="btn-quest-claim ${isDailyCooldownActive ? 'disabled-ad-btn' : ''}" id="btn-extra-rewards" ${isDailyCooldownActive ? 'disabled' : ''} style="background: linear-gradient(135deg, #ffaa00, #ff7700); border: none; font-size: 10px; font-weight: 800; padding: 6px 12px; border-radius: 8px; cursor: pointer; color: white;">
-                      CLAIM 🎁
+                      CLAIM
                     </button>
                   </div>
                 </div>
@@ -1218,7 +1235,7 @@ export class UIManager {
               return `<div class="level-select-card placeholder" style="opacity: 0; pointer-events: none;"></div>`;
             }
             const unlockedLevel = progress.levelModeUnlockedLevel || 1;
-            const isLocked = false; // Always unlocked for testing
+            const isLocked = lvl.levelNum > unlockedLevel;
             const isLatest = lvl.levelNum === unlockedLevel;
 
             let levelColor = 'inherit';
@@ -1228,6 +1245,8 @@ export class UIManager {
               levelColor = '#facc15'; // Yellow
             } else if (lvl.levelNum >= 41 && lvl.levelNum <= 50) {
               levelColor = '#f87171'; // Red
+            } else if (lvl.levelNum >= 51 && lvl.levelNum <= 60) {
+              levelColor = '#8b0000'; // Dark Red
             }
 
             return `
@@ -1434,7 +1453,7 @@ export class UIManager {
 
         <!-- Header -->
         <div style="font-size: 14px; font-weight: 900; color: #00f3ff; margin-bottom: 16px; margin-top: 10px; text-shadow: 0 0 8px rgba(0,243,255,0.35); display: flex; align-items: center; justify-content: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
-          🎬 WATCH ADS, GET REWARD!
+          ${!AdManager.isOnline ? UIManager.OFFLINE_EMOJI_SVG : '🎬'} WATCH ADS, GET REWARD!
         </div>
 
         <!-- Cooldown Indicator -->
@@ -1545,7 +1564,7 @@ export class UIManager {
             this.engine.progressManager.updateQuestProgress('watch_ads', 1);
             this.engine.progressManager.save();
             this.render();
-            this.showToastNotification('REWARDS CLAIMED! 🎁', 'You received 6,000 Coins!');
+            this.showToastNotification('REWARDS CLAIMED!', 'You received 6,000 Coins!');
           } else {
             this.showToastNotification('AD FAILED', 'Failed to play or watch ad.');
           }
@@ -1564,7 +1583,7 @@ export class UIManager {
             this.engine.progressManager.updateQuestProgress('watch_ads', 1);
             this.engine.progressManager.save();
             this.render();
-            this.showToastNotification('REWARDS CLAIMED! 🎁', 'You received 200 Gems!');
+            this.showToastNotification('REWARDS CLAIMED!', 'You received 200 Gems!');
           } else {
             this.showToastNotification('AD FAILED', 'Failed to play or watch ad.');
           }
@@ -1740,7 +1759,7 @@ export class UIManager {
                 unlockedWorldName = 'Volcanic Spring';
               } else if (!isDesertUnlocked) {
                 this.engine.progressManager.unlockWorldDirect('desert');
-                unlockedWorldName = 'Desert Ruins';
+                unlockedWorldName = 'ANCIENT EGYPT : THE DESERT';
               } else if (!isSpaceUnlocked) {
                 this.engine.progressManager.unlockWorldDirect('space');
                 unlockedWorldName = 'Cosmic Meadow';
@@ -1794,7 +1813,7 @@ export class UIManager {
         const res = this.engine.progressManager.claimAchievementReward(achId);
         if (res.success) {
           sm.playUIClaim();
-          this.showToastNotification('ACHIEVEMENT CLAIMED! 🏆', res.msg);
+          this.showToastNotification('ACHIEVEMENT CLAIMED!', res.msg);
           this.render();
         } else {
           sm.playUIClick();
@@ -2076,7 +2095,7 @@ export class UIManager {
             this.engine.progressManager.updateQuestProgress('watch_ads', 1);
             this.engine.progressManager.save();
             this.render();
-            this.showToastNotification('REWARDS CLAIMED! 🎁', 'You received 200 Coins & 10 Gems!');
+            this.showToastNotification('REWARDS CLAIMED!', 'You received 200 Coins & 10 Gems!');
           } else {
             this.showToastNotification('AD FAILED', 'Failed to play or watch ad.');
           }
@@ -2204,13 +2223,61 @@ export class UIManager {
       const percent = (p.durationLeft / p.maxDuration) * 100;
       return `
         <div class="hud-powerup-badge glass-card fade-in">
-          <span class="pow-icon">${p.type === 'shield' ? '🛡️' : p.type === 'slowmo' ? '⏳' : p.type === 'magnet' ? '🧲' : p.type === 'double' ? '✨' : p.type === 'turbo' ? '🔥' : p.type === 'ghost' ? '👻' : p.type === 'mini' ? '🔎' : '🪶'}</span>
+          <span class="pow-icon">${p.type === 'shield' ? '🛡️' : p.type === 'slowmo' ? '⏳' : p.type === 'magnet' ? '🧲' : p.type === 'double' ? '✨' : p.type === 'turbo' ? '🔥' : p.type === 'ghost' ? '👻' : p.type === 'mini' ? '🔎' : p.type === 'weapon' ? '🔫' : '🪶'}</span>
           <div class="pow-bar-container">
             <div class="pow-bar-inner" style="width: ${percent}%; background-color: ${this.getPowerupColor(p.type)}"></div>
           </div>
         </div>
       `;
     }).join('');
+
+    let gravityWarningHTML = '';
+    if (this.engine.gravityFlipped) {
+      gravityWarningHTML = `
+        <div class="gravity-warning fade-in" style="
+          position: absolute;
+          top: 130px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(13, 10, 28, 0.85);
+          border: 1px solid rgba(217, 70, 239, 0.5);
+          border-radius: 12px;
+          padding: 6px 18px;
+          font-weight: 800;
+          color: #fff;
+          text-shadow: 0 0 8px #d946ef;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 15px rgba(217, 70, 239, 0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          pointer-events: none;
+          z-index: 100;
+        ">
+          <span style="font-size: 11px; color: #d946ef; letter-spacing: 0.5px; font-weight: 900;">GRAVITY FLIPPED!</span>
+        </div>
+      `;
+    }
+
+    const gravityVignetteHTML = this.engine.gravityFlipped ? `
+      <div class="gravity-vignette fade-in" style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 5;
+        box-shadow: inset 0 0 100px rgba(217, 70, 239, 0.45), inset 0 0 40px rgba(217, 70, 239, 0.2);
+        animation: vignettePulse 2.2s infinite ease-in-out;
+      "></div>
+      <style>
+        @keyframes vignettePulse {
+          0%, 100% { opacity: 0.7; }
+          50% { opacity: 1.0; }
+        }
+      </style>
+    ` : '';
 
     const ultActive = this.engine.ultimateActive;
     const ultPercent = Math.min(100, Math.floor(this.engine.ultimateEnergy));
@@ -2254,8 +2321,46 @@ export class UIManager {
       `;
     }
 
-    const boosterOverlayHTML = '';
-    const boosterBtnHTML = '';
+    let boosterOverlayHTML = '';
+    if (this.engine.boosterActive) {
+      const bTimer = this.engine.boosterTimer;
+      const bPct = Math.max(0, Math.min(100, (bTimer / 25.0) * 100)); // Out of 25 pipes
+      boosterOverlayHTML = `
+        <div class="hud-booster-overlay" style="position: absolute; top: 120px; left: 50%; transform: translateX(-50%); width: 220px; background: rgba(0, 0, 0, 0.6); border: 1.5px solid #ffd700; border-radius: 8px; padding: 6px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); backdrop-filter: blur(6px); pointer-events: none; z-index: 100;">
+          <div class="hud-booster-title" style="color: #ffd700; font-weight: bold; font-size: 12px; font-family: 'Outfit', sans-serif; letter-spacing: 0.5px; text-shadow: 0 0 4px #ffd700; margin-bottom: 4px;">⚡ HYPER BOOST: ${Math.ceil(bTimer)} Pipes Left</div>
+          <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.15); border-radius: 3px; overflow: hidden; border: 0.5px solid rgba(255,255,255,0.25);">
+            <div class="hud-booster-fill" style="height: 100%; background: linear-gradient(90deg, #ffd700, #ff9100); width: ${bPct}%; transition: width 0.05s linear;"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    let boosterBtnHTML = '';
+    if (this.engine.gameMode !== 'level') {
+      const bTimer = this.engine.boosterSpawnTimer;
+      const bReady = bTimer <= 0;
+      const bPercent = Math.min(100, Math.floor((1 - bTimer / 1.0) * 100));
+      const circumference = 157;
+      const offset = circumference - (bPercent / 100) * circumference;
+
+      boosterBtnHTML = `
+        <div class="hud-circle-btn glass-card ${bReady ? 'ult-ready-pulse' : ''}" 
+             style="pointer-events: auto; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 62px; height: 62px; border-radius: 50%; border: 2.5px solid ${bReady ? '#ffd700' : 'rgba(255,255,255,0.2)'}; background: ${bReady ? 'rgba(255,215,0,0.12)' : 'rgba(255,255,255,0.03)'}; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: ${bReady ? '0 0 15px rgba(255,215,0,0.4)' : 'none'}; position: relative; margin-bottom: 6px; -webkit-tap-highlight-color: transparent;" 
+             id="btn-hud-booster" 
+             title="Hyper Booster (1s Cooldown)">
+          
+          <svg viewBox="0 0 60 60" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; z-index: 1;">
+            <circle cx="30" cy="30" r="25" fill="none" stroke="rgba(255, 255, 255, 0.08)" stroke-width="3" />
+            <circle class="booster-progress-fill" cx="30" cy="30" r="25" fill="none" stroke="#ffd700" stroke-width="3" 
+                    stroke-dasharray="157" stroke-dashoffset="${offset}" stroke-linecap="round" 
+                    style="transition: stroke-dashoffset 0.08s linear; filter: drop-shadow(0 0 3px #ffd700);" />
+          </svg>
+          
+          <span style="font-size: 24px; z-index: 2; user-select: none; text-shadow: ${bReady ? '0 0 8px #ffd700' : 'none'};">${bReady ? '⚡' : '⏳'}</span>
+        </div>
+      `;
+    }
+
     const formationBtnHTML = '';
     const rescueEvolutionHTML = '';
     const evolveBtnHTML = '';
@@ -2422,18 +2527,54 @@ export class UIManager {
       `;
     }
 
+    // Level Progress Bar
+    let levelProgressBarHTML = '';
+    if (this.engine.gameMode === 'level' && this.engine.activeLevelConfig) {
+      const currentLvl = this.engine.currentLevelNum;
+      const nextLvl = currentLvl + 1;
+      const target = this.engine.activeLevelConfig.targetScore;
+      const pct = Math.max(0, Math.min(100, (this.engine.score / target) * 100));
+      
+      levelProgressBarHTML = `
+        <div class="level-progress-container fade-in" style="
+          position: absolute;
+          top: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          width: 180px;
+          pointer-events: none;
+          z-index: 90;
+        ">
+          <span class="lvl-num-start" style="font-size: 13px; font-weight: 900; color: #00f3ff; text-shadow: 0 0 6px rgba(0, 243, 255, 0.6); font-family: 'Outfit', sans-serif;">${currentLvl}</span>
+          <div class="lvl-progress-track" style="flex-grow: 1; height: 6px; background: rgba(255, 255, 255, 0.12); border-radius: 4px; overflow: hidden; position: relative;">
+            <div class="lvl-progress-fill" style="width: ${pct}%; height: 100%; background: linear-gradient(90deg, #00f3ff, #b35dfb); box-shadow: 0 0 8px #00f3ff; border-radius: 4px; transition: width 0.2s ease;"></div>
+          </div>
+          <span class="lvl-num-end" style="font-size: 13px; font-weight: 900; color: #b35dfb; text-shadow: 0 0 6px rgba(179, 93, 251, 0.6); font-family: 'Outfit', sans-serif;">${nextLvl}</span>
+        </div>
+      `;
+    }
+
     const hudHTML = `
       <div class="hud fade-in">
+        ${gravityVignetteHTML}
         ${tapInstructionHTML}
         ${boosterOverlayHTML}
         ${rescueEvolutionHTML}
         ${playerHPBarHTML}
         ${ultDurationBarHTML}
+        ${levelProgressBarHTML}
+        ${gravityWarningHTML}
         <div class="hud-top">
           <!-- Coins & Gems (Left side) -->
           <div class="run-stats" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; font-weight: 800; font-size: 13px; pointer-events: auto;">
             <span class="stat-badge" style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); width: fit-content; margin-bottom: 0;">🟡 ${this.engine.coinsCollectedThisRun}</span>
             <span class="stat-badge" style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); width: fit-content; margin-bottom: 0;">💎 ${this.engine.gemsCollectedThisRun}</span>
+            ${(this.engine.progressManager.getState().selectedZone === 'chaos') ? `
+              <span class="stat-badge" style="background: rgba(0,255,100,0.12); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(0,255,100,0.3); width: fit-content; margin-bottom: 0; color: #00ff64; text-shadow: 0 0 5px #00ff64; font-weight: 900;">☣️ ${this.engine.destroyedPipesCount}</span>
+            ` : ''}
             ${(this.engine.gameMode === 'flock') ? `
               <span class="stat-badge flock-indicator" style="background: rgba(0,243,255,0.15); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(0,243,255,0.3); width: fit-content; margin-bottom: 0; color: #00f3ff; text-shadow: 0 0 5px #00f3ff;">🪽 SQUAD: ${this.engine.flock.length}</span>
             ` : ''}
@@ -2508,16 +2649,24 @@ export class UIManager {
     const runStats = this.container.querySelector('.run-stats');
     if (runStats) {
       const statsBadges = runStats.querySelectorAll('.stat-badge');
-      if (statsBadges.length >= 2) {
+      const isChaos = this.engine.progressManager.getState().selectedZone === 'chaos';
+      if (isChaos && statsBadges.length >= 3) {
         this.runStatsCoins = statsBadges[0] as HTMLElement;
         this.runStatsGems = statsBadges[1] as HTMLElement;
+        this.runStatsPipes = statsBadges[2] as HTMLElement;
+      } else if (statsBadges.length >= 2) {
+        this.runStatsCoins = statsBadges[0] as HTMLElement;
+        this.runStatsGems = statsBadges[1] as HTMLElement;
+        this.runStatsPipes = null;
       } else {
         this.runStatsCoins = null;
         this.runStatsGems = null;
+        this.runStatsPipes = null;
       }
     } else {
       this.runStatsCoins = null;
       this.runStatsGems = null;
+      this.runStatsPipes = null;
     }
     this.powerupsHolder = this.container.querySelector('.powerup-timers-holder');
     this.bossContainer = this.container.querySelector('.boss-health-bar-container');
@@ -2541,6 +2690,7 @@ export class UIManager {
     this.boosterBtnProgressFill = this.boosterBtn ? this.boosterBtn.querySelector('.booster-progress-fill') as HTMLElement : null;
     this.flockMergeBtn = document.getElementById('btn-hud-flock-merge');
     this.flockMergeBtnLabel = this.flockMergeBtn ? this.flockMergeBtn.querySelector('.flock-merge-label') as HTMLElement : null;
+    this.levelProgressFill = this.container.querySelector('.lvl-progress-fill') as HTMLElement;
 
 
 
@@ -2560,9 +2710,18 @@ export class UIManager {
       ultBtn.addEventListener('touchstart', triggerUltimateAbility);
     }
 
-    // Booster trigger binding removed
-
-    // Formation and Cage Rescue merge buttons removed
+    // Bind Booster trigger
+    const boosterBtn = document.getElementById('btn-hud-booster');
+    if (boosterBtn) {
+      const triggerBoosterAbility = (e: Event) => {
+        e.stopPropagation();
+        e.preventDefault();
+        this.engine.triggerBooster();
+        this.render();
+      };
+      boosterBtn.addEventListener('pointerdown', triggerBoosterAbility);
+      boosterBtn.addEventListener('touchstart', triggerBoosterAbility);
+    }
 
     // Bind Merge button for Squad Survival mode
     const flockMergeBtn = document.getElementById('btn-hud-flock-merge');
@@ -2663,6 +2822,12 @@ export class UIManager {
                 <span>Gems Collected</span>
                 <strong>+${this.engine.gemsCollectedThisRun} 💎</strong>
               </div>
+              ${this.engine.progressManager.getState().selectedZone === 'chaos' && this.engine.destroyedPipesCount > 0 ? `
+              <div class="reward-row" style="color: #00ff64; text-shadow: 0 0 6px #00ff6444;">
+                <span>☣️ Obstacles Destroyed</span>
+                <strong>+${this.engine.destroyedPipesCount} 🟡</strong>
+              </div>
+              ` : ''}
             </div>
   
             <div class="vertical-actions">
@@ -2673,7 +2838,6 @@ export class UIManager {
         </div>
       </div>
     `;
-
     this.container.innerHTML = goHTML;
 
     document.getElementById('btn-retry')?.addEventListener('click', () => {
@@ -2701,11 +2865,32 @@ export class UIManager {
     const canAfford = gems >= price;
 
     const reviveHTML = `
-      <div class="overlay-screen fade-in" style="background: rgba(0,0,0,0.4) !important; backdrop-filter: blur(5.6px) !important; -webkit-backdrop-filter: blur(5.6px) !important; display: flex; align-items: center; justify-content: center;">
-        <div style="transform: scale(1.024, 0.84) translateY(-20%); transform-origin: bottom center; width: 100%; display: flex; justify-content: center;">
+      <div class="overlay-screen fade-in" style="background: rgba(0,0,0,0.4) !important; backdrop-filter: blur(5.6px) !important; -webkit-backdrop-filter: blur(5.6px) !important; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; padding-top: 10px;">
+        
+        <!-- ===== HEADER BAR ===== -->
+        <div class="menu-top-bar" style="position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: calc(16px + env(safe-area-inset-top, 0px)) 16px 8px 16px; z-index: 100;">
+          <div class="top-bar-currencies" style="display: flex; gap: 10px;">
+            <div class="top-bar-coin" id="btn-coin-topup-revive" style="position: relative; cursor: pointer; background: rgba(0,0,0,0.5); padding: 6px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; font-weight: 800; font-size: 14px; color: #fff;">
+              <span class="top-bar-coin-icon" style="width: 19px; height: 19px; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; margin-right: 4px;">
+                ${this.getCoinIconSvg('19px', '19px', '', 'topbar-revive')}
+              </span>
+              <span>${progress.coins.toLocaleString()}</span>
+              <button class="top-bar-add-btn" id="btn-plus-coins-revive" style="margin-left: 8px; background: linear-gradient(135deg, #ffd700, #ff8800); border: none; border-radius: 4px; color: #fff; font-weight: 900; font-size: 11px; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="Watch ad for +6000 Coins">+</button>
+            </div>
+            <div class="top-bar-gem" id="btn-gem-topup-revive" style="position: relative; cursor: pointer; background: rgba(0,0,0,0.5); padding: 6px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; font-weight: 800; font-size: 14px; color: #fff;">
+              <span class="top-bar-gem-icon" style="margin-right: 4px;">💎</span>
+              <span>${progress.gems.toLocaleString()}</span>
+              <button class="top-bar-add-btn" id="btn-plus-gems-revive" style="margin-left: 8px; background: linear-gradient(135deg, #00c3ff, #0055ff); border: none; border-radius: 4px; color: #fff; font-weight: 900; font-size: 11px; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="Watch ad for +200 Gems">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="transform: scale(1.024, 0.84) translateY(-10%); transform-origin: bottom center; width: 100%; display: flex; justify-content: center; z-index: 10;">
           <div style="background: rgba(20,20,30,0.28) !important; backdrop-filter: blur(11.2px) !important; -webkit-backdrop-filter: blur(11.2px) !important; border: 1px solid rgba(255,255,255,0.07) !important; border-radius: 24px; padding: 40px 32px; text-align: center; width: 95%; max-width: 911px; box-shadow: 0 20px 40px rgba(0,0,0,0.35) !important; animation: slideUp 0.3s ease-out; position: relative;">
             
-            <button id="btn-home-revive" style="position: absolute; left: 20px; top: 20px; font-size: 33px; color: #fff; font-weight: 800; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; cursor: pointer; line-height: 1; display: flex; align-items: center; justify-content: center; width: 63px; height: 63px; transition: background 0.2s;" title="Return Home">↩</button>
+            <button id="btn-home-revive" style="position: absolute; right: 20px; top: 20px; font-size: 14px; color: #fff; font-weight: 800; background: rgba(0,0,0,0.55); border: 1.5px solid rgba(255,255,255,0.15); border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 20px; height: 50px; min-width: 90px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: all 0.2s; font-family: 'Outfit', sans-serif;" title="Return to Menu">
+              ${this.engine.gameMode === 'level' ? '↩ BACK' : '↩ HOME'}
+            </button>
             
             <div style="font-size: 32px; margin-bottom: 10px;">💥</div>
             <h2 style="font-size: 36px; font-weight: 900; color: #ff3c2e; letter-spacing: 2px; margin-bottom: 24px; text-shadow: 0 0 10px rgba(255,60,46,0.5);">CRASHED!</h2>
@@ -2727,6 +2912,12 @@ export class UIManager {
                 <span>Gems Collected</span>
                 <strong style="color: #fff;">+${this.engine.gemsCollectedThisRun} 💎</strong>
               </div>
+              ${this.engine.progressManager.getState().selectedZone === 'chaos' && this.engine.destroyedPipesCount > 0 ? `
+              <div style="display: flex; justify-content: space-between; color: #00ff64;">
+                <span>☣️ Obstacles Destroyed</span>
+                <strong style="color: #00ff64;">+${this.engine.destroyedPipesCount} 🟡</strong>
+              </div>
+              ` : ''}
             </div>
   
   
@@ -2745,7 +2936,7 @@ export class UIManager {
                   <span style="font-size: 13px; font-weight: 800; color: #fff;">USE 5 💎</span>
                 </button>
                 <button id="btn-ad-revive" style="flex: 1; padding: 16px; border-radius: 50px; background: linear-gradient(135deg, #ff6b00, #ffaa00); border: none; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; box-shadow: 0 0 20px rgba(255, 107, 0, 0.4), 0 4px 10px rgba(0,0,0,0.3);">
-                  <span style="font-size: 13px; font-weight: 800; color: #fff;">FREE (AD) 📺</span>
+                  <span style="font-size: 13px; font-weight: 800; color: #fff; display: inline-flex; align-items: center; gap: 6px;">FREE (AD) ${!AdManager.isOnline ? UIManager.OFFLINE_EMOJI_SVG : '📺'}</span>
                 </button>
               </div>
             </div>
@@ -2799,6 +2990,23 @@ export class UIManager {
       }
       this.render();
     });
+
+    // Bind Topup events for the revive screen header bar
+    const sm = this.engine.soundManager;
+    const handleTopup = () => {
+      sm.playUIClick();
+      this.showTopupPopup();
+    };
+    document.getElementById('btn-coin-topup-revive')?.addEventListener('click', handleTopup);
+    document.getElementById('btn-gem-topup-revive')?.addEventListener('click', handleTopup);
+    document.getElementById('btn-plus-coins-revive')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleTopup();
+    });
+    document.getElementById('btn-plus-gems-revive')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleTopup();
+    });
   }
 
   private renderLevelComplete() {
@@ -2806,7 +3014,7 @@ export class UIManager {
 
     const winHTML = `
       <div class="overlay-screen fade-in glass-modal" style="display: flex; align-items: center; justify-content: center;">
-        <div style="transform: scale(0.8); width: 100%; display: flex; justify-content: center;">
+        <div style="transform: scale(0.88); width: 100%; display: flex; justify-content: center;">
           <div class="modal-card win-card animate-slide-up" style="background: transparent; backdrop-filter: none; border: 2px solid rgba(0, 255, 136, 0.25); box-shadow: 0 0 25px rgba(0, 255, 136, 0.15);">
             <div class="trophy-badge" style="font-size: 55px; filter: drop-shadow(0 0 10px rgba(255,215,0,0.5)); margin-bottom: 5px;">🎉</div>
           <h2 class="modal-title success-text" style="color: #00ff88; text-shadow: 0 0 10px rgba(0,255,136,0.4); font-size: 26px; font-weight: 800; text-transform: uppercase;">LEVEL COMPLETE!</h2>
@@ -2823,7 +3031,7 @@ export class UIManager {
           </div>
 
           <div class="vertical-actions" style="margin-top: 20px; display: flex; flex-direction: column; gap: 8px; width: 100%;">
-            ${levelNum < 50 
+            ${levelNum < 60 
               ? `<button class="btn btn-primary btn-glow-green" id="btn-next-level" style="background: linear-gradient(180deg, #00ff88 0%, #00c853 100%); box-shadow: 0 6px 0 #007e33, 0 8px 20px rgba(0,200,83,0.4); width: 100%; padding: 14px; border-radius: 12px; font-weight: 800; border: none; cursor: pointer; color: #04240e; font-size: 15px;">NEXT LEVEL ➡</button>`
               : `<button class="btn btn-primary" id="btn-quit-levels" style="background: linear-gradient(180deg, #ffd700 0%, #ffaa00 100%); width: 100%; padding: 14px; border-radius: 12px; font-weight: 800; border: none; cursor: pointer; color: #3d2c00; font-size: 15px;">ALL LEVELS BEATEN! 🎉</button>`
             }
@@ -2839,6 +3047,7 @@ export class UIManager {
 
     document.getElementById('btn-next-level')?.addEventListener('click', () => {
       this.engine.soundManager.playUISelect();
+      AdManager.onTransitionPoint();
       this.engine.currentLevelNum++;
       this.engine.startGame();
       this.render();
@@ -2846,18 +3055,21 @@ export class UIManager {
 
     document.getElementById('btn-retry-level')?.addEventListener('click', () => {
       this.engine.soundManager.playUIClick();
+      AdManager.onTransitionPoint();
       this.engine.startGame();
       this.render();
     });
 
     document.getElementById('btn-quit-levels')?.addEventListener('click', () => {
       this.engine.soundManager.playUIBack();
+      AdManager.onTransitionPoint();
       this.engine.state = 'MENU';
       this.activeTab = 'levels';
       this.render();
     });
 
     document.getElementById('btn-quit-levels-back')?.addEventListener('click', () => {
+      AdManager.onTransitionPoint();
       this.engine.state = 'MENU';
       this.activeTab = 'levels';
       this.render();
@@ -2974,7 +3186,7 @@ export class UIManager {
     container.innerHTML = `
       <div class="hud-alert-card glass-card flash-red-border animate-pulse">
         <div class="alert-title font-glow-red">${text}</div>
-        <div class="alert-subtitle">${sub}</div>
+        ${sub ? `<div class="alert-subtitle">${sub}</div>` : ''}
       </div>
     `;
 
@@ -3083,8 +3295,8 @@ export class UIManager {
           border: 1.5px solid rgba(255, 255, 255, 0.08);
           border-radius: 24px;
           padding: 24px 20px;
-          max-width: 460px;
-          width: 90%;
+          max-width: 640px;
+          width: 95%;
           box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
           position: relative;
           backdrop-filter: blur(20px);
@@ -3119,6 +3331,7 @@ export class UIManager {
           transform-style: preserve-3d;
           cursor: pointer;
           box-sizing: border-box;
+          height: 200px;
         }
         
         /* Classic 3D Theme */
@@ -3137,6 +3350,15 @@ export class UIManager {
         }
         .mode-3d-card.squad-3d:hover {
           border-color: rgba(0, 243, 255, 0.8);
+        }
+
+        /* Chaos 3D Theme */
+        .mode-3d-card.chaos-3d {
+          border: 1.5px solid rgba(217, 70, 239, 0.25);
+          box-shadow: 0 10px 25px rgba(217, 70, 239, 0.08), 0 15px 30px rgba(0, 0, 0, 0.5);
+        }
+        .mode-3d-card.chaos-3d:hover {
+          border-color: rgba(217, 70, 239, 0.8);
         }
 
         /* Inner elements 3D pop-out */
@@ -3169,6 +3391,10 @@ export class UIManager {
           color: #00f3ff;
           text-shadow: 0 0 8px rgba(0, 243, 255, 0.35);
         }
+        .mode-3d-card.chaos-3d .mode-3d-label {
+          color: #d946ef;
+          text-shadow: 0 0 8px rgba(217, 70, 239, 0.35);
+        }
 
         /* 3D arcade buttons */
         .mode-3d-btn {
@@ -3199,6 +3425,15 @@ export class UIManager {
         .squad-3d-btn:hover {
           background: linear-gradient(180deg, #4df7ff 0%, #1a80ff 100%);
           box-shadow: 0 5px 0 #004da8, 0 7px 16px rgba(0, 136, 255, 0.35);
+        }
+        .chaos-3d-btn {
+          background: linear-gradient(180deg, #d946ef 0%, #ff007f 100%);
+          color: #ffffff;
+          box-shadow: 0 5px 0 #9d174d, 0 5px 12px rgba(217, 70, 239, 0.25);
+        }
+        .chaos-3d-btn:hover {
+          background: linear-gradient(180deg, #e879f9 0%, #ff3b9a 100%);
+          box-shadow: 0 5px 0 #9d174d, 0 7px 16px rgba(217, 70, 239, 0.35);
         }
 
         /* Mobile Responsive 3D Styling (Lightweight & Smooth) */
@@ -3244,14 +3479,12 @@ export class UIManager {
 
       <div class="mode-3d-overlay fade-in">
         <div class="mode-3d-card-wrapper animate-slide-up">
-          <!-- Close button in corner -->
           <button id="btn-close-mode-selector" style="position: absolute; right: 15px; top: 15px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50%; color: white; width: 32px; height: 32px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">×</button>
           
           <h2 style="color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); font-size: 18px; font-weight: 900; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">SELECT GAME MODE</h2>
           <p style="color: rgba(255, 255, 255, 0.5); font-size: 11px; margin-bottom: 6px; letter-spacing: 0.2px;">Choose your endless adventure</p>
           
           <div class="mode-3d-container">
-            <!-- Option 1: Classic Card -->
             <div class="mode-3d-card classic-3d" id="card-select-classic">
               <div class="mode-3d-icon">
                 <svg width="50" height="50" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -3291,7 +3524,6 @@ export class UIManager {
               <button id="btn-select-classic" class="mode-3d-btn classic-3d-btn">Fly</button>
             </div>
 
-            <!-- Option 2: Squad Card -->
             <div class="mode-3d-card squad-3d" id="card-select-flock">
               <div class="mode-3d-icon">
                 <svg width="50" height="50" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -3339,12 +3571,38 @@ export class UIManager {
               <div class="mode-3d-label">Squad</div>
               <button id="btn-select-flock" class="mode-3d-btn squad-3d-btn">Fly</button>
             </div>
+
+            <div class="mode-3d-card chaos-3d" id="card-select-chaos">
+              <div class="mode-3d-icon">
+                <svg width="50" height="50" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="50" cy="50" r="42" fill="rgba(217, 70, 239, 0.05)" stroke="rgba(217, 70, 239, 0.2)" stroke-width="1.5" stroke-dasharray="4 4" />
+                  <g transform="translate(50, 50)">
+                    <path d="M-20,0 A20,20 0 0,1 20,0" stroke="url(#chaos-grad-1)" stroke-width="4" stroke-linecap="round" fill="none" transform="rotate(45)" />
+                    <path d="M20,0 A20,20 0 0,1 -20,0" stroke="url(#chaos-grad-2)" stroke-width="4" stroke-linecap="round" fill="none" transform="rotate(45)" />
+                    <path d="M0,-28 L-6,-20 L6,-20 Z" fill="#ff007f" />
+                    <path d="M0,28 L-6,20 L6,20 Z" fill="#d946ef" />
+                    <circle cx="0" cy="0" r="7" fill="#ffffff" />
+                  </g>
+                  <defs>
+                    <linearGradient id="chaos-grad-1" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#d946ef" />
+                      <stop offset="100%" stop-color="#ff007f" />
+                    </linearGradient>
+                    <linearGradient id="chaos-grad-2" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ff007f" />
+                      <stop offset="100%" stop-color="#3b82f6" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+              <div class="mode-3d-label">Chaos</div>
+              <button id="btn-select-chaos" class="mode-3d-btn chaos-3d-btn">Fly</button>
+            </div>
           </div>
         </div>
       </div>
     `;
 
-    // Dynamic 3D interactive tilt math for desktop and mobile
     const setup3DTilt = (cardId: string) => {
       const card = document.getElementById(cardId);
       if (!card) return;
@@ -3362,67 +3620,55 @@ export class UIManager {
           clientX = e.clientX;
           clientY = e.clientY;
         }
-
+        
         const x = clientX - rect.left;
         const y = clientY - rect.top;
-
-        // Calculate offset from center (from -0.5 to 0.5)
-        const px = (x / rect.width) - 0.5;
-        const py = (y / rect.height) - 0.5;
-
-        // Dynamic 3D rotation angles
-        const rx = -py * 16; 
-        const ry = px * 16;  
-
-        // Apply interactive 3D rotation and scale
-        card.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) scale3d(1.03, 1.03, 1.03)`;
         
-        // Subtle offset shadow based on cursor position
-        const shadowX = -px * 12;
-        const shadowY = -py * 12;
-        const glowColor = cardId.includes('classic') ? '255, 215, 0' : '0, 243, 255';
-        card.style.boxShadow = `${shadowX}px ${shadowY}px 20px rgba(${glowColor}, 0.2), 0 12px 25px rgba(0,0,0,0.45)`;
-
-        // Parallax offset for inner elements
-        const icon = card.querySelector('.mode-3d-icon') as HTMLElement;
-        const label = card.querySelector('.mode-3d-label') as HTMLElement;
-        const btn = card.querySelector('.mode-3d-btn') as HTMLElement;
-        if (icon) icon.style.transform = `translateZ(40px) scale(1.1) rotateX(${-rx * 0.15}deg) rotateY(${-ry * 0.15}deg)`;
-        if (label) label.style.transform = `translateZ(20px)`;
-        if (btn) btn.style.transform = `translateZ(25px)`;
+        const xc = rect.width / 2;
+        const yc = rect.height / 2;
+        
+        const angleX = -(y - yc) / 10; 
+        const angleY = (x - xc) / 10;
+        
+        card.style.transform = `rotateX(${angleX}deg) rotateY(${angleY}deg) scale3d(1.04, 1.04, 1.04)`;
+        
+        const glowColor = cardId.includes('classic') ? '255, 215, 0' : (cardId.includes('flock') ? '0, 243, 255' : '217, 70, 239');
+        card.style.boxShadow = `0 20px 40px rgba(${glowColor}, 0.18), 0 15px 30px rgba(0, 0, 0, 0.6)`;
+        
+        const icons = card.getElementsByClassName('mode-3d-icon');
+        if (icons[0]) {
+          (icons[0] as HTMLElement).style.transform = 'translateZ(25px) scale(1.05)';
+        }
+        const labels = card.getElementsByClassName('mode-3d-label');
+        if (labels[0]) {
+          (labels[0] as HTMLElement).style.transform = 'translateZ(18px)';
+        }
       };
 
-      const handleReset = () => {
-        card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
-        
-        const glowColor = cardId.includes('classic') ? '255, 215, 0' : '0, 243, 255';
+      const handleLeave = () => {
+        card.style.transform = 'rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+        const glowColor = cardId.includes('classic') ? '255, 215, 0' : (cardId.includes('flock') ? '0, 243, 255' : '217, 70, 239');
         card.style.boxShadow = `0 10px 25px rgba(${glowColor}, 0.08), 0 15px 30px rgba(0, 0, 0, 0.5)`;
-
-        const icon = card.querySelector('.mode-3d-icon') as HTMLElement;
-        const label = card.querySelector('.mode-3d-label') as HTMLElement;
-        const btn = card.querySelector('.mode-3d-btn') as HTMLElement;
-        if (icon) icon.style.transform = `translateZ(0px) scale(1)`;
-        if (label) label.style.transform = `translateZ(0px)`;
-        if (btn) btn.style.transform = `translateZ(0px)`;
+        
+        const icons = card.getElementsByClassName('mode-3d-icon');
+        if (icons[0]) {
+          (icons[0] as HTMLElement).style.transform = 'translateZ(0px) scale(1)';
+        }
+        const labels = card.getElementsByClassName('mode-3d-label');
+        if (labels[0]) {
+          (labels[0] as HTMLElement).style.transform = 'translateZ(0px)';
+        }
       };
 
       card.addEventListener('mousemove', handleMove);
-      card.addEventListener('mouseleave', handleReset);
-      
-      // Touch support for mobile 3D interactivity
-      card.addEventListener('touchstart', (e) => {
-        handleMove(e);
-      }, { passive: true });
-      card.addEventListener('touchmove', (e) => {
-        handleMove(e);
-      }, { passive: true });
-      card.addEventListener('touchend', handleReset);
-      card.addEventListener('touchcancel', handleReset);
+      card.addEventListener('mouseleave', handleLeave);
+      card.addEventListener('touchmove', handleMove, { passive: true });
+      card.addEventListener('touchend', handleLeave, { passive: true });
     };
 
-    // Initialize 3D dynamic tilt for both modes
     setup3DTilt('card-select-classic');
     setup3DTilt('card-select-flock');
+    setup3DTilt('card-select-chaos');
 
     document.getElementById('btn-close-mode-selector')?.addEventListener('click', () => {
       this.renderMenu();
@@ -3431,6 +3677,8 @@ export class UIManager {
     document.getElementById('btn-select-classic')?.addEventListener('click', (e) => {
       e.stopPropagation();
       this.engine.gameMode = 'endless';
+      this.engine.progressManager.getState().selectedZone = 'classic';
+      this.engine.progressManager.save();
       this.engine.isSpectatorMode = false;
       this.engine.startGame();
       this.render();
@@ -3439,6 +3687,16 @@ export class UIManager {
     document.getElementById('btn-select-flock')?.addEventListener('click', (e) => {
       e.stopPropagation();
       this.engine.gameMode = 'flock';
+      this.engine.isSpectatorMode = false;
+      this.engine.startGame();
+      this.render();
+    });
+
+    document.getElementById('btn-select-chaos')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.engine.gameMode = 'endless';
+      this.engine.progressManager.getState().selectedZone = 'chaos';
+      this.engine.progressManager.save();
       this.engine.isSpectatorMode = false;
       this.engine.startGame();
       this.render();
@@ -3455,6 +3713,7 @@ export class UIManager {
       case 'turbo': return '#ff4500';
       case 'ghost': return '#9400d3';
       case 'mini': return '#00ff7f';
+      case 'weapon': return '#ff3d00';
       default: return '#ffffff';
     }
   }
@@ -4984,10 +5243,10 @@ export class UIManager {
         </div>
         
         <div style="font-size: 20px; font-weight: 900; letter-spacing: 1.5px; color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.5); margin-bottom: 4px; text-transform: uppercase;">
-          CHEST UNLOCKED!
+          BOX UNLOCKED!
         </div>
         <div style="font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.6); margin-bottom: 24px;">
-          You successfully opened a <span style="color: #ffd700; font-weight: 900;">${chestName}</span>!
+          You successfully opened a <span style="color: #ffd700; font-weight: 900;">${chestName.replace(/chest/gi, 'Box')}</span>!
         </div>
 
         ${rewardsHtml}
@@ -5006,7 +5265,7 @@ export class UIManager {
           box-shadow: 0 4px 15px rgba(255,136,0,0.3);
           transition: all 0.2s;
         ">
-          CLAIM TREASURE 🎉
+          CLAIM
         </button>
       </div>
     `;

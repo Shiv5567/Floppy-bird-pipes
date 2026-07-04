@@ -46,7 +46,7 @@ export interface PlayerProgressState {
   achievements: Record<string, number>; // achievementId -> progress value
   unlockedAchievements: string[]; // list of unlocked achievement IDs
   claimedAchievements?: string[]; // list of claimed achievement IDs
-  selectedZone: 'classic' | 'wave';
+  selectedZone: 'classic' | 'wave' | 'chaos';
   selectedDifficulty: 'easy' | 'medium' | 'hard';
   lastDailyClaimTime: number;
   lastSpecialOfferAdTime?: number;
@@ -54,7 +54,8 @@ export interface PlayerProgressState {
   levelModeUnlockedLevel?: number;
   levelModeStars?: Record<number, number>;
   powerupUpgrades?: Record<string, number>; // powerupType -> level (1-5)
-  levelPlayCounts?: Record<number, number>; // levelNum -> playCount
+  levelPlayCounts?: Record<number, number>; // levelNum -> playCount (starts)
+  levelCompleteCounts?: Record<number, number>; // levelNum -> completeCount (finishes)
   sharedTargets: string[]; // list of shared target identifiers (emails or phone numbers) to prevent abuse
   unlockedWorlds?: string[]; // list of unlocked world IDs
 }
@@ -165,7 +166,7 @@ export class ProgressManager {
         rarity: 'Legendary',
         glowColor: 'rgba(224, 180, 255, 0.7)',
         particleType: 'purple_sparkle',
-        costCoins: 25000,
+        costCoins: 20000,
         costGems: 0,
         unlocked: false,
         upgradeLevel: 1,
@@ -179,7 +180,7 @@ export class ProgressManager {
         rarity: 'Legendary',
         glowColor: 'rgba(0, 230, 118, 0.95)',
         particleType: 'wyvern',
-        costCoins: 35000,
+        costCoins: 27000,
         costGems: 0,
         unlocked: false,
         upgradeLevel: 1,
@@ -193,7 +194,7 @@ export class ProgressManager {
         rarity: 'Legendary',
         glowColor: 'rgba(255, 191, 0, 0.95)',
         particleType: 'valkyrie',
-        costCoins: 40000,
+        costCoins: 35000,
         costGems: 0,
         unlocked: false,
         upgradeLevel: 1,
@@ -214,6 +215,34 @@ export class ProgressManager {
         maxUpgrade: 5,
         abilityName: 'Ultimate Gilded Fortune',
         abilityDesc: 'A shield, 3x score/coins, and a coin magnet.'
+      },
+      {
+        id: 'pterodactyl',
+        name: 'Primal Pterodactyl',
+        rarity: 'Legendary',
+        glowColor: 'rgba(230, 92, 0, 0.85)',
+        particleType: 'fire',
+        costCoins: 15000,
+        costGems: 0,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5,
+        abilityName: 'Primal Temporal Glide',
+        abilityDesc: 'Invincibility + 50% slow-mo + 1.5x speed blast!'
+      },
+      {
+        id: 'crimson_dragon',
+        name: 'Crimson Wyvern',
+        rarity: 'Legendary',
+        glowColor: 'rgba(255, 30, 0, 0.9)',
+        particleType: 'fire',
+        costCoins: 20000,
+        costGems: 0,
+        unlocked: false,
+        upgradeLevel: 1,
+        maxUpgrade: 5,
+        abilityName: 'Crimson Inferno Blast',
+        abilityDesc: 'Inferno speed blast + obstacle invincibility!'
       }
     ];
   }
@@ -321,7 +350,7 @@ export class ProgressManager {
     this.save();
   }
 
-  public addScore(score: number, gameMode?: 'endless' | 'level' | 'flock') {
+  public addScore(score: number, gameMode?: 'endless' | 'level' | 'flock' | 'chaos') {
     if (gameMode === 'flock') {
       if (!this.state.highscoreSquad) this.state.highscoreSquad = 0;
       if (score > this.state.highscoreSquad) {
@@ -502,6 +531,12 @@ export class ProgressManager {
 
   public load() {
     try {
+      const forceResetKey = 'legends_progression_reset_v4';
+      if (!localStorage.getItem(forceResetKey)) {
+        localStorage.setItem(forceResetKey, 'true');
+        this.fullReset();
+        return;
+      }
       const data = localStorage.getItem(this.storageKey);
       if (data) {
         const loadedState = JSON.parse(data) as PlayerProgressState;
@@ -556,12 +591,12 @@ export class ProgressManager {
             });
             return loadedQuests;
           })(),
-          levelModeUnlockedLevel: loadedState.levelModeUnlockedLevel || 1,
+          levelModeUnlockedLevel: 60,
           levelModeStars: loadedState.levelModeStars || {},
           powerupUpgrades: loadedState.powerupUpgrades || { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1 },
           levelPlayCounts: loadedState.levelPlayCounts || {},
           sharedTargets: loadedState.sharedTargets || [],
-          unlockedWorlds: loadedState.unlockedWorlds || ['jungle']
+          unlockedWorlds: loadedState.unlockedWorlds || ['jungle', 'ice', 'space', 'desert', 'volcano', 'heaven']
         };
 
         // Sync skins unlocked state and levels
@@ -596,11 +631,10 @@ export class ProgressManager {
         this.updateQuestProgress('unlock_chars', this.state.unlockedSkins.length, true);
         const currentWorldsStr = localStorage.getItem('flight_of_legends_worlds_played') || 'jungle';
         this.updateQuestProgress('unlock_worlds', currentWorldsStr.split(',').length, true);
-        if (this.state.levelPlayCounts) {
-          const vals = Object.values(this.state.levelPlayCounts);
-          if (vals.length > 0) {
-            this.updateQuestProgress('play_level_10', Math.max(...vals), true);
-          }
+        if (this.state.levelCompleteCounts) {
+          const completeCounts = Object.values(this.state.levelCompleteCounts);
+          const levelsWithFiveCompletes = completeCounts.filter(c => c >= 5).length;
+          this.updateQuestProgress('play_level_10', levelsWithFiveCompletes, true);
         }
       } else {
         this.resetState();
@@ -630,12 +664,12 @@ export class ProgressManager {
       lastDailyClaimTime: 0,
       lastSpecialOfferAdTime: 0,
       dailyQuests: this.initDefaultQuests(),
-      levelModeUnlockedLevel: 1,
+      levelModeUnlockedLevel: 60,
       levelModeStars: {},
       powerupUpgrades: { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1 },
       levelPlayCounts: {},
       sharedTargets: [],
-      unlockedWorlds: ['jungle']
+      unlockedWorlds: ['jungle', 'ice', 'space', 'desert', 'volcano', 'heaven']
     };
     
     // Reset skins
@@ -651,37 +685,37 @@ export class ProgressManager {
   public initDefaultQuests() {
     return [
       // Short-Term Missions (15)
-      { id: 'short_obstacles_1', name: 'Pass Obstacles', desc: 'Pass 5,000 Obstacles', target: 5000, current: 0, rewardCoins: 4000, rewardGems: 10, claimed: false },
-      { id: 'short_rescue_1', name: 'Rescue Birds', desc: 'Rescue 100 Birds', target: 100, current: 0, rewardCoins: 4800, rewardGems: 10, claimed: false },
-      { id: 'short_score_1', name: 'Reach Score', desc: 'Reach a Score of 100', target: 100, current: 0, rewardCoins: 3200, rewardGems: 10, claimed: false },
-      { id: 'short_boss_1', name: 'Defeat Monsters', desc: 'Defeat 20 Monsters', target: 20, current: 0, rewardCoins: 4000, rewardGems: 15, claimed: false },
+      { id: 'short_obstacles_1', name: 'Pass Pipes', desc: 'Pass 5,000 Pipes', target: 5000, current: 0, rewardCoins: 2000, rewardGems: 10, claimed: false },
+      { id: 'short_rescue_1', name: 'Rescue Birds from Cage', desc: 'Rescue 100 Birds from Cage', target: 100, current: 0, rewardCoins: 2500, rewardGems: 10, claimed: false },
+      { id: 'short_score_1', name: 'Reach Score', desc: 'Reach a Score of 100', target: 100, current: 0, rewardCoins: 1500, rewardGems: 10, claimed: false },
+      { id: 'short_boss_1', name: 'Defeat Monsters', desc: 'Defeat 20 Monsters', target: 20, current: 0, rewardCoins: 3000, rewardGems: 15, claimed: false },
       { id: 'short_unlock_chars_1', name: 'Unlock Characters', desc: 'Unlock 3 Characters', target: 3, current: 0, rewardCoins: 3200, rewardGems: 10, claimed: false },
       { id: 'short_use_ultimate_1', name: 'Use Ultimate', desc: 'Use Ultimate Power 50 Times', target: 50, current: 0, rewardCoins: 3200, rewardGems: 10, claimed: false },
-      { id: 'short_obstacles_2', name: 'Pass Obstacles', desc: 'Pass 25,000 Obstacles', target: 25000, current: 0, rewardCoins: 6400, rewardGems: 15, claimed: false },
-      { id: 'short_collect_powerups_1', name: 'Collect Power-Ups', desc: 'Collect 150 Power-Ups', target: 150, current: 0, rewardCoins: 4800, rewardGems: 10, claimed: false },
-      { id: 'short_rescue_2', name: 'Rescue Birds', desc: 'Rescue 900 Birds', target: 900, current: 0, rewardCoins: 8000, rewardGems: 15, claimed: false },
-      { id: 'short_boss_2', name: 'Defeat Monsters', desc: 'Defeat 100 Monsters', target: 100, current: 0, rewardCoins: 6400, rewardGems: 15, claimed: false },
-      { id: 'short_unlock_worlds_1', name: 'Unlock Locations', desc: 'Unlock 2 Locations', target: 2, current: 0, rewardCoins: 4800, rewardGems: 15, claimed: false },
-      { id: 'short_score_2', name: 'Reach Score', desc: 'Reach a Score of 300', target: 300, current: 0, rewardCoins: 4000, rewardGems: 10, claimed: false },
-      { id: 'short_play_level_10_1', name: 'Replay Levels', desc: 'Replay Any 3 Levels 5 Times', target: 5, current: 0, rewardCoins: 4800, rewardGems: 10, claimed: false },
-      { id: 'short_watch_ads_1', name: 'Watch Ads', desc: 'Watch 25 Ads', target: 25, current: 0, rewardCoins: 4800, rewardGems: 15, claimed: false },
-      { id: 'short_share_game_1', name: 'Share Game', desc: 'Share the Game with 5 Friends', target: 5, current: 0, rewardCoins: 6400, rewardGems: 20, claimed: false },
+      { id: 'short_obstacles_2', name: 'Pass Pipes', desc: 'Pass 25,000 Pipes', target: 25000, current: 0, rewardCoins: 4000, rewardGems: 15, claimed: false },
+      { id: 'short_collect_powerups_1', name: 'Collect Power-Ups', desc: 'Collect 150 Power-Ups', target: 150, current: 0, rewardCoins: 3000, rewardGems: 10, claimed: false },
+      { id: 'short_rescue_2', name: 'Rescue Birds from Cage', desc: 'Rescue 900 Birds from Cage', target: 900, current: 0, rewardCoins: 5000, rewardGems: 15, claimed: false },
+      { id: 'short_boss_2', name: 'Defeat Monsters', desc: 'Defeat 100 Monsters', target: 100, current: 0, rewardCoins: 4000, rewardGems: 15, claimed: false },
+      { id: 'short_unlock_worlds_1', name: 'Unlock Locations', desc: 'Unlock 3 Locations', target: 3, current: 0, rewardCoins: 3000, rewardGems: 15, claimed: false },
+      { id: 'short_score_2', name: 'Reach Score', desc: 'Reach a Score of 300', target: 300, current: 0, rewardCoins: 2500, rewardGems: 10, claimed: false },
+      { id: 'short_play_level_10_1', name: 'Replay Levels', desc: 'Complete Any 3 Levels 5 Times Each', target: 3, current: 0, rewardCoins: 3000, rewardGems: 10, claimed: false },
+      { id: 'short_watch_ads_1', name: 'Watch Ads', desc: 'Watch 25 Ads', target: 25, current: 0, rewardCoins: 3000, rewardGems: 15, claimed: false },
+      { id: 'short_share_game_1', name: 'Share Game', desc: 'Share the Game with 5 Friends', target: 5, current: 0, rewardCoins: 4000, rewardGems: 20, claimed: false },
 
       // Long-Term Missions (12)
-      { id: 'long_rescue_1', name: 'Rescue Birds', desc: 'Rescue 2,200 Birds', target: 2200, current: 0, rewardCoins: 12800, rewardGems: 30, claimed: false },
-      { id: 'long_obstacles_1', name: 'Pass Obstacles', desc: 'Pass 60,000 Obstacles', target: 60000, current: 0, rewardCoins: 11200, rewardGems: 20, claimed: false },
-      { id: 'long_score_1', name: 'Reach Score', desc: 'Reach a Score of 500', target: 500, current: 0, rewardCoins: 9600, rewardGems: 15, claimed: false },
-      { id: 'long_obstacles_classic_1', name: 'Pass Obstacles Classic', desc: 'Pass 3,500 Obstacles in Classic Mode', target: 3500, current: 0, rewardCoins: 9600, rewardGems: 20, claimed: false },
-      { id: 'long_boss_1', name: 'Defeat Monsters', desc: 'Defeat 2,500 Monsters', target: 2500, current: 0, rewardCoins: 14400, rewardGems: 25, claimed: false },
-      { id: 'long_use_ultimate_1', name: 'Use Ultimate', desc: 'Use Ultimate Power 200 Times', target: 200, current: 0, rewardCoins: 12000, rewardGems: 15, claimed: false },
-      { id: 'long_collect_powerups_1', name: 'Collect Power-Ups', desc: 'Collect 500 Power-Ups', target: 500, current: 0, rewardCoins: 12000, rewardGems: 15, claimed: false },
-      { id: 'long_obstacles_2', name: 'Pass Obstacles', desc: 'Pass 100,000 Obstacles', target: 100000, current: 0, rewardCoins: 16000, rewardGems: 30, claimed: false },
-      { id: 'long_watch_ads_1', name: 'Watch Ads', desc: 'Watch 100 Ads', target: 100, current: 0, rewardCoins: 12000, rewardGems: 15, claimed: false },
-      { id: 'long_unlock_chars_1', name: 'Unlock Characters', desc: 'Unlock 6 Characters', target: 6, current: 0, rewardCoins: 12000, rewardGems: 20, claimed: false },
-      { id: 'long_unlock_worlds_1', name: 'Unlock Locations', desc: 'Unlock 5 Locations', target: 5, current: 0, rewardCoins: 14400, rewardGems: 20, claimed: false },
-      { id: 'long_share_game_1', name: 'Share Game', desc: 'Share the Game with 15 Friends', target: 15, current: 0, rewardCoins: 20000, rewardGems: 30, claimed: false },
-      { id: 'long_kingfisher_pts_1', name: 'Kingfisher Flight', desc: 'Reach a score of 300 using Kingfisher', target: 300, current: 0, rewardCoins: 6400, rewardGems: 20, claimed: false },
-      { id: 'long_volcano_pts_1', name: 'Volcano Survivor', desc: 'Reach a score of 100 in Volcanic Spring', target: 100, current: 0, rewardCoins: 4800, rewardGems: 15, claimed: false }
+      { id: 'long_rescue_1', name: 'Rescue Birds from Cage', desc: 'Rescue 2,200 Birds from Cage', target: 2200, current: 0, rewardCoins: 7000, rewardGems: 30, claimed: false },
+      { id: 'long_obstacles_1', name: 'Pass Pipes', desc: 'Pass 60,000 Pipes', target: 60000, current: 0, rewardCoins: 5500, rewardGems: 20, claimed: false },
+      { id: 'long_score_1', name: 'Reach Score', desc: 'Reach a Score of 500', target: 500, current: 0, rewardCoins: 5000, rewardGems: 15, claimed: false },
+      { id: 'long_obstacles_classic_1', name: 'Pass Pipes Classic', desc: 'Pass 3,500 Pipes in Classic Mode', target: 3500, current: 0, rewardCoins: 5500, rewardGems: 20, claimed: false },
+      { id: 'long_boss_1', name: 'Defeat Monsters', desc: 'Defeat 2,500 Monsters', target: 2500, current: 0, rewardCoins: 8000, rewardGems: 25, claimed: false },
+      { id: 'long_use_ultimate_1', name: 'Use Ultimate', desc: 'Use Ultimate Power 200 Times', target: 200, current: 0, rewardCoins: 6000, rewardGems: 15, claimed: false },
+      { id: 'long_collect_powerups_1', name: 'Collect Power-Ups', desc: 'Collect 500 Power-Ups', target: 500, current: 0, rewardCoins: 6000, rewardGems: 15, claimed: false },
+      { id: 'long_obstacles_2', name: 'Pass Pipes', desc: 'Pass 100,000 Pipes', target: 100000, current: 0, rewardCoins: 10000, rewardGems: 30, claimed: false },
+      { id: 'long_watch_ads_1', name: 'Watch Ads', desc: 'Watch 100 Ads', target: 100, current: 0, rewardCoins: 8000, rewardGems: 15, claimed: false },
+      { id: 'long_unlock_chars_1', name: 'Unlock Characters', desc: 'Unlock 6 Characters', target: 6, current: 0, rewardCoins: 9000, rewardGems: 20, claimed: false },
+      { id: 'long_unlock_worlds_1', name: 'Unlock Locations', desc: 'Unlock 5 Locations', target: 5, current: 0, rewardCoins: 11000, rewardGems: 20, claimed: false },
+      { id: 'long_share_game_1', name: 'Share Game', desc: 'Share the Game with 15 Friends', target: 15, current: 0, rewardCoins: 14000, rewardGems: 30, claimed: false },
+      { id: 'long_kingfisher_pts_1', name: 'Kingfisher Flight', desc: 'Reach a score of 300 using Kingfisher', target: 300, current: 0, rewardCoins: 6000, rewardGems: 20, claimed: false },
+      { id: 'long_volcano_pts_1', name: 'Volcano Survivor', desc: 'Reach a score of 100 in Volcanic Spring', target: 100, current: 0, rewardCoins: 4000, rewardGems: 15, claimed: false }
     ];
   }
 
@@ -775,13 +809,7 @@ export class ProgressManager {
       this.state.levelPlayCounts = {};
     }
     this.state.levelPlayCounts[levelNum] = (this.state.levelPlayCounts[levelNum] || 0) + 1;
-    
-    // Find the maximum plays of any single level
-    const maxPlays = Math.max(...Object.values(this.state.levelPlayCounts));
-    
-    // Update the play_level_10 mission progress!
-    this.updateQuestProgress('play_level_10', maxPlays, true);
-    
+    // Note: mission progress is updated only on completion (setLevelComplete)
     this.save();
   }
 
@@ -791,9 +819,20 @@ export class ProgressManager {
     if (stars > oldStars) {
       this.state.levelModeStars[levelNum] = stars;
     }
-    if (levelNum === this.state.levelModeUnlockedLevel && this.state.levelModeUnlockedLevel < 50) {
+    if (levelNum === this.state.levelModeUnlockedLevel && this.state.levelModeUnlockedLevel < 60) {
       this.state.levelModeUnlockedLevel = levelNum + 1;
     }
+
+    // Track completion count for Replay Levels mission
+    if (!this.state.levelCompleteCounts) {
+      this.state.levelCompleteCounts = {};
+    }
+    this.state.levelCompleteCounts[levelNum] = (this.state.levelCompleteCounts[levelNum] || 0) + 1;
+
+    // Count how many levels have been completed 5+ times
+    const levelsWithFiveCompletes = Object.values(this.state.levelCompleteCounts).filter(c => c >= 5).length;
+    this.updateQuestProgress('play_level_10', levelsWithFiveCompletes, true);
+
     this.save();
   }
 
@@ -818,10 +857,10 @@ export class ProgressManager {
   private initDefaultWorlds() {
     this.worldsList = [
       { id: 'jungle',     name: 'AMAZON RAINFOREST', emoji: '🌴', costCoins: 0, costGems: 0, unlocked: true },
-      { id: 'ice',        name: 'FROZEN ICE KINGDOM',   emoji: '❄️', costCoins: 7000, costGems: 0, unlocked: false },
-      { id: 'space',      name: 'COSMIC MEADOW',        emoji: '🌌', costCoins: 12000, costGems: 0, unlocked: false },
-      { id: 'desert',     name: 'DESERT RUINS', emoji: '🏜️', costCoins: 25000, costGems: 0, unlocked: false },
-      { id: 'volcano',    name: 'VOLCANIC SPRING',      emoji: '🌋', costCoins: 30000, costGems: 0, unlocked: false },
+      { id: 'ice',        name: 'FROZEN ICE KINGDOM',   emoji: '❄️', costCoins: 6000, costGems: 0, unlocked: false },
+      { id: 'space',      name: 'COSMIC MEADOW',        emoji: '🌌', costCoins: 10000, costGems: 0, unlocked: false },
+      { id: 'desert',     name: 'ANCIENT EGYPT : THE DESERT', emoji: '🏜️', costCoins: 18000, costGems: 0, unlocked: false },
+      { id: 'volcano',    name: 'VOLCANIC SPRING',      emoji: '🌋', costCoins: 25000, costGems: 0, unlocked: false },
       { id: 'heaven',     name: 'HEAVEN CLOUD KINGDOM', emoji: '🌤️', costCoins: 0, costGems: 300, unlocked: false }
     ];
   }
@@ -844,6 +883,7 @@ export class ProgressManager {
         this.state.coins -= world.costCoins;
         world.unlocked = true;
         this.state.unlockedWorlds.push(id);
+        this.updateQuestProgress('unlock_worlds', this.state.unlockedWorlds.length, true);
         this.save();
         return { success: true, msg: `Unlocked ${world.name} successfully!` };
       } else {
@@ -854,6 +894,7 @@ export class ProgressManager {
         this.state.gems -= world.costGems;
         world.unlocked = true;
         this.state.unlockedWorlds.push(id);
+        this.updateQuestProgress('unlock_worlds', this.state.unlockedWorlds.length, true);
         this.save();
         return { success: true, msg: `Unlocked ${world.name} successfully!` };
       } else {

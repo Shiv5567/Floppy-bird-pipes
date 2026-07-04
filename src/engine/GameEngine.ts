@@ -17,6 +17,16 @@ export interface ActivePowerup {
   maxDuration: number;
 }
 
+export interface Bullet {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  radius: number;
+  color: string;
+  isRocket?: boolean;
+}
+
 export class GameEngine {
   public state: GameState = 'MENU';
   public firstTapDone = false;
@@ -29,7 +39,7 @@ export class GameEngine {
   public reviveFloatY = 300;
   
   // Level Mode systems
-  public gameMode: 'endless' | 'level' | 'flock' = 'endless';
+  public gameMode: 'endless' | 'level' | 'flock' | 'chaos' = 'endless';
   public currentLevelNum = 1;
   public activeLevelConfig: LevelConfig | null = null;
   public shieldBrokenThisRun = false;
@@ -40,6 +50,24 @@ export class GameEngine {
   public ultimateDurationLeft = 0;
   public ultimateMaxDuration = 6.0;
   private preUltimateFlockLength = 0;
+
+  // Chaos Mode state variables
+  public gravityFlipped = false;
+  public weaponActive = false;
+  public weaponLevel = 0;
+  public weaponTimer = 0.0;
+  public lastShotTimer = 0.0;
+  public bullets: Bullet[] = [];
+  public weaponType: 'bullet' | 'laser' | 'rocket' | 'blade' = 'bullet';
+  public bladeRotation = 0;
+
+  // Chaos Events state variables
+  public activeChaosEvent: 'none' | 'gravity' | 'mirror' | 'earthquake' = 'none';
+  public chaosEventTimer = 0.0;
+  public chaosEventCycleTimer = 12.0; // Trigger every 12 seconds
+  public chaosEventAnnounceTimer = 0.0; // Show warning banner
+  public chaosObstaclesPassed = 0;
+  public destroyedPipesCount = 0;
   
   // High-performance engines references
   public soundManager: SoundManager;
@@ -58,6 +86,7 @@ export class GameEngine {
   private rescueMilestoneNext: number = 5;   // next milestone checkpoint
   // expose read-only for UIManager
   public get nextRescueMilestone(): number { return this.rescueMilestoneNext; }
+  public get weatherTime(): number { return this.renderer.weatherTime; }
 
   // Active Skill Evolution System
   public activeSkillUnlocked: string | null = null; // 'shield' | 'slowmo' | 'booster' | null
@@ -205,6 +234,16 @@ export class GameEngine {
     this.ultimateEnergy = 0;
     this.ultimateActive = false;
     this.ultimateDurationLeft = 0;
+
+    // Reset Chaos Mode states
+    this.gravityFlipped = false;
+    this.weaponActive = false;
+    this.weaponLevel = 0;
+    this.weaponTimer = 0.0;
+    this.lastShotTimer = 0.0;
+    this.bullets = [];
+    this.chaosObstaclesPassed = 0;
+    this.destroyedPipesCount = 0;
     
     this.bird.y = 300;
     this.bird.vy = 0;
@@ -228,7 +267,7 @@ export class GameEngine {
     this.activeSkillUnlocked = null;
     this.activeSkillCooldown = 0;
     this.activeSkillMaxCooldown = 0;
-    this.nextBossScore = 100;
+    this.nextBossScore = this.gameMode === 'flock' ? 75 : 100;
     this.playerBossHP = 0;
     this.maxPlayerBossHP = 0;
     this.bossManager.reset();
@@ -328,10 +367,13 @@ export class GameEngine {
       }
       this.renderer.update(dt, 0, this.bird.y, 1.0, this.state);
 
-      // Bounce once hit floor
+      // Bounce once hit floor or ceiling
       const height = this.renderer.canvas.height / this.renderer.dpr;
       if (this.bird.y >= height - 40) {
         this.bird.y = height - 40;
+        this.bird.vy = 0;
+      } else if (this.bird.y - this.bird.radius < 5) {
+        this.bird.y = 5 + this.bird.radius;
         this.bird.vy = 0;
       }
       return;
@@ -467,7 +509,7 @@ export class GameEngine {
             b.y = 5 + b.radius;
             if (b.vy < 0) b.vy = 0;
           }
-          if (this.state !== 'PLAYING' || b.isInvincible || b.isGhost || this.boosterActive || this.boosterDeactivating || this.ultimateActive) {
+          if (this.state !== 'PLAYING' || b.isInvincible || b.isGhost || this.boosterActive || this.boosterDeactivating || this.ultimateActive || this.progressManager.getState().selectedZone === 'chaos') {
             if (b.y + b.radius > height - 35) {
               b.y = height - 35 - b.radius;
               if (b.vy > 0) b.vy = 0;
@@ -479,7 +521,7 @@ export class GameEngine {
           this.bird.y = 5 + this.bird.radius;
           if (this.bird.vy < 0) this.bird.vy = 0;
         }
-        if (this.state !== 'PLAYING' || this.bird.isInvincible || this.bird.isGhost || this.boosterActive || this.boosterDeactivating || this.ultimateActive) {
+        if (this.state !== 'PLAYING' || this.bird.isInvincible || this.bird.isGhost || this.boosterActive || this.boosterDeactivating || this.ultimateActive || this.progressManager.getState().selectedZone === 'chaos') {
           if (this.bird.y + this.bird.radius > height - 35) {
             this.bird.y = height - 35 - this.bird.radius;
             if (this.bird.vy > 0) this.bird.vy = 0;
@@ -505,9 +547,9 @@ export class GameEngine {
             const progressiveFactor = 1.0 + Math.floor(this.score / 5) * 0.02;
             let currentSpeed = this.activeLevelConfig.scrollSpeed * progressiveFactor;
 
-            // For levels 40-50, reduce scrollSpeed based on the current obstacle block/group (5% in middle group, 10% in last group)
+            // For levels 40-60, reduce scrollSpeed based on the current obstacle block/group (5% in middle group, 10% in last group)
             const levelNum = this.activeLevelConfig.levelNum;
-            if (levelNum >= 40 && levelNum <= 50) {
+            if (levelNum >= 40 && levelNum <= 60) {
               const groupSize = Math.floor(this.activeLevelConfig.targetScore / 3);
               const groupIdx = Math.min(2, Math.floor(this.score / groupSize));
               if (groupIdx === 1) {
@@ -559,7 +601,7 @@ export class GameEngine {
             // Increase speed of squad mode gameplay by 8%
             speedMultiplier *= 1.08;
           } else {
-            if (this.score <= 100) {
+            if (this.score <= 100 || (this.gameMode === 'level' && (this.currentLevelNum === 7 || this.currentLevelNum === 15))) {
               speedMultiplier = 1.08;
             } else if (this.score <= 200) {
               const progress = (this.score - 100) / 100;
@@ -623,8 +665,8 @@ export class GameEngine {
         this.bird.y += (height / 2 - this.bird.y) * 0.25 * (dt * 60);
         this.bird.vy = 0;
 
-        // Count obstacles passed via score accumulation (50 obstacles = done)
-        this.boosterScoreAccumulator += dt * 20;
+        // Count obstacles passed via score accumulation (25 obstacles in 1 second)
+        this.boosterScoreAccumulator += dt * 25;
         if (this.boosterScoreAccumulator >= 1.0) {
           const pointsToAdd = Math.floor(this.boosterScoreAccumulator);
           this.boosterScoreAccumulator -= pointsToAdd;
@@ -634,13 +676,14 @@ export class GameEngine {
         }
 
         if (this.boosterTimer <= 0) {
-          // 50 obstacles passed — enter deactivation cooldown phase
+          // 25 obstacles passed — enter deactivation cooldown phase
           this.boosterActive = false;
           this.boosterDeactivating = true;
           this.boosterDeactivateTimer = 0.5;
+          this.boosterSpawnTimer = 1.0; // Recharge cooldown time is 1 second
         } else {
-          // Set speed to 15.0x
-          this.scrollSpeed = this.baseScrollSpeed * 15.0;
+          // Set speed to 20.0x for Hyper Boost speed (25 obstacles/s visual)
+          this.scrollSpeed = this.baseScrollSpeed * 20.0;
 
           // Emit supersonic speed sparks from bird
           if (Math.random() < 0.8) {
@@ -700,6 +743,20 @@ export class GameEngine {
         const selectedZone = this.progressManager.getState().selectedZone;
         const selectedDifficulty = this.progressManager.getState().selectedDifficulty;
 
+         // --- Chaos Events Cycle ---
+        if (this.progressManager.getState().selectedZone === 'chaos') {
+          if (this.activeChaosEvent !== 'none') {
+            this.chaosEventTimer -= dt;
+            if (this.chaosEventTimer <= 0) {
+              this.activeChaosEvent = 'none';
+            }
+          }
+
+          if (this.chaosEventAnnounceTimer > 0) {
+            this.chaosEventAnnounceTimer -= dt;
+          }
+        }
+
         // Tick booster button charge timer in Endless Mode & Flock Mode
         if ((this.gameMode === 'endless' || this.gameMode === 'flock') && !this.boosterActive && !this.boosterDeactivating) {
           this.boosterSpawnTimer = Math.max(0, this.boosterSpawnTimer - dt);
@@ -708,6 +765,221 @@ export class GameEngine {
         // Standard scrolling hazards
         this.obstacleManager.update(dt, this.scrollSpeed, this.score, this.progressManager.getState().activeWorld, width, height, activeTimeScale, selectedZone, selectedDifficulty, this.bird.x, undefined, this.gameMode);
         this.powerupManager.update(dt, this.scrollSpeed, this.bird.x, this.bird.y, !!this.activePowerupsList['magnet'], width, height, activeTimeScale, this.obstacleManager.getList(), this.gameMode, this.particleEngine, this.flock);
+
+        // Update shooting & weapons in Chaos Mode
+        if (this.weaponActive && !this.waitingForDoubleTapAfterRevive && this.state === 'PLAYING') {
+          this.lastShotTimer += dt;
+          
+          // Blade rotates continuously
+          if (this.weaponType === 'blade') {
+            this.bladeRotation += dt * 10;
+            const bladeRadius = 55 + this.weaponLevel * 10;
+            const bx = this.bird.x;
+            const by = this.bird.y;
+            const obstaclesList = this.obstacleManager.getList();
+            
+            obstaclesList.forEach(obs => {
+              if (obs.isDestroyed || !obs.isDestructible) return;
+              const topShift = obs.shakeX || 0;
+              const bottomShift = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
+              
+              const inTop = bx + bladeRadius >= obs.x + topShift && 
+                            bx - bladeRadius <= obs.x + obs.width + topShift && 
+                            by - bladeRadius <= obs.topHeight;
+                            
+              const inBottom = bx + bladeRadius >= obs.x + bottomShift && 
+                               bx - bladeRadius <= obs.x + obs.width + bottomShift && 
+                               by + bladeRadius >= height - obs.bottomHeight;
+                               
+              if (inTop || inBottom) {
+                obs.hp = (obs.hp || 3) - dt * 7;
+                if (Math.random() < 0.15) {
+                  this.particleEngine.emitExplosion(bx + (inTop ? 30 : 0), by + (inTop ? -20 : 20), '#ffd700', 3);
+                  this.soundManager.playShieldDeflect();
+                }
+                if (obs.hp <= 0) {
+                  obs.isDestroyed = true;
+                  if (this.gameMode === 'flock' || this.progressManager.getState().selectedZone === 'chaos') this.destroyedPipesCount++;
+                  this.triggerStoneDebris(obs, height);
+                }
+              }
+            });
+          }
+          
+          // Laser deals continuous damage directly ahead from the bird's eye
+          if (this.weaponType === 'laser') {
+            const angle = this.bird.angle;
+            const scale = this.bird.radius / this.bird.baseRadius;
+            const localLaserX = 10 * scale;
+            const localLaserY = -3 * scale;
+            
+            const startX = this.bird.x + (localLaserX * Math.cos(angle) - localLaserY * Math.sin(angle));
+            const startY = this.bird.y + (localLaserX * Math.sin(angle) + localLaserY * Math.cos(angle));
+            const obstaclesList = this.obstacleManager.getList();
+            
+            obstaclesList.forEach(obs => {
+              if (obs.isDestroyed || !obs.isDestructible) return;
+              const topShift = obs.shakeX || 0;
+              const bottomShift = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
+              
+              const hitsTop = startX < obs.x + obs.width + topShift && startY <= obs.topHeight;
+              const hitsBottom = startX < obs.x + obs.width + bottomShift && startY >= height - obs.bottomHeight;
+              
+              if (hitsTop || hitsBottom) {
+                obs.hp = (obs.hp || 3) - dt * (5 + this.weaponLevel * 3);
+                if (Math.random() < 0.2) {
+                  this.particleEngine.emitExplosion(obs.x + obs.width / 2, startY, '#00ffff', 3);
+                  this.soundManager.playShieldDeflect();
+                }
+                if (obs.hp <= 0) {
+                  obs.isDestroyed = true;
+                  if (this.gameMode === 'flock' || this.progressManager.getState().selectedZone === 'chaos') this.destroyedPipesCount++;
+                  this.triggerStoneDebris(obs, height);
+                }
+              }
+            });
+          }
+          
+          // Cooldown for firing projectiles
+          let cooldown = this.weaponLevel === 3 ? 0.22 : (this.weaponLevel === 2 ? 0.30 : 0.35);
+          if (this.weaponType === 'rocket') {
+            cooldown = 0.65 - this.weaponLevel * 0.1;
+          }
+          
+          if (this.lastShotTimer >= cooldown) {
+            this.lastShotTimer = 0.0;
+            
+            const startX = this.bird.x + this.bird.radius;
+            const startY = this.bird.y;
+            
+            if (this.weaponType === 'bullet') {
+              this.soundManager.playZap();
+              if (this.weaponLevel === 1) {
+                this.bullets.push({ x: startX, y: startY, vx: 12, vy: 0, radius: 6, color: '#00f3ff' });
+              } else if (this.weaponLevel === 2) {
+                this.bullets.push({ x: startX, y: startY - 4, vx: 12, vy: -1.5, radius: 6, color: '#d946ef' });
+                this.bullets.push({ x: startX, y: startY + 4, vx: 12, vy: 1.5, radius: 6, color: '#d946ef' });
+              } else if (this.weaponLevel === 3) {
+                this.bullets.push({ x: startX, y: startY, vx: 14, vy: 0, radius: 7, color: '#00f3ff' });
+                this.bullets.push({ x: startX, y: startY - 6, vx: 12, vy: -3.0, radius: 6, color: '#d946ef' });
+                this.bullets.push({ x: startX, y: startY + 6, vx: 12, vy: 3.0, radius: 6, color: '#d946ef' });
+              }
+              this.particleEngine.emitExplosion(startX, startY, this.weaponLevel === 3 ? '#d946ef' : '#00f3ff', 4);
+            } else if (this.weaponType === 'rocket') {
+              this.soundManager.playZap();
+              if (this.weaponLevel === 1) {
+                this.bullets.push({ x: startX, y: startY, vx: 7, vy: 0, radius: 10, color: '#d946ef', isRocket: true });
+              } else if (this.weaponLevel === 2) {
+                this.bullets.push({ x: startX, y: startY - 5, vx: 7, vy: -0.8, radius: 11, color: '#d946ef', isRocket: true });
+                this.bullets.push({ x: startX, y: startY + 5, vx: 7, vy: 0.8, radius: 11, color: '#d946ef', isRocket: true });
+              } else if (this.weaponLevel === 3) {
+                this.bullets.push({ x: startX, y: startY, vx: 8, vy: 0, radius: 12, color: '#00f3ff', isRocket: true });
+                this.bullets.push({ x: startX, y: startY - 8, vx: 7, vy: -1.8, radius: 10, color: '#d946ef', isRocket: true });
+                this.bullets.push({ x: startX, y: startY + 8, vx: 7, vy: 1.8, radius: 10, color: '#d946ef', isRocket: true });
+              }
+              this.particleEngine.emitExplosion(startX, startY, '#d946ef', 6);
+            }
+          }
+        }
+
+        // Update active bullets
+        const speedCoeff = dt * 60;
+        const obstaclesList = this.obstacleManager.getList();
+        for (let bIdx = this.bullets.length - 1; bIdx >= 0; bIdx--) {
+          const bullet = this.bullets[bIdx];
+          bullet.x += bullet.vx * speedCoeff;
+          bullet.y += bullet.vy * speedCoeff;
+
+          // Remove if off-screen
+          if (bullet.x > width + 100) {
+            this.bullets.splice(bIdx, 1);
+            continue;
+          }
+
+          // Collision with obstacles
+          let hit = false;
+          for (let oIdx = 0; oIdx < obstaclesList.length; oIdx++) {
+            const obs = obstaclesList[oIdx];
+            if (obs.isDestroyed || obs.passed) continue;
+
+            const topShift = obs.shakeX || 0;
+            const bottomShift = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
+
+            // Check Top Column collision
+            const inTopCol = bullet.x >= obs.x + topShift && 
+                             bullet.x <= obs.x + obs.width + topShift && 
+                             bullet.y <= obs.topHeight;
+
+            // Check Bottom Column collision
+            const inBottomCol = bullet.x >= obs.x + bottomShift && 
+                                bullet.x <= obs.x + obs.width + bottomShift && 
+                                bullet.y >= height - obs.bottomHeight;
+
+            if (inTopCol || inBottomCol) {
+              hit = true;
+              
+              if (bullet.isRocket) {
+                this.triggerRocketExplosion(bullet.x, bullet.y);
+              } else if (obs.isDestructible) {
+                obs.hp = (obs.hp || 3) - 1;
+                
+                // Spawn hit spark particles
+                 this.particleEngine.emitExplosion(bullet.x, bullet.y, '#00f3ff', 8);
+                this.soundManager.playShieldDeflect();
+                this.renderer.triggerScreenShake(3, 0.1);
+
+                if (obs.hp <= 0) {
+                  obs.isDestroyed = true;
+                  if (this.gameMode === 'flock' || this.progressManager.getState().selectedZone === 'chaos') this.destroyedPipesCount++;
+                  // Spawn massive stone debris explosion!
+                  for (let d = 0; d < 16; d++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 1.5 + Math.random() * 4.5;
+                    const size = 6 + Math.random() * 8;
+                    this.particleEngine.spawn(
+                      obs.x + obs.width / 2,
+                      obs.topHeight,
+                      Math.cos(angle) * speed,
+                      Math.sin(angle) * speed,
+                      '#7f8c8d',
+                      size,
+                      1.0,
+                      0.012 + Math.random() * 0.008,
+                      'square',
+                      false,
+                      undefined,
+                      -0.03
+                    );
+                    this.particleEngine.spawn(
+                      obs.x + obs.width / 2,
+                      height - obs.bottomHeight,
+                      Math.cos(angle) * speed,
+                      Math.sin(angle) * speed,
+                      '#95a5a6',
+                      size,
+                      1.0,
+                      0.012 + Math.random() * 0.008,
+                      'square',
+                      false,
+                      undefined,
+                      -0.03
+                    );
+                  }
+                  this.soundManager.playExplosion();
+                  this.renderer.triggerScreenShake(6, 0.25);
+                }
+              } else {
+                // Non-destructible obstacle hit: just spawn small sparks
+                this.particleEngine.emitExplosion(bullet.x, bullet.y, '#95a5a6', 4);
+              }
+              break;
+            }
+          }
+
+          if (hit) {
+            this.bullets.splice(bIdx, 1);
+          }
+        }
 
         // Check near-miss grazes
         const obstacles = this.obstacleManager.getList();
@@ -876,7 +1148,7 @@ export class GameEngine {
           }
         }
 
-        // Trigger Boss Warning in Squad Survival (Flock) mode every 100 obstacles (score gap)
+        // Trigger Boss Warning in Squad Survival (Flock) mode every 75 obstacles (score gap)
         if (this.gameMode === 'flock' && this.score >= this.nextBossScore) {
           this.triggerBossWarning();
         }
@@ -907,7 +1179,7 @@ export class GameEngine {
             this.state = 'PLAYING';
             this.incrementScore(10); // Massive points
             if (this.gameMode === 'flock') {
-              this.nextBossScore = Math.ceil((this.score + 1) / 100) * 100;
+              this.nextBossScore = Math.ceil((this.score + 1) / 75) * 75;
             }
           }
         }
@@ -1059,9 +1331,12 @@ export class GameEngine {
       this.bird.update(dt, this.particleEngine, true, 1.0, this.score);
       this.renderer.update(dt, 0, this.bird.y, 1.0, this.state);
 
-      // Bounce once hit floor
+      // Bounce once hit floor or ceiling
       if (this.bird.y >= height - 40) {
         this.bird.y = height - 40;
+        this.bird.vy = 0;
+      } else if (this.bird.y - this.bird.radius < 5) {
+        this.bird.y = 5 + this.bird.radius;
         this.bird.vy = 0;
       }
     } else if (this.state === 'BOSS_WARNING') {
@@ -1096,8 +1371,77 @@ export class GameEngine {
       // Floating bird on main menu
       this.bird.y = 300 + Math.sin(Date.now() * 0.003) * 15;
       this.bird.angle = Math.sin(Date.now() * 0.003) * 0.1;
-      this.renderer.update(dt, this.scrollSpeed * 0.4, this.bird.y, 1.0, this.state);
     }
+  }
+
+  private triggerRocketExplosion(rx: number, ry: number) {
+    this.soundManager.playExplosion();
+    this.renderer.triggerScreenShake(8, 0.25);
+    this.particleEngine.emitRing(rx, ry, '#00f3ff', 33);
+    this.particleEngine.emitExplosion(rx, ry, '#d946ef', 21);
+    
+    const obstaclesList = this.obstacleManager.getList();
+    const radius = 130;
+    const height = this.renderer.canvas.height / this.renderer.dpr;
+    
+    obstaclesList.forEach(obs => {
+      if (obs.isDestroyed || !obs.isDestructible) return;
+      
+      const distToTop = Math.min(
+        Math.hypot(rx - (obs.x + obs.width / 2), ry - obs.topHeight / 2),
+        Math.hypot(rx - (obs.x + obs.width / 2), ry - obs.topHeight)
+      );
+      
+      const distToBottom = Math.min(
+        Math.hypot(rx - (obs.x + obs.width / 2), ry - (height - obs.bottomHeight / 2)),
+        Math.hypot(rx - (obs.x + obs.width / 2), ry - (height - obs.bottomHeight))
+      );
+      
+      if (distToTop < radius || distToBottom < radius) {
+        obs.hp = 0;
+        obs.isDestroyed = true;
+        if (this.gameMode === 'flock' || this.progressManager.getState().selectedZone === 'chaos') this.destroyedPipesCount++;
+        this.triggerStoneDebris(obs, height);
+      }
+    });
+  }
+
+  private triggerStoneDebris(obs: any, height: number) {
+    for (let d = 0; d < 16; d++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1.5 + Math.random() * 4.5;
+      const size = 6 + Math.random() * 8;
+      this.particleEngine.spawn(
+        obs.x + obs.width / 2,
+        obs.topHeight,
+        Math.cos(angle) * speed,
+        Math.sin(angle) * speed,
+        '#7f8c8d',
+        size,
+        1.0,
+        0.012 + Math.random() * 0.008,
+        'square',
+        false,
+        undefined,
+        -0.03
+      );
+      this.particleEngine.spawn(
+        obs.x + obs.width / 2,
+        height - obs.bottomHeight,
+        Math.cos(angle) * speed,
+        Math.sin(angle) * speed,
+        '#95a5a6',
+        size,
+        1.0,
+        0.012 + Math.random() * 0.008,
+        'square',
+        false,
+        undefined,
+        -0.03
+      );
+    }
+    this.soundManager.playExplosion();
+    this.renderer.triggerScreenShake(6, 0.25);
   }
 
   // Auto-Pilot Spectator Neural Simulator
@@ -1125,6 +1469,8 @@ export class GameEngine {
   }
 
   private handleCrash() {
+    console.log("DEBUG CRASH DETECTED! score =", this.score, "bird =", {x: this.bird.x, y: this.bird.y, vy: this.bird.vy, isInvincible: this.bird.isInvincible});
+    console.trace();
     this.bird.isCrashing = true;
     this.soundManager.playExplosion();
     
@@ -1176,6 +1522,12 @@ export class GameEngine {
     // Progress Squad Survival time achievement on game over
     if (this.gameMode === 'flock') {
       this.progressManager.incrementAchievement('survival_legend', Math.floor(this.squadSurvivalTime));
+    }
+
+    // Chaos Zone bonus: convert every destroyed obstacle into a coin
+    if (this.progressManager.getState().selectedZone === 'chaos' && this.destroyedPipesCount > 0) {
+      this.progressManager.addCoins(this.destroyedPipesCount);
+      this.coinsCollectedThisRun += this.destroyedPipesCount;
     }
 
     // Save
@@ -1327,6 +1679,16 @@ export class GameEngine {
       multiplier *= 2; // Legendary Eagle King gets 2x score only when ultimate is active!
     }
     this.score += amt * multiplier;
+    
+    // Trigger earthquake every 20 obstacles in Chaos Mode (Squad Mode only)
+    if (this.progressManager.getState().selectedZone === 'chaos' && this.gameMode === 'flock') {
+      this.chaosObstaclesPassed += amt;
+      if (this.chaosObstaclesPassed >= 20) {
+        this.chaosObstaclesPassed = 0;
+        this.triggerEarthquake();
+      }
+    }
+    
     if (this.ultimateActive && this.bird.getSkin().id === 'dread_falcon') {
       this.falconObstaclesPassed += amt;
     }
@@ -1349,6 +1711,17 @@ export class GameEngine {
     this.soundManager.playCoin();
 
     // Demo completion checks were removed  
+  }
+
+  private triggerEarthquake() {
+    this.activeChaosEvent = 'earthquake';
+    this.chaosEventTimer = 8.0;
+    this.chaosEventAnnounceTimer = 2.5;
+    this.soundManager.playSpeedBoost();
+
+    window.dispatchEvent(new CustomEvent('hud_alert', {
+      detail: { text: 'EARTHQUAKE', sub: '' }
+    }));
   }
 
   private triggerBossWarning() {
@@ -1469,12 +1842,31 @@ export class GameEngine {
       return;
     }
 
-    if (['shield', 'slowmo', 'magnet', 'double', 'turbo', 'ghost', 'mini'].includes(type)) {
+    if (['shield', 'slowmo', 'magnet', 'double', 'turbo', 'ghost', 'mini', 'weapon'].includes(type)) {
       this.progressManager.updateQuestProgress('collect_powerups', 1);
     }
 
     if (type === 'shield') {
       this.bird.hasShield = true;
+    } else if (type === 'weapon') {
+      const weaponTypes: ('bullet' | 'laser' | 'rocket' | 'blade')[] = ['bullet', 'laser', 'rocket', 'blade'];
+      this.weaponType = weaponTypes[Math.floor(Math.random() * weaponTypes.length)];
+      if (this.weaponActive) {
+        this.weaponLevel = Math.min(3, this.weaponLevel + 1);
+      } else {
+        this.weaponActive = true;
+        this.weaponLevel = 1;
+      }
+      duration = 15.0;
+      max = 15.0;
+    } else if (type === 'gravity') {
+      // Toggle gravity flip state immediately
+      this.gravityFlipped = !this.gravityFlipped;
+      this.soundManager.playSpeedBoost();
+      // Spawn flashy portal explosion particles!
+      this.particleEngine.emitRing(this.bird.x, this.bird.y, '#d946ef', 18);
+      this.renderer.triggerScreenShake(4, 0.15);
+      return; // Do not add to activePowerupsList since it's an instant toggle!
     } else if (type === 'slowmo') {
       this.timeScale = 0.55;
       duration = 10.0;
@@ -1561,6 +1953,9 @@ export class GameEngine {
       this.bird.isGhost = false;
     } else if (type === 'mini') {
       this.bird.sizeMultiplier = 1.0;
+    } else if (type === 'weapon') {
+      this.weaponActive = false;
+      this.weaponLevel = 0;
     }
     window.dispatchEvent(new CustomEvent('powerup_expired', { detail: { type } }));
   }
@@ -1604,6 +1999,22 @@ export class GameEngine {
       }
     }
     this.bird.jump(this.soundManager, this.score);
+  }
+
+  // Trigger the Hyper Booster Ability (1s duration, passes 50 obstacles, 1s cooldown)
+  public triggerBooster() {
+    if (this.state !== 'PLAYING' && this.state !== 'BOSS_FIGHT' && this.state !== 'BOSS_WARNING') return;
+    if (this.boosterActive || this.boosterDeactivating) return;
+    if (this.boosterSpawnTimer > 0) return; // Must be cooled down
+
+    this.boosterActive = true;
+    this.boosterTimer = 25.0; // 25 obstacles to pass
+    this.boosterScoreAccumulator = 0.0;
+    this.bird.isInvincible = true;
+    this.boosterTapsThisRun++;
+
+    this.soundManager.playSpeedBoost();
+    this.renderer.triggerScreenShake(12, 0.25);
   }
 
   // Trigger the Ultimate Special Ability (Option 2)
@@ -1693,6 +2104,17 @@ export class GameEngine {
       // Lotus Hummingbird: Temporal Dilation
       this.timeScale = 0.30; // 70% slow-mo
       subtext = 'WORLD TIME SLOWED BY 70%! HYPER AGILITY ACTIVE!';
+    } else if (id === 'pterodactyl') {
+      // Primal Pterodactyl: Primal Temporal Glide
+      this.bird.isInvincible = true;
+      this.timeScale = 0.50; // 50% slow-mo
+      this.scrollSpeed = this.baseScrollSpeed * 1.50; // 1.5x speed blast
+      subtext = 'PRIMAL GLIDE ACTIVE! 50% SLOW-MO + 1.5X SPEED BLAST!';
+    } else if (id === 'crimson_dragon') {
+      // Crimson Wyvern: Crimson Inferno Blast
+      this.bird.isInvincible = true;
+      this.scrollSpeed = this.baseScrollSpeed * 1.80; // 1.8x speed blast
+      subtext = 'INFERNO BLAST ACTIVE! 1.8X SPEED BOOST + INVINCIBILITY!';
     }
 
     this.ultimateMaxDuration = duration;

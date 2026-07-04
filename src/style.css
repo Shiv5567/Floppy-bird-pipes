@@ -1038,7 +1038,7 @@ body, html {
 }
 
 .tab-hero-title {
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 800;
   letter-spacing: 1px;
   white-space: nowrap;
@@ -1792,13 +1792,14 @@ body, html {
 }
 
 .hud-alert-card {
-  padding: 18px 30px;
+  padding: 13px 21px;
   text-align: center;
   z-index: 12;
+  transform: translateY(-80px); /* Shifted upwards to the top */
 }
 
 .alert-title {
-  font-size: 18px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 2px;
 }

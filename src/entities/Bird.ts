@@ -128,6 +128,10 @@ export class Bird {
       impulse *= flockVelMult;
     }
 
+    // Invert jump direction if gravity is flipped (push downwards instead of upwards)
+    if (engine && engine.gravityFlipped) {
+      impulse = -impulse;
+    }
     // Instant, sharp, predictable and completely constant jump:
     // Instantly set vertical velocity to the jump impulse to give an immediate constant response on every tap.
     this.vy = impulse;
@@ -184,9 +188,18 @@ export class Bird {
         this.angle += (targetAngle - this.angle) * 0.22 * dtCoeff;
       } else {
         // Apply gravity
-        this.vy += currentGravity * dtCoeff;
-        if (this.vy > currentMaxFallSpeed) this.vy = currentMaxFallSpeed;
-        if (this.vy < currentMaxRiseSpeed) this.vy = currentMaxRiseSpeed; // Synced upward rise cap
+        const gravitySign = (engine && engine.gravityFlipped) ? -1 : 1;
+        this.vy += currentGravity * gravitySign * dtCoeff;
+        
+        if (engine && engine.gravityFlipped) {
+          // Flipped limits: falling is upwards (negative), flapping is downwards (positive)
+          if (this.vy < -currentMaxFallSpeed) this.vy = -currentMaxFallSpeed;
+          if (this.vy > -currentMaxRiseSpeed) this.vy = -currentMaxRiseSpeed;
+        } else {
+          // Normal limits: falling is downwards (positive), flapping is upwards (negative)
+          if (this.vy > currentMaxFallSpeed) this.vy = currentMaxFallSpeed;
+          if (this.vy < currentMaxRiseSpeed) this.vy = currentMaxRiseSpeed;
+        }
 
         this.y += this.vy * dtCoeff;
 
@@ -400,6 +413,12 @@ export class Bird {
       case 'jade_lotus':
         this.drawJadeLotus(ctx);
         break;
+      case 'pterodactyl':
+        this.drawPterodactyl(ctx);
+        break;
+      case 'crimson_dragon':
+        this.drawCrimsonDragon(ctx);
+        break;
 
 
 
@@ -492,6 +511,12 @@ export class Bird {
         break;
       case 'jade_lotus':
         this.drawJadeLotus(ctx);
+        break;
+      case 'pterodactyl':
+        this.drawPterodactyl(ctx);
+        break;
+      case 'crimson_dragon':
+        this.drawCrimsonDragon(ctx);
         break;
 
 
@@ -3823,5 +3848,942 @@ export class Bird {
     ctx.stroke();
 
     ctx.restore();
+  }
+
+  private drawPterodactyl(ctx: CanvasRenderingContext2D) {
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = 'rgba(180, 70, 0, 0.4)'; // Warm ambient shadow
+    }
+
+    // Dynamic flight tilt & flap cycle parameters
+    const faceX = Math.cos(this.angle) * 1.5;
+    const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.08;
+    const flap = Math.sin(this.flapCycle);
+
+    // Color Palette
+    const strokeCol = '#1a0800'; // Deep dark brown stroke
+    const bodyBase = '#8a4018';   // Ochre brown base
+    const bodyShadow = '#501e05'; // Crevice shadow
+    const bodyLight = '#e69a68';  // Warm sunlit highlight
+    const bodyMid = '#cd7f32';    // Rich burnt ochre orange
+    const membraneMid = '#c36236'; // Warm orange-red leathery wing membrane
+    const membraneLight = '#e48a5c'; // Semi-translucent light passing through wing
+    const gularColor = '#c43d10'; // Gular pouch blood-orange
+    const clawColor = '#ffd380';  // Keratin claw yellow
+    const mouthInner = '#901c1c'; // Inner mouth red
+
+    // Linear Gradients for 3D form
+    const bodyGrad = ctx.createLinearGradient(-25, -12, 15, 12);
+    bodyGrad.addColorStop(0, bodyShadow);
+    bodyGrad.addColorStop(0.3, bodyBase);
+    bodyGrad.addColorStop(0.7, '#c66c3c');
+    bodyGrad.addColorStop(1, bodyLight);
+    const skinGrad = bodyGrad;
+
+    const neckGrad = ctx.createLinearGradient(5, -10, 20, -20);
+    neckGrad.addColorStop(0, bodyShadow);
+    neckGrad.addColorStop(0.5, bodyBase);
+    neckGrad.addColorStop(1, bodyLight);
+
+    const crestGrad = ctx.createLinearGradient(0, -2, -35, -12);
+    crestGrad.addColorStop(0, '#c66c3c');
+    crestGrad.addColorStop(0.4, '#b04a1a');
+    crestGrad.addColorStop(0.8, bodyShadow);
+    crestGrad.addColorStop(1, '#240800');
+
+    const beakGrad = ctx.createLinearGradient(5, -5, 28, 5);
+    beakGrad.addColorStop(0, '#e69a68');
+    beakGrad.addColorStop(0.6, '#bd5222');
+    beakGrad.addColorStop(1, '#8a4018');
+
+    // --- 1. FAR HIND LEG & FOOT (Layered behind) ---
+    ctx.save();
+    ctx.fillStyle = bodyShadow;
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(-16, 3);
+    ctx.quadraticCurveTo(-24, 10, -28, 8); // Thigh
+    ctx.lineTo(-32, 11);                  // Toes
+    ctx.quadraticCurveTo(-24, 13, -15, 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // --- 2. FAR WING (Behind the body) ---
+    ctx.save();
+    ctx.fillStyle = '#6e2a0b'; // Darker self-shadowed wing membrane
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 1.0;
+    
+    const farWingTipY = -34 + flap * 18;
+    ctx.beginPath();
+    ctx.moveTo(-8, -4);
+    ctx.quadraticCurveTo(-15, farWingTipY - 8, -23, farWingTipY); // Wing finger
+    ctx.quadraticCurveTo(-21, farWingTipY + 12, -12, 11);         // Trailing edge
+    ctx.quadraticCurveTo(-7, 7, -4, 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // --- 3. TAIL (Very short, aerodynamic) ---
+    ctx.fillStyle = bodyShadow;
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-20, 1);
+    ctx.quadraticCurveTo(-28, 3, -31, 1);
+    ctx.quadraticCurveTo(-25, -1, -20, -1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // --- 4. MAIN TORSO (Muscular chest, defined shoulders and hips) ---
+    ctx.fillStyle = bodyGrad;
+    ctx.beginPath();
+    ctx.moveTo(-21, 1);
+    ctx.bezierCurveTo(-15, -12, 10, -10, 15, -3); // Curved back spine
+    ctx.bezierCurveTo(20, 3, 15, 14, 5, 12);      // Pectoral chest swell
+    ctx.bezierCurveTo(-5, 9, -15, 6, -21, 1);     // Belly line
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // 4b. Belly Countershading Overlay (gradient fade to soft cream underneath)
+    const bellyGrad = ctx.createLinearGradient(0, -6, 0, 12);
+    bellyGrad.addColorStop(0, 'rgba(255, 230, 200, 0.0)');
+    bellyGrad.addColorStop(0.65, 'rgba(255, 230, 200, 0.4)');
+    bellyGrad.addColorStop(1, 'rgba(255, 230, 200, 0.7)');
+    ctx.fillStyle = bellyGrad;
+    ctx.beginPath();
+    ctx.moveTo(-21, 1);
+    ctx.bezierCurveTo(-15, -12, 10, -10, 15, -3);
+    ctx.bezierCurveTo(20, 3, 15, 14, 5, 12);
+    ctx.bezierCurveTo(-5, 9, -15, 6, -21, 1);
+    ctx.closePath();
+    ctx.fill();
+
+    // 4c. Spinal osteoderms/scutes (small pointed ridges along spine)
+    ctx.fillStyle = bodyShadow;
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 0.8;
+    for (let xVal = -15; xVal <= 9; xVal += 6) {
+      const ratio = (xVal + 15) / 24;
+      const yVal = -4 - (ratio * 3); // Approximate spine line height
+      ctx.beginPath();
+      ctx.moveTo(xVal, yVal);
+      ctx.lineTo(xVal - 1.5, yVal - 3.5);
+      ctx.lineTo(xVal + 1.5, yVal);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    // Muscle Highlight: Draw a soft overlay path for the shoulder girdle
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.beginPath();
+    ctx.ellipse(3, 1, 7, 5, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Muscle Highlight: Hip swell
+    ctx.beginPath();
+    ctx.ellipse(-14, 2, 5, 3.5, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // --- 5. S-CURVED MUSCULAR NECK ---
+    ctx.fillStyle = neckGrad;
+    ctx.beginPath();
+    ctx.moveTo(8, -5);
+    ctx.quadraticCurveTo(10, -12, 13 + faceX, -16 + faceY); // S-curve back of neck
+    ctx.lineTo(19 + faceX, -17 + faceY);
+    ctx.quadraticCurveTo(14, -13, 17 + faceX, -14 + faceY); // S-curve throat front
+    ctx.lineTo(21 + faceX, -14 + faceY);
+    ctx.quadraticCurveTo(13, -2, 4, -2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Detailed Neck Wrinkles and Muscle Bands
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    // Wrap-around skin folds
+    ctx.moveTo(9, -8);
+    ctx.quadraticCurveTo(11, -11, 14, -9);
+    ctx.moveTo(11, -12);
+    ctx.quadraticCurveTo(13, -15, 16, -13);
+    ctx.moveTo(7, -4);
+    ctx.quadraticCurveTo(9, -7, 11, -5);
+    ctx.stroke();
+
+    // --- 6. DETAILED HEAD, CREST, & BEAK ---
+    ctx.save();
+    ctx.translate(18 + faceX, -16 + faceY);
+
+    // Gular throat sac (stretching from lower jaw down to neck)
+    ctx.fillStyle = gularColor;
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(1, 2);
+    ctx.quadraticCurveTo(6, 11, -4, 9); // Gular pouch curve
+    ctx.quadraticCurveTo(-1, 4, 0, 1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Elongated Head Crest (Very long, pointing backwards with light/shadow facets)
+    ctx.fillStyle = crestGrad;
+    ctx.beginPath();
+    ctx.moveTo(-3, -4);
+    ctx.quadraticCurveTo(-20, -14, -36, -12); // Long sharp crest tip
+    ctx.quadraticCurveTo(-15, -3, 2, -1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Crest Growth Rings (Banded textures following the crest curve)
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.22)';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(-9, -7); ctx.quadraticCurveTo(-8, -5, -7, -4);
+    ctx.moveTo(-16, -9); ctx.quadraticCurveTo(-15, -7, -14, -6);
+    ctx.moveTo(-23, -10); ctx.quadraticCurveTo(-21, -8, -20, -7);
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(-11, -7.5); ctx.quadraticCurveTo(-10, -5.5, -9, -4.5);
+    ctx.moveTo(-18, -9.5); ctx.quadraticCurveTo(-17, -7.5, -16, -6.5);
+    ctx.stroke();
+
+    // Head base skull structure
+    ctx.fillStyle = skinGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, 7.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Brow ridge & Eye Socket
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-2, -3);
+    ctx.quadraticCurveTo(2, -5, 4.5, -2); // Heavy brow ridge
+    ctx.stroke();
+
+    // Beak Keratin Sheath Shading (Gradients + highlight)
+    ctx.fillStyle = beakGrad;
+    
+    // Inner mouth cavity (rich dark red)
+    ctx.fillStyle = mouthInner;
+    ctx.beginPath();
+    ctx.moveTo(3, -1);
+    ctx.lineTo(25, 2);
+    ctx.lineTo(21, 5);
+    ctx.closePath();
+    ctx.fill();
+
+    // Top Beak (Keratinous upper bill, curved tip)
+    ctx.fillStyle = beakGrad;
+    ctx.beginPath();
+    ctx.moveTo(3, -3);
+    ctx.quadraticCurveTo(18, -2, 30, 2);   // Long beak tip
+    ctx.quadraticCurveTo(29, 3, 27, 3);    // Hook tip
+    ctx.quadraticCurveTo(15, 1, 4, 0);     // Gape line
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Fine parallel horn-growth ridges along beak length
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.14)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(6, -2); ctx.quadraticCurveTo(18, -1, 26, 1.5);
+    ctx.moveTo(8, -1); ctx.quadraticCurveTo(19, 0, 24, 1.8);
+    ctx.stroke();
+
+    // Top Beak Highlight line (Keratin sheen)
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(5, -2.2);
+    ctx.quadraticCurveTo(18, -1.2, 26, 1.0);
+    ctx.stroke();
+
+    // Bottom Beak (Lower jaw, tapering)
+    ctx.fillStyle = beakGrad;
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    ctx.moveTo(3, 1);
+    ctx.quadraticCurveTo(16, 4, 27, 6);
+    ctx.quadraticCurveTo(12, 3, 2, 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Nostril slit
+    ctx.fillStyle = strokeCol;
+    ctx.beginPath();
+    ctx.ellipse(8, -1.8, 1.2, 0.6, 0.15, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Fierce reptile yellow eye
+    ctx.fillStyle = '#fff59d'; // Vibrant yellow iris
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.arc(1, -2, 2.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Slit pupil (Predatory vertical slit)
+    ctx.fillStyle = '#0d0400';
+    ctx.beginPath();
+    ctx.ellipse(1, -2, 0.6, 1.6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+
+    // --- 7. NEAR HIND LEG & FOOT (Layered in foreground) ---
+    ctx.fillStyle = skinGrad;
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-13, 3);
+    ctx.quadraticCurveTo(-22, 13, -28, 12); // Shin
+    ctx.quadraticCurveTo(-31, 15, -34, 14); // Long claw toe 1
+    ctx.moveTo(-28, 12);
+    ctx.quadraticCurveTo(-29, 16, -31, 17); // Long claw toe 2
+    ctx.stroke();
+
+    // --- 8. THE FOREGROUND WING (Anatomically complete with Propatagium & Brachiopatagium) ---
+    ctx.save();
+    
+    // Wing skeleton nodes
+    const wingTipX = -27;
+    const wingTipY = -44 + flap * 22; // Flapping amplitude
+    const shoulderX = 1;
+    const shoulderY = -3;
+    const elbowX = (-1 - 27) / 2 - 4;
+    const elbowY = (-3 + wingTipY) / 2 - 8;
+
+    // Wing Membrane (Brachiopatagium) - main leathery membrane
+    const mainWingGrad = ctx.createLinearGradient(elbowX, elbowY, -20, 10);
+    mainWingGrad.addColorStop(0, bodyMid);
+    mainWingGrad.addColorStop(0.5, membraneMid);
+    mainWingGrad.addColorStop(1, membraneLight);
+    
+    ctx.fillStyle = mainWingGrad;
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 1.3;
+    
+    ctx.beginPath();
+    ctx.moveTo(shoulderX, shoulderY);
+    ctx.lineTo(elbowX, elbowY); // Humerus/Radius-Ulna bones
+    ctx.quadraticCurveTo(elbowX - 5, elbowY - 6, wingTipX, wingTipY); // Long wing finger
+    // Trailing edge curves back to the body flank/ankle
+    ctx.quadraticCurveTo(-14, wingTipY + 12, -7, 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // 8b. Wing camouflage stripes/bands (Natural wildlife pattern matching illustration)
+    ctx.fillStyle = 'rgba(92, 44, 12, 0.26)'; // Translucent dark stripe 1
+    ctx.beginPath();
+    ctx.moveTo(elbowX - 1, elbowY + 3);
+    ctx.quadraticCurveTo(elbowX - 10, elbowY + 13, -11, 7.5);
+    ctx.lineTo(-9, 7.5);
+    ctx.quadraticCurveTo(elbowX - 6, elbowY + 11, elbowX + 3, elbowY + 3);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(196, 61, 16, 0.22)'; // Translucent orange stripe 2
+    ctx.beginPath();
+    ctx.moveTo(wingTipX + 7, wingTipY + 8);
+    ctx.quadraticCurveTo((wingTipX - 6) / 2, (wingTipY + 15) / 2, -15, 8.5);
+    ctx.lineTo(-13, 8.5);
+    ctx.quadraticCurveTo((wingTipX - 2) / 2, (wingTipY + 13) / 2, wingTipX + 11, wingTipY + 6);
+    ctx.closePath();
+    ctx.fill();
+
+    // Propatagium (Small front-edge wing membrane between neck and elbow)
+    ctx.fillStyle = 'rgba(180, 80, 30, 0.7)';
+    ctx.beginPath();
+    ctx.moveTo(8, -8);         // Base of neck
+    ctx.lineTo(elbowX, elbowY); // Out to elbow
+    ctx.lineTo(shoulderX, shoulderY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Leathery vein striations on the wing membrane (for high premium texture detail)
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+    ctx.lineWidth = 0.9;
+    ctx.beginPath();
+    // Striated lines spreading from wing arm down the membrane
+    ctx.moveTo(elbowX, elbowY + 2);
+    ctx.quadraticCurveTo((elbowX - 10) / 2, (elbowY + 13) / 2, -10, 7);
+    ctx.moveTo((elbowX + wingTipX) / 2, (elbowY + wingTipY) / 2 + 1);
+    ctx.quadraticCurveTo((wingTipX - 10) / 2, (wingTipY + 15) / 2, -13, 8);
+    ctx.moveTo(wingTipX + 3, wingTipY + 3);
+    ctx.quadraticCurveTo((wingTipX - 6) / 2, (wingTipY + 17) / 2, -16, 9);
+    ctx.stroke();
+
+    // Wing bone highlights (Bright sunlight reflection)
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.moveTo(shoulderX, shoulderY);
+    ctx.lineTo(elbowX, elbowY);
+    ctx.lineTo(wingTipX, wingTipY);
+    ctx.stroke();
+
+    // Three distinct curved claw-digits on the wing elbow joint (very detailed)
+    ctx.fillStyle = clawColor;
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 0.9;
+    for (let i = 0; i < 3; i++) {
+      const cx = elbowX + i * 2.2;
+      const cy = elbowY + i * 1.0;
+      ctx.beginPath();
+      // Draw three tiny curved finger claws at the elbow
+      ctx.arc(cx, cy, 1.6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Draw a tiny dark claw tip
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.quadraticCurveTo(cx - 2, cy + 2, cx - 3.5, cy + 1);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // --- 9. FINAL PREMIUM TOUCHES: Speckled reptile scale pattern ---
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+    // spec/scale highlights along the spine/shoulders
+    ctx.fillRect(-11, -5, 1.8, 1.8);
+    ctx.fillRect(-5, -7, 1.8, 1.8);
+    ctx.fillRect(1, -7, 1.8, 1.8);
+    ctx.fillRect(4, -5, 1.8, 1.8);
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+    // shadow speckles
+    ctx.fillRect(-15, 3, 2, 1.5);
+    ctx.fillRect(-10, 4, 1.5, 1.5);
+  }
+
+  private drawCrimsonDragon(ctx: CanvasRenderingContext2D) {
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 14;
+      ctx.shadowColor = 'rgba(255, 30, 0, 0.5)'; // Fiery crimson dragon glow
+    }
+
+    // Dynamic flight tilt & flap cycle parameters
+    const faceX = Math.cos(this.angle) * 1.5;
+    const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.08;
+    const flap = Math.sin(this.flapCycle);
+    const flapCos = Math.cos(this.flapCycle);
+
+    // Lifelike Secondary Motion Variables:
+    const headBobX = flapCos * 0.3;
+    const headBobY = flap * 0.6;          // Head bobs up/down counter-phase to flap
+    const tailWagY = Math.sin(this.flapCycle - 1.2) * 5.0; // Tail whip wave
+    const legSwingX = Math.cos(this.flapCycle * 0.7) * 2.0; // Leg swing due to drag
+    const legSwingY = Math.sin(this.flapCycle * 0.7) * 1.5;
+    const breathScale = 1.0 + Math.sin(this.flapCycle * 0.5) * 0.04; // Chest expansion/contraction
+
+    // Color Palette matching the beautiful image:
+    // Rich crimson red, burnt maroon shadow, sandy cream belly plates, gold/white horns.
+    const strokeCol = '#1a0400';    // Ink contour
+    const redBase = '#c62828';      // Crimson red body
+    const redShadow = '#5f0909';    // Maroon shadow
+    const redHighlight = '#ef5350'; // Bright scale highlight
+    const bellyPlates = '#ece0c8';   // Cream plate scales
+    const hornBase = '#ffd54f';     // Gold horn root
+    const hornTip = '#ffffff';      // Pearl white horn tips
+    const wingMembrane = '#e65100'; // Fiery orange wing membrane
+    const clawColor = '#ffd380';    // Keratin claw yellow
+    
+    // Gradients for 3D dragon skin
+    const bodyGrad = ctx.createLinearGradient(-35, -10, 20, 10);
+    bodyGrad.addColorStop(0, redShadow);
+    bodyGrad.addColorStop(0.3, redBase);
+    bodyGrad.addColorStop(0.7, '#d32f2f');
+    bodyGrad.addColorStop(1, redHighlight);
+
+    const neckGrad = ctx.createLinearGradient(5, -8, 20, -18);
+    neckGrad.addColorStop(0, redShadow);
+    neckGrad.addColorStop(0.5, redBase);
+    neckGrad.addColorStop(1, redHighlight);
+
+    // --- 1. LONG SPIKY DRAGON TAIL (Trailing behind with whip sway - Stretched) ---
+    ctx.fillStyle = redBase;
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-28, 1);
+    ctx.bezierCurveTo(-38, 5, -50, 12 + tailWagY * 0.5, -66, 20 + tailWagY); // Longer tail shape
+    ctx.quadraticCurveTo(-50, 11 + tailWagY * 0.4, -28, -1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Spikes along the tail
+    ctx.fillStyle = redShadow;
+    for (let i = 0; i < 9; i++) {
+      const ratio = i / 8;
+      const tx = -28 - ratio * 32;
+      const ty = 2 + ratio * 16 + (ratio * tailWagY); // Wags with tail sway
+      ctx.beginPath();
+      ctx.moveTo(tx, ty);
+      ctx.lineTo(tx - 3.5, ty + 5);
+      ctx.lineTo(tx + 2.5, ty + 1);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    // Segmented plates under the tail (Cream countershading plates)
+    ctx.fillStyle = bellyPlates;
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 0.8;
+    for (let i = 0; i < 7; i++) {
+      const ratio = i / 6;
+      const tx = -28 - ratio * 24;
+      const ty = 3 + ratio * 10 + (ratio * tailWagY * 0.8);
+      ctx.beginPath();
+      ctx.arc(tx, ty, 2.0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    // --- 2. FAR HIND LEG & CLAW (Shifted back on longer body) ---
+    ctx.save();
+    ctx.fillStyle = redShadow;
+    ctx.beginPath();
+    ctx.moveTo(-22, 4);
+    ctx.quadraticCurveTo(-29, 12, -33, 14); // Thigh swing
+    ctx.lineTo(-36, 13);                  // Claw 1
+    ctx.quadraticCurveTo(-27, 10, -20, 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // --- 3. FAR LEATHERY WING (Behind the body - flapping with phase lag) ---
+    ctx.save();
+    ctx.fillStyle = '#7f1d1d'; // Shadowed deep red membrane
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 1.0;
+    const farFlap = Math.sin(this.flapCycle - 0.4); // 0.4 rad lag
+    const farWingTipY = -36 + farFlap * 20;
+    ctx.beginPath();
+    ctx.moveTo(-8, -4);
+    ctx.quadraticCurveTo(-14, farWingTipY - 10, -24, farWingTipY); // Forearm bone
+    ctx.quadraticCurveTo(-22, farWingTipY + 12, -10, 12);           // Membrane curves
+    ctx.quadraticCurveTo(-6, 7, -4, 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // --- 4. MAIN TORSO (Breathing scale applied - Stretched body) ---
+    ctx.save();
+    ctx.scale(1.0, breathScale); // Pulse torso height for breathing look
+
+    ctx.fillStyle = bodyGrad;
+    ctx.beginPath();
+    ctx.moveTo(-30, 1); // Stretched back point
+    ctx.bezierCurveTo(-22, -12, 12, -10, 18, -3); // Spine
+    ctx.bezierCurveTo(23, 4, 17, 13, 5, 12);      // Pectoral chest
+    ctx.bezierCurveTo(-8, 9, -20, 6, -30, 1);     // Belly
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Muscle Swell Highlight on main body (Shoulder Swell)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+    ctx.beginPath();
+    ctx.ellipse(3, 1, 7, 5, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Thigh muscle swell (shifted back)
+    ctx.beginPath();
+    ctx.ellipse(-20, 3, 5.5, 4.0, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // --- 5. Segmented Cream Underbelly Plates (Chest & Throat Armor - Adapted to longer body) ---
+    // Drawing interlocking horizontal grooves (lines) and orange core dots
+    // Linear gradient for armor: cream base with glowing yellow-orange magma center
+    const armorGrad = ctx.createLinearGradient(-22, 12, 18 + faceX + headBobX, -14 + faceY + headBobY);
+    armorGrad.addColorStop(0, '#ffa726'); // Soft fiery orange
+    armorGrad.addColorStop(0.35, '#ece0c8'); // Classic cream
+    armorGrad.addColorStop(0.8, '#f5ebe0');   // Brighter highlight cream
+    armorGrad.addColorStop(1, '#ffffff');
+
+    ctx.fillStyle = armorGrad;
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 1.2;
+
+    ctx.beginPath();
+    // Left boundary of the armor plating (inner throat/belly edge)
+    ctx.moveTo(19 + faceX + headBobX, -14 + faceY + headBobY);
+    ctx.quadraticCurveTo(13 + headBobX * 0.5, -7 + headBobY * 0.5, 5, -2);
+    ctx.quadraticCurveTo(0, 5, -8, 8);
+    ctx.quadraticCurveTo(-20, 6, -30, 1); // Connect to belly tail junction
+    
+    // Bottom/Right boundary (belly/throat contour)
+    ctx.quadraticCurveTo(-20, 11, -8, 12);
+    ctx.quadraticCurveTo(8, 14, 18, 10);
+    ctx.quadraticCurveTo(22, 2, 17 + faceX + headBobX, -12 + faceY + headBobY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(26, 4, 0, 0.35)';
+    ctx.lineWidth = 1.0;
+    
+    for (let i = 0.12; i <= 0.88; i += 0.08) {
+      // Interpolate points from left side to right side of the armor shape
+      const lx = (19 + faceX + headBobX) * (1 - i) + (-30) * i + Math.sin(i * Math.PI) * 1.5;
+      const ly = (-14 + faceY + headBobY) * (1 - i) + 1 * i - Math.sin(i * Math.PI) * 3;
+
+      const rx = (17 + faceX + headBobX) * (1 - i) + (-8) * i;
+      const ry = (-12 + faceY + headBobY) * (1 - i) + 12 * i;
+
+      ctx.beginPath();
+      ctx.moveTo(lx, ly);
+      ctx.lineTo(rx, ry);
+      ctx.stroke();
+
+      // Soft orange core glow dot in the middle of each groove segment
+      ctx.fillStyle = '#ff9100';
+      ctx.beginPath();
+      ctx.arc((lx + rx) / 2, (ly + ry) / 2, 0.9, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Spine osteoderm spikes along back (stretched range)
+    ctx.fillStyle = redShadow;
+    for (let xVal = -24; xVal <= 12; xVal += 5) {
+      const ratio = (xVal + 24) / 36;
+      const yVal = -4 - (ratio * 3);
+      ctx.beginPath();
+      ctx.moveTo(xVal, yVal);
+      ctx.lineTo(xVal - 2.5, yVal - 4.5);
+      ctx.lineTo(xVal + 2.5, yVal);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.restore(); // Restore breathing scale
+
+    // --- 6. S-CURVED LONG DRAGON NECK (Flexes with head bobbing) ---
+    ctx.fillStyle = neckGrad;
+    ctx.beginPath();
+    ctx.moveTo(8, -5);
+    ctx.quadraticCurveTo(10 + headBobX * 0.5, -12 + headBobY * 0.5, 13 + faceX + headBobX, -16 + faceY + headBobY); // Back spine neck
+    ctx.lineTo(19 + faceX + headBobX, -17 + faceY + headBobY);
+    ctx.quadraticCurveTo(14 + headBobX * 0.8, -13 + headBobY * 0.8, 17 + faceX + headBobX, -14 + faceY + headBobY); // Front throat neck
+    ctx.lineTo(21 + faceX + headBobX, -14 + faceY + headBobY);
+    ctx.quadraticCurveTo(13, -2, 4, -2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Spines along neck back
+    ctx.fillStyle = redShadow;
+    for (let i = 0.2; i < 0.9; i += 0.22) {
+      const nx = 8 + i * (6 + faceX + headBobX);
+      const ny = -7 - i * (10 - faceY - headBobY);
+      ctx.beginPath();
+      ctx.moveTo(nx, ny);
+      ctx.lineTo(nx - 2, ny - 3.5);
+      ctx.lineTo(nx + 1.5, ny);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    // --- 7. NEAR HIND LEG & TALONS (Shifted back on longer body) ---
+    ctx.fillStyle = bodyGrad;
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-20, 3);
+    ctx.quadraticCurveTo(-27 + legSwingX, 13 + legSwingY, -32 + legSwingX, 12 + legSwingY); // Shin
+    ctx.quadraticCurveTo(-35 + legSwingX, 15 + legSwingY, -38 + legSwingX, 14 + legSwingY); // Claw toe 1
+    ctx.moveTo(-32 + legSwingX, 12 + legSwingY);
+    ctx.quadraticCurveTo(-33 + legSwingX, 16 + legSwingY, -35 + legSwingX, 16 + legSwingY); // Claw toe 2
+    ctx.stroke();
+
+    // Sharp black talon tips with white shiny highlights
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-38 + legSwingX, 14 + legSwingY); ctx.quadraticCurveTo(-41 + legSwingX, 15 + legSwingY, -43 + legSwingX, 13 + legSwingY);
+    ctx.moveTo(-35 + legSwingX, 16 + legSwingY); ctx.quadraticCurveTo(-37 + legSwingX, 18 + legSwingY, -39 + legSwingX, 16 + legSwingY);
+    ctx.stroke();
+
+    // --- 8. DETAILED HEAD, CROWN OF GOLD HORNS, OPEN MOUTH (Moves with neck bobbing) ---
+    ctx.save();
+    ctx.translate(18 + faceX + headBobX, -16 + faceY + headBobY);
+
+    // 8a. Crown of Horns: 6 curved gold-to-white spikes pointing backwards
+    const hornGrad = ctx.createLinearGradient(0, 0, -25, -15);
+    hornGrad.addColorStop(0, hornBase);
+    hornGrad.addColorStop(0.5, '#ffd54f');
+    hornGrad.addColorStop(1, hornTip);
+    ctx.fillStyle = hornGrad;
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 1.0;
+
+    // Horn 1 (Longest top-main horn)
+    ctx.beginPath();
+    ctx.moveTo(-2, -5);
+    ctx.quadraticCurveTo(-14, -17, -29, -14);
+    ctx.quadraticCurveTo(-12, -7, 1, -3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Horn 2 (Middle horn)
+    ctx.beginPath();
+    ctx.moveTo(-3, -2);
+    ctx.quadraticCurveTo(-16, -11, -26, -7);
+    ctx.quadraticCurveTo(-10, -4, 1, -1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Horn 3 (Lower cheek horn)
+    ctx.beginPath();
+    ctx.moveTo(-4, 0);
+    ctx.quadraticCurveTo(-14, -6, -22, -2);
+    ctx.quadraticCurveTo(-9, -2, 0, 1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Horn 4 (Top accessory horn)
+    ctx.beginPath();
+    ctx.moveTo(-1, -6);
+    ctx.quadraticCurveTo(-10, -18, -22, -18);
+    ctx.quadraticCurveTo(-8, -10, 1, -4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Horn 5 & 6 (Minor temporal spikes)
+    ctx.beginPath();
+    ctx.moveTo(-2, -3);
+    ctx.quadraticCurveTo(-8, -8, -15, -8);
+    ctx.quadraticCurveTo(-6, -4, 0, -2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // 8b. Head Structure
+    ctx.fillStyle = bodyGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, 7.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Cheek Spikes (maroon head scales matching the artwork)
+    ctx.fillStyle = redShadow;
+    ctx.beginPath();
+    ctx.moveTo(-4, 2);
+    ctx.lineTo(-11, 6);
+    ctx.lineTo(-3, 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Brow ridge & socket
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-2, -3);
+    ctx.quadraticCurveTo(2, -5, 4.5, -2);
+    ctx.stroke();
+
+    // 8c. Open Mouth Cavity (red interior)
+    const mouthInner = '#901c1c'; // Inner mouth red
+    ctx.fillStyle = mouthInner;
+    ctx.beginPath();
+    ctx.moveTo(3, -1);
+    ctx.lineTo(24, 2);
+    ctx.lineTo(20, 6);
+    ctx.closePath();
+    ctx.fill();
+
+    // Sharp white teeth (multiple upper and lower teeth)
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.moveTo(8, -1); ctx.lineTo(9, 1.5); ctx.lineTo(10, -1);
+    ctx.moveTo(13, 0); ctx.lineTo(14, 2.5); ctx.lineTo(15, 0);
+    ctx.moveTo(18, 0.5); ctx.lineTo(19, 2.8); ctx.lineTo(20, 0.5);
+    // Lower teeth
+    ctx.moveTo(9, 2.5); ctx.lineTo(10, 1.0); ctx.lineTo(11, 2.5);
+    ctx.moveTo(14, 3.5); ctx.lineTo(15, 2.0); ctx.lineTo(16, 3.5);
+    ctx.fill();
+
+    // Top Jaw (Crimson red snout, curved tip)
+    ctx.fillStyle = bodyGrad;
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    ctx.moveTo(3, -3);
+    ctx.quadraticCurveTo(18, -2, 28, 2); // Snout tip
+    ctx.quadraticCurveTo(27, 3, 25, 3);
+    ctx.quadraticCurveTo(15, 1, 4, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Bottom Jaw (Snout bottom)
+    ctx.beginPath();
+    ctx.moveTo(3, 1);
+    ctx.quadraticCurveTo(15, 5, 25, 7);
+    ctx.quadraticCurveTo(12, 3, 2, 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Nostril
+    ctx.fillStyle = strokeCol;
+    ctx.beginPath();
+    ctx.ellipse(8, -1.8, 1.0, 0.5, 0.1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Golden Yellow Eye
+    ctx.fillStyle = '#ffee58'; // Gold iris
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.arc(1, -2, 2.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Slit pupil (Black vertical slit)
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.ellipse(1, -2, 0.6, 1.6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+
+    // --- 9. FOREGROUND LEATHERY WING (Large Red/Orange Wing in front) ---
+    ctx.save();
+    
+    // Wing skeleton nodes
+    const wingTipX = -27;
+    const wingTipY = -45 + flap * 22; // Large flapping motion
+    const shoulderX = 1;
+    const shoulderY = -3;
+    const elbowX = (-1 - 27) / 2 - 4;
+    const elbowY = (-3 + wingTipY) / 2 - 8;
+
+    // Wing Membrane (Brachiopatagium) - orange-crimson leathery gradient
+    const wingGrad = ctx.createLinearGradient(elbowX, elbowY, -20, 10);
+    wingGrad.addColorStop(0, redBase);
+    wingGrad.addColorStop(0.5, wingMembrane);
+    wingGrad.addColorStop(1, '#ff8f00'); // Glowing orange tips
+    
+    ctx.fillStyle = wingGrad;
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 1.3;
+    
+    ctx.beginPath();
+    ctx.moveTo(shoulderX, shoulderY);
+    ctx.lineTo(elbowX, elbowY); // Forearm
+    ctx.quadraticCurveTo(elbowX - 5, elbowY - 6, wingTipX, wingTipY); // Long wing finger
+    // Trailing edge curves back to the body
+    ctx.quadraticCurveTo(-14, wingTipY + 12, -7, 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Multi-finger wing structure (Three distinct rib lines running through the membrane)
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 0.9;
+    
+    // Finger 2
+    ctx.beginPath();
+    ctx.moveTo(elbowX, elbowY);
+    ctx.quadraticCurveTo(elbowX - 12, elbowY + 8, wingTipX + 8, wingTipY + 15);
+    ctx.stroke();
+    
+    // Finger 3
+    ctx.beginPath();
+    ctx.moveTo(elbowX, elbowY);
+    ctx.quadraticCurveTo(elbowX - 6, elbowY + 12, wingTipX + 16, wingTipY + 28);
+    ctx.stroke();
+
+    // Propatagium (Small front-edge wing membrane)
+    ctx.fillStyle = 'rgba(230, 81, 0, 0.75)';
+    ctx.beginPath();
+    ctx.moveTo(8, -8);
+    ctx.lineTo(elbowX, elbowY);
+    ctx.lineTo(shoulderX, shoulderY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Leathery veins striations inside wing membrane
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.lineWidth = 0.9;
+    ctx.beginPath();
+    ctx.moveTo(elbowX, elbowY + 2);
+    ctx.quadraticCurveTo((elbowX - 10) / 2, (elbowY + 13) / 2, -10, 7);
+    ctx.moveTo((elbowX + wingTipX) / 2, (elbowY + wingTipY) / 2 + 1);
+    ctx.quadraticCurveTo((wingTipX - 10) / 2, (wingTipY + 15) / 2, -13, 8);
+    ctx.moveTo(wingTipX + 3, wingTipY + 3);
+    ctx.quadraticCurveTo((wingTipX - 6) / 2, (wingTipY + 17) / 2, -16, 9);
+    ctx.stroke();
+
+    // Wing bone highlights (Bright sunlight)
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.moveTo(shoulderX, shoulderY);
+    ctx.lineTo(elbowX, elbowY);
+    ctx.lineTo(wingTipX, wingTipY);
+    ctx.stroke();
+
+    // Three distinct curved claw-digits on the wing elbow joint
+    ctx.fillStyle = clawColor;
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 0.9;
+    for (let i = 0; i < 3; i++) {
+      const cx = elbowX + i * 2.2;
+      const cy = elbowY + i * 1.0;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 1.6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // --- 10. FINAL PREMIUM DETAILS: Speckled reptile scale pattern ---
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+    ctx.fillRect(-11, -5, 1.8, 1.8);
+    ctx.fillRect(-5, -7, 1.8, 1.8);
+    ctx.fillRect(1, -7, 1.8, 1.8);
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+    // shadow speckles
+    ctx.fillRect(-15, 3, 2, 1.5);
+    ctx.fillRect(-10, 4, 1.5, 1.5);
   }
 }

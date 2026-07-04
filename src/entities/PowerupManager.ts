@@ -1,7 +1,7 @@
 import { ParticleEngine } from '../engine/ParticleEngine.ts';
 import type { Obstacle } from './ObstacleManager.ts';
 
-export type PowerupType = 'shield' | 'slowmo' | 'magnet' | 'double' | 'revive' | 'turbo' | 'ghost' | 'mini' | 'booster' | 'rescue' | 'merge';
+export type PowerupType = 'shield' | 'slowmo' | 'magnet' | 'double' | 'revive' | 'turbo' | 'ghost' | 'mini' | 'booster' | 'rescue' | 'merge' | 'weapon' | 'gravity';
 
 export interface PowerupItem {
   x: number;
@@ -193,7 +193,7 @@ export class PowerupManager {
     height: number,
     timeScale: number,
     obstacles: Obstacle[],
-    gameMode: 'endless' | 'level' | 'flock' | 'rescue' | 'formation' = 'endless',
+    gameMode: 'endless' | 'level' | 'flock' | 'rescue' | 'formation' | 'chaos' = 'endless',
     particleEngine?: ParticleEngine,
     flock?: any[]
   ) {
@@ -221,6 +221,26 @@ export class PowerupManager {
             'star',
             true,
             '#ffd700'
+          );
+        }
+      }
+      
+      if (item.type === 'weapon' && particleEngine) {
+        if (Math.random() < 0.35 * dtCoeff) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = 0.6 + Math.random() * 1.4;
+          particleEngine.spawn(
+            item.x,
+            item.y,
+            Math.cos(angle) * speed - scrollSpeed * 0.1,
+            Math.sin(angle) * speed,
+            Math.random() < 0.5 ? '#00f3ff' : '#d946ef',
+            2.5 + Math.random() * 3,
+            1.0,
+            0.022,
+            'star',
+            true,
+            Math.random() < 0.5 ? '#00f3ff' : '#d946ef'
           );
         }
       }
@@ -344,7 +364,17 @@ export class PowerupManager {
         this.nextCoinIndex < this.coinDistances.length &&
         this.cumulativeDistance >= this.coinDistances[this.nextCoinIndex]
       ) {
-        this.spawnItem('coin', width, height, offscreenSpawnX, this.lastSpawnedObstacleCenterY);
+        let nearestObs: Obstacle | undefined = undefined;
+        let minDiff = Infinity;
+        for (const obs of obstacles) {
+          const diff = Math.abs(obs.x - offscreenSpawnX);
+          if (diff < minDiff && diff < 200) {
+            minDiff = diff;
+            nearestObs = obs;
+          }
+        }
+        const spawnY = nearestObs ? nearestObs.topHeight + (height - nearestObs.bottomHeight - nearestObs.topHeight) / 2 : this.lastSpawnedObstacleCenterY;
+        this.spawnItem('coin', width, height, offscreenSpawnX, spawnY, nearestObs);
         this.nextCoinIndex++;
       }
 
@@ -353,7 +383,17 @@ export class PowerupManager {
         this.nextGemIndex < this.gemDistances.length &&
         this.cumulativeDistance >= this.gemDistances[this.nextGemIndex]
       ) {
-        this.spawnItem('gem', width, height, offscreenSpawnX, this.lastSpawnedObstacleCenterY);
+        let nearestObs: Obstacle | undefined = undefined;
+        let minDiff = Infinity;
+        for (const obs of obstacles) {
+          const diff = Math.abs(obs.x - offscreenSpawnX);
+          if (diff < minDiff && diff < 200) {
+            minDiff = diff;
+            nearestObs = obs;
+          }
+        }
+        const spawnY = nearestObs ? nearestObs.topHeight + (height - nearestObs.bottomHeight - nearestObs.topHeight) / 2 : this.lastSpawnedObstacleCenterY;
+        this.spawnItem('gem', width, height, offscreenSpawnX, spawnY, nearestObs);
         this.nextGemIndex++;
       }
     }
@@ -375,10 +415,18 @@ export class PowerupManager {
         const indexInBlock = obsIdx % 100;
         const plan = this.getEndlessSpawnPlan(blockNum);
         const planItem = plan.find(item => item.index === indexInBlock);
-        
+        const gameEngine = (window as any).gameEngine;
+        const isChaos = gameEngine && gameEngine.progressManager && gameEngine.progressManager.getState().selectedZone === 'chaos';
+
         if (planItem) {
           // Spawn exactly in the center of the gap (targetX, gapCenterY)
           this.spawnItem(planItem.type, width, height, targetX, gapCenterY);
+        } else if (isChaos && obsIdx % 10 === 5) {
+          // Spawn weapon in Chaos Mode every 10th obstacle (offset by 5)
+          this.spawnItem('weapon', width, height, targetX, gapCenterY);
+        } else if (isChaos && obsIdx % 25 === 12) {
+          // Spawn gravity portal in Chaos Mode every 25th obstacle (offset by 12)
+          this.spawnItem('gravity', width, height, targetX, gapCenterY);
         } else if (indexInBlock % 9 === 0) {
           // Cycle through 4 pattern styles for engaging gameplay:
           // Pattern 0: Convex Arch Shape (5 coins: pointing up)
@@ -523,8 +571,8 @@ export class PowerupManager {
         const planItem = plan.find(item => item.index === obsIdx);
 
         if (planItem && !hasCustomSpawn) {
-          // Spawn exactly in the center of the gap (targetX, gapCenterY)
-          this.spawnItem(planItem.type, width, height, targetX, gapCenterY);
+          // Spawn exactly in the center of the gap (targetX, gapCenterY) and associate with the obstacle
+          this.spawnItem(planItem.type, width, height, targetX, gapCenterY, unrewardedObstacle);
         }
       }
     }
@@ -685,6 +733,8 @@ export class PowerupManager {
       case 'booster': return '#ffd700';
       case 'rescue': return '#ffaa00';
       case 'merge': return '#ff007f';
+      case 'weapon': return '#ff3d00';
+      case 'gravity': return '#d946ef';
       default: return '#ffffff';
     }
   }
@@ -919,7 +969,238 @@ export class PowerupManager {
     ctx.stroke();
   }
 
+  private drawPlasmaWeaponBall(ctx: CanvasRenderingContext2D, item: PowerupItem) {
+    const radius = item.radius * 1.35; // Increased size by 35%
+    const t = performance.now() * 0.003;
+    
+    ctx.save();
+    
+    // 1. Intense Pulsing Outer 3D Glow (Glow halo)
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 28 + Math.sin(t * 3.5) * 6; // Pulsing glow intensity
+      ctx.shadowColor = '#00f3ff';
+    }
+    
+    // 2. 3D Spherical Shading (Radial gradient with off-center light source)
+    // Light source is at top-left (-radius * 0.35, -radius * 0.35)
+    const sphereGrad = ctx.createRadialGradient(
+      -radius * 0.35, -radius * 0.35, radius * 0.05, // Start circle (light source)
+      0, 0, radius                                  // End circle (sphere boundary)
+    );
+    sphereGrad.addColorStop(0, '#ffffff');                 // Specular hot-spot
+    sphereGrad.addColorStop(0.2, '#00f3ff');               // Neon Cyan diffuse highlight
+    sphereGrad.addColorStop(0.65, '#d946ef');              // Magenta midtone
+    sphereGrad.addColorStop(0.9, '#4c0519');               // Deep dark red shadow terminator
+    sphereGrad.addColorStop(1.0, '#000000');               // Ambient occlusion edge
+    
+    ctx.fillStyle = sphereGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    
+    // 3. Inner Rim Light (Creates a 3D glass/energy shell edge)
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius - 0.75, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+    
+    // 3.5. Dynamic crackling electric plasma arcs
+    ctx.save();
+    ctx.strokeStyle = 'rgba(0, 243, 255, 0.85)';
+    ctx.lineWidth = 1.5;
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#00f3ff';
+    }
+    
+    const numArcs = 4;
+    for (let a = 0; a < numArcs; a++) {
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      const angle = (a * Math.PI / 2) + Math.sin(t * 3 + a) * 0.35;
+      const segments = 4;
+      for (let s = 1; s <= segments; s++) {
+        const segmentDist = (radius * 0.85) / segments * s;
+        const perpAngle = angle + Math.PI / 2;
+        const disp = (Math.random() - 0.5) * 5;
+        const targetX = Math.cos(angle) * segmentDist + Math.cos(perpAngle) * disp;
+        const targetY = Math.sin(angle) * segmentDist + Math.sin(perpAngle) * disp;
+        ctx.lineTo(targetX, targetY);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // 3.6. Spinning Magenta containment outer ring
+    ctx.save();
+    ctx.strokeStyle = '#d946ef';
+    ctx.lineWidth = 2.0;
+    ctx.setLineDash([8, 12]);
+    ctx.lineDashOffset = -performance.now() * 0.15;
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = '#d946ef';
+    }
+    ctx.beginPath();
+    ctx.arc(0, 0, radius - 2, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+    
+    // 5. White-hot high-density 3D core (glows from inside)
+    ctx.save();
+    const coreGrad = ctx.createRadialGradient(
+      -radius * 0.15, -radius * 0.15, 0,
+      0, 0, radius * 0.4
+    );
+    coreGrad.addColorStop(0, '#ffffff');
+    coreGrad.addColorStop(0.5, 'rgba(0, 243, 255, 0.95)');
+    coreGrad.addColorStop(1, 'rgba(0, 243, 255, 0)');
+    ctx.fillStyle = coreGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  private drawGravityPortal(ctx: CanvasRenderingContext2D, item: PowerupItem) {
+    const radius = item.radius * 1.55; // Slightly larger for better 3D tilt presence
+    const t = performance.now() * 0.002;
+    
+    // Get angle to bird for dynamic 3D tilt tracking
+    const gameEngine = (window as any).gameEngine;
+    let angleToBird = 0;
+    const tiltScale = 0.45; // Creates a realistic tilted 3D perspective
+    
+    if (gameEngine && gameEngine.bird) {
+      const dx = gameEngine.bird.x - item.x;
+      const dy = gameEngine.bird.y - item.y;
+      angleToBird = Math.atan2(dy, dx);
+    }
+    
+    ctx.save();
+    
+    // Rotate and tilt the entire portal drawing context towards the bird
+    ctx.rotate(angleToBird);
+    ctx.scale(1.0, tiltScale);
+    
+    // 1. Outer Cosmic Nebula Glow (Accretion disk)
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 25;
+      ctx.shadowColor = '#d946ef';
+    }
+    
+    // Draw swirling nebula rings (accretion disk) rotating
+    ctx.save();
+    ctx.rotate(-t * 0.5);
+    for (let j = 0; j < 3; j++) {
+      ctx.save();
+      ctx.rotate(j * Math.PI / 3);
+      ctx.scale(1.3, 0.8);
+      const nebGrad = ctx.createRadialGradient(0, 0, radius * 0.4, 0, 0, radius);
+      nebGrad.addColorStop(0, 'rgba(217, 70, 239, 0.85)');   // Purple
+      nebGrad.addColorStop(0.5, 'rgba(0, 243, 255, 0.45)');  // Cyan highlights
+      nebGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = nebGrad;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.restore();
+    
+    // 2. Swirling spiral arms (cosmic dust lanes)
+    ctx.save();
+    ctx.strokeStyle = 'rgba(217, 70, 239, 0.65)';
+    ctx.lineWidth = 2.0;
+    ctx.rotate(t * 0.8);
+    for (let i = 0; i < 4; i++) {
+      ctx.beginPath();
+      const startAngle = i * Math.PI / 2;
+      for (let theta = 0; theta < Math.PI * 1.2; theta += 0.1) {
+        const r = radius * 0.4 + (radius * 0.6) * (theta / (Math.PI * 1.2));
+        const a = startAngle + theta;
+        const px = Math.cos(a) * r;
+        const py = Math.sin(a) * r;
+        if (theta === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // 3. Glowing Event Horizon Halo (Golden/Orange & Purple rim)
+    ctx.save();
+    const haloGrad = ctx.createRadialGradient(0, 0, radius * 0.35, 0, 0, radius * 0.55);
+    haloGrad.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+    haloGrad.addColorStop(0.2, 'rgba(255, 170, 0, 1.0)');
+    haloGrad.addColorStop(0.6, 'rgba(217, 70, 239, 0.85)');
+    haloGrad.addColorStop(1.0, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = haloGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius * 0.55, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // 4. Solid Black Singularity Core
+    ctx.fillStyle = '#0f071a'; // Very dark cosmic purple-black
+    ctx.beginPath();
+    ctx.arc(0, 0, radius * 0.38, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Fine inner edge border
+    ctx.strokeStyle = 'rgba(217, 70, 239, 0.8)';
+    ctx.lineWidth = 1.0;
+    ctx.stroke();
+
+    // 5. Blinding Solar Flare (Bright light burst on the right event horizon)
+    ctx.save();
+    const flareX = radius * 0.36;
+    const flareY = 0;
+    
+    // Main flare radial glow
+    const flareGrad = ctx.createRadialGradient(flareX, flareY, 0, flareX, flareY, radius * 0.38);
+    flareGrad.addColorStop(0, '#ffffff');
+    flareGrad.addColorStop(0.2, 'rgba(255, 230, 150, 1.0)');
+    flareGrad.addColorStop(0.5, 'rgba(255, 120, 0, 0.6)');
+    flareGrad.addColorStop(1, 'rgba(255, 120, 0, 0)');
+    
+    ctx.fillStyle = flareGrad;
+    ctx.beginPath();
+    ctx.arc(flareX, flareY, radius * 0.38, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Horizontal Lens Flare Beam
+    const beamLength = radius * 1.6;
+    const beamGrad = ctx.createLinearGradient(flareX - beamLength, flareY, flareX + beamLength, flareY);
+    beamGrad.addColorStop(0, 'rgba(255, 170, 0, 0)');
+    beamGrad.addColorStop(0.5, '#ffffff');
+    beamGrad.addColorStop(1, 'rgba(255, 170, 0, 0)');
+    
+    ctx.strokeStyle = beamGrad;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(flareX - beamLength, flareY);
+    ctx.lineTo(flareX + beamLength, flareY);
+    ctx.stroke();
+    
+    ctx.restore();
+    
+    ctx.restore();
+  }
+
   private drawPowerupBox(ctx: CanvasRenderingContext2D, item: PowerupItem) {
+    if (item.type === 'weapon') {
+      this.drawPlasmaWeaponBall(ctx, item);
+      return;
+    }
+    if (item.type === 'gravity') {
+      this.drawGravityPortal(ctx, item);
+      return;
+    }
     const color = this.getPowerupGlowColor(item.type);
     if (!(window as any).gameDisableShadows) {
       ctx.shadowBlur = 14;

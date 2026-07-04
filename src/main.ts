@@ -552,8 +552,235 @@ function loop(time: number) {
       gameEngine.bird.render(ctx);
     }
   }
+  // Draw Chaos Mode Laser Beam
+  if (gameEngine.weaponActive && gameEngine.weaponType === 'laser' && gameEngine.state === 'PLAYING') {
+    ctx.save();
+    const angle = gameEngine.bird.angle;
+    const scale = gameEngine.bird.radius / gameEngine.bird.baseRadius;
+    const localLaserX = 10 * scale;
+    const localLaserY = -3 * scale;
+    
+    const startX = gameEngine.bird.x + (localLaserX * Math.cos(angle) - localLaserY * Math.sin(angle));
+    const startY = gameEngine.bird.y + (localLaserX * Math.sin(angle) + localLaserY * Math.cos(angle));
+    const endX = gameEngine.renderer.canvas.width / gameEngine.renderer.dpr + 100;
+    
+    // Laser outer glow
+    ctx.strokeStyle = '#00ffff';
+    ctx.lineWidth = 12 + gameEngine.weaponLevel * 4 + Math.sin(performance.now() * 0.05) * 3;
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = '#00ffff';
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, startY);
+    ctx.stroke();
+    
+    // Laser inner white core
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 4 + gameEngine.weaponLevel;
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, startY);
+    ctx.stroke();
+    
+    ctx.restore();
+  }
+
+  // Draw Chaos Mode Spinning Blade
+  if (gameEngine.weaponActive && gameEngine.weaponType === 'blade' && gameEngine.state === 'PLAYING') {
+    ctx.save();
+    ctx.translate(gameEngine.bird.x, gameEngine.bird.y);
+    ctx.rotate(gameEngine.bladeRotation);
+    
+    const bladeRadius = 55 + gameEngine.weaponLevel * 10;
+    
+    // Draw outer glowing buzzsaw circle
+    ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)';
+    ctx.lineWidth = 6;
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = '#ffd700';
+    ctx.beginPath();
+    ctx.arc(0, 0, bladeRadius, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    // Draw 8 sharp buzzsaw teeth
+    ctx.fillStyle = 'rgba(255, 235, 120, 0.9)';
+    ctx.shadowBlur = 0;
+    for (let t = 0; t < 8; t++) {
+      ctx.save();
+      ctx.rotate((t * Math.PI) / 4);
+      ctx.beginPath();
+      ctx.moveTo(bladeRadius - 5, -8);
+      ctx.lineTo(bladeRadius + 12, 0);
+      ctx.lineTo(bladeRadius - 5, 8);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+    
+    // Inner energy ring
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, bladeRadius - 12, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    ctx.restore();
+  }
+
+  // Draw Chaos Mode bullets & rockets
+  if (gameEngine.bullets && gameEngine.bullets.length > 0) {
+    ctx.save();
+    for (let i = 0; i < gameEngine.bullets.length; i++) {
+      const bullet = gameEngine.bullets[i];
+      
+      if (bullet.isRocket) {
+        // Draw a premium rocket/missile vector shape with plasma aura and plasma flame!
+        ctx.save();
+        ctx.translate(bullet.x, bullet.y);
+        const angle = Math.atan2(bullet.vy, bullet.vx);
+        ctx.rotate(angle);
+        
+        // 1. Plasma Thruster flame trail (glowing purple/magenta)
+        const flameLength = 22 + Math.random() * 10;
+        const flameGrad = ctx.createLinearGradient(-12, 0, -12 - flameLength, 0);
+        flameGrad.addColorStop(0, '#ffffff');
+        flameGrad.addColorStop(0.3, '#d946ef'); // Neon magenta/purple
+        flameGrad.addColorStop(0.7, '#00f3ff'); // Neon cyan
+        flameGrad.addColorStop(1, 'rgba(0, 243, 255, 0)');
+        
+        ctx.save();
+        ctx.shadowColor = '#d946ef';
+        ctx.shadowBlur = 15;
+        ctx.fillStyle = flameGrad;
+        ctx.beginPath();
+        ctx.moveTo(-10, -6);
+        ctx.quadraticCurveTo(-10 - flameLength * 0.5, -9, -10 - flameLength, 0);
+        ctx.quadraticCurveTo(-10 - flameLength * 0.5, 9, -10, 6);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+        
+        // 2. Plasma sparks from thruster
+        if (Math.random() < 0.18) {
+          gameEngine.particleEngine.spawn(
+            bullet.x - Math.cos(angle) * 15,
+            bullet.y - Math.sin(angle) * 15,
+            -bullet.vx * 0.3 + (Math.random() - 0.5) * 2,
+            (Math.random() - 0.5) * 3,
+            Math.random() < 0.5 ? '#d946ef' : '#00f3ff',
+            2 + Math.random() * 3,
+            1.0,
+            0.04,
+            'spark',
+            true
+          );
+        }
+
+        // 3. Plasma Aura (outer glow around rocket body)
+        ctx.save();
+        ctx.shadowColor = '#00f3ff';
+        ctx.shadowBlur = 12;
+        ctx.strokeStyle = '#00f3ff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(-12, -7);
+        ctx.lineTo(6, -7);
+        ctx.quadraticCurveTo(15, 0, 6, 7);
+        ctx.lineTo(-12, 7);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.restore();
+        
+        // 4. Missile body (dark high-tech composite)
+        ctx.fillStyle = '#1e293b'; // Slate dark body
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        ctx.moveTo(-10, -5);
+        ctx.lineTo(5, -5);
+        ctx.quadraticCurveTo(12, 0, 5, 5); // Nose cone
+        ctx.lineTo(-10, 5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // 5. Plasma glowing nose tip
+        const noseGrad = ctx.createRadialGradient(8, 0, 0, 8, 0, 6);
+        noseGrad.addColorStop(0, '#ffffff');
+        noseGrad.addColorStop(0.5, '#00f3ff');
+        noseGrad.addColorStop(1, 'rgba(0, 243, 255, 0)');
+        ctx.fillStyle = noseGrad;
+        ctx.beginPath();
+        ctx.arc(8, 0, 5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // 6. Fins (plasma glowing wings)
+        ctx.fillStyle = '#d946ef'; // Magenta fins
+        ctx.save();
+        ctx.shadowColor = '#d946ef';
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.moveTo(-10, -5);
+        ctx.lineTo(-16, -11);
+        ctx.lineTo(-5, -5);
+        ctx.closePath();
+        ctx.fill();
+        
+        ctx.beginPath();
+        ctx.moveTo(-10, 5);
+        ctx.lineTo(-16, 11);
+        ctx.lineTo(-5, 5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+        
+        ctx.restore();
+        continue; // Skip standard bullet drawing!
+      }
+      
+      // Draw glowing Plasma Star head
+      ctx.save();
+      ctx.translate(bullet.x, bullet.y);
+      // Rotate the star based on time
+      ctx.rotate(performance.now() * 0.015);
+      
+      const outer = bullet.radius * 2.5;
+      const inner = bullet.radius * 0.6;
+      
+      // Draw 4-pointed star
+      ctx.beginPath();
+      ctx.moveTo(0, -outer);
+      ctx.lineTo(inner, -inner);
+      ctx.lineTo(outer, 0);
+      ctx.lineTo(inner, inner);
+      ctx.lineTo(0, outer);
+      ctx.lineTo(-inner, inner);
+      ctx.lineTo(-outer, 0);
+      ctx.lineTo(-inner, -inner);
+      ctx.closePath();
+      
+      const starGrad = ctx.createRadialGradient(0, 0, 1, 0, 0, outer);
+      starGrad.addColorStop(0, '#ffffff');
+      starGrad.addColorStop(0.3, '#00f3ff');
+      starGrad.addColorStop(0.7, '#d946ef');
+      starGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      
+      ctx.shadowColor = '#00f3ff';
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = starGrad;
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
   gameEngine.particleEngine.render(ctx);
   gameEngine.renderer.endCamera();
+
+  // Apply dynamic day-night cycle ambient lighting
+  gameEngine.renderer.applyAmbientLighting(activeWorld);
 
   gameEngine.renderer.renderWeatherEffects();
 

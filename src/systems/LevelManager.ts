@@ -12,9 +12,9 @@ export class LevelManager {
   private static levels: LevelConfig[] = [];
 
   static {
-    // Generate 50 unique levels
-    const worlds = ['jungle', 'ice', 'space', 'desert', 'volcano'];
-    const worldNames = ['Amazon Rainforest', 'Frozen Ice Kingdom', 'Cosmic Meadow', 'Desert Ruins', 'Volcanic Spring'];
+    // Generate 60 unique levels
+    const worlds = ['jungle', 'ice', 'space', 'desert', 'volcano', 'heaven'];
+    const worldNames = ['Amazon Rainforest', 'Frozen Ice Kingdom', 'Cosmic Meadow', 'ANCIENT EGYPT : THE DESERT', 'Volcanic Spring', 'Heaven Cloud Kingdom'];
 
     // All available active moving/oscillating wave patterns
     const wavePatterns = [
@@ -24,9 +24,9 @@ export class LevelManager {
       'elevator_26', 'magnetic_27', 'pendulum_28', 'sliding_29'
     ];
 
-    for (let levelNum = 1; levelNum <= 50; levelNum++) {
+    for (let levelNum = 1; levelNum <= 60; levelNum++) {
       // Determine world group (10 levels per world)
-      const worldIdx = Math.min(4, Math.floor((levelNum - 1) / 10));
+      const worldIdx = Math.min(5, Math.floor((levelNum - 1) / 10));
       const worldId = worlds[worldIdx];
       const worldName = worldNames[worldIdx];
 
@@ -95,8 +95,10 @@ export class LevelManager {
           scrollSpeed = 3.1; // Decreased scroll speed for Level 4
         } else if (levelNum === 6) {
           scrollSpeed = scrollSpeed * 0.75; // Decreased scroll speed for Level 6 by 25% (from 4.7 to 3.525)
+        } else if (levelNum === 7) {
+          scrollSpeed = scrollSpeed * 0.85; // Decreased scroll speed for Level 7 by 15%
         } else if (levelNum === 9) {
-          scrollSpeed = scrollSpeed * 0.80; // Decreased by 20% (from 5.36 to 4.29)
+          scrollSpeed = scrollSpeed * 0.80 * 0.85; // Decreased by 20% + additional 15% reduction
         } else if (levelNum === 10) {
           scrollSpeed = scrollSpeed * 0.60; // Decreased by 40% (from 5.58 to 3.35)
         }
@@ -108,7 +110,7 @@ export class LevelManager {
         scrollSpeed = (3.6 + (3 - 1) * 0.22) * 0.85;
       } else if (levelNum === 15) {
         // Completely replaced by Level 7
-        scrollSpeed = 3.6 + (7 - 1) * 0.22;
+        scrollSpeed = (3.6 + (7 - 1) * 0.22) * 0.85;
       }
       
       if (levelNum === 21) {
@@ -256,7 +258,8 @@ export class LevelManager {
       [8, 18],
       [26, 29],
       [13, 19],
-      [15, 20]
+      [15, 20],
+      [35, 39]
     ];
     for (const [a, b] of swapPairs) {
       const idxA = this.levels.findIndex(l => l.levelNum === a);
@@ -298,20 +301,20 @@ export class LevelManager {
     // Levels 1–10 gap adjustments (each multiplied by ×0.88 for global 12% reduction across L1–L10)
     const lvl1 = this.levels.find(l => l.levelNum === 1);
     if (lvl1) {
-      lvl1.gapHeight = Math.round(lvl1.gapHeight * 0.88); // 12% reduced
+      lvl1.gapHeight = Math.round(lvl1.gapHeight * 0.88 * 1.15 * 1.18 * 0.93); // -7%
     }
     const lvl2 = this.levels.find(l => l.levelNum === 2);
     if (lvl2) {
-      lvl2.gapHeight = Math.round(lvl2.gapHeight * 1.360128); // Increased by additional 15% (1.18272 * 1.15)
+      lvl2.gapHeight = Math.round(lvl2.gapHeight * 1.49260); // 1.60495 × 0.93 (-7%)
     }
     const lvl3 = this.levels.find(l => l.levelNum === 3);
     if (lvl3) {
-      lvl3.gapHeight = Math.round(lvl3.gapHeight * 0.792); // Net: 0.90 × 0.88
+      lvl3.gapHeight = Math.round(lvl3.gapHeight * 0.792 * 1.10 * 1.18 * 0.93); // -7%
       lvl3.targetScore = 150;
     }
     const lvl4 = this.levels.find(l => l.levelNum === 4);
     if (lvl4) {
-      lvl4.gapHeight = Math.round(lvl4.gapHeight * 0.616); // Net: 0.70 × 0.88
+      lvl4.gapHeight = Math.round(lvl4.gapHeight * 0.67600); // 0.72688 × 0.93 (-7%)
     }
     const lvl5 = this.levels.find(l => l.levelNum === 5);
     if (lvl5) {
@@ -319,23 +322,23 @@ export class LevelManager {
     }
     const lvl6 = this.levels.find(l => l.levelNum === 6);
     if (lvl6) {
-      lvl6.gapHeight = Math.round(lvl6.gapHeight * 0.8228); // Net: 0.935 × 0.88
+      lvl6.gapHeight = Math.round(lvl6.gapHeight * 0.8228 * 1.2 * 1.07 * 1.15); // +15%
     }
     const lvl7 = this.levels.find(l => l.levelNum === 7);
     if (lvl7) {
-      lvl7.gapHeight = Math.round(lvl7.gapHeight * 1.10); // Net: 1.25 × 0.88
+      lvl7.gapHeight = Math.round(lvl7.gapHeight * 1.10 * 1.15 * 1.15); // +15%
     }
     const lvl8 = this.levels.find(l => l.levelNum === 8);
     if (lvl8) {
-      lvl8.gapHeight = Math.round(lvl8.gapHeight * 0.97614); // Net: 1.10925 × 0.88
+      lvl8.gapHeight = Math.round(lvl8.gapHeight * 0.97614 * 1.12 * 1.12); // +12%
     }
     const lvl9 = this.levels.find(l => l.levelNum === 9);
     if (lvl9) {
-      lvl9.gapHeight = Math.round(lvl9.gapHeight * 1.10); // Net: 1.25 × 0.88
+      lvl9.gapHeight = Math.round(lvl9.gapHeight * 1.10 * 1.10 * 1.12); // +12%
     }
     const lvl10 = this.levels.find(l => l.levelNum === 10);
     if (lvl10) {
-      lvl10.gapHeight = Math.round(lvl10.gapHeight * 1.1484); // Net: 1.305 × 0.88
+      lvl10.gapHeight = Math.round(lvl10.gapHeight * 1.1484 * 1.10 * 1.12); // +12%
     }
     const lvl11 = this.levels.find(l => l.levelNum === 11);
     if (lvl11) {
@@ -345,10 +348,10 @@ export class LevelManager {
     if (lvl12) {
       lvl12.gapHeight = Math.round(lvl12.gapHeight * 0.64768); // Net: 0.704 × 0.92 (further 8% reduced)
     }
-    // Reduce Level 14 path gap by 20% (post Level 14<->18 swap)
+    // Reduce Level 14 path gap (post Level 14<->18 swap), then increase by 18%
     const lvl14 = this.levels.find(l => l.levelNum === 14);
     if (lvl14) {
-      lvl14.gapHeight = Math.round(lvl14.gapHeight * 0.4437); // Net: 0.522 × 0.85 (15% reduced)
+      lvl14.gapHeight = Math.round(lvl14.gapHeight * 0.52357); // Net: 0.4437 × 1.18 (+18%)
       lvl14.patterns = ['level14_zigzag']; // Override to zigzag pattern
     }
     const lvl16 = this.levels.find(l => l.levelNum === 16);
@@ -426,11 +429,11 @@ export class LevelManager {
       // Reduce 10 obstacles and increase path gap by 20% + 7% + 7% for levels 1 to 5
       if (lvl.levelNum >= 1 && lvl.levelNum <= 5) {
         lvl.targetScore -= 10;
-        lvl.gapHeight = Math.round(lvl.gapHeight * 1.20 * 1.07 * 1.07);
+        lvl.gapHeight = Math.round(lvl.gapHeight * 1.20 * 1.07 * 1.07 * 1.05); // Increased by 5%
       } else if (lvl.levelNum >= 6 && lvl.levelNum <= 10) {
-        lvl.gapHeight = Math.round(lvl.gapHeight * 1.20 * 1.07);
+        lvl.gapHeight = Math.round(lvl.gapHeight * 1.20 * 1.07 * 1.05); // Increased by 5%
       } else if (lvl.levelNum >= 11 && lvl.levelNum <= 20) {
-        lvl.gapHeight = Math.round(lvl.gapHeight * 1.20 * 1.10);
+        lvl.gapHeight = Math.round(lvl.gapHeight * 1.20 * 1.10 * 1.07 * 1.10); // Increased by 7% + 10%
       } else if (lvl.levelNum >= 21 && lvl.levelNum <= 30) {
         lvl.gapHeight = Math.round(lvl.gapHeight * 1.23);
       } else if (lvl.levelNum >= 31 && lvl.levelNum <= 40) {
@@ -452,10 +455,77 @@ export class LevelManager {
       lvl16GapAdjust.gapHeight = Math.round(lvl16GapAdjust.gapHeight * 1.15);
     }
 
-    // Assign level18_group2 pattern to Level 18
-    const lvl18PatternOverride = this.levels.find(l => l.levelNum === 18);
-    if (lvl18PatternOverride) {
-      lvl18PatternOverride.patterns = ['level18_group2'];
+    // Reduce Level 26 path gap by 15%
+    const lvl26GapAdjust = this.levels.find(l => l.levelNum === 26);
+    if (lvl26GapAdjust) {
+      lvl26GapAdjust.gapHeight = Math.round(lvl26GapAdjust.gapHeight * 0.85);
+    }
+
+    // Increase Level 29 path gap by 12%
+    const lvl29GapAdjust = this.levels.find(l => l.levelNum === 29);
+    if (lvl29GapAdjust) {
+      lvl29GapAdjust.gapHeight = Math.round(lvl29GapAdjust.gapHeight * 1.12);
+    }
+
+    // Increase Level 31 path gap by 15%
+    const lvl31GapAdjust = this.levels.find(l => l.levelNum === 31);
+    if (lvl31GapAdjust) {
+      lvl31GapAdjust.gapHeight = Math.round(lvl31GapAdjust.gapHeight * 1.15);
+    }
+
+    // Reduce Level 34 path gap by 15%
+    const lvl34GapAdjust = this.levels.find(l => l.levelNum === 34);
+    if (lvl34GapAdjust) {
+      lvl34GapAdjust.gapHeight = Math.round(lvl34GapAdjust.gapHeight * 0.85);
+    }
+
+    // Reduce Level 35 path gap by 15%
+    const lvl35GapAdjust = this.levels.find(l => l.levelNum === 35);
+    if (lvl35GapAdjust) {
+      lvl35GapAdjust.gapHeight = Math.round(lvl35GapAdjust.gapHeight * 0.85);
+    }
+
+    // Increase Levels 41-45 path gap by 20%, then reduce by 7% (net ×1.116)
+    for (let n = 41; n <= 45; n++) {
+      const lvlN = this.levels.find(l => l.levelNum === n);
+      if (lvlN) {
+        lvlN.gapHeight = Math.round(lvlN.gapHeight * 1.116);
+      }
+    }
+
+    // Increase Levels 46-49 path gap by 13%
+    for (let n = 46; n <= 49; n++) {
+      const lvlN = this.levels.find(l => l.levelNum === n);
+      if (lvlN) {
+        lvlN.gapHeight = Math.round(lvlN.gapHeight * 1.13);
+      }
+    }
+
+    // Levels 51-60: Heaven Cloud Kingdom — unique pattern names, same difficulty as levels 41-50
+    const heavenPatterns: Record<number, string> = {
+      51: 'level51_cloudrift',
+      52: 'level52_aurorapulse',
+      53: 'level53_starlattice',
+      54: 'level54_celestialmaze',
+      55: 'level55_ethervortex',
+      56: 'level56_prismaticwave',
+      57: 'level57_angelbraid',
+      58: 'level58_serenitystorm',
+      59: 'level59_ascendant',
+      60: 'level60_divineapex',
+    };
+    for (let levelNum = 51; levelNum <= 60; levelNum++) {
+      const sourceNum = levelNum - 10; // Mirror difficulty from 41-50
+      const sourceLevel = this.levels.find(l => l.levelNum === sourceNum);
+      const targetLevel = this.levels.find(l => l.levelNum === levelNum);
+      if (sourceLevel && targetLevel) {
+        targetLevel.targetScore = sourceLevel.targetScore;
+        targetLevel.scrollSpeed = sourceLevel.scrollSpeed;
+        targetLevel.gapHeight = sourceLevel.gapHeight;
+        targetLevel.patterns = [heavenPatterns[levelNum]];
+        targetLevel.worldId = 'heaven';
+        targetLevel.name = `Heaven Cloud Kingdom - Zone ${levelNum - 50}`;
+      }
     }
   }
 
