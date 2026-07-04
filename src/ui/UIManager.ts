@@ -439,7 +439,7 @@ export class UIManager {
     if (this.lastFlockLength !== flockLen) {
       this.lastFlockLength = flockLen;
       if (this.flockIndicatorEl) {
-        this.flockIndicatorEl.innerText = `🪽 SQUAD: ${flockLen}`;
+        this.flockIndicatorEl.innerText = `🪽 FLOCK: ${flockLen}`;
       }
     }
 
@@ -2576,7 +2576,7 @@ export class UIManager {
               <span class="stat-badge" style="background: rgba(0,255,100,0.12); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(0,255,100,0.3); width: fit-content; margin-bottom: 0; color: #00ff64; text-shadow: 0 0 5px #00ff64; font-weight: 900;">☣️ ${this.engine.destroyedPipesCount}</span>
             ` : ''}
             ${(this.engine.gameMode === 'flock') ? `
-              <span class="stat-badge flock-indicator" style="background: rgba(0,243,255,0.15); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(0,243,255,0.3); width: fit-content; margin-bottom: 0; color: #00f3ff; text-shadow: 0 0 5px #00f3ff;">🪽 SQUAD: ${this.engine.flock.length}</span>
+              <span class="stat-badge flock-indicator" style="background: rgba(0,243,255,0.15); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(0,243,255,0.3); width: fit-content; margin-bottom: 0; color: #00f3ff; text-shadow: 0 0 5px #00f3ff;">🪽 FLOCK: ${this.engine.flock.length}</span>
             ` : ''}
             ${this.engine.isSpectatorMode ? '<span class="spectator-indicator" style="font-size: 8px; background: rgba(0,255,180,0.15); border: 1px solid rgba(0,255,180,0.3); padding: 2px 6px; border-radius: 6px; color: #00ffb4; font-weight: 800; width: fit-content; margin-top: 2px;">🤖 AUTO-PILOT</span>' : ''}
           </div>
@@ -3520,7 +3520,7 @@ export class UIManager {
                   </defs>
                 </svg>
               </div>
-              <div class="mode-3d-label">Classic</div>
+              <div class="mode-3d-label">Solo</div>
               <button id="btn-select-classic" class="mode-3d-btn classic-3d-btn">Fly</button>
             </div>
 
@@ -3568,7 +3568,7 @@ export class UIManager {
                   </defs>
                 </svg>
               </div>
-              <div class="mode-3d-label">Squad</div>
+              <div class="mode-3d-label">Flock</div>
               <button id="btn-select-flock" class="mode-3d-btn squad-3d-btn">Fly</button>
             </div>
 
@@ -3595,7 +3595,7 @@ export class UIManager {
                   </defs>
                 </svg>
               </div>
-              <div class="mode-3d-label">Chaos</div>
+              <div class="mode-3d-label">Mayhem</div>
               <button id="btn-select-chaos" class="mode-3d-btn chaos-3d-btn">Fly</button>
             </div>
           </div>

@@ -287,10 +287,13 @@ export class ObstacleManager {
       const baseDistanceClassic = (width / 1.35) * 0.80;
       const defaultDistance = baseDistanceClassic * 1.15;
 
+      // 15% wider horizontal spacing for score 1-100 (new animations need more reaction time)
+      const earlyBoost = score <= 100 ? 1.15 : 1.0;
+
       if (difficulty === 'easy') {
-        targetDistance = defaultDistance * 1.20 * speedFactor;
+        targetDistance = defaultDistance * 1.20 * speedFactor * earlyBoost;
       } else {
-        targetDistance = defaultDistance * speedFactor;
+        targetDistance = defaultDistance * speedFactor * earlyBoost;
       }
     } else {
       // Wave Zone spacing
@@ -2414,8 +2417,8 @@ export class ObstacleManager {
         }
       } else {
         // Endless mode obstacle movement
-        const isEndlessAnimationZone = gameMode === 'endless' && (obs.spawnScore !== undefined ? obs.spawnScore : score) <= 80;
-        const isStaticEndless = gameMode === 'endless' && (score < 50 || (obs.spawnScore !== undefined && obs.spawnScore < 50)) && !isEndlessAnimationZone;
+        const isEndlessAnimationZone = gameMode === 'endless' && zone !== 'classic' && (obs.spawnScore !== undefined ? obs.spawnScore : score) <= 80;
+        const isStaticEndless = gameMode === 'endless' && zone !== 'classic' && (score < 50 || (obs.spawnScore !== undefined && obs.spawnScore < 50)) && !isEndlessAnimationZone;
         
         const isChaosMode = zone === 'chaos';
         if (isChaosMode) {
@@ -2853,8 +2856,47 @@ export class ObstacleManager {
             }
 
             if (!isFlockCustomAnimApplied && (gameMode !== 'flock' || activeScore >= 100)) {
-              // Apply Progressive Cos-based Out-of-Phase Oscillation for Classic Endless Mode (Score 100 to 500)
-              if (zone === 'classic' && effectiveScore >= 100 && effectiveScore < 500) {
+              // ── Classic Mode Early Animations (Score 20–100) ──────────────────────
+              if (zone === 'classic' && effectiveScore >= 20 && effectiveScore <= 100) {
+                const idx = obs.obstacleIdx || 0;
+                const phaseSign = idx % 2 === 0 ? 1 : -1;
+
+                if (effectiveScore < 40) {
+                  // 1. PENDULUM SWAY (Score 20–39)
+                  // Top and bottom pipes swing in opposing horizontal directions like a pendulum.
+                  // Bird must time passage between the swinging gap.
+                  const t = this.waveTime * 1.2 + idx * 0.6;
+                  obs.shakeX  =  Math.sin(t) * 20 * phaseSign;
+                  obs.shakeX2 = -obs.shakeX;
+                } else if (effectiveScore < 60) {
+                  // 2. SPIRAL ORBIT (Score 41–60)
+                  // Each obstacle traces a slow circular path (cos horizontal + sin vertical).
+                  // Adjacent obstacles are offset in phase so they orbit at different points
+                  // of the circle — the corridor constantly rotates, forcing the bird to
+                  // track the moving gap as it spins around a fixed center.
+                  const t = this.waveTime * 1.5 + idx * 0.55;
+                  obs.shakeX    = Math.cos(t) * 22;
+                  obs.shakeX2   = obs.shakeX;
+                  verticalShift = Math.sin(t) * 22;
+                } else if (effectiveScore < 80) {
+                  // 3. BREATHING COMBO (Score 60–79)
+                  // Gap expands/contracts (breathing) while the pair also drifts vertically.
+                  // Dual-motion makes it harder to find the "safe zone".
+                  breathingOffset = Math.sin(this.waveTime * 1.8) * 14;
+                  verticalShift   = Math.cos(this.waveTime * 0.9 + idx * 0.4) * 14 * phaseSign;
+                } else {
+                  // 4. DIAGONAL GLIDE (Score 80–100)
+                  // Each obstacle glides along a diagonal path (horizontal + vertical together).
+                  // Alternating phase means adjacent obstacles move in opposite diagonals.
+                  const t = this.waveTime * 1.6 + idx * 0.4;
+                  obs.shakeX  = Math.sin(t * 0.8) * 18 * phaseSign;
+                  obs.shakeX2 = obs.shakeX;
+                  verticalShift = Math.cos(t) * 16 * phaseSign;
+                }
+              }
+
+              // Apply Progressive Cos-based Out-of-Phase Oscillation for Classic Endless Mode (Score 101 to 500)
+              if (zone === 'classic' && effectiveScore > 100 && effectiveScore < 500) {
               const phaseSign = (obs.obstacleIdx || 0) % 2 === 0 ? 1 : -1;
               if (effectiveScore < 150) {
                 // Cos-based Out-of-Phase Oscillation (Standard: 100-150)
@@ -2875,7 +2917,7 @@ export class ObstacleManager {
               }
 
               // Layer additional animations as requested:
-              if (effectiveScore >= 100 && effectiveScore <= 125) {
+              if (effectiveScore > 100 && effectiveScore <= 125) {
                 // Diagonal Shear Drift (top goes left, bottom goes right, then swaps)
                 const driftTime = this.waveTime * 1.8;
                 const cycle = driftTime % (Math.PI * 2);
@@ -3214,6 +3256,10 @@ export class ObstacleManager {
       if (zone === 'chaos') {
         gapWithDifficulty *= 1.10; // 10% vertical path gap increase
       }
+      // Classic Mode score 1-100: 15% larger vertical gap to accommodate new animations
+      if (zone === 'classic' && score <= 100) {
+        gapWithDifficulty *= 1.15;
+      }
       if (gameMode === 'endless') {
         if (score >= 300 && score < 500) {
           gapWithDifficulty *= 0.88;
@@ -3256,6 +3302,11 @@ export class ObstacleManager {
         gapWithDifficulty *= 1.10; // 10% vertical path gap increase
       }
 
+      // Classic Mode score 1-100: 15% larger vertical gap to accommodate new animations
+      if (zone === 'classic' && score <= 100) {
+        gapWithDifficulty *= 1.15;
+      }
+
       // Classic Mode (Endless) vertical path gap reduction:
       // Score 300 to 500: reduce by 12%
       // Score 500 to endless: reduce by 15%
@@ -3288,6 +3339,10 @@ export class ObstacleManager {
         const speedFactor = scrollSpeed / 4.2;
         // Scale by endless difficulty scaling factor & speed factor!
         let dist = baseDist * this.currentEndlessDistScale * (1.0 - pct) * speedFactor;
+        // Classic Mode score 1-100: 20% wider minimum horizontal gap for new animations
+        if (zone === 'classic' && score <= 100) {
+          dist *= 1.20;
+        }
         if (gameMode === 'flock') {
           dist *= 1.134; // 10% reduction from 1.26 (1.26 * 0.90 = 1.134)
         }
@@ -3340,8 +3395,9 @@ export class ObstacleManager {
           dist = Math.max(490, Math.min(770, dist)); // Clamp horizontal gap between 490px and 770px
         } else if (gameMode === 'endless') {
           const isChaos = zone === 'chaos';
-          const minClamp = isChaos ? 420 : 215;
-          const maxClamp = isChaos ? 500 : 340;
+          const isClassicEarly = zone === 'classic' && score <= 100;
+          const minClamp = isChaos ? 420 : (isClassicEarly ? 258 : 215); // 258 = 215 * 1.20
+          const maxClamp = isChaos ? 500 : (isClassicEarly ? 408 : 340); // 408 = 340 * 1.20
           dist = Math.max(minClamp, Math.min(maxClamp, dist));
         }
 
@@ -4776,7 +4832,7 @@ export class ObstacleManager {
     let isGoldSplitGate = false;
 
     // Check for random distribution of Group 1 (Orbital Sway) and Group 3 (Gold Split Gate) in score 1-99 range
-    const isSpecialAnimAllowed = gameMode === 'flock' ? (score >= 1 && score < 100) : (gameMode === 'endless' ? (score >= 50 && score < 100) : false);
+    const isSpecialAnimAllowed = _zone !== 'classic' && (gameMode === 'flock' ? (score >= 1 && score < 100) : (gameMode === 'endless' ? (score >= 50 && score < 100) : false));
     if (isSpecialAnimAllowed) {
       if (Math.random() < 0.35) { // 35% chance of applying a special animation
         if (Math.random() < 0.50) {
