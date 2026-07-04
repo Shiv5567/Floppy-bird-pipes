@@ -3294,8 +3294,8 @@ export class UIManager {
           background: rgba(18, 12, 30, 0.35);
           border: 1.5px solid rgba(255, 255, 255, 0.08);
           border-radius: 24px;
-          padding: 24px 20px;
-          max-width: 640px;
+          padding: 28px 24px;
+          max-width: 760px;
           width: 95%;
           box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
           position: relative;
@@ -3320,18 +3320,18 @@ export class UIManager {
         .mode-3d-card {
           flex: 1;
           background: linear-gradient(135deg, rgba(32, 24, 48, 0.4) 0%, rgba(16, 12, 28, 0.55) 100%);
-          border-radius: 18px;
+          border-radius: 20px;
           position: relative;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: space-between;
-          padding: 20px 14px;
+          padding: 24px 18px;
           transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, border-color 0.15s ease-out;
           transform-style: preserve-3d;
           cursor: pointer;
           box-sizing: border-box;
-          height: 200px;
+          height: 240px;
         }
         
         /* Classic 3D Theme */
@@ -3365,9 +3365,9 @@ export class UIManager {
         .mode-3d-icon {
           transform: translateZ(0px);
           transition: transform 0.15s ease-out;
-          margin-bottom: 8px;
-          width: 58px;
-          height: 58px;
+          margin-bottom: 12px;
+          width: 70px;
+          height: 70px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -3375,10 +3375,10 @@ export class UIManager {
         }
         .mode-3d-label {
           font-family: 'Outfit', sans-serif;
-          font-size: 15px;
+          font-size: 17px;
           font-weight: 800;
           letter-spacing: 1.2px;
-          margin-bottom: 12px;
+          margin-bottom: 16px;
           text-transform: uppercase;
           transition: transform 0.15s ease-out;
           pointer-events: none;
@@ -3399,11 +3399,11 @@ export class UIManager {
         /* 3D arcade buttons */
         .mode-3d-btn {
           width: 100%;
-          padding: 12px 10px;
-          font-size: 14px;
+          padding: 15px 12px;
+          font-size: 16px;
           font-weight: 900;
           text-transform: uppercase;
-          border-radius: 12px;
+          border-radius: 14px;
           border: none;
           cursor: pointer;
           transition: all 0.15s ease-out;
@@ -3411,29 +3411,29 @@ export class UIManager {
         .classic-3d-btn {
           background: linear-gradient(180deg, #ffd700 0%, #ff9900 100%);
           color: #2b1c00;
-          box-shadow: 0 5px 0 #9c6300, 0 5px 12px rgba(255, 170, 0, 0.25);
+          box-shadow: 0 6px 0 #9c6300, 0 6px 14px rgba(255, 170, 0, 0.25);
         }
         .classic-3d-btn:hover {
           background: linear-gradient(180deg, #ffe54d 0%, #ffa200 100%);
-          box-shadow: 0 5px 0 #9c6300, 0 7px 16px rgba(255, 170, 0, 0.35);
+          box-shadow: 0 6px 0 #9c6300, 0 8px 18px rgba(255, 170, 0, 0.35);
         }
         .squad-3d-btn {
           background: linear-gradient(180deg, #00f3ff 0%, #0066ff 100%);
           color: #001a33;
-          box-shadow: 0 5px 0 #004da8, 0 5px 12px rgba(0, 136, 255, 0.25);
+          box-shadow: 0 6px 0 #004da8, 0 6px 14px rgba(0, 136, 255, 0.25);
         }
         .squad-3d-btn:hover {
           background: linear-gradient(180deg, #4df7ff 0%, #1a80ff 100%);
-          box-shadow: 0 5px 0 #004da8, 0 7px 16px rgba(0, 136, 255, 0.35);
+          box-shadow: 0 6px 0 #004da8, 0 8px 18px rgba(0, 136, 255, 0.35);
         }
         .chaos-3d-btn {
           background: linear-gradient(180deg, #d946ef 0%, #ff007f 100%);
           color: #ffffff;
-          box-shadow: 0 5px 0 #9d174d, 0 5px 12px rgba(217, 70, 239, 0.25);
+          box-shadow: 0 6px 0 #9d174d, 0 6px 14px rgba(217, 70, 239, 0.25);
         }
         .chaos-3d-btn:hover {
           background: linear-gradient(180deg, #e879f9 0%, #ff3b9a 100%);
-          box-shadow: 0 5px 0 #9d174d, 0 7px 16px rgba(217, 70, 239, 0.35);
+          box-shadow: 0 6px 0 #9d174d, 0 8px 18px rgba(217, 70, 239, 0.35);
         }
 
         /* Mobile Responsive 3D Styling (Lightweight & Smooth) */
@@ -3487,7 +3487,7 @@ export class UIManager {
           <div class="mode-3d-container">
             <div class="mode-3d-card classic-3d" id="card-select-classic">
               <div class="mode-3d-icon">
-                <svg width="50" height="50" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="50" cy="50" r="42" fill="rgba(255, 215, 0, 0.05)" stroke="rgba(255, 215, 0, 0.15)" stroke-width="1.5" stroke-dasharray="4 4" />
                   <g transform="translate(10, 15)">
                     <path d="M12,40 C5,38 2,42 0,47 C3,52 8,50 15,46 Z" fill="#ff8800" />
@@ -3526,7 +3526,7 @@ export class UIManager {
 
             <div class="mode-3d-card squad-3d" id="card-select-flock">
               <div class="mode-3d-icon">
-                <svg width="50" height="50" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="50" cy="50" r="42" fill="rgba(0, 243, 255, 0.04)" stroke="rgba(0, 243, 255, 0.15)" stroke-width="1.5" stroke-dasharray="4 4" />
                   <g transform="translate(10, 52) scale(0.42)">
                     <path d="M12,40 C5,38 2,42 0,47 C3,52 8,50 15,46 Z" fill="#005588" />
@@ -3574,7 +3574,7 @@ export class UIManager {
 
             <div class="mode-3d-card chaos-3d" id="card-select-chaos">
               <div class="mode-3d-icon">
-                <svg width="50" height="50" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="50" cy="50" r="42" fill="rgba(217, 70, 239, 0.05)" stroke="rgba(217, 70, 239, 0.2)" stroke-width="1.5" stroke-dasharray="4 4" />
                   <g transform="translate(50, 50)">
                     <path d="M-20,0 A20,20 0 0,1 20,0" stroke="url(#chaos-grad-1)" stroke-width="4" stroke-linecap="round" fill="none" transform="rotate(45)" />
