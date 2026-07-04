@@ -3411,72 +3411,81 @@ export class UIManager {
 
         @keyframes gold-glow-pulse {
           0% {
-            border-color: rgba(255, 215, 0, 0.4);
-            box-shadow: 0 6px 0 #9c6300, 0 6px 14px rgba(255, 170, 0, 0.2), inset 0 0 8px rgba(255, 215, 0, 0.4), 0 0 8px rgba(255, 215, 0, 0.2);
+            border-color: rgba(255, 215, 0, 0.5);
+            filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.4));
+            box-shadow: 0 6px 0 #9c6300, inset 0 0 6px rgba(255, 215, 0, 0.4);
           }
           100% {
             border-color: rgba(255, 215, 0, 1.0);
-            box-shadow: 0 6px 0 #9c6300, 0 8px 18px rgba(255, 170, 0, 0.35), inset 0 0 16px rgba(255, 215, 0, 0.8), 0 0 18px rgba(255, 215, 0, 0.6);
+            filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.9));
+            box-shadow: 0 6px 0 #9c6300, inset 0 0 14px rgba(255, 215, 0, 0.8);
           }
         }
 
         @keyframes cyan-glow-pulse {
           0% {
-            border-color: rgba(0, 243, 255, 0.4);
-            box-shadow: 0 6px 0 #004da8, 0 6px 14px rgba(0, 136, 255, 0.2), inset 0 0 8px rgba(0, 243, 255, 0.4), 0 0 8px rgba(0, 243, 255, 0.2);
+            border-color: rgba(0, 243, 255, 0.5);
+            filter: drop-shadow(0 0 4px rgba(0, 243, 255, 0.4));
+            box-shadow: 0 6px 0 #004da8, inset 0 0 6px rgba(0, 243, 255, 0.4);
           }
           100% {
             border-color: rgba(0, 243, 255, 1.0);
-            box-shadow: 0 6px 0 #004da8, 0 8px 18px rgba(0, 136, 255, 0.35), inset 0 0 16px rgba(0, 243, 255, 0.8), 0 0 18px rgba(0, 243, 255, 0.6);
+            filter: drop-shadow(0 0 12px rgba(0, 243, 255, 0.9));
+            box-shadow: 0 6px 0 #004da8, inset 0 0 14px rgba(0, 243, 255, 0.8);
           }
         }
 
         @keyframes pink-glow-pulse {
           0% {
-            border-color: rgba(217, 70, 239, 0.4);
-            box-shadow: 0 6px 0 #9d174d, 0 6px 14px rgba(217, 70, 239, 0.2), inset 0 0 8px rgba(217, 70, 239, 0.4), 0 0 8px rgba(217, 70, 239, 0.2);
+            border-color: rgba(217, 70, 239, 0.5);
+            filter: drop-shadow(0 0 4px rgba(217, 70, 239, 0.4));
+            box-shadow: 0 6px 0 #9d174d, inset 0 0 6px rgba(217, 70, 239, 0.4);
           }
           100% {
             border-color: rgba(217, 70, 239, 1.0);
-            box-shadow: 0 6px 0 #9d174d, 0 8px 18px rgba(217, 70, 239, 0.35), inset 0 0 16px rgba(217, 70, 239, 0.8), 0 0 18px rgba(217, 70, 239, 0.6);
+            filter: drop-shadow(0 0 12px rgba(217, 70, 239, 0.9));
+            box-shadow: 0 6px 0 #9d174d, inset 0 0 14px rgba(217, 70, 239, 0.8);
           }
         }
 
         .classic-3d-btn {
           background: linear-gradient(180deg, #ffd700 0%, #ff9900 100%);
           color: #2b1c00;
-          border: 2.5px solid rgba(255, 215, 0, 0.5);
+          border: 2.5px solid rgba(255, 215, 0, 0.6);
           animation: gold-glow-pulse 1.8s infinite alternate ease-in-out;
         }
         .classic-3d-btn:hover {
           background: linear-gradient(180deg, #ffe54d 0%, #ffa200 100%);
           border-color: #ffffff;
           animation-play-state: paused;
-          box-shadow: 0 6px 0 #9c6300, 0 10px 22px rgba(255, 170, 0, 0.5), inset 0 0 20px rgba(255, 215, 0, 1.0), 0 0 24px rgba(255, 215, 0, 0.9);
+          filter: drop-shadow(0 0 16px rgba(255, 215, 0, 1.0));
+          box-shadow: 0 6px 0 #9c6300, inset 0 0 20px rgba(255, 215, 0, 1.0);
         }
         .squad-3d-btn {
           background: linear-gradient(180deg, #00f3ff 0%, #0066ff 100%);
           color: #001a33;
-          border: 2.5px solid rgba(0, 243, 255, 0.5);
+          border: 2.5px solid rgba(0, 243, 255, 0.6);
           animation: cyan-glow-pulse 1.8s infinite alternate ease-in-out;
         }
         .squad-3d-btn:hover {
           background: linear-gradient(180deg, #4df7ff 0%, #1a80ff 100%);
           border-color: #ffffff;
           animation-play-state: paused;
-          box-shadow: 0 6px 0 #004da8, 0 10px 22px rgba(0, 136, 255, 0.5), inset 0 0 20px rgba(0, 243, 255, 1.0), 0 0 24px rgba(0, 243, 255, 0.9);
+          filter: drop-shadow(0 0 16px rgba(0, 243, 255, 1.0));
+          box-shadow: 0 6px 0 #004da8, inset 0 0 20px rgba(0, 243, 255, 1.0);
         }
         .chaos-3d-btn {
           background: linear-gradient(180deg, #d946ef 0%, #ff007f 100%);
           color: #ffffff;
-          border: 2.5px solid rgba(217, 70, 239, 0.5);
+          border: 2.5px solid rgba(217, 70, 239, 0.6);
           animation: pink-glow-pulse 1.8s infinite alternate ease-in-out;
         }
         .chaos-3d-btn:hover {
           background: linear-gradient(180deg, #e879f9 0%, #ff3b9a 100%);
           border-color: #ffffff;
           animation-play-state: paused;
-          box-shadow: 0 6px 0 #9d174d, 0 10px 22px rgba(217, 70, 239, 0.5), inset 0 0 20px rgba(217, 70, 239, 1.0), 0 0 24px rgba(217, 70, 239, 0.9);
+          filter: drop-shadow(0 0 16px rgba(217, 70, 239, 1.0));
+          box-shadow: 0 6px 0 #9d174d, inset 0 0 20px rgba(217, 70, 239, 1.0);
         }
 
         /* Mobile Responsive 3D Styling (Lightweight & Smooth) */
