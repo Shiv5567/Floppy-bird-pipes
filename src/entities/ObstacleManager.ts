@@ -4809,6 +4809,9 @@ export class ObstacleManager {
     }
 
     let currentStepGap = gapHeight * gapScaleFactor;
+    if (gameMode === 'endless' && score >= 1 && score <= 100) {
+      currentStepGap *= 1.18; // Increase vertical path gap by 18% for score 1 to 100 in endless/solo mode
+    }
     if (gameMode === 'flock') {
       currentStepGap = Math.max(270, currentStepGap); // Enforce vertical gap minimum of 270px
     }
