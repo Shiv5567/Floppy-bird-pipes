@@ -437,13 +437,14 @@ export class ObstacleManager {
           } else if (obs.patternType === 'level2_diamond') {
             // LEVEL 2: "The Wave Gauntlet"
             if (groupIdx === 1) {
-              // Group 2: "Steep Peak-Valley Maze" - Parallel vertical bobbing (no horizontal shake)
-              obs.isLaser = false;
-              const verticalShift = Math.sin(this.waveTime * 2.2 + actualIdx * 0.4) * 18;
-              obs.targetTopHeight = obs.baseTopHeight! + verticalShift;
-              obs.targetBottomHeight = obs.baseBottomHeight! - verticalShift;
-              obs.shakeX = 0;
-              obs.shakeX2 = 0;
+              // Exchanged with Level 10 Group 2: "Plasma Surge Lasers" - Lasers with high-frequency electric jolt bursts
+              obs.isLaser = true;
+              const surgeDrift = Math.sin(this.waveTime * 1.4 + actualIdx * 0.6) * 18;
+              const surgeJolt = Math.sin(this.waveTime * 12 + actualIdx * 1.2) * 5; // rapid micro-jitter
+              obs.targetTopHeight = obs.baseTopHeight! + surgeDrift + surgeJolt;
+              obs.targetBottomHeight = obs.baseBottomHeight! - surgeDrift + surgeJolt;
+              obs.shakeX = Math.cos(this.waveTime * 2.0 + actualIdx * 0.5) * 16;
+              obs.shakeX2 = -Math.cos(this.waveTime * 2.0 + actualIdx * 0.5) * 16;
             } else if (groupIdx === 2) {
               // Group 3: "Funneling Spiral Tunnel" - Circular orbital spin on lasers (no vertical bobbing)
               obs.isLaser = true;
@@ -674,14 +675,13 @@ export class ObstacleManager {
           } else if (obs.patternType === 'level10_miniboss') {
             // LEVEL 10: "The Chrono Warp Horizon"
             if (groupIdx === 1) {
-              // Group 2: "Plasma Surge Lasers" - Lasers with high-frequency electric jolt bursts (rapid micro-stutter + slow drift)
-              obs.isLaser = true;
-              const surgeDrift = Math.sin(this.waveTime * 1.4 + actualIdx * 0.6) * 18;
-              const surgeJolt = Math.sin(this.waveTime * 12 + actualIdx * 1.2) * 5; // rapid micro-jitter
-              obs.targetTopHeight = obs.baseTopHeight! + surgeDrift + surgeJolt;
-              obs.targetBottomHeight = obs.baseBottomHeight! - surgeDrift + surgeJolt;
-              obs.shakeX = Math.cos(this.waveTime * 2.0 + actualIdx * 0.5) * 16;
-              obs.shakeX2 = -Math.cos(this.waveTime * 2.0 + actualIdx * 0.5) * 16;
+              // Exchanged with Level 2 Group 2: "Steep Peak-Valley Maze" - Parallel vertical bobbing (no horizontal shake)
+              obs.isLaser = false;
+              const verticalShift = Math.sin(this.waveTime * 2.2 + actualIdx * 0.4) * 18;
+              obs.targetTopHeight = obs.baseTopHeight! + verticalShift;
+              obs.targetBottomHeight = obs.baseBottomHeight! - verticalShift;
+              obs.shakeX = 0;
+              obs.shakeX2 = 0;
             } else if (groupIdx === 2) {
               // Group 3: "Orbital Figure-8 Pipes" - Standard pipes trace a figure-8 Lissajous path (2:1 frequency ratio)
               obs.isLaser = false;
@@ -3441,10 +3441,13 @@ export class ObstacleManager {
       } else if (patternType === 'level2_diamond') {
         // LEVEL 2: "The Wave Gauntlet" - Widened gaps and reduced wave shifts
         if (groupIdx === 1) {
-          // Group 2: "Steep Peak-Valley Maze" - very gentle peak/valley layout with wide gaps
-          localGapHeight = gapHeight + 15;
-          const peakValley = (Math.floor(idxInGroup / 3) % 2 === 0) ? -35 : 35;
-          targetCenterY = height / 2 + peakValley;
+          // Exchanged with Level 10 Group 2: "The Chrono Warp Horizon"
+          localGapHeight = gapHeight - 12;
+          const normIdx = (obstacleIdx % 6) / 5.0;
+          const warpOffset = Math.sin(normIdx * Math.PI * 2) * 95;
+          targetCenterY = height / 2 + warpOffset;
+          triggerDistance = 200;
+          animDuration = 0.32;
         } else if (groupIdx === 2) {
           // Group 3: "Funneling Spiral Tunnel" - gradual and wide tunnel
           const narrowFactor = (idxInGroup / groupSize) * 15;
@@ -3604,12 +3607,21 @@ export class ObstacleManager {
         animDuration = 0.34;
       } else if (patternType === 'level10_miniboss') {
         // LEVEL 10: "The Chrono Warp Horizon" (Sci-fi roller-coaster plunging and rising warp tunnel)
-        localGapHeight = gapHeight - 12;
-        const normIdx = (obstacleIdx % 6) / 5.0;
-        const warpOffset = Math.sin(normIdx * Math.PI * 2) * 95;
-        targetCenterY = height / 2 + warpOffset;
-        triggerDistance = 200;
-        animDuration = 0.32;
+        if (groupIdx === 1) {
+          // Exchanged with Level 2 Group 2: "Steep Peak-Valley Maze"
+          localGapHeight = gapHeight + 15;
+          const peakValley = (Math.floor(idxInGroup / 3) % 2 === 0) ? -35 : 35;
+          targetCenterY = height / 2 + peakValley;
+          triggerDistance = 220;
+          animDuration = 0.45;
+        } else {
+          localGapHeight = gapHeight - 12;
+          const normIdx = (obstacleIdx % 6) / 5.0;
+          const warpOffset = Math.sin(normIdx * Math.PI * 2) * 95;
+          targetCenterY = height / 2 + warpOffset;
+          triggerDistance = 200;
+          animDuration = 0.32;
+        }
       } else if (patternType === 'level11_diamond') {
         // LEVEL 11: Deep V-Shape & Symmetrical/Asymmetrical Variations (repeating every 12 columns side-by-side)
         hasAsymmetricHeights = true;
