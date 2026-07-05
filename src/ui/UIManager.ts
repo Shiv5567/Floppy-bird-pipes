@@ -5148,16 +5148,16 @@ export class UIManager {
     return `
 <svg viewBox="0 0 100 100" style="width: ${width}; height: ${height}; display: inline-block; vertical-align: middle; filter: drop-shadow(0 0 8px rgba(168,85,247,0.55));" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- Day Half Gradients - Transparent background behind sun -->
+    <!-- Day Half Gradients - Sunrise Day Sky -->
     <linearGradient id="dayBgGrad-${idSuffix}" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#0284c7" stop-opacity="0.05" />
-      <stop offset="60%" stop-color="#38bdf8" stop-opacity="0.15" />
-      <stop offset="100%" stop-color="#fef08a" stop-opacity="0.25" />
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="1.0" />
+      <stop offset="55%" stop-color="#f472b6" stop-opacity="1.0" />
+      <stop offset="100%" stop-color="#fef08a" stop-opacity="1.0" />
     </linearGradient>
     <radialGradient id="sunGrad-${idSuffix}" cx="35%" cy="35%" r="65%">
-      <stop offset="0%" stop-color="rgba(255,255,255,0.4)" />
-      <stop offset="50%" stop-color="#fffbeb" stop-opacity="0.4" />
-      <stop offset="100%" stop-color="#fef9c3" stop-opacity="0.4" />
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="1.0" />
+      <stop offset="50%" stop-color="#fffbeb" stop-opacity="1.0" />
+      <stop offset="100%" stop-color="#fde047" stop-opacity="1.0" />
     </radialGradient>
 
     <!-- Night Half Gradients -->
@@ -5195,16 +5195,16 @@ export class UIManager {
     <!-- LEFT HALF: DAY SCENE -->
     <path d="M 50,4 A 46,46 0 0,0 50,96 Z" fill="url(#dayBgGrad-${idSuffix})" />
     <!-- Day Sun with realistic white-yellow flares -->
-    <g transform="translate(34, 32) scale(0.85)" opacity="0.95">
-      <!-- 8-pointed star burst: white 40% more transparent + soft yellow tint -->
-      <path d="M 0,-15 L 3,-3 L 15,0 L 3,3 L 0,15 L -3,3 L -15,0 L -3,-3 Z" fill="#fff8c5" opacity="0.39" />
-      <path d="M 0,-15 L 3,-3 L 15,0 L 3,3 L 0,15 L -3,3 L -15,0 L -3,-3 Z" fill="#fef9c3" opacity="0.45" transform="rotate(45)" />
+    <g transform="translate(34, 32) scale(0.85)" opacity="1.0">
+      <!-- 8-pointed star burst: bright yellow-white sunrise rays -->
+      <path d="M 0,-15 L 3,-3 L 15,0 L 3,3 L 0,15 L -3,3 L -15,0 L -3,-3 Z" fill="#ffffff" opacity="0.8" />
+      <path d="M 0,-15 L 3,-3 L 15,0 L 3,3 L 0,15 L -3,3 L -15,0 L -3,-3 Z" fill="#fef08a" opacity="0.85" transform="rotate(45)" />
     </g>
-    <circle cx="34" cy="32" r="10.5" fill="none" stroke="#fef9c3" stroke-width="1.0" opacity="0.4" style="filter: drop-shadow(0 0 2px #fef9c3);" />
-    <circle cx="34" cy="32" r="7.5" fill="url(#sunGrad-${idSuffix})" style="filter: drop-shadow(0 0 4px rgba(255,255,255,0.95));" />
+    <circle cx="34" cy="32" r="10.5" fill="none" stroke="#fef08a" stroke-width="1.0" opacity="0.75" style="filter: drop-shadow(0 0 3px #fef08a);" />
+    <circle cx="34" cy="32" r="7.5" fill="url(#sunGrad-${idSuffix})" style="filter: drop-shadow(0 0 6px rgba(255,255,255,1.0));" />
     <!-- Day Meadow Hills -->
-    <path d="M 4,52 Q 25,66 50,60 L 50,96 L 4,96 Z" fill="#059669" opacity="0.85" />
-    <path d="M 4,72 Q 20,82 50,76 L 50,96 L 4,96 Z" fill="#10b981" />
+    <path d="M 4,52 Q 25,66 50,60 L 50,96 L 4,96 Z" fill="#047857" opacity="1.0" />
+    <path d="M 4,72 Q 20,82 50,76 L 50,96 L 4,96 Z" fill="#10b981" opacity="1.0" />
 
     <!-- RIGHT HALF: NIGHT SCENE -->
     <path d="M 50,4 A 46,46 0 0,1 50,96 Z" fill="url(#nightBgGrad-${idSuffix})" />
