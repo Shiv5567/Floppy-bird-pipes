@@ -3257,7 +3257,7 @@ export class UIManager {
       canvas.style.filter = 'none';
       
       if (this.engine.state === 'PLAYING') {
-        this.engine.soundManager.startMusic(this.engine.getCurrentWorldId());
+        this.engine.soundManager.startMusic(this.engine.progressManager.getState().activeWorld);
       }
       this.render();
     });
@@ -3371,7 +3371,7 @@ export class UIManager {
           }
         }, 2000);
         
-        this.engine.soundManager.startMusic(this.engine.getCurrentWorldId());
+        this.engine.soundManager.startMusic(this.engine.progressManager.getState().activeWorld);
         this.render();
       });
     }

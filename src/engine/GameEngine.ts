@@ -199,8 +199,9 @@ export class GameEngine {
         this.scrollSpeed = levelConfig.scrollSpeed;
         this.baseScrollSpeed = levelConfig.scrollSpeed;
         
-        // Apply the level's designed world weather/theme
-        this.renderer.setWeather(this.getCurrentWorldId());
+        // Keep currently active/selected world and apply its weather/theme to level mode
+        const activeWorld = this.progressManager.getState().activeWorld;
+        this.renderer.setWeather(activeWorld);
         this.renderer.activeLevelNum = this.currentLevelNum;
         this.progressManager.trackLevelPlay(this.currentLevelNum);
       }
@@ -300,7 +301,7 @@ export class GameEngine {
     }
     
     this.soundManager.stopMusic();
-    this.soundManager.startMusic(this.getCurrentWorldId());
+    this.soundManager.startMusic(this.progressManager.getState().activeWorld);
   }
 
   public update(deltaTime: number) {
@@ -353,7 +354,7 @@ export class GameEngine {
       if (this.preloadingTimer <= 0) {
         this.state = 'PLAYING';
         this.soundManager.stopMusic();
-        this.soundManager.startMusic(this.getCurrentWorldId());
+        this.soundManager.startMusic(this.progressManager.getState().activeWorld);
         window.dispatchEvent(new CustomEvent('preloading_complete'));
       }
       return;
@@ -2273,13 +2274,6 @@ export class GameEngine {
     this.bird.sizeMultiplier = 1.0 + this.playerBossHP * 0.03;
 
     // Show floating hud alert removed as per user request
-  }
-
-  public getCurrentWorldId(): string {
-    if (this.gameMode === 'level' && this.activeLevelConfig) {
-      return this.activeLevelConfig.worldId;
-    }
-    return this.progressManager.getState().activeWorld;
   }
 }
 
