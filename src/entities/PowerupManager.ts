@@ -39,7 +39,7 @@ export class PowerupManager {
       // Spawn at equal intervals (25, 50, 75) in the 100-obstacle block
       const indices = [25, 50, 75];
 
-      const pool: PowerupType[] = ['shield', 'slowmo', 'magnet', 'turbo', 'mini'];
+      const pool: PowerupType[] = ['shield', 'slowmo', 'magnet', 'turbo', 'mini', 'double'];
 
       const chosenTypes: PowerupType[] = [];
       while (chosenTypes.length < 3) {
@@ -66,7 +66,7 @@ export class PowerupManager {
       const idx3 = Math.floor(targetScore * 0.75);
       const indices = [idx1, idx2, idx3];
 
-      const pool: PowerupType[] = ['shield', 'slowmo', 'magnet', 'turbo', 'mini'];
+      const pool: PowerupType[] = ['shield', 'slowmo', 'magnet', 'turbo', 'mini', 'double'];
       const chosenTypes: PowerupType[] = [];
       while (chosenTypes.length < 3) {
         const type = pool[Math.floor(Math.random() * pool.length)];
@@ -969,103 +969,6 @@ export class PowerupManager {
     ctx.stroke();
   }
 
-  private drawPlasmaWeaponBall(ctx: CanvasRenderingContext2D, item: PowerupItem) {
-    const radius = item.radius * 1.35; // Increased size by 35%
-    const t = performance.now() * 0.003;
-    
-    ctx.save();
-    
-    // 1. Intense Pulsing Outer 3D Glow (Glow halo)
-    if (!(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 28 + Math.sin(t * 3.5) * 6; // Pulsing glow intensity
-      ctx.shadowColor = '#00f3ff';
-    }
-    
-    // 2. 3D Spherical Shading (Radial gradient with off-center light source)
-    // Light source is at top-left (-radius * 0.35, -radius * 0.35)
-    const sphereGrad = ctx.createRadialGradient(
-      -radius * 0.35, -radius * 0.35, radius * 0.05, // Start circle (light source)
-      0, 0, radius                                  // End circle (sphere boundary)
-    );
-    sphereGrad.addColorStop(0, '#ffffff');                 // Specular hot-spot
-    sphereGrad.addColorStop(0.2, '#00f3ff');               // Neon Cyan diffuse highlight
-    sphereGrad.addColorStop(0.65, '#d946ef');              // Magenta midtone
-    sphereGrad.addColorStop(0.9, '#4c0519');               // Deep dark red shadow terminator
-    sphereGrad.addColorStop(1.0, '#000000');               // Ambient occlusion edge
-    
-    ctx.fillStyle = sphereGrad;
-    ctx.beginPath();
-    ctx.arc(0, 0, radius, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-    
-    // 3. Inner Rim Light (Creates a 3D glass/energy shell edge)
-    ctx.save();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.arc(0, 0, radius - 0.75, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-    
-    // 3.5. Dynamic crackling electric plasma arcs
-    ctx.save();
-    ctx.strokeStyle = 'rgba(0, 243, 255, 0.85)';
-    ctx.lineWidth = 1.5;
-    if (!(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = '#00f3ff';
-    }
-    
-    const numArcs = 4;
-    for (let a = 0; a < numArcs; a++) {
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      const angle = (a * Math.PI / 2) + Math.sin(t * 3 + a) * 0.35;
-      const segments = 4;
-      for (let s = 1; s <= segments; s++) {
-        const segmentDist = (radius * 0.85) / segments * s;
-        const perpAngle = angle + Math.PI / 2;
-        const disp = (Math.random() - 0.5) * 5;
-        const targetX = Math.cos(angle) * segmentDist + Math.cos(perpAngle) * disp;
-        const targetY = Math.sin(angle) * segmentDist + Math.sin(perpAngle) * disp;
-        ctx.lineTo(targetX, targetY);
-      }
-      ctx.stroke();
-    }
-    ctx.restore();
-
-    // 3.6. Spinning Magenta containment outer ring
-    ctx.save();
-    ctx.strokeStyle = '#d946ef';
-    ctx.lineWidth = 2.0;
-    ctx.setLineDash([8, 12]);
-    ctx.lineDashOffset = -performance.now() * 0.15;
-    if (!(window as any).gameDisableShadows) {
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = '#d946ef';
-    }
-    ctx.beginPath();
-    ctx.arc(0, 0, radius - 2, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-    
-    // 5. White-hot high-density 3D core (glows from inside)
-    ctx.save();
-    const coreGrad = ctx.createRadialGradient(
-      -radius * 0.15, -radius * 0.15, 0,
-      0, 0, radius * 0.4
-    );
-    coreGrad.addColorStop(0, '#ffffff');
-    coreGrad.addColorStop(0.5, 'rgba(0, 243, 255, 0.95)');
-    coreGrad.addColorStop(1, 'rgba(0, 243, 255, 0)');
-    ctx.fillStyle = coreGrad;
-    ctx.beginPath();
-    ctx.arc(0, 0, radius * 0.4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-
   private drawGravityPortal(ctx: CanvasRenderingContext2D, item: PowerupItem) {
     const radius = item.radius * 1.55; // Slightly larger for better 3D tilt presence
     const t = performance.now() * 0.002;
@@ -1193,10 +1096,6 @@ export class PowerupManager {
   }
 
   private drawPowerupBox(ctx: CanvasRenderingContext2D, item: PowerupItem) {
-    if (item.type === 'weapon') {
-      this.drawPlasmaWeaponBall(ctx, item);
-      return;
-    }
     if (item.type === 'gravity') {
       this.drawGravityPortal(ctx, item);
       return;
@@ -1228,7 +1127,7 @@ export class PowerupManager {
     ctx.ellipse(-item.radius * 0.35, -item.radius * 0.35, item.radius * 0.3, item.radius * 0.18, -Math.PI / 4, 0, Math.PI * 2);
     ctx.fill();
 
-    // Draw customized symbolic vector logo inside
+    // Draw customized symbolic logo inside
     ctx.save();
 
     // Radial highlight glow behind logo inside bubble
@@ -1240,135 +1139,29 @@ export class PowerupManager {
     ctx.arc(0, 0, item.radius * 0.75, 0, Math.PI * 2);
     ctx.fill();
 
-    // Increase logo size inside bubble by 1.35x
-    ctx.scale(1.35, 1.35);
+    // Render corresponding emoji with 20% size increase and neon glowing shadow
+    let emoji = '🪶';
+    if (item.type === 'shield') emoji = '🛡️';
+    else if (item.type === 'slowmo') emoji = '⏳';
+    else if (item.type === 'magnet') emoji = '🧲';
+    else if (item.type === 'double') emoji = '🪙';
+    else if (item.type === 'turbo') emoji = '⚡';
+    else if (item.type === 'mini') emoji = '🔎';
+    else if (item.type === 'ghost') emoji = '👻';
+    else if (item.type === 'weapon') emoji = '🎯';
 
-    if (item.type === 'shield') {
-      // Shield logo
-      ctx.beginPath();
-      ctx.moveTo(0, -7);
-      ctx.lineTo(5.5, -4);
-      ctx.lineTo(4.5, 1.5);
-      ctx.quadraticCurveTo(4.5, 4.5, 0, 7.5);
-      ctx.quadraticCurveTo(-4.5, 4.5, -4.5, 1.5);
-      ctx.lineTo(-5.5, -4);
-      ctx.closePath();
-      ctx.fillStyle = '#ffffff';
-      ctx.fill();
-      
-      // Inner cross line
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      ctx.moveTo(0, -3.5);
-      ctx.lineTo(0, 4);
-      ctx.moveTo(-2.5, -0.5);
-      ctx.lineTo(2.5, -0.5);
-      ctx.stroke();
-    } else if (item.type === 'slowmo') {
-      // Clock face
-      ctx.beginPath();
-      ctx.arc(0, 0.5, 6, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffffff';
-      ctx.fill();
-      
-      // Clock hands
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1.5;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(0, 0.5);
-      ctx.lineTo(0, -3.0); // 12 o'clock
-      ctx.moveTo(0, 0.5);
-      ctx.lineTo(2.5, 2.0); // 4 o'clock
-      ctx.stroke();
-      
-      // Stopwatch top trigger ring
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 1.0;
-      ctx.beginPath();
-      ctx.arc(0, -7.5, 2, 0, Math.PI * 2);
-      ctx.stroke();
-    } else if (item.type === 'magnet') {
-      // U-Magnet
-      ctx.lineWidth = 3.0;
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineCap = 'square';
-      ctx.beginPath();
-      ctx.moveTo(-4, -4);
-      ctx.lineTo(-4, 0.5);
-      ctx.arc(0, 0.5, 4, Math.PI, 0, true);
-      ctx.lineTo(4, -4);
-      ctx.stroke();
-      
-      // Red pole tips
-      ctx.lineWidth = 3.0;
-      ctx.strokeStyle = '#ff3d00';
-      ctx.beginPath();
-      ctx.moveTo(-4, -4);
-      ctx.lineTo(-4, -6.5);
-      ctx.moveTo(4, -4);
-      ctx.lineTo(4, -6.5);
-      ctx.stroke();
-    } else if (item.type === 'turbo') {
-      // Double chevron >>
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2.2;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.beginPath();
-      // First chevron
-      ctx.moveTo(-4.5, -4.5);
-      ctx.lineTo(0, 0);
-      ctx.lineTo(-4.5, 4.5);
-      // Second chevron
-      ctx.moveTo(0.5, -4.5);
-      ctx.lineTo(5, 0);
-      ctx.lineTo(0.5, 4.5);
-      ctx.stroke();
-    } else if (item.type === 'mini') {
-      // Mini Bird head
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.arc(0.5, 0.5, 4.5, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Beak
-      ctx.fillStyle = '#ff9100';
-      ctx.beginPath();
-      ctx.moveTo(-3, -0.5);
-      ctx.lineTo(-6.5, 0.5);
-      ctx.lineTo(-3, 1.5);
-      ctx.closePath();
-      ctx.fill();
-      
-      // Eye
-      ctx.fillStyle = '#000000';
-      ctx.beginPath();
-      ctx.arc(-1.0, -1.0, 1.0, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (item.type === 'merge') {
-      // Draw double helix/merging rings
-      ctx.fillStyle = '#ff007f';
-      ctx.beginPath();
-      ctx.arc(-3, 0, 4, 0, Math.PI * 2);
-      ctx.arc(3, 0, 4, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(-3, 0);
-      ctx.lineTo(3, 0);
-      ctx.stroke();
-    } else {
-      // Fallback text drawing for any other unregistered powerups
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 11px Outfit, Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('P', 0, 0.5);
+    ctx.save();
+    if (!(window as any).gameDisableShadows) {
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = color;
     }
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '17px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(emoji, 0, 0.5);
+    ctx.restore();
+
     ctx.restore();
   }
 }

@@ -395,10 +395,15 @@ export class UIManager {
 
         if (!this.ultFill) this.ultFill = this.btnUltimate.querySelector('.ult-progress-fill');
         if (this.ultFill) {
-          const circumference = 157;
+          const circumference = 170;
           const offset = circumference - (ultPercent / 100) * circumference;
           (this.ultFill as any).style.strokeDashoffset = `${offset}`;
           (this.ultFill as any).style.stroke = ultBarBg;
+
+          const ultSvg = this.btnUltimate.querySelector('.ult-ring') as HTMLElement;
+          if (ultSvg) {
+            ultSvg.style.filter = `drop-shadow(0 0 4px ${ultBarBg})`;
+          }
         }
 
         if (!this.ultText) this.ultText = this.btnUltimate.querySelector('.ult-text');
@@ -470,7 +475,7 @@ export class UIManager {
             const percent = (p.durationLeft / p.maxDuration) * 100;
             return `
               <div class="hud-powerup-badge glass-card fade-in" data-powerup-type="${p.type}">
-                <span class="pow-icon">${p.type === 'shield' ? '🛡️' : p.type === 'slowmo' ? '⏳' : p.type === 'magnet' ? '🧲' : p.type === 'double' ? '✨' : p.type === 'turbo' ? '🔥' : p.type === 'ghost' ? '👻' : p.type === 'mini' ? '🔎' : '🪶'}</span>
+                <span class="pow-icon">${p.type === 'shield' ? '🛡️' : p.type === 'slowmo' ? '⏳' : p.type === 'magnet' ? '🧲' : p.type === 'double' ? '🪙' : p.type === 'turbo' ? '⚡' : p.type === 'ghost' ? '👻' : p.type === 'mini' ? '🔎' : p.type === 'weapon' ? '🎯' : '🪶'}</span>
                 <div class="pow-bar-container">
                   <div class="pow-bar-inner" style="width: ${percent}%; background-color: ${this.getPowerupColor(p.type)}"></div>
                 </div>
@@ -668,12 +673,12 @@ export class UIManager {
 
     const worldNames: Record<string, string> = {
       jungle:     'AMAZON RAINFOREST',
-      ice:        'FROZEN ICE KINGDOM',
+      ice:        'FROST VALLEY',
       desert:     'ANCIENT EGYPT : THE DESERT',
-      volcano:    'VOLCANIC SPRING',
-      space:      'COSMIC MEADOW',
+      volcano:    'VOLCANIC REALM',
+      space:      'TWILIGHT HORIZON',
       underwater: 'DEEP UNDERWATER',
-      heaven:     'HEAVEN CLOUD KINGDOM',
+      heaven:     'GOLDEN HEIGHTS : THE CLOUD KINGDOM',
       retro:      'RETRO MAP'
     };
 
@@ -828,11 +833,11 @@ export class UIManager {
             <div class="platform-conic-ray"></div>
             <div class="platform-glow-ring"></div>
 
-            <div style="display: flex; flex-direction: column; gap: 12px; width: 100%; margin-bottom: 8px; margin-top: 8px; transform: translateY(50px);">
-              <button class="start-fly-btn" id="btn-start-game" style="width: 100%; padding: 17px 20px; font-size: 19px;">
+            <div style="display: flex; flex-direction: column; gap: 14px; width: 100%; margin-bottom: 8px; margin-top: 8px; transform: translateY(50px);">
+              <button class="start-fly-btn btn-home-endless" id="btn-start-game" style="width: 100%; padding: 17px 20px; font-size: 19px;">
                 <span>ENDLESS</span>
               </button>
-              <button class="start-fly-btn" id="btn-open-levels" style="width: 100%; padding: 17px 20px; font-size: 19px; background: linear-gradient(180deg, #b35dfb 0%, #7b2fff 50%, #5200b3 100%); box-shadow: 0 6px 0 #3a0082, 0 8px 20px rgba(123,47,255,0.4);">
+              <button class="start-fly-btn btn-home-levels" id="btn-open-levels" style="width: 100%; padding: 17px 20px; font-size: 19px;">
                 <span>LEVELS</span>
               </button>
             </div>
@@ -1043,7 +1048,7 @@ export class UIManager {
               <div class="grid-card-name">${s.name}</div>
               <button class="btn-skin-info" data-skin-info="${s.id}"
                 style="background:rgba(230, 200, 255, 0.15);border:1px solid rgba(230, 200, 255, 0.5);color:rgba(230, 200, 255, 0.8);font-size:8px;font-weight:800;padding:3px 10px;border-radius:8px;cursor:pointer;letter-spacing:0.5px;margin-top:4px;font-family:inherit;"
-              >Special Ability Info &#9432;</button>
+              >✨ Special Ability Info &#9432;</button>
               <div class="skin-info-panel" id="info-${s.id}"
                 style="visibility:hidden;min-height:32px;margin-top:4px;width:100%;text-align:center;"
               >
@@ -1280,12 +1285,13 @@ export class UIManager {
       }
 
       case 'powerups': {
-        const upgrades = progress.powerupUpgrades || { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1 };
+        const upgrades = progress.powerupUpgrades || { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1, double: 1 };
         const powerupsInfo = [
-          { id: 'shield', name: 'Shield Deflector', icon: '🛡️', desc: 'Protects from 1 fatal collision.', base: 8.0 },
-          { id: 'slowmo', name: 'Temporal Slow-Mo', icon: '⏳', desc: 'Slows down moving obstacles.', base: 10.0 },
-          { id: 'magnet', name: 'Coin Magnet', icon: '🧲', desc: 'Attracts gold coins and gems.', base: 12.0 },
-          { id: 'turbo', name: 'Hyper Booster', icon: '🔥', desc: 'Invincible hyper flight speed.', base: 5.0 },
+          { id: 'shield', name: 'Shield', icon: '🛡️', desc: 'Protects from 1 fatal collision.', base: 8.0 },
+          { id: 'slowmo', name: 'Slow-Mo', icon: '⏳', desc: 'Slows down moving obstacles.', base: 10.0 },
+          { id: 'magnet', name: 'Magnet', icon: '🧲', desc: 'Attracts gold coins and gems.', base: 12.0 },
+          { id: 'double', name: '2x Coins Collection', icon: '🪙', desc: 'Doubles the value of all collected coins.', base: 10.0 },
+          { id: 'turbo', name: 'Hyper Booster', icon: '⚡', desc: 'Invincible hyper flight speed.', base: 5.0 },
           { id: 'mini', name: 'Quantum Mini-Bird', icon: '🔎', desc: 'Shrinks bird size for tight paths.', base: 10.0 }
         ];
 
@@ -1756,13 +1762,13 @@ export class UIManager {
 
               if (!isVolcanoUnlocked) {
                 this.engine.progressManager.unlockWorldDirect('volcano');
-                unlockedWorldName = 'Volcanic Spring';
+                 unlockedWorldName = 'Volcanic Realm';
               } else if (!isDesertUnlocked) {
                 this.engine.progressManager.unlockWorldDirect('desert');
                 unlockedWorldName = 'ANCIENT EGYPT : THE DESERT';
               } else if (!isSpaceUnlocked) {
                 this.engine.progressManager.unlockWorldDirect('space');
-                unlockedWorldName = 'Cosmic Meadow';
+                 unlockedWorldName = 'Twilight Horizon';
               }
 
               const isDreadOwlUnlocked = skinsList.find(s => s.id === 'dread_owl')?.unlocked;
@@ -2031,7 +2037,7 @@ export class UIManager {
         if (!panel) return;
         const isOpen = panel.style.visibility !== 'hidden';
         panel.style.visibility = isOpen ? 'hidden' : 'visible';
-        (btn as HTMLElement).textContent = isOpen ? 'Special Ability Info ℹ' : 'Special Ability Info ▲';
+        (btn as HTMLElement).textContent = isOpen ? '✨ Special Ability Info ℹ' : '✨ Special Ability Info ▲';
       });
     });
 
@@ -2223,7 +2229,7 @@ export class UIManager {
       const percent = (p.durationLeft / p.maxDuration) * 100;
       return `
         <div class="hud-powerup-badge glass-card fade-in">
-          <span class="pow-icon">${p.type === 'shield' ? '🛡️' : p.type === 'slowmo' ? '⏳' : p.type === 'magnet' ? '🧲' : p.type === 'double' ? '✨' : p.type === 'turbo' ? '🔥' : p.type === 'ghost' ? '👻' : p.type === 'mini' ? '🔎' : p.type === 'weapon' ? '🔫' : '🪶'}</span>
+          <span class="pow-icon">${p.type === 'shield' ? '🛡️' : p.type === 'slowmo' ? '⏳' : p.type === 'magnet' ? '🧲' : p.type === 'double' ? '🪙' : p.type === 'turbo' ? '⚡' : p.type === 'ghost' ? '👻' : p.type === 'mini' ? '🔎' : p.type === 'weapon' ? '🎯' : '🪶'}</span>
           <div class="pow-bar-container">
             <div class="pow-bar-inner" style="width: ${percent}%; background-color: ${this.getPowerupColor(p.type)}"></div>
           </div>
@@ -2613,18 +2619,18 @@ export class UIManager {
 
             <!-- Ultimate Special Ability Transparent Circular Button (Shifted from Double-Tap) -->
             <div class="hud-ult-circle-btn glass-card ${ultReady ? 'ult-ready-pulse' : ''} ${ultActive ? 'ult-active-glow' : ''}" 
-                 style="pointer-events: auto; cursor: pointer; display: ${this.engine.gameMode === 'level' ? 'none' : 'flex'}; align-items: center; justify-content: center; width: 62px; height: 62px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.06); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2); position: relative; margin-bottom: 6px; -webkit-tap-highlight-color: transparent;" 
+                 style="display: ${this.engine.gameMode === 'level' ? 'none' : 'flex'};" 
                  id="btn-hud-ultimate" 
                  title="Tap to Activate Ultimate Special Ability!">
-              <div class="ult-inner-glow" style="position: absolute; inset: 2px; border-radius: 50%; background: ${ultActive ? 'rgba(255, 0, 127, 0.25)' : ultReady ? 'rgba(255, 215, 0, 0.18)' : 'transparent'}; pointer-events: none;"></div>
-              <svg class="ult-ring" width="58" height="58" viewBox="0 0 58 58" style="position: absolute; transform: rotate(-90deg); pointer-events: none;">
-                <circle cx="29" cy="29" r="25" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"></circle>
-                <circle cx="29" cy="29" r="25" fill="none" stroke="${ultBarBg}" stroke-width="4.5" 
-                        stroke-dasharray="157" stroke-dashoffset="${157 - (157 * ultPercent) / 100}" 
+              <div class="ult-inner-glow" style="position: absolute; inset: 2px; border-radius: 50%; background: ${ultActive ? 'rgba(255, 0, 127, 0.25)' : ultReady ? 'rgba(255, 215, 0, 0.18)' : 'transparent'}; box-shadow: inset 0 0 8px ${ultActive ? '#ff007f' : ultReady ? '#ffd700' : 'rgba(255,255,255,0.05)'}; pointer-events: none;"></div>
+              <svg class="ult-ring" width="62" height="62" viewBox="0 0 62 62" style="position: absolute; transform: rotate(-90deg); pointer-events: none; filter: drop-shadow(0 0 4px ${ultBarBg});">
+                <circle cx="31" cy="31" r="27" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"></circle>
+                <circle cx="31" cy="31" r="27" fill="none" stroke="${ultBarBg}" stroke-width="5" 
+                        stroke-dasharray="170" stroke-dashoffset="${170 - (170 * ultPercent) / 100}" 
                         stroke-linecap="round" class="ult-progress-fill" style="transition: stroke-dashoffset 0.15s ease-out; stroke: ${ultBarBg};"></circle>
               </svg>
               <span class="ult-icon" style="font-size: 24px; z-index: 2; transition: transform 0.2s ease; margin: 0; line-height: 1; display: ${ultReady && !ultActive ? 'none' : 'block'};">${ultActive ? '⚡' : '✨'}</span>
-              <span class="ult-text" style="font-size: 11px; font-weight: 900; color: #ffd700; z-index: 2; font-family: 'Outfit', sans-serif; letter-spacing: 0.5px; text-shadow: 0 0 4px rgba(255,215,0,0.5); display: ${ultReady && !ultActive ? 'block' : 'none'};">READY</span>
+              <span class="ult-text" style="display: ${ultReady && !ultActive ? 'block' : 'none'};">READY</span>
             </div>
           </div>
         </div>
@@ -2875,12 +2881,12 @@ export class UIManager {
                 ${this.getCoinIconSvg('19px', '19px', '', 'topbar-revive')}
               </span>
               <span>${progress.coins.toLocaleString()}</span>
-              <button class="top-bar-add-btn" id="btn-plus-coins-revive" style="margin-left: 8px; background: linear-gradient(135deg, #ffd700, #ff8800); border: none; border-radius: 4px; color: #fff; font-weight: 900; font-size: 11px; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="Watch ad for +6000 Coins">+</button>
+              <button class="top-bar-add-btn" id="btn-plus-coins-revive" style="margin-left: 8px; width: 18px; height: 18px; font-size: 11px;" title="Watch ad for +6000 Coins">+</button>
             </div>
             <div class="top-bar-gem" id="btn-gem-topup-revive" style="position: relative; cursor: pointer; background: rgba(0,0,0,0.5); padding: 6px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; font-weight: 800; font-size: 14px; color: #fff;">
               <span class="top-bar-gem-icon" style="margin-right: 4px;">💎</span>
               <span>${progress.gems.toLocaleString()}</span>
-              <button class="top-bar-add-btn" id="btn-plus-gems-revive" style="margin-left: 8px; background: linear-gradient(135deg, #00c3ff, #0055ff); border: none; border-radius: 4px; color: #fff; font-weight: 900; font-size: 11px; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="Watch ad for +200 Gems">+</button>
+              <button class="top-bar-add-btn" id="btn-plus-gems-revive" style="margin-left: 8px; width: 18px; height: 18px; font-size: 11px;" title="Watch ad for +200 Gems">+</button>
             </div>
           </div>
         </div>
@@ -3540,34 +3546,54 @@ export class UIManager {
             <div class="mode-3d-card classic-3d" id="card-select-classic">
               <div class="mode-3d-icon">
                 <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="50" cy="50" r="42" fill="rgba(255, 215, 0, 0.05)" stroke="rgba(255, 215, 0, 0.15)" stroke-width="1.5" stroke-dasharray="4 4" />
-                  <g transform="translate(10, 15)">
-                    <path d="M12,40 C5,38 2,42 0,47 C3,52 8,50 15,46 Z" fill="#ff8800" />
-                    <path d="M15,44 C10,40 6,43 5,48 C8,52 12,50 17,46 Z" fill="#ffaa00" />
-                    <circle cx="40" cy="38" r="24" fill="url(#gold-body-grad-classic-selection)" stroke="#9c6300" stroke-width="2" />
-                    <ellipse cx="50" cy="28" rx="8" ry="11" fill="#ffffff" stroke="#111" stroke-width="2" />
-                    <ellipse cx="51" cy="28" rx="4" ry="6" fill="#000000" />
-                    <circle cx="49" cy="25" r="2.2" fill="#ffffff" />
-                    <circle cx="53" cy="31" r="1" fill="#ffffff" />
-                    <path d="M60,34 C72,34 78,38 72,44 C66,48 60,42 60,34 Z" fill="url(#beak-grad-classic-selection)" stroke="#b34000" stroke-width="1.5" />
-                    <path d="M58,40 C68,42 70,46 64,48 C58,50 56,43 58,40 Z" fill="url(#beak-grad-classic-selection)" stroke="#b34000" stroke-width="1.5" />
-                    <path d="M22,46 C28,58 52,58 58,46 C48,50 32,50 22,46 Z" fill="#fff9d4" opacity="0.8" />
-                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#gold-wing-grad-classic-selection)" stroke="#9c6300" stroke-width="1.8" />
-                    <path d="M28,36 C24,27 36,18 40,26 C43,33 36,41 28,36 Z" fill="#ffe066" opacity="0.9" />
+                  <!-- Glowing background ring -->
+                  <circle cx="50" cy="50" r="42" fill="url(#gold-bg-grad)" stroke="url(#gold-border-grad)" stroke-width="2" />
+                  <circle cx="50" cy="50" r="37" stroke="rgba(255, 215, 0, 0.2)" stroke-width="1" stroke-dasharray="3 3" />
+                  <!-- Stylized bird in flight -->
+                  <g transform="translate(50, 48)">
+                    <!-- Back Wing (Secondary wing layer) -->
+                    <path d="M-15,-20 C-5,-35 15,-30 25,-22 C10,-18 -5,-12 -15,-20 Z" fill="#b37400" opacity="0.5" />
+                    <!-- Bird Body & Head Profile -->
+                    <path d="M-22,5 C-28,5 -32,0 -30,-5 C-28,-10 -22,-10 -18,-15 C-12,-20 -5,-22 2,-20 C8,-18 18,-10 22,-2 C16,-4 8,-5 2,-2 C-4,1 -10,3 -15,5 Z" fill="url(#gold-body-grad)" stroke="#9c6300" stroke-width="1" />
+                    <!-- Sharp beak -->
+                    <path d="M22,-2 L28,-6 L20,-10 Z" fill="url(#gold-beak-grad)" stroke="#b34000" stroke-width="1" />
+                    <!-- Glowing Eye -->
+                    <circle cx="12" cy="-9" r="2" fill="#ffffff" filter="drop-shadow(0 0 2px #fff)" />
+                    <!-- Main Wing -->
+                    <path d="M-12,-10 C-2,-30 25,-32 38,-20 C18,-20 2,-10 -12,-10 Z" fill="url(#gold-wing-grad-1)" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.3))" />
+                    <path d="M-15,-5 C-3,-22 20,-24 30,-12 C12,-12 0,-5 -15,-5 Z" fill="url(#gold-wing-grad-2)" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.2))" />
+                    <path d="M-14,0 C-5,-12 15,-14 22,-5 C8,-5 -2,0 -14,0 Z" fill="url(#gold-wing-grad-3)" />
                   </g>
                   <defs>
-                    <linearGradient id="gold-body-grad-classic-selection" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#fff099" />
-                      <stop offset="40%" stop-color="#ffd700" />
+                    <radialGradient id="gold-bg-grad" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stop-color="rgba(255, 215, 0, 0.18)" />
+                      <stop offset="100%" stop-color="rgba(0, 0, 0, 0)" />
+                    </radialGradient>
+                    <linearGradient id="gold-border-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffd700" />
+                      <stop offset="50%" stop-color="#ff9900" />
+                      <stop offset="100%" stop-color="#ffd700" />
+                    </linearGradient>
+                    <linearGradient id="gold-body-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffffff" />
+                      <stop offset="30%" stop-color="#ffd700" />
                       <stop offset="100%" stop-color="#e69d00" />
                     </linearGradient>
-                    <linearGradient id="gold-wing-grad-classic-selection" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#fff5cc" />
-                      <stop offset="100%" stop-color="#ffa600" />
-                    </linearGradient>
-                    <linearGradient id="beak-grad-classic-selection" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#ff9900" />
+                    <linearGradient id="gold-beak-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffcc00" />
                       <stop offset="100%" stop-color="#ff3300" />
+                    </linearGradient>
+                    <linearGradient id="gold-wing-grad-1" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#fff4b8" />
+                      <stop offset="100%" stop-color="#ffaa00" />
+                    </linearGradient>
+                    <linearGradient id="gold-wing-grad-2" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffd24d" />
+                      <stop offset="100%" stop-color="#e67300" />
+                    </linearGradient>
+                    <linearGradient id="gold-wing-grad-3" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffa600" />
+                      <stop offset="100%" stop-color="#b34700" />
                     </linearGradient>
                   </defs>
                 </svg>
@@ -3579,43 +3605,45 @@ export class UIManager {
             <div class="mode-3d-card squad-3d" id="card-select-flock">
               <div class="mode-3d-icon">
                 <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="50" cy="50" r="42" fill="rgba(0, 243, 255, 0.04)" stroke="rgba(0, 243, 255, 0.15)" stroke-width="1.5" stroke-dasharray="4 4" />
-                  <g transform="translate(10, 52) scale(0.42)">
-                    <path d="M12,40 C5,38 2,42 0,47 C3,52 8,50 15,46 Z" fill="#005588" />
-                    <circle cx="40" cy="38" r="24" fill="url(#squad-blue-grad-squad-selection)" stroke="#003366" stroke-width="2" />
-                    <ellipse cx="50" cy="28" rx="8" ry="11" fill="#ffffff" stroke="#111" stroke-width="2" />
-                    <ellipse cx="51" cy="28" rx="4" ry="6" fill="#000000" />
-                    <path d="M60,34 C72,34 78,38 72,44 C66,48 60,42 60,34 Z" fill="#ff7700" />
-                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#squad-cyan-grad-squad-selection)" stroke="#005588" stroke-width="1.8" />
+                  <!-- Cyber-grid background -->
+                  <circle cx="50" cy="50" r="42" fill="url(#cyan-bg-grad)" stroke="url(#cyan-border-grad)" stroke-width="2" />
+                  <circle cx="50" cy="50" r="36" stroke="rgba(0, 243, 255, 0.25)" stroke-width="1.5" stroke-dasharray="6 3" />
+                  <circle cx="50" cy="50" r="30" stroke="rgba(0, 243, 255, 0.15)" stroke-width="1" />
+                  <!-- V-Formation Squad Birds -->
+                  <!-- Left Soaring Bird -->
+                  <g transform="translate(34, 62) rotate(45) scale(0.75)">
+                    <path d="M0,-15 C5,-12 18,2 25,6 C15,5 5,0 0,10 C-5,0 -15,5 -25,6 C-18,2 -5,-12 0,-15 Z" fill="url(#cyan-wing-grad)" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.4))" />
+                    <line x1="0" y1="10" x2="0" y2="30" stroke="rgba(0, 243, 255, 0.4)" stroke-width="2.5" stroke-linecap="round" />
                   </g>
-                  <g transform="translate(15, 12) scale(0.5)">
-                    <path d="M12,40 C5,38 2,42 0,47 C3,52 8,50 15,46 Z" fill="#005588" />
-                    <circle cx="40" cy="38" r="24" fill="url(#squad-blue-grad-squad-selection)" stroke="#003366" stroke-width="2" />
-                    <ellipse cx="50" cy="28" rx="8" ry="11" fill="#ffffff" stroke="#111" stroke-width="2" />
-                    <ellipse cx="51" cy="28" rx="4" ry="6" fill="#000000" />
-                    <path d="M60,34 C72,34 78,38 72,44 C66,48 60,42 60,34 Z" fill="#ff7700" />
-                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#squad-cyan-grad-squad-selection)" stroke="#005588" stroke-width="1.8" />
+                  <!-- Right Soaring Bird -->
+                  <g transform="translate(66, 62) rotate(45) scale(0.75)">
+                    <path d="M0,-15 C5,-12 18,2 25,6 C15,5 5,0 0,10 C-5,0 -15,5 -25,6 C-18,2 -5,-12 0,-15 Z" fill="url(#cyan-wing-grad)" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.4))" />
+                    <line x1="0" y1="10" x2="0" y2="30" stroke="rgba(0, 243, 255, 0.4)" stroke-width="2.5" stroke-linecap="round" />
                   </g>
-                  <g transform="translate(42, 26) scale(0.65)">
-                    <path d="M12,40 C5,38 2,42 0,47 C3,52 8,50 15,46 Z" fill="#005588" />
-                    <circle cx="40" cy="38" r="24" fill="url(#squad-cyan-grad-squad-selection)" stroke="#005588" stroke-width="2" />
-                    <ellipse cx="50" cy="28" rx="8" ry="11" fill="#ffffff" stroke="#111" stroke-width="2" />
-                    <ellipse cx="51" cy="28" rx="4" ry="6" fill="#000000" />
-                    <circle cx="49" cy="25" r="2.2" fill="#ffffff" />
-                    <path d="M60,34 C72,34 78,38 72,44 C66,48 60,42 60,34 Z" fill="#ff7700" stroke="#b34000" stroke-width="1" />
-                    <path d="M58,40 C68,42 70,46 64,48 C58,50 56,43 58,40 Z" fill="#ff5500" stroke="#b34000" stroke-width="1" />
-                    <path d="M26,38 C20,24 38,10 44,22 C48,32 38,44 26,38 Z" fill="url(#squad-blue-grad-squad-selection)" stroke="#003366" stroke-width="1.8" />
-                    <path d="M28,36 C24,27 36,18 40,26 C43,33 36,41 28,36 Z" fill="#a3f5ff" opacity="0.9" />
+                  <!-- Center Leader Soaring Bird -->
+                  <g transform="translate(50, 38) rotate(45) scale(1)">
+                    <path d="M0,-15 C5,-12 18,2 25,6 C15,5 5,0 0,10 C-5,0 -15,5 -25,6 C-18,2 -5,-12 0,-15 Z" fill="url(#cyan-leader-grad)" filter="drop-shadow(0 0 8px rgba(0, 243, 255, 0.75))" />
+                    <path d="M0,-15 C4,-12 14,0 20,4 C12,3 4,0 0,6 Z" fill="#ffffff" opacity="0.4" />
+                    <line x1="0" y1="10" x2="0" y2="40" stroke="rgba(0, 243, 255, 0.6)" stroke-width="3" stroke-linecap="round" stroke-dasharray="8 4" />
                   </g>
                   <defs>
-                    <linearGradient id="squad-cyan-grad-squad-selection" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#b3f5ff" />
-                      <stop offset="50%" stop-color="#00f3ff" />
-                      <stop offset="100%" stop-color="#00aaff" />
+                    <radialGradient id="cyan-bg-grad" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stop-color="rgba(0, 243, 255, 0.15)" />
+                      <stop offset="100%" stop-color="rgba(0, 0, 0, 0)" />
+                    </radialGradient>
+                    <linearGradient id="cyan-border-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#00f3ff" />
+                      <stop offset="50%" stop-color="#0066ff" />
+                      <stop offset="100%" stop-color="#00f3ff" />
                     </linearGradient>
-                    <linearGradient id="squad-blue-grad-squad-selection" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#80d5ff" />
+                    <linearGradient id="cyan-wing-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#80f7ff" />
                       <stop offset="100%" stop-color="#0055ff" />
+                    </linearGradient>
+                    <linearGradient id="cyan-leader-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffffff" />
+                      <stop offset="30%" stop-color="#00f3ff" />
+                      <stop offset="100%" stop-color="#0044cc" />
                     </linearGradient>
                   </defs>
                 </svg>
@@ -3627,22 +3655,66 @@ export class UIManager {
             <div class="mode-3d-card chaos-3d" id="card-select-chaos">
               <div class="mode-3d-icon">
                 <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="50" cy="50" r="42" fill="rgba(217, 70, 239, 0.05)" stroke="rgba(217, 70, 239, 0.2)" stroke-width="1.5" stroke-dasharray="4 4" />
+                  <!-- Glowing background ring -->
+                  <circle cx="50" cy="50" r="42" fill="url(#chaos-bg-grad)" stroke="url(#chaos-border-grad)" stroke-width="2" />
+                  <circle cx="50" cy="50" r="37" stroke="rgba(217, 70, 239, 0.15)" stroke-width="1.5" />
+                  <!-- Swirling Vortex Rings -->
                   <g transform="translate(50, 50)">
-                    <path d="M-20,0 A20,20 0 0,1 20,0" stroke="url(#chaos-grad-1)" stroke-width="4" stroke-linecap="round" fill="none" transform="rotate(45)" />
-                    <path d="M20,0 A20,20 0 0,1 -20,0" stroke="url(#chaos-grad-2)" stroke-width="4" stroke-linecap="round" fill="none" transform="rotate(45)" />
-                    <path d="M0,-28 L-6,-20 L6,-20 Z" fill="#ff007f" />
-                    <path d="M0,28 L-6,20 L6,20 Z" fill="#d946ef" />
-                    <circle cx="0" cy="0" r="7" fill="#ffffff" />
+                    <path d="M-25,-25 C-10,-40 20,-30 30,-10 C40,10 25,30 5,30 C-15,30 -30,10 -25,-15 C-20,-30 5,-25 15,-15 C20,-5 10,15 -5,15" stroke="url(#chaos-vortex-grad)" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.8" stroke-dasharray="40 10" />
+                    <path d="M25,25 C10,40 -20,30 -30,10 C-40,-10 -25,-30 -5,-30 C15,-30 30,-10 25,15 C20,30 -5,25 -15,15 C-20,5 -10,-15 5,-15" stroke="url(#chaos-vortex-grad-2)" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.6" stroke-dasharray="30 15" />
+                    <!-- Crossed Neon Lightning Bolts -->
+                    <g transform="rotate(15)">
+                      <path d="M-28,-2 L-5,-2 L-12,-18 L18,-3 L-5,-3 L0,15 Z" fill="url(#chaos-bolt-grad-1)" filter="drop-shadow(0 0 6px #ff007f)" />
+                    </g>
+                    <g transform="rotate(-65)">
+                      <path d="M-28,-2 L-5,-2 L-12,-18 L18,-3 L-5,-3 L0,15 Z" fill="url(#chaos-bolt-grad-2)" filter="drop-shadow(0 0 6px #d946ef)" />
+                    </g>
+                    <!-- Soaring Bird Flying through the storm -->
+                    <g transform="rotate(45) scale(0.9)">
+                      <path d="M0,-15 C5,-12 18,2 25,6 C15,5 5,0 0,10 C-5,0 -15,5 -25,6 C-18,2 -5,-12 0,-15 Z" fill="url(#chaos-bird-grad)" filter="drop-shadow(0 0 8px #ff007f)" />
+                      <!-- Glowing eye -->
+                      <circle cx="2" cy="-9" r="1.5" fill="#ffffff" filter="drop-shadow(0 0 2px #fff)" />
+                    </g>
+                    <!-- Floating core glow -->
+                    <circle cx="0" cy="0" r="5" fill="#ffffff" filter="drop-shadow(0 0 8px #ffffff)" />
+                    <!-- Orbiting particles -->
+                    <circle cx="-32" cy="-12" r="2.5" fill="#d946ef" filter="drop-shadow(0 0 2px #d946ef)" />
+                    <circle cx="28" cy="22" r="2" fill="#ff007f" filter="drop-shadow(0 0 2px #ff007f)" />
+                    <circle cx="15" cy="-32" r="3" fill="#00f3ff" filter="drop-shadow(0 0 2px #00f3ff)" />
+                    <circle cx="-20" cy="30" r="1.5" fill="#ffffff" />
                   </g>
                   <defs>
-                    <linearGradient id="chaos-grad-1" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <radialGradient id="chaos-bg-grad" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stop-color="rgba(217, 70, 239, 0.2)" />
+                      <stop offset="100%" stop-color="rgba(0, 0, 0, 0)" />
+                    </radialGradient>
+                    <linearGradient id="chaos-border-grad" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stop-color="#d946ef" />
-                      <stop offset="100%" stop-color="#ff007f" />
-                    </linearGradient>
-                    <linearGradient id="chaos-grad-2" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#ff007f" />
+                      <stop offset="50%" stop-color="#ff007f" />
                       <stop offset="100%" stop-color="#3b82f6" />
+                    </linearGradient>
+                    <linearGradient id="chaos-vortex-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ff007f" stop-opacity="0.8" />
+                      <stop offset="100%" stop-color="#d946ef" stop-opacity="0.2" />
+                    </linearGradient>
+                    <linearGradient id="chaos-vortex-grad-2" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.7" />
+                      <stop offset="100%" stop-color="#ff007f" stop-opacity="0.1" />
+                    </linearGradient>
+                    <linearGradient id="chaos-bolt-grad-1" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffffff" />
+                      <stop offset="50%" stop-color="#ff007f" />
+                      <stop offset="100%" stop-color="#701A75" />
+                    </linearGradient>
+                    <linearGradient id="chaos-bolt-grad-2" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffffff" />
+                      <stop offset="50%" stop-color="#d946ef" />
+                      <stop offset="100%" stop-color="#3b82f6" />
+                    </linearGradient>
+                    <linearGradient id="chaos-bird-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffffff" />
+                      <stop offset="30%" stop-color="#ff007f" />
+                      <stop offset="100%" stop-color="#d946ef" />
                     </linearGradient>
                   </defs>
                 </svg>
@@ -4617,26 +4689,41 @@ export class UIManager {
 
   private getJungleWorldIconSvg(width: string, height: string): string {
     return `
-<svg viewBox="0 0 100 100" style="width: ${width}; height: ${height}; display: inline-block; vertical-align: middle; filter: drop-shadow(0 0 8px rgba(0,200,83,0.6));" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 100 100" style="width: ${width}; height: ${height}; display: inline-block; vertical-align: middle; filter: drop-shadow(0 0 8px rgba(34,197,94,0.55));" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- Background Gradient -->
+    <!-- Background-friendly semi-transparent jungle gradient -->
     <linearGradient id="jungleBgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#052e16" />
-      <stop offset="100%" stop-color="#022c22" />
+      <stop offset="0%" stop-color="#022c22" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#064e3b" stop-opacity="0.65" />
     </linearGradient>
+    
+    <!-- Tropical Dawn soft sunburst -->
+    <radialGradient id="jungleDawn" cx="50%" cy="30%" r="50%">
+      <stop offset="0%" stop-color="#4ade80" stop-opacity="0.45" />
+      <stop offset="60%" stop-color="#15803d" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="#022c22" stop-opacity="0" />
+    </radialGradient>
+
     <!-- Waterfall Gradient -->
     <linearGradient id="waterfallGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#a5f3fc" />
-      <stop offset="100%" stop-color="#0ea5e9" />
+      <stop offset="0%" stop-color="#e0f2fe" />
+      <stop offset="25%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#0284c7" />
     </linearGradient>
+    
     <!-- Leaves Gradient -->
     <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#4ade80" />
+      <stop offset="0%" stop-color="#a3e635" />
       <stop offset="100%" stop-color="#15803d" />
     </linearGradient>
     <linearGradient id="leafGradDark" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#22c55e" />
-      <stop offset="100%" stop-color="#14532d" />
+      <stop offset="100%" stop-color="#022c22" />
+    </linearGradient>
+    <linearGradient id="ringGradJungle" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4ade80" stop-opacity="0.9" />
+      <stop offset="50%" stop-color="#15803d" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#4ade80" stop-opacity="0.9" />
     </linearGradient>
   </defs>
 
@@ -4645,62 +4732,81 @@ export class UIManager {
     <circle cx="50" cy="50" r="46" />
   </clipPath>
 
-  <!-- Base Glow Shadow Outer Ring -->
-  <circle cx="50" cy="50" r="48" fill="none" stroke="#22c55e" stroke-width="2.5" opacity="0.8" />
+  <!-- Outer Rim Ring -->
+  <circle cx="50" cy="50" r="47.5" fill="none" stroke="url(#ringGradJungle)" stroke-width="2" opacity="0.8" />
   <circle cx="50" cy="50" r="46" fill="url(#jungleBgGrad)" />
 
   <!-- Inside Content Clipped to Circle -->
   <g clip-path="url(#circleClip)">
+    <!-- Tropical Dawn glow behind peaks -->
+    <circle cx="50" cy="35" r="30" fill="url(#jungleDawn)" />
+
     <!-- Distant Mountains Silhouette -->
     <!-- Peak 1: Left Peak -->
-    <path d="M -10,80 L 25,25 L 25,80 Z" fill="#2d6a4f" />
-    <path d="M 25,25 L 60,80 L 25,80 Z" fill="#1b4332" />
-    <path d="M 20,33 C 23,31 24,31 25,25 C 26,31 27,31 30,33 L 25,37 Z" fill="#74c69d" />
+    <path d="M -10,80 L 25,25 L 25,80 Z" fill="#1b4d3e" />
+    <path d="M 25,25 L 60,80 L 25,80 Z" fill="#113328" />
+    <path d="M 20,33 C 23,31 24,31 25,25 C 26,31 27,31 30,33 L 25,37 Z" fill="#52b788" />
     
     <!-- Peak 2: Right Peak (Taller) -->
-    <path d="M 35,80 L 70,15 L 70,80 Z" fill="#225c42" />
-    <path d="M 70,15 L 105,80 L 70,80 Z" fill="#123826" />
-    <path d="M 64,26 C 68,23 69,23 70,15 C 71,23 72,23 76,26 L 70,30 Z" fill="#95d5b2" />
+    <path d="M 35,80 L 70,15 L 70,80 Z" fill="#143f30" />
+    <path d="M 70,15 L 105,80 L 70,80 Z" fill="#0b221a" />
+    <path d="M 64,26 C 68,23 69,23 70,15 C 71,23 72,23 76,26 L 70,30 Z" fill="#74c69d" />
     
     <!-- Foothills / Jungle Ridge in front -->
-    <path d="M 0,70 Q 25,60 50,75 T 100,70 L 100,100 L 0,100 Z" fill="#081c15" />
+    <path d="M 0,70 Q 25,60 50,75 T 100,70 L 100,100 L 0,100 Z" fill="#051c15" />
 
-    <!-- Waterfall coming from the top center (60% smaller presence) -->
-    <path d="M 47,40 L 53,40 L 55,90 L 45,90 Z" fill="url(#waterfallGrad)" opacity="0.4" />
+    <!-- Waterfall coming from the top center -->
+    <path d="M 47,40 L 53,40 L 55,90 L 45,90 Z" fill="url(#waterfallGrad)" opacity="0.75" />
     <!-- Waterfall stream details -->
-    <path d="M 49,40 L 48,90" stroke="#ffffff" stroke-width="0.5" opacity="0.3" stroke-dasharray="8 4" />
-    <path d="M 51,40 L 52,90" stroke="#ffffff" stroke-width="0.5" opacity="0.3" stroke-dasharray="10 5" />
+    <path d="M 49,40 L 48,90" stroke="#ffffff" stroke-width="0.6" opacity="0.4" stroke-dasharray="8 4" />
+    <path d="M 51,40 L 52,90" stroke="#ffffff" stroke-width="0.6" opacity="0.4" stroke-dasharray="10 5" />
     
-    <!-- Water Splash Foam at bottom -->
-    <ellipse cx="50" cy="88" rx="6" ry="2" fill="#e0f2fe" opacity="0.4" />
-    <ellipse cx="50" cy="91" rx="7" ry="2" fill="#ffffff" opacity="0.3" />
+    <!-- Water Splash Foam/Mist at bottom -->
+    <ellipse cx="50" cy="88" rx="7" ry="2" fill="#e0f2fe" opacity="0.65" style="filter: drop-shadow(0 0 2px #e0f2fe);" />
+    <circle cx="50" cy="85" r="3" fill="#ffffff" opacity="0.4" style="filter: blur(1px);" />
+    <circle cx="46" cy="88" r="2" fill="#ffffff" opacity="0.3" style="filter: blur(1px);" />
+    <circle cx="54" cy="88" r="2" fill="#ffffff" opacity="0.3" style="filter: blur(1px);" />
 
-    <!-- Tropical Leaves Left Side (scaled down 60%, opacity 0.5) -->
-    <!-- Monstera leaf 1 -->
-    <g transform="translate(18, 68) rotate(-20) scale(0.24)" opacity="0.5">
+    <!-- Glowing Rainforest Fireflies -->
+    <circle cx="24" cy="45" r="1.3" fill="#a3e635" opacity="0.8" style="filter: drop-shadow(0 0 2px #a3e635);" />
+    <circle cx="78" cy="48" r="1.5" fill="#a3e635" opacity="0.9" style="filter: drop-shadow(0 0 2px #a3e635);" />
+    <circle cx="38" cy="65" r="1.0" fill="#a3e635" opacity="0.7" style="filter: drop-shadow(0 0 2px #a3e635);" />
+    <circle cx="64" cy="56" r="1.3" fill="#a3e635" opacity="0.85" style="filter: drop-shadow(0 0 2px #a3e635);" />
+
+    <!-- Tropical Leaves Left Side -->
+    <!-- Monstera leaf -->
+    <g transform="translate(16, 72) rotate(-15) scale(0.26)" opacity="0.9">
       <path d="M 0,0 C 15,-15 30,-5 30,15 C 30,35 10,40 0,40 C -10,40 -30,35 -30,15 C -30,-5 -15,-15 0,0 Z" fill="url(#leafGradDark)" />
-      <!-- Leaf cuts -->
-      <path d="M 0,0 L 0,40" stroke="#14532d" stroke-width="1.5" />
-      <path d="M 5,10 L 25,5" stroke="#052e16" stroke-width="1.2" />
-      <path d="M -5,10 L -25,5" stroke="#052e16" stroke-width="1.2" />
-      <path d="M 8,20 L 28,18" stroke="#052e16" stroke-width="1.2" />
-      <path stroke="#052e16" stroke-width="1.2" d="M -8,20 L -28,18" />
+      <path d="M 0,0 L 0,40" stroke="#022c22" stroke-width="1.5" />
+      <path d="M 5,10 L 25,5" stroke="#a3e635" stroke-width="1.2" />
+      <path d="M -5,10 L -25,5" stroke="#a3e635" stroke-width="1.2" />
+      <path d="M 8,20 L 28,18" stroke="#a3e635" stroke-width="1.2" />
+      <path stroke="#a3e635" stroke-width="1.2" d="M -8,20 L -28,18" />
     </g>
-    <!-- Fern/Palm Leaf 1 -->
-    <g transform="translate(10, 84) rotate(35) scale(0.28)" opacity="0.5">
+    <!-- Fern/Palm Leaf -->
+    <g transform="translate(8, 86) rotate(35) scale(0.3)" opacity="0.8">
       <path d="M -2,40 Q 15,10 30,-10 Q 15,20 -2,40 Z" fill="url(#leafGrad)" />
       <path d="M 0,40 L 20,0" stroke="#15803d" stroke-width="1" />
     </g>
 
-    <!-- Tropical Leaves Right Side completely removed for 60%+ leaf presence reduction -->
+    <!-- Tropical Leaves Right Side -->
+    <!-- Monstera leaf -->
+    <g transform="translate(84, 75) rotate(15) scale(0.26) scaleX(-1)" opacity="0.9">
+      <path d="M 0,0 C 15,-15 30,-5 30,15 C 30,35 10,40 0,40 C -10,40 -30,35 -30,15 C -30,-5 -15,-15 0,0 Z" fill="url(#leafGradDark)" />
+      <path d="M 0,0 L 0,40" stroke="#022c22" stroke-width="1.5" />
+      <path d="M 5,10 L 25,5" stroke="#a3e635" stroke-width="1.2" />
+      <path d="M -5,10 L -25,5" stroke="#a3e635" stroke-width="1.2" />
+      <path d="M 8,20 L 28,18" stroke="#a3e635" stroke-width="1.2" />
+      <path stroke="#a3e635" stroke-width="1.2" d="M -8,20 L -28,18" />
+    </g>
 
-    <!-- Vines hanging from the top (reduced scale and opacity) -->
-    <path d="M 15,0 Q 18,10 17,20" fill="none" stroke="#166534" stroke-width="0.8" opacity="0.3" />
-    <path d="M 17,20 L 15,22 L 19,22 Z" fill="#22c55e" opacity="0.3" />
-    <path d="M 85,0 Q 82,10 83,18" fill="none" stroke="#166534" stroke-width="0.8" opacity="0.3" />
-    <path d="M 83,18 L 81,20 L 85,20 Z" fill="#22c55e" opacity="0.3" />
+    <!-- Vines hanging from the top -->
+    <path d="M 15,0 Q 18,12 16,24" fill="none" stroke="#0f5132" stroke-width="1.0" opacity="0.65" />
+    <path d="M 16,24 L 14,26 L 18,26 Z" fill="#22c55e" opacity="0.75" />
+    <path d="M 85,0 Q 82,12 84,20" fill="none" stroke="#0f5132" stroke-width="1.0" opacity="0.65" />
+    <path d="M 84,20 L 82,22 L 86,22 Z" fill="#22c55e" opacity="0.75" />
 
-    <!-- Rain drops falling diagonally (express environment!) -->
+    <!-- Rain drops falling diagonally -->
     <path d="M 30,15 L 28,22" stroke="#38bdf8" stroke-width="1" opacity="0.6" stroke-linecap="round" />
     <path d="M 70,20 L 68,27" stroke="#38bdf8" stroke-width="1" opacity="0.6" stroke-linecap="round" />
     <path d="M 48,10 L 46,17" stroke="#38bdf8" stroke-width="1" opacity="0.6" stroke-linecap="round" />
@@ -4797,21 +4903,18 @@ export class UIManager {
 
   private getVolcanoWorldIconSvg(width: string, height: string): string {
     return `
-<svg viewBox="0 0 100 100" style="width: ${width}; height: ${height}; display: inline-block; vertical-align: middle; filter: drop-shadow(0 0 8px rgba(255,69,0,0.6));" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 100 100" style="width: ${width}; height: ${height}; display: inline-block; vertical-align: middle; filter: drop-shadow(0 0 8px rgba(239,68,68,0.55));" xmlns="http://www.w3.org/2000/svg">
   <defs>
+    <!-- Background-friendly semi-transparent volcanic sky gradient -->
     <linearGradient id="volcanoBgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#140505" />
-      <stop offset="100%" stop-color="#3a0808" />
+      <stop offset="0%" stop-color="#140505" stop-opacity="0.5" />
+      <stop offset="60%" stop-color="#2a0808" stop-opacity="0.7" />
+      <stop offset="100%" stop-color="#1c0707" stop-opacity="0.85" />
     </linearGradient>
     <linearGradient id="lavaRiverGrad" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#ff3d00" />
       <stop offset="50%" stop-color="#ffd600" />
       <stop offset="100%" stop-color="#ff3d00" />
-    </linearGradient>
-    <linearGradient id="eruptionGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-      <stop offset="0%" stop-color="#ff3d00" />
-      <stop offset="60%" stop-color="#ff9100" />
-      <stop offset="100%" stop-color="#ffd600" stop-opacity="0" />
     </linearGradient>
   </defs>
 
@@ -4819,23 +4922,33 @@ export class UIManager {
     <circle cx="50" cy="50" r="46" />
   </clipPath>
 
-  <!-- Glow Ring -->
-  <circle cx="50" cy="50" r="48" fill="none" stroke="#ff3d00" stroke-width="2.5" opacity="0.8" />
+  <!-- Outer Rim Ring -->
+  <circle cx="50" cy="50" r="47.5" fill="none" stroke="#ef4444" stroke-width="2" opacity="0.8" />
   <circle cx="50" cy="50" r="46" fill="url(#volcanoBgGrad)" />
 
   <g clip-path="url(#circleClipVolcano)">
+    <!-- Volcanic Eruption Ash Clouds (charcoal & orange mist) -->
+    <circle cx="50" cy="22" r="9" fill="#dc2626" opacity="0.65" style="filter: blur(2px);" />
+    <circle cx="43" cy="18" r="8" fill="#ea580c" opacity="0.7" style="filter: blur(2.5px);" />
+    <circle cx="57" cy="18" r="8" fill="#ea580c" opacity="0.7" style="filter: blur(2.5px);" />
+    <circle cx="50" cy="13" r="7" fill="#facc15" opacity="0.8" style="filter: blur(1.5px);" />
+
     <!-- Volcanic Peak Silhouette in center background -->
     <polygon points="15,85 50,35 85,85" fill="#1e0b0b" stroke="#000000" stroke-width="1" />
     <!-- Crag highlight / shadow split -->
     <polygon points="50,35 50,85 85,85" fill="#0d0404" />
 
-    <!-- Lava Eruption plume -->
-    <path d="M 46,36 Q 50,15 42,12 Q 50,22 50,35" fill="none" stroke="url(#eruptionGrad)" stroke-width="3" stroke-linecap="round" />
-    <path d="M 54,36 Q 50,15 58,12 Q 50,22 50,35" fill="none" stroke="url(#eruptionGrad)" stroke-width="3" stroke-linecap="round" />
-    <!-- Exploding sparks from eruption -->
-    <circle cx="42" cy="12" r="1.5" fill="#ffd600" />
-    <circle cx="58" cy="12" r="1.2" fill="#ffd600" />
-    <circle cx="50" cy="8" r="1.8" fill="#ff9100" />
+    <!-- Massive Magma Eruption Lines (replaces crown) -->
+    <path d="M 48,36 C 47,24 37,12 28,14" fill="none" stroke="#f97316" stroke-width="2.2" stroke-linecap="round" />
+    <path d="M 52,36 C 53,24 63,12 72,14" fill="none" stroke="#f97316" stroke-width="2.2" stroke-linecap="round" />
+    <path d="M 50,36 L 50,11" fill="none" stroke="#fef08a" stroke-width="2.5" stroke-linecap="round" style="filter: drop-shadow(0 0 2px #f59e0b);" />
+
+    <!-- Exploding Glowing Lava Sparks -->
+    <circle cx="28" cy="14" r="1.3" fill="#fef08a" style="filter: drop-shadow(0 0 2px #facc15);" />
+    <circle cx="72" cy="14" r="1.3" fill="#fef08a" style="filter: drop-shadow(0 0 2px #facc15);" />
+    <circle cx="50" cy="9" r="1.8" fill="#ffffff" style="filter: drop-shadow(0 0 3px #ffffff);" />
+    <circle cx="40" cy="22" r="1.0" fill="#ef4444" />
+    <circle cx="60" cy="22" r="1.0" fill="#ef4444" />
 
     <!-- Lava flow channels down the mountain face -->
     <path d="M 50,38 L 47,55 L 40,70 L 35,85" fill="none" stroke="#ff3d00" stroke-width="2" stroke-linecap="round" opacity="0.85" />
@@ -4861,72 +4974,84 @@ export class UIManager {
   }
 
   private getSpaceWorldIconSvg(width: string, height: string): string {
+    const idSuffix = 'space';
     return `
-<svg viewBox="0 0 100 100" style="width: ${width}; height: ${height}; display: inline-block; vertical-align: middle; filter: drop-shadow(0 0 8px rgba(101,31,255,0.6));" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 100 100" style="width: ${width}; height: ${height}; display: inline-block; vertical-align: middle; filter: drop-shadow(0 0 8px rgba(168,85,247,0.55));" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="spaceBgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#02000a" />
-      <stop offset="60%" stop-color="#090518" />
-      <stop offset="100%" stop-color="#140a2b" />
+    <!-- Day Half Gradients - Transparent background behind sun -->
+    <linearGradient id="dayBgGrad-${idSuffix}" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7" stop-opacity="0.05" />
+      <stop offset="60%" stop-color="#38bdf8" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#fef08a" stop-opacity="0.25" />
     </linearGradient>
-    <radialGradient id="nebulaGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.6" />
-      <stop offset="60%" stop-color="#ec4899" stop-opacity="0.2" />
-      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    <radialGradient id="sunGrad-${idSuffix}" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.4)" />
+      <stop offset="50%" stop-color="#fffbeb" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#fef9c3" stop-opacity="0.4" />
     </radialGradient>
-    <linearGradient id="planetGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#06b6d4" />
-      <stop offset="70%" stop-color="#3b82f6" />
-      <stop offset="100%" stop-color="#1d4ed8" />
+
+    <!-- Night Half Gradients -->
+    <linearGradient id="nightBgGrad-${idSuffix}" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#02000a" stop-opacity="0.65" />
+      <stop offset="60%" stop-color="#090518" stop-opacity="0.75" />
+      <stop offset="100%" stop-color="#140a2b" stop-opacity="0.85" />
     </linearGradient>
-    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.9" />
-      <stop offset="50%" stop-color="#a855f7" stop-opacity="0.5" />
-      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0" />
+
+    <!-- Divider Glow Gradient -->
+    <linearGradient id="dividerGrad-${idSuffix}" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffab40" stop-opacity="0.9" />
+      <stop offset="50%" stop-color="#ffffff" stop-opacity="1.0" />
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0.9" />
     </linearGradient>
+
+    <!-- Outer Ring Gradient -->
+    <linearGradient id="ringGrad-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.95" />
+      <stop offset="50%" stop-color="#a855f7" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.95" />
+    </linearGradient>
+
+    <clipPath id="circleClipSpace-${idSuffix}">
+      <circle cx="50" cy="50" r="46" />
+    </clipPath>
   </defs>
 
-  <clipPath id="circleClipSpace">
-    <circle cx="50" cy="50" r="46" />
-  </clipPath>
+  <!-- Glowing outer rim ring -->
+  <circle cx="50" cy="50" r="47.5" fill="none" stroke="url(#ringGrad-${idSuffix})" stroke-width="2" opacity="0.8" />
 
-  <!-- Glow Ring -->
-  <circle cx="50" cy="50" r="48" fill="none" stroke="#a855f7" stroke-width="2.5" opacity="0.8" />
-  <circle cx="50" cy="50" r="46" fill="url(#spaceBgGrad)" />
-
-  <g clip-path="url(#circleClipSpace)">
-    <!-- Swirling Nebula background -->
-    <circle cx="60" cy="40" r="45" fill="url(#nebulaGlow)" />
-    <circle cx="35" cy="65" r="35" fill="url(#nebulaGlow)" opacity="0.7" />
-
-    <!-- Distant Stars (Twinkling dots) -->
-    <circle cx="15" cy="25" r="0.8" fill="#ffffff" opacity="0.9" />
-    <circle cx="85" cy="20" r="1.2" fill="#ffffff" opacity="0.95" />
-    <circle cx="28" cy="75" r="0.6" fill="#ffffff" opacity="0.6" />
-    <circle cx="78" cy="72" r="1.0" fill="#ffffff" opacity="0.8" />
-    <circle cx="48" cy="18" r="0.7" fill="#ffffff" opacity="0.85" />
-    <circle cx="18" cy="58" r="1.0" fill="#ffffff" opacity="0.75" />
-
-    <!-- Planet with rings in center -->
-    <g transform="translate(50, 50)">
-      <!-- Back ring section -->
-      <ellipse cx="0" cy="0" rx="34" ry="10" fill="none" stroke="url(#ringGrad)" stroke-width="5" transform="rotate(-15)" opacity="0.5" />
-      
-      <!-- Planet Sphere -->
-      <circle cx="0" cy="0" r="18" fill="url(#planetGrad)" stroke="#1e3a8a" stroke-width="0.8" />
-      <!-- Shadow overlay on planet -->
-      <path d="M 0,-18 A 18,18 0 0,1 18,0 A 18,18 0 0,1 0,18 A 18,18 0 0,0 0,-18 Z" fill="#030712" opacity="0.45" />
-
-      <!-- Front ring section -->
-      <path d="M -32.8, 8.5 C -15.5, 17.5 15.5, 17.5 32.8, 8.5" fill="none" stroke="url(#ringGrad)" stroke-width="5" transform="rotate(-15)" />
-      
-      <!-- Tiny Moon orbiting planet -->
-      <circle cx="-25" cy="-10" r="3" fill="#cbd5e1" stroke="#475569" stroke-width="0.5" />
+  <!-- Clipped inner content -->
+  <g clip-path="url(#circleClipSpace-${idSuffix})" stroke="none">
+    
+    <!-- LEFT HALF: DAY SCENE -->
+    <path d="M 50,4 A 46,46 0 0,0 50,96 Z" fill="url(#dayBgGrad-${idSuffix})" />
+    <!-- Day Sun with realistic white-yellow flares -->
+    <g transform="translate(34, 32) scale(0.85)" opacity="0.95">
+      <!-- 8-pointed star burst: white 40% more transparent + soft yellow tint -->
+      <path d="M 0,-15 L 3,-3 L 15,0 L 3,3 L 0,15 L -3,3 L -15,0 L -3,-3 Z" fill="#fff8c5" opacity="0.39" />
+      <path d="M 0,-15 L 3,-3 L 15,0 L 3,3 L 0,15 L -3,3 L -15,0 L -3,-3 Z" fill="#fef9c3" opacity="0.45" transform="rotate(45)" />
     </g>
+    <circle cx="34" cy="32" r="10.5" fill="none" stroke="#fef9c3" stroke-width="1.0" opacity="0.4" style="filter: drop-shadow(0 0 2px #fef9c3);" />
+    <circle cx="34" cy="32" r="7.5" fill="url(#sunGrad-${idSuffix})" style="filter: drop-shadow(0 0 4px rgba(255,255,255,0.95));" />
+    <!-- Day Meadow Hills -->
+    <path d="M 4,52 Q 25,66 50,60 L 50,96 L 4,96 Z" fill="#059669" opacity="0.85" />
+    <path d="M 4,72 Q 20,82 50,76 L 50,96 L 4,96 Z" fill="#10b981" />
 
-    <!-- Drifting Asteroid Silhouettes -->
-    <polygon points="12,78 18,74 20,80 15,84 10,81" fill="#334155" opacity="0.8" />
-    <polygon points="84,35 88,31 92,34 90,40 85,38" fill="#475569" opacity="0.85" />
+    <!-- RIGHT HALF: NIGHT SCENE -->
+    <path d="M 50,4 A 46,46 0 0,1 50,96 Z" fill="url(#nightBgGrad-${idSuffix})" />
+    <!-- Night Stars -->
+    <circle cx="68" cy="18" r="0.8" fill="#ffffff" opacity="0.9" />
+    <circle cx="84" cy="24" r="1.1" fill="#ffffff" opacity="0.95" />
+    <circle cx="60" cy="38" r="0.7" fill="#ffffff" opacity="0.75" />
+    <circle cx="78" cy="46" r="1.0" fill="#ffffff" opacity="0.85" />
+    <circle cx="88" cy="56" r="0.8" fill="#a855f7" opacity="0.85" style="filter: drop-shadow(0 0 2px #a855f7);" />
+    <!-- Night Crescent Moon -->
+    <path d="M 66,26 A 7,7 0 1,0 74,34 A 6.2,6.2 0 1,1 66,26 Z" fill="#eceff1" style="filter: drop-shadow(0 0 4px rgba(255,255,255,0.4));" />
+    <!-- Night Meadow Hills -->
+    <path d="M 50,60 Q 75,66 96,52 L 96,96 L 50,96 Z" fill="#064e3b" opacity="0.85" />
+    <path d="M 50,76 Q 80,82 96,72 L 96,96 L 50,96 Z" fill="#022c22" />
+
+    <!-- Glowing Dawn/Dusk Vertical Divider Line -->
+    <line x1="50" y1="4" x2="50" y2="96" stroke="url(#dividerGrad-${idSuffix})" stroke-width="2" style="mix-blend-mode: screen; filter: drop-shadow(0 0 3px #ffab40);" />
   </g>
 </svg>
     `;
@@ -5012,13 +5137,13 @@ export class UIManager {
 
   private getDesertWorldIconSvg(width: string, height: string): string {
     return `
-<svg viewBox="0 0 100 100" style="width: ${width}; height: ${height}; display: inline-block; vertical-align: middle; filter: drop-shadow(0 0 8px rgba(251,146,60,0.6));" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 100 100" style="width: ${width}; height: ${height}; display: inline-block; vertical-align: middle; filter: drop-shadow(0 0 8px rgba(245,158,11,0.55));" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- Background desert sky gradient -->
+    <!-- Background-friendly semi-transparent desert sky gradient -->
     <linearGradient id="desertBgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#b45309" />
-      <stop offset="60%" stop-color="#d97706" />
-      <stop offset="100%" stop-color="#78350f" />
+      <stop offset="0%" stop-color="#b45309" stop-opacity="0.45" />
+      <stop offset="60%" stop-color="#d97706" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#78350f" stop-opacity="0.8" />
     </linearGradient>
     <!-- Scorching sun radial gradient -->
     <radialGradient id="desertSun" cx="50%" cy="40%" r="40%">
@@ -5031,10 +5156,10 @@ export class UIManager {
       <stop offset="0%" stop-color="#fef3c7" />
       <stop offset="100%" stop-color="#92400e" />
     </linearGradient>
-    <!-- Obelisk shadow gradient -->
-    <linearGradient id="obeliskShadow" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#78350f" stop-opacity="0.3" />
-      <stop offset="100%" stop-color="#78350f" stop-opacity="0" />
+    <!-- Pyramids light side sandstone gradient -->
+    <linearGradient id="pyrLightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fffbeb" />
+      <stop offset="100%" stop-color="#f59e0b" />
     </linearGradient>
   </defs>
 
@@ -5042,8 +5167,8 @@ export class UIManager {
     <circle cx="50" cy="50" r="46" />
   </clipPath>
 
-  <!-- Glow Ring -->
-  <circle cx="50" cy="50" r="48" fill="none" stroke="#f59e0b" stroke-width="2.5" opacity="0.8" />
+  <!-- Outer Rim Ring -->
+  <circle cx="50" cy="50" r="47.5" fill="none" stroke="#f59e0b" stroke-width="2" opacity="0.8" />
   <circle cx="50" cy="50" r="46" fill="url(#desertBgGrad)" />
 
   <g clip-path="url(#circleClipDesert)">
@@ -5053,20 +5178,29 @@ export class UIManager {
     <!-- Distant Dunes -->
     <path d="M -10,75 Q 20,60 50,72 T 110,68 L 110,105 L -10,105 Z" fill="#b45309" opacity="0.7" />
 
-    <!-- Ancient Sandstone Obelisk / Pyramid in center -->
-    <g transform="translate(42, 32) scale(0.9)">
-      <!-- Base step -->
-      <polygon points="0,48 18,48 16,45 2,45" fill="url(#duneGrad)" stroke="#451a03" stroke-width="0.8" />
-      <!-- Main column -->
-      <polygon points="4,45 14,45 12,5 6,5" fill="url(#duneGrad)" stroke="#451a03" stroke-width="0.8" />
-      <!-- Top pyramidion cap -->
-      <polygon points="6,5 12,5 9,0" fill="#fef08a" stroke="#ca8a04" stroke-width="0.8" />
-      
-      <!-- Highlight/Shadow line down the center of the obelisk -->
-      <polygon points="9,0 9,45 12,45 12,5" fill="url(#obeliskShadow)" />
-      
-      <!-- Ancient Hieroglyphic etchings (simple patterns) -->
-      <line x1="9" y1="12" x2="9" y2="40" stroke="#78350f" stroke-width="0.8" stroke-dasharray="2 3" />
+    <!-- The Great Giza Pyramids (Sitting on the middle dune layer) -->
+    <!-- 1. Secondary Pyramid (Khafre - Middle) -->
+    <g opacity="0.95">
+      <!-- Left side (light) -->
+      <polygon points="36,78 52,78 46,50" fill="url(#pyrLightGrad)" />
+      <!-- Right side (shadow) -->
+      <polygon points="52,78 64,78 46,50" fill="#78350f" />
+    </g>
+    
+    <!-- 2. Main Great Pyramid (Khufu - Left & Largest) -->
+    <g>
+      <!-- Left side (light) -->
+      <polygon points="16,78 36,78 28,42" fill="url(#pyrLightGrad)" />
+      <!-- Right side (shadow) -->
+      <polygon points="36,78 50,78 28,42" fill="#78350f" />
+    </g>
+
+    <!-- 3. Third Pyramid (Menkaure - Right & Smallest) -->
+    <g opacity="0.9">
+      <!-- Left side (light) -->
+      <polygon points="58,78 68,78 64,59" fill="url(#pyrLightGrad)" />
+      <!-- Right side (shadow) -->
+      <polygon points="68,78 76,78 64,59" fill="#78350f" />
     </g>
 
     <!-- Foreground Dunes -->
@@ -5074,7 +5208,7 @@ export class UIManager {
     <path d="M -10,90 Q 25,82 60,92 T 110,88 L 110,105 L -10,105 Z" fill="#92400e" opacity="0.5" />
 
     <!-- Cactus silhouette on the right side -->
-    <g transform="translate(72, 60) scale(0.7)">
+    <g transform="translate(76, 62) scale(0.65)">
       <!-- Main trunk -->
       <rect x="6" y="0" width="5" height="28" rx="2.5" fill="#451a03" />
       <!-- Left arm -->
@@ -5083,7 +5217,7 @@ export class UIManager {
       <path d="M 11,16 H 16 C 17.5,16 18,15 18,13.5 V 8 H 15 V 13.5 H 11 Z" fill="#451a03" />
     </g>
 
-    <!-- Swirling sand storm gusts (sandstorm weather) -->
+    <!-- Swirling sand storm gusts -->
     <path d="M 15,30 Q 30,22 45,28" fill="none" stroke="#fef3c7" stroke-width="1.2" opacity="0.35" stroke-linecap="round" />
     <path d="M 55,25 Q 70,30 85,22" fill="none" stroke="#fef3c7" stroke-width="1.2" opacity="0.35" stroke-linecap="round" />
     <path d="M 30,52 Q 45,45 60,48" fill="none" stroke="#fef3c7" stroke-width="1.0" opacity="0.25" stroke-linecap="round" />
@@ -5098,81 +5232,86 @@ export class UIManager {
     return `
 <svg viewBox="0 0 100 100" style="width: ${width}; height: ${height}; ${extraStyle}" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="redBaseGrad-${idSuffix}" x1="40%" y1="10%" x2="60%" y2="90%">
-      <stop offset="0%" stop-color="#ff3b30" />
-      <stop offset="50%" stop-color="#d61a1a" />
-      <stop offset="100%" stop-color="#800000" />
+    <!-- Background glow gradient -->
+    <radialGradient id="char-bg-glow-${idSuffix}" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="rgba(255, 215, 0, 0.2)" />
+      <stop offset="100%" stop-color="rgba(0, 0, 0, 0)" />
+    </radialGradient>
+    
+    <!-- Outer ring gradient (Royal Gold) -->
+    <linearGradient id="char-ring-grad-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffd700" />
+      <stop offset="50%" stop-color="#ff8800" />
+      <stop offset="100%" stop-color="#ffd700" />
     </linearGradient>
 
-    <linearGradient id="beakUpperGrad-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
+    <!-- Eagle Dark Body gradient -->
+    <linearGradient id="eagle-body-grad-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5a3d28" />
+      <stop offset="50%" stop-color="#3c2415" />
+      <stop offset="100%" stop-color="#1f1008" />
+    </linearGradient>
+
+    <!-- Eagle White Head feathers gradient -->
+    <linearGradient id="eagle-head-grad-${idSuffix}" x1="30%" y1="10%" x2="70%" y2="90%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="60%" stop-color="#eceff1" />
+      <stop offset="100%" stop-color="#cfd8dc" />
+    </linearGradient>
+
+    <!-- Beak gradient (Curved Golden Hook) -->
+    <linearGradient id="eagle-beak-grad-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#fff176" />
       <stop offset="50%" stop-color="#ffb300" />
       <stop offset="100%" stop-color="#ff6f00" />
     </linearGradient>
-
-    <linearGradient id="beakLowerGrad-${idSuffix}" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffa000" />
-      <stop offset="100%" stop-color="#e65100" />
-    </linearGradient>
-
-    <linearGradient id="throatGrad-${idSuffix}" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff" />
-      <stop offset="70%" stop-color="#f5f2eb" />
-      <stop offset="100%" stop-color="#dfdcd6" />
-    </linearGradient>
   </defs>
 
-  <g stroke="#1a0a05" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round">
-    <!-- 1. CIRCULAR BASE HEAD -->
-    <circle cx="46" cy="50" r="36" fill="url(#redBaseGrad-${idSuffix})" />
+  <!-- Glowing outer orbit ring -->
+  <circle cx="50" cy="50" r="44" fill="url(#char-bg-glow-${idSuffix})" stroke="url(#char-ring-grad-${idSuffix})" stroke-width="2" stroke-dasharray="8 4" />
+  
+  <g stroke="#1a1105" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+    <!-- 1. Shoulder/Neck Base (Dark Brown Feathers) -->
+    <path d="M 22,58 C 12,65 14,84 28,84 C 42,84 52,82 62,72 C 54,64 40,60 22,58 Z" fill="url(#eagle-body-grad-${idSuffix})" />
+    <path d="M 18,52 C 8,58 10,74 22,76 C 30,76 34,70 38,62 Z" fill="#2d190d" />
 
-    <!-- 2. WHITE THROAT FEATHERS (SMOOTH AND CONFORMING TO CIRCLE) -->
-    <path d="
-      M 20,75
-      A 36,36 0 0,0 72,75
-      C 66,62 58,54 46,54
-      C 34,54 26,62 20,75 Z"
-      fill="url(#throatGrad-${idSuffix})" />
+    <!-- 2. Bald Eagle White Head Structure -->
+    <path d="M 46,18 
+             C 24,18 20,44 24,64 
+             C 26,72 34,76 44,74 
+             C 52,72 58,68 62,60 
+             C 65,52 64,44 60,38 
+             C 56,32 54,18 46,18 Z" 
+          fill="url(#eagle-head-grad-${idSuffix})" />
+          
+    <!-- Layered head feather details (Spikes pointing back) -->
+    <path d="M 28,26 Q 20,28 22,34 Q 28,34 30,30 Z" fill="#eceff1" />
+    <path d="M 24,38 Q 14,42 18,48 Q 24,46 26,42 Z" fill="#eceff1" />
+    <path d="M 23,50 Q 12,56 16,62 Q 24,58 25,54 Z" fill="#eceff1" />
 
-    <!-- 3. LOWER BEAK -->
-    <path d="
-      M 60,54
-      Q 68,62 76,58
-      Q 82,56 83,51
-      Q 72,51 60,54 Z"
-      fill="url(#beakLowerGrad-${idSuffix})" />
+    <!-- 3. Sleek, Sharp Hooked Eagle Beak -->
+    <path d="M 58,36
+             C 68,34 82,38 88,46
+             C 94,52 92,62 85,64
+             C 80,65 78,58 74,54
+             C 68,48 58,48 56,48
+             C 54,48 55,42 56,39
+             C 57,36 57,36 58,36 Z"
+          fill="url(#eagle-beak-grad-${idSuffix})" stroke="#805300" stroke-width="1.5" />
+    <!-- Lower Beak -->
+    <path d="M 56,48 C 66,48 72,52 75,54 C 72,58 64,60 56,56 Z" fill="#ff9800" stroke="#805300" stroke-width="1.2" />
 
-    <!-- 4. UPPER BEAK -->
-    <path d="
-      M 64,38
-      C 72,36 82,38 88,43
-      C 94,48 96,56 92,61
-      Q 89,64 87,59
-      C 83,54 76,52 66,52
-      C 62,52 61,47 62,44
-      C 63,40 63,38 64,38 Z"
-      fill="url(#beakUpperGrad-${idSuffix})" />
+    <!-- Nostril slit -->
+    <ellipse cx="64" cy="41" rx="0.8" ry="1.6" fill="#4d1a00" stroke="none" transform="rotate(-30, 64, 41)" />
+
+    <!-- 4. Fierce Eagle Eye -->
+    <path d="M 42,34 L 60,36 Q 56,44 48,42 Q 42,40 42,34 Z" fill="#ffffff" stroke="#121212" stroke-width="1.2" />
+    <circle cx="51" cy="38" r="3.5" fill="#00f3ff" /> <!-- Glowing Cyan Iris -->
+    <circle cx="51" cy="38" r="1.5" fill="#000000" /> <!-- Pupil -->
+    <circle cx="52.5" cy="36.5" r="0.6" fill="#ffffff" stroke="none" /> <!-- Eye shine -->
     
-    <!-- Nostril -->
-    <ellipse cx="70" cy="43" rx="1.2" ry="1.8" fill="#4d1a00" stroke="none" transform="rotate(-20, 70, 43)" />
-
-    <!-- 5. EYE -->
-    <ellipse cx="54" cy="45" rx="10" ry="9.5" fill="#ffffff" />
-    <ellipse cx="58" cy="46" rx="5.5" ry="5.3" fill="#121212" />
-    <circle cx="60" cy="44" r="1.6" fill="#ffffff" stroke="none" />
-
-    <!-- 6. ANGRY EYEBROW -->
-    <path d="M 44,27 Q 49,23 54,26 Q 50,29 44,30 Z" fill="#121212" />
-    <path d="
-      M 40,36
-      Q 36,31 41,27
-      Q 40,35 43,37
-      Q 48,36 54,36
-      L 70,37
-      Q 67,44 65,43
-      Q 56,39 48,40
-      Q 43,40 40,36 Z"
-      fill="#121212" />
+    <!-- Angry Eagle Brow -->
+    <path d="M 40,29 Q 51,31 64,35 L 62,39 Q 50,34 40,34 Z" fill="#121212" />
   </g>
 </svg>
     `;

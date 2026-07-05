@@ -14,7 +14,7 @@ export class LevelManager {
   static {
     // Generate 60 unique levels
     const worlds = ['jungle', 'ice', 'space', 'desert', 'volcano', 'heaven'];
-    const worldNames = ['Amazon Rainforest', 'Frozen Ice Kingdom', 'Cosmic Meadow', 'ANCIENT EGYPT : THE DESERT', 'Volcanic Spring', 'Heaven Cloud Kingdom'];
+    const worldNames = ['Amazon Rainforest', 'Frost Valley', 'Twilight Horizon', 'ANCIENT EGYPT : THE DESERT', 'Volcanic Realm', 'Golden Heights : The Cloud Kingdom'];
 
     // All available active moving/oscillating wave patterns
     const wavePatterns = [
@@ -524,7 +524,7 @@ export class LevelManager {
         targetLevel.gapHeight = sourceLevel.gapHeight;
         targetLevel.patterns = [heavenPatterns[levelNum]];
         targetLevel.worldId = 'heaven';
-        targetLevel.name = `Heaven Cloud Kingdom - Zone ${levelNum - 50}`;
+        targetLevel.name = `Golden Heights : The Cloud Kingdom - Zone ${levelNum - 50}`;
       }
     }
   }

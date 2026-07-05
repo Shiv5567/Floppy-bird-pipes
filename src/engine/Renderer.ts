@@ -621,7 +621,7 @@ export class Renderer {
       case 'space': {
         const time = this.timeOfDay;
         
-        // 4-Keyframe Continuous Day/Night Cycle Colors for Cosmic Meadow
+        // 4-Keyframe Continuous Day/Night Cycle Colors for Twilight Horizon
         const nightTop = [0, 4, 10];
         const nightBottom = [9, 24, 48];
         
@@ -678,8 +678,8 @@ export class Renderer {
           b1 = Math.round(eveningBottom[2] + (nightBottom[2] - eveningBottom[2]) * progress);
         }
         
-        skyGrad.addColorStop(0, `rgb(${r0}, ${g0}, ${b0})`);
-        skyGrad.addColorStop(1, `rgb(${r1}, ${g1}, ${b1})`);
+        skyGrad.addColorStop(0, `rgba(${r0}, ${g0}, ${b0}, 0.3)`);
+        skyGrad.addColorStop(1, `rgba(${r1}, ${g1}, ${b1}, 0.3)`);
         break;
       }
       case 'underwater':
@@ -1093,8 +1093,7 @@ export class Renderer {
               const y2 = r * Math.sin(angle + Math.PI) * 0.38;
               this.ctx.fillRect(x2, y2, size1, size1);
             }
-            this.ctx.restore();
-            this.ctx.restore();
+            this.ctx.restore(); // matches ctx.save() at spiral arms
           }
         }
 
@@ -1203,37 +1202,55 @@ export class Renderer {
           this.ctx.save();
           this.ctx.globalAlpha = dayOpacity;
           
-          // 1. Layered Sunburst Rays (White and Yellow mixed)
+          // Calculate redness factor for Sunrise (5-7 AM) and Sunset (5-7 PM)
+          let redness = 0;
+          if (time >= 5 && time < 7) {
+            redness = 1 - (time - 5) / 2;
+          } else if (time >= 17 && time < 19) {
+            redness = (time - 17) / 2;
+          }
+
+          const rayAColor = `rgba(${Math.round(255)}, ${Math.round(248 - redness * 180)}, ${Math.round(200 - redness * 132)}, ${0.11 + redness * 0.04})`;
+          const rayBColor = `rgba(${Math.round(255)}, ${Math.round(215 - redness * 177)}, ${Math.round(0 + redness * 38)}, ${0.08 + redness * 0.02})`;
+          
+          const glowStop0 = `rgba(${Math.round(255)}, ${Math.round(255 - redness * 187)}, ${Math.round(255 - redness * 187)}, ${0.4 + redness * 0.2})`;
+          const glowStop5 = `rgba(${Math.round(255)}, ${Math.round(251 - redness * 213)}, ${Math.round(235 - redness * 197)}, ${0.4 + redness * 0.1})`;
+          const glowStop85 = `rgba(${Math.round(254)}, ${Math.round(249 - redness * 221)}, ${Math.round(195 - redness * 167)}, ${0.03 + redness * 0.07})`;
+          
+          const flareRingColor = `rgba(${Math.round(255)}, ${Math.round(230 - redness * 162)}, ${Math.round(200 - redness * 132)}, ${0.15 + redness * 0.05})`;
+          const sunCoreColor = `rgba(${Math.round(255)}, ${Math.round(255 - redness * 200)}, ${Math.round(255 - redness * 200)}, ${0.4 + redness * 0.2})`;
+
+          // 1. Layered Sunburst Rays (Warm White, Yellow & Peach / Sunset Red)
           this.ctx.save();
           this.ctx.translate(sunX, sunY);
           
-          // Layer A: Rotating soft white-yellow rays
+          // Layer A: Rotating soft peach/white flares (white 40% reduced, soft yellow tint added / Sunset Red)
           this.ctx.save();
-          this.ctx.rotate(this.weatherTime * 0.08);
-          this.ctx.fillStyle = 'rgba(255, 255, 230, 0.16)';
-          for (let r = 0; r < 8; r++) {
-            this.ctx.rotate(Math.PI / 4);
-            this.ctx.beginPath();
-            this.ctx.moveTo(0, -8);
-            this.ctx.lineTo(15, 0);
-            this.ctx.lineTo(0, 80); // longer ray
-            this.ctx.lineTo(-15, 0);
-            this.ctx.closePath();
-            this.ctx.fill();
-          }
-          this.ctx.restore();
-
-          // Layer B: Counter-rotating bright yellow rays
-          this.ctx.save();
-          this.ctx.rotate(-this.weatherTime * 0.05 + 0.2);
-          this.ctx.fillStyle = 'rgba(255, 235, 50, 0.03)';
+          this.ctx.rotate(this.weatherTime * 0.05);
+          this.ctx.fillStyle = rayAColor;
           for (let r = 0; r < 8; r++) {
             this.ctx.rotate(Math.PI / 4);
             this.ctx.beginPath();
             this.ctx.moveTo(0, -6);
-            this.ctx.lineTo(12, 0);
-            this.ctx.lineTo(0, 60);
-            this.ctx.lineTo(-12, 0);
+            this.ctx.lineTo(18, 0);
+            this.ctx.lineTo(0, 110); // longer, sweeping flare rays
+            this.ctx.lineTo(-18, 0);
+            this.ctx.closePath();
+            this.ctx.fill();
+          }
+          this.ctx.restore();
+
+          // Layer B: Counter-rotating golden/red flares
+          this.ctx.save();
+          this.ctx.rotate(-this.weatherTime * 0.03 + 0.25);
+          this.ctx.fillStyle = rayBColor;
+          for (let r = 0; r < 8; r++) {
+            this.ctx.rotate(Math.PI / 4);
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, -5);
+            this.ctx.lineTo(14, 0);
+            this.ctx.lineTo(0, 85);
+            this.ctx.lineTo(-14, 0);
             this.ctx.closePath();
             this.ctx.fill();
           }
@@ -1241,22 +1258,69 @@ export class Renderer {
           
           this.ctx.restore();
 
-          // 2. Realistic White-Yellow Gradient Corona
-          const sunGlow = this.ctx.createRadialGradient(sunX, sunY, 20, sunX, sunY, 80);
-          sunGlow.addColorStop(0, 'rgb(255, 230, 230)'); // white with 10% red tint
-          sunGlow.addColorStop(0.25, 'rgba(255, 240, 240, 0.92)'); // hot white-red transition
-          sunGlow.addColorStop(0.5, 'rgba(255, 234, 0, 0.29)'); // reduced yellow by 30%
-          sunGlow.addColorStop(0.8, 'rgba(255, 245, 160, 0.10)'); // reduced outer yellow by 30%
-          sunGlow.addColorStop(1, 'rgba(255, 245, 160, 0)');
+          // 2. Realistic White-to-Yellow / Red Gradient Corona
+          const sunGlow = this.ctx.createRadialGradient(sunX, sunY, 15, sunX, sunY, 95);
+          sunGlow.addColorStop(0, glowStop0); // white/red core 60% transparent
+          sunGlow.addColorStop(0.2, glowStop0); // white/red glow 60% transparent
+          sunGlow.addColorStop(0.5, glowStop5); // cream/red corona
+          sunGlow.addColorStop(0.85, glowStop85); // very soft outer glow
+          sunGlow.addColorStop(1, 'rgba(254, 249, 195, 0)');
           this.ctx.fillStyle = sunGlow;
           this.ctx.beginPath();
-          this.ctx.arc(sunX, sunY, 80, 0, Math.PI * 2);
+          this.ctx.arc(sunX, sunY, 95, 0, Math.PI * 2);
           this.ctx.fill();
           
-          // 3. Blinding White Sun Core (Increased by 30%, tinted 10% red)
-          this.ctx.fillStyle = 'rgb(255, 230, 230)';
+          // 3. Delicate Outer Lens Flare Ring
+          this.ctx.strokeStyle = flareRingColor;
+          this.ctx.lineWidth = 1.0;
           this.ctx.beginPath();
-          this.ctx.arc(sunX, sunY, 23, 0, Math.PI * 2);
+          this.ctx.arc(sunX, sunY, 130, 0, Math.PI * 2);
+          this.ctx.stroke();
+          
+          // 4. White / Red Sun Core (60% transparent)
+          this.ctx.fillStyle = sunCoreColor;
+          this.ctx.beginPath();
+          this.ctx.arc(sunX, sunY, 20, 0, Math.PI * 2);
+          this.ctx.fill();
+
+          // 5. Blazing Cinematic Lens Flares along the diagonal vector
+          const dx = width / 2 - sunX;
+          const dy = height / 2 - sunY;
+
+          // Lens Flare A: Cyan glowing ring
+          const fx1 = sunX + dx * 0.45;
+          const fy1 = sunY + dy * 0.45;
+          const flareGlow1 = this.ctx.createRadialGradient(fx1, fy1, 0, fx1, fy1, 40);
+          flareGlow1.addColorStop(0, 'rgba(14, 165, 233, 0.1)');
+          flareGlow1.addColorStop(0.7, 'rgba(14, 165, 233, 0.04)');
+          flareGlow1.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          this.ctx.fillStyle = flareGlow1;
+          this.ctx.beginPath();
+          this.ctx.arc(fx1, fy1, 40, 0, Math.PI * 2);
+          this.ctx.fill();
+
+          // Lens Flare B: Soft Yellow/White medium disc (70% reduced yellow deepness)
+          const fx2 = sunX + dx * 0.9;
+          const fy2 = sunY + dy * 0.9;
+          const flareGlow2 = this.ctx.createRadialGradient(fx2, fy2, 0, fx2, fy2, 22);
+          flareGlow2.addColorStop(0, 'rgba(254, 249, 195, 0.05)');
+          flareGlow2.addColorStop(0.7, 'rgba(254, 249, 195, 0.015)');
+          flareGlow2.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          this.ctx.fillStyle = flareGlow2;
+          this.ctx.beginPath();
+          this.ctx.arc(fx2, fy2, 22, 0, Math.PI * 2);
+          this.ctx.fill();
+
+          // Lens Flare C: Soft Violet giant halo
+          const fx3 = sunX + dx * 1.4;
+          const fy3 = sunY + dy * 1.4;
+          const flareGlow3 = this.ctx.createRadialGradient(fx3, fy3, 0, fx3, fy3, 60);
+          flareGlow3.addColorStop(0, 'rgba(168, 85, 247, 0.08)');
+          flareGlow3.addColorStop(0.8, 'rgba(168, 85, 247, 0.02)');
+          flareGlow3.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          this.ctx.fillStyle = flareGlow3;
+          this.ctx.beginPath();
+          this.ctx.arc(fx3, fy3, 60, 0, Math.PI * 2);
           this.ctx.fill();
           
           this.ctx.restore();
@@ -1265,17 +1329,34 @@ export class Renderer {
         // --- 5. Twinkling Stars (Only at Night) ---
         if (nightOpacity > 0) {
           this.ctx.save();
-          this.ctx.globalAlpha = nightOpacity;
-          const starPalette = ['#ffffff', '#ffffff', '#cffafe', '#fbcfe8', '#fef9c3'];
-          const starCount = isMobile ? 25 : 90;
+          const starPalette = ['#ffffff', '#fffbeb', '#a5f3fc', '#fbcfe8', '#fef9c3', '#e9d5ff', '#fda4af'];
+          const starCount = isMobile ? 35 : 120;
           for (let i = 0; i < starCount; i++) {
             const x = (Math.sin(i * 1421.3) * 0.5 + 0.5) * width;
             const y = (Math.cos(i * 842.1) * 0.5 + 0.5) * (height * 0.88);
-            const twinkle = 0.35 + 0.65 * (Math.sin(this.weatherTime * 2.2 + i) * 0.5 + 0.5);
-            const size = 1.0 + (Math.sin(i * 99.3) * 0.5 + 0.5) * 0.8;
-            this.ctx.fillStyle = starPalette[i % starPalette.length];
+            
+            // Smoother, deeper breathing twinkle cycle
+            const twinkle = 0.25 + 0.75 * (Math.sin(this.weatherTime * 1.8 + i) * 0.5 + 0.5);
+            const size = 0.9 + (Math.sin(i * 99.3) * 0.5 + 0.5) * 1.2;
+            
             this.ctx.globalAlpha = nightOpacity * twinkle;
-            this.ctx.fillRect(x, y, size, size);
+            this.ctx.fillStyle = starPalette[i % starPalette.length];
+            
+            // Draw regular tiny star
+            this.ctx.fillRect(x - size/2, y - size/2, size, size);
+            
+            // Draw special glowing cross flares for 20% of the stars
+            if (i % 5 === 0) {
+              const flareSize = size * 3.5;
+              this.ctx.strokeStyle = starPalette[i % starPalette.length];
+              this.ctx.lineWidth = 0.5;
+              this.ctx.beginPath();
+              this.ctx.moveTo(x - flareSize, y);
+              this.ctx.lineTo(x + flareSize, y);
+              this.ctx.moveTo(x, y - flareSize);
+              this.ctx.lineTo(x, y + flareSize);
+              this.ctx.stroke();
+            }
           }
           this.ctx.restore();
         }
@@ -2437,8 +2518,8 @@ export class Renderer {
 
   // Volumetric bloom/lighting filter overlay (AAA polish)
   public applyCinematicBloom(worldId: string) {
-    if ((window as any).gameDisableShadows || worldId === 'retro') {
-      // Bypassed on mobile / Low-Graphics Mode / Retro World to save immense GPU fill-rate!
+    if ((window as any).gameDisableShadows || worldId === 'retro' || worldId === 'space') {
+      // Bypassed on mobile / Low-Graphics Mode / Retro World / Space (Twilight Horizon)
       return;
     }
 
@@ -2509,6 +2590,9 @@ export class Renderer {
   }
 
   public applyAmbientLighting(worldId: string) {
+    // Skip for Twilight Horizon — the multiply blend smears moving objects
+    if (worldId === 'space') return;
+
     const width = this.canvas.width / this.dpr;
     const height = this.canvas.height / this.dpr;
 

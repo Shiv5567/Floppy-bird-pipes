@@ -551,10 +551,10 @@ export class ProgressManager {
         }
 
         // One-time worlds reset to ensure Amazon Rainforest is auto-set as default
-        const worldsResetKey = 'flight_of_legends_worlds_reset_v1';
+        const worldsResetKey = 'flight_of_legends_worlds_reset_v2';
         if (!localStorage.getItem(worldsResetKey)) {
-          loadedState.unlockedWorlds = ['jungle'];
-          loadedState.activeWorld = 'jungle';
+          loadedState.unlockedWorlds = ['space', 'jungle'];
+          loadedState.activeWorld = 'space';
           localStorage.setItem(worldsResetKey, 'true');
         }
         
@@ -566,7 +566,7 @@ export class ProgressManager {
           highscoreClassic: loadedState.highscoreClassic || loadedState.highscore || 0,
           highscoreSquad: loadedState.highscoreSquad || 0,
           activeSkin: loadedState.activeSkin || 'default',
-          activeWorld: (loadedState.activeWorld && loadedState.activeWorld !== 'cyberpunk' && loadedState.activeWorld !== 'jungle_temple') ? loadedState.activeWorld : 'jungle',
+          activeWorld: (loadedState.activeWorld && loadedState.activeWorld !== 'cyberpunk' && loadedState.activeWorld !== 'jungle_temple') ? loadedState.activeWorld : 'space',
           unlockedSkins: loadedState.unlockedSkins || ['default'],
           skinUpgrades: loadedState.skinUpgrades || {},
           achievements: loadedState.achievements || {},
@@ -593,7 +593,13 @@ export class ProgressManager {
           })(),
           levelModeUnlockedLevel: 60,
           levelModeStars: loadedState.levelModeStars || {},
-          powerupUpgrades: loadedState.powerupUpgrades || { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1 },
+          powerupUpgrades: (() => {
+            const u = loadedState.powerupUpgrades || { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1, double: 1 };
+            if (u && u.double === undefined) {
+              u.double = 1;
+            }
+            return u;
+          })(),
           levelPlayCounts: loadedState.levelPlayCounts || {},
           sharedTargets: loadedState.sharedTargets || [],
           unlockedWorlds: loadedState.unlockedWorlds || ['jungle', 'ice', 'space', 'desert', 'volcano', 'heaven']
@@ -614,7 +620,7 @@ export class ProgressManager {
           if (this.state.unlockedWorlds && this.state.unlockedWorlds.includes(w.id)) {
             w.unlocked = true;
           }
-          if (w.id === 'jungle') {
+          if (w.id === 'jungle' || w.id === 'space') {
             w.unlocked = true;
           }
         });
@@ -653,7 +659,7 @@ export class ProgressManager {
       highscoreClassic: 0,
       highscoreSquad: 0,
       activeSkin: 'default',
-      activeWorld: 'jungle',
+      activeWorld: 'space',
       unlockedSkins: ['default'],
       skinUpgrades: {},
       achievements: {},
@@ -666,7 +672,7 @@ export class ProgressManager {
       dailyQuests: this.initDefaultQuests(),
       levelModeUnlockedLevel: 60,
       levelModeStars: {},
-      powerupUpgrades: { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1 },
+      powerupUpgrades: { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1, double: 1 },
       levelPlayCounts: {},
       sharedTargets: [],
       unlockedWorlds: ['jungle', 'ice', 'space', 'desert', 'volcano', 'heaven']
@@ -715,7 +721,7 @@ export class ProgressManager {
       { id: 'long_unlock_worlds_1', name: 'Unlock Locations', desc: 'Unlock 5 Locations', target: 5, current: 0, rewardCoins: 11000, rewardGems: 20, claimed: false },
       { id: 'long_share_game_1', name: 'Share Game', desc: 'Share the Game with 15 Friends', target: 15, current: 0, rewardCoins: 14000, rewardGems: 30, claimed: false },
       { id: 'long_kingfisher_pts_1', name: 'Kingfisher Flight', desc: 'Reach a score of 300 using Kingfisher', target: 300, current: 0, rewardCoins: 6000, rewardGems: 20, claimed: false },
-      { id: 'long_volcano_pts_1', name: 'Volcano Survivor', desc: 'Reach a score of 100 in Volcanic Spring', target: 100, current: 0, rewardCoins: 4000, rewardGems: 15, claimed: false }
+      { id: 'long_volcano_pts_1', name: 'Volcano Survivor', desc: 'Reach a score of 100 in Volcanic Realm', target: 100, current: 0, rewardCoins: 4000, rewardGems: 15, claimed: false }
     ];
   }
 
@@ -838,7 +844,7 @@ export class ProgressManager {
 
   public upgradePowerup(type: string): { success: boolean; msg: string } {
     if (!this.state.powerupUpgrades) {
-      this.state.powerupUpgrades = { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1 };
+      this.state.powerupUpgrades = { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1, double: 1 };
     }
     const currentLevel = this.state.powerupUpgrades[type] || 1;
     if (currentLevel >= 5) return { success: false, msg: 'Powerup is already at max level!' };
@@ -856,12 +862,12 @@ export class ProgressManager {
 
   private initDefaultWorlds() {
     this.worldsList = [
+      { id: 'space',      name: 'TWILIGHT HORIZON',        emoji: '🌌', costCoins: 0, costGems: 0, unlocked: true },
       { id: 'jungle',     name: 'AMAZON RAINFOREST', emoji: '🌴', costCoins: 0, costGems: 0, unlocked: true },
-      { id: 'ice',        name: 'FROZEN ICE KINGDOM',   emoji: '❄️', costCoins: 6000, costGems: 0, unlocked: false },
-      { id: 'space',      name: 'COSMIC MEADOW',        emoji: '🌌', costCoins: 10000, costGems: 0, unlocked: false },
+      { id: 'ice',        name: 'FROST VALLEY',   emoji: '❄️', costCoins: 6000, costGems: 0, unlocked: false },
       { id: 'desert',     name: 'ANCIENT EGYPT : THE DESERT', emoji: '🏜️', costCoins: 18000, costGems: 0, unlocked: false },
-      { id: 'volcano',    name: 'VOLCANIC SPRING',      emoji: '🌋', costCoins: 25000, costGems: 0, unlocked: false },
-      { id: 'heaven',     name: 'HEAVEN CLOUD KINGDOM', emoji: '🌤️', costCoins: 0, costGems: 300, unlocked: false }
+      { id: 'volcano',    name: 'VOLCANIC REALM',      emoji: '🌋', costCoins: 25000, costGems: 0, unlocked: false },
+      { id: 'heaven',     name: 'GOLDEN HEIGHTS : THE CLOUD KINGDOM', emoji: '🌤️', costCoins: 0, costGems: 300, unlocked: false }
     ];
   }
 

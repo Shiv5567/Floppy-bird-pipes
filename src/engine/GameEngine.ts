@@ -1702,7 +1702,7 @@ export class GameEngine {
       this.progressManager.updateQuestProgress('kingfisher_pts', this.score, true);
     }
 
-    // Custom quests: Volcanic Spring score of 100
+    // Custom quests: Volcanic Realm score of 100
     if (this.progressManager.getState().activeWorld === 'volcano') {
       this.progressManager.updateQuestProgress('volcano_pts', this.score, true);
     }
@@ -1817,6 +1817,9 @@ export class GameEngine {
       if (this.bird.getSkin().id === 'legendary_eagle_king' && this.ultimateActive) {
         coinVal *= 2; // Legendary Eagle King gets 2x coins only when ultimate is active!
       }
+      if (this.activePowerupsList['double']) {
+        coinVal *= 2; // Double Coins active power-up doubles coin value!
+      }
       this.coinsCollectedThisRun += coinVal;
       this.progressManager.addCoins(coinVal);
       this.progressManager.updateQuestProgress('coins', coinVal);
@@ -1875,7 +1878,8 @@ export class GameEngine {
       duration = 12.0;
       max = 12.0;
     } else if (type === 'double') {
-      this.scoreMultiplier = 2;
+      duration = 10.0;
+      max = 10.0;
     } else if (type === 'turbo') {
       this.bird.isInvincible = true;
       this.scrollSpeed = this.baseScrollSpeed * 2.3;
@@ -1945,7 +1949,7 @@ export class GameEngine {
     } else if (type === 'slowmo') {
       this.timeScale = 1.0;
     } else if (type === 'double') {
-      this.scoreMultiplier = 1;
+      // No action needed on expiration as we check activePowerupsList['double'] directly for coins
     } else if (type === 'turbo') {
       this.bird.isInvincible = false;
       this.scrollSpeed = this.baseScrollSpeed;

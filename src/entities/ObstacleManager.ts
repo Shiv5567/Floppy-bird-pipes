@@ -5533,8 +5533,8 @@ export class ObstacleManager {
 
       this.drawDestructibleOverlay(ctx, obs, height);
 
-      // Pulsing neon gap-border glow along inner lips of moving Level columns
-      if (obs.levelNum !== undefined && obs.isMoving && !(window as any).gameDisableShadows) {
+      // Pulsing neon gap-border glow along inner lips of moving Level columns (disabled for space/Twilight Horizon)
+      if (obs.levelNum !== undefined && obs.isMoving && !(window as any).gameDisableShadows && obs.worldId !== 'space') {
         const topShift = obs.shakeX || 0;
         const bottomShift = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
         const leftTop = obs.x + topShift;
@@ -6514,23 +6514,20 @@ export class ObstacleManager {
       return;
     }
 
-    let stop0 = '#080321', stop3 = '#5b21b6', stop5 = '#8b5cf6', stop7 = '#06b6d4', stop1 = '#03001e'; // Style 0: Cosmic Violet & Neon Cyan
-    let capGrad0 = '#06b6d4', capGrad5 = '#c084fc', capGrad1 = '#080321';
-    let outlineCol = '#06b6d4';
-    let beaconCol1 = '#06b6d4', beaconCol2 = '#8b5cf6';
+    let stop0 = '#090526', stop3 = '#6366f1', stop5 = '#ec4899', stop7 = '#3b82f6', stop1 = '#05021a'; // Style 0: Twilight Indigo, Pink & Cyan
+    let capGrad0 = '#38bdf8', capGrad5 = '#f472b6', capGrad1 = '#6366f1';
+    let outlineCol = '#22d3ee';
 
     if (styleIdx === 1) {
-      // Style 1: Premium Dark Red & Crimson (Score 100-200)
-      stop0 = '#1a0005'; stop3 = '#7f1d1d'; stop5 = '#ef4444'; stop7 = '#991b1b'; stop1 = '#4c0519';
-      capGrad0 = '#991b1b'; capGrad5 = '#ffd700'; capGrad1 = '#4c0519';
-      outlineCol = '#ffd700';
-      beaconCol1 = '#ef4444'; beaconCol2 = '#ffd700';
+      // Style 1: Twilight Deep Purple & Neon Fuchsia (Score 101-200)
+      stop0 = '#120224'; stop3 = '#4a044e'; stop5 = '#701a75'; stop7 = '#a21caf'; stop1 = '#090112';
+      capGrad0 = '#d946ef'; capGrad5 = '#fbcfe8'; capGrad1 = '#4a044e';
+      outlineCol = '#d946ef';
     } else if (styleIdx === 3) {
-      // Style 3: Premium Dark Blue & Sapphire (Score 200-350)
-      stop0 = '#030712'; stop3 = '#1d4ed8'; stop5 = '#3b82f6'; stop7 = '#1e3a8a'; stop1 = '#020617';
-      capGrad0 = '#cbd5e1'; capGrad5 = '#f8fafc'; capGrad1 = '#1d4ed8';
-      outlineCol = '#3b82f6';
-      beaconCol1 = '#3b82f6'; beaconCol2 = '#ffffff';
+      // Style 3: Cosmic Nebula Teal & Sapphire (Score 200-350)
+      stop0 = '#020f12'; stop3 = '#0f766e'; stop5 = '#14b8a6'; stop7 = '#6366f1'; stop1 = '#01080a';
+      capGrad0 = '#2dd4bf'; capGrad5 = '#c084fc'; capGrad1 = '#1e3a8a';
+      outlineCol = '#2dd4bf';
     }
 
     ctx.save();
@@ -6547,57 +6544,17 @@ export class ObstacleManager {
     ctx.strokeStyle = outlineCol;
     ctx.lineWidth = 2.5;
 
-    // Fill with transparency
-    ctx.globalAlpha = 0.72;
+    // Fully opaque fill — prevents sky bleed-through blur effect
+    ctx.globalAlpha = 1.0;
     ctx.fillRect(rx, -1000, rw, rTop + 1000);
     ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
 
-    // Stroke with higher opacity
-    ctx.globalAlpha = 0.9;
+    // Stroke
+    ctx.globalAlpha = 1.0;
     ctx.strokeRect(rx, -1000, rw, rTop + 1000);
     ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
 
-    // 2. Draw Dynamic Holographic Effects (Clipping inside the pillars)
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(rx, 0, rw, rTop);
-    ctx.rect(rx, height - rBottom, rw, rBottom);
-    ctx.clip();
-
-    // A. Scrolling Horizontal Scanlines
-    ctx.strokeStyle = outlineCol;
-    ctx.lineWidth = 1.5;
-    const scanlineSpacing = 16;
-    const timeVal = (window as any).gameEngine ? (window as any).gameEngine.weatherTime : Date.now() * 0.001;
-    const scrollOffset = (obs.x * 0.15 - timeVal * 45) % scanlineSpacing;
-    
-    ctx.globalAlpha = 0.22;
-    for (let y = 0; y < height; y += scanlineSpacing) {
-      const currY = y + scrollOffset;
-      ctx.beginPath();
-      ctx.moveTo(rx, currY);
-      ctx.lineTo(rx + rw, currY);
-      ctx.stroke();
-    }
-
-    // B. Bright Rising/Falling Energy Pulse Line
-    const pulseY = (timeVal * 110) % height;
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 3;
-    ctx.globalAlpha = 0.55;
-    
-    const isPerfSpace = (window as any).gameDisableShadows;
-    if (!isPerfSpace) {
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = outlineCol;
-    }
-    ctx.beginPath();
-    ctx.moveTo(rx, pulseY);
-    ctx.lineTo(rx + rw, pulseY);
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-
-    ctx.restore(); // end of clipping
+    // Visual motion effects removed for Twilight Horizon world
 
     // 3. High-tech cap pylons
     const capY1 = rTop - 24;
@@ -6608,7 +6565,7 @@ export class ObstacleManager {
     chromeGrad.addColorStop(0.5, capGrad5);
     chromeGrad.addColorStop(1, capGrad1);
     ctx.fillStyle = chromeGrad;
-    ctx.strokeStyle = '#e9d5ff';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)'; // premium white gloss cap border
     ctx.lineWidth = 3.5;
 
     ctx.globalAlpha = 0.85;
@@ -6617,19 +6574,6 @@ export class ObstacleManager {
     ctx.fillRect(rx - 6, capY2, rw + 12, 24);
     ctx.strokeRect(rx - 6, capY2, rw + 12, 24);
 
-    // 4. Flashing beacons
-    const beaconColor = isPerfSpace ? beaconCol1 : (Math.sin((obs.x || 0) * 0.15) > 0 ? beaconCol1 : beaconCol2);
-    ctx.fillStyle = beaconColor;
-    ctx.globalAlpha = 1.0;
-    if (!isPerfSpace) {
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = beaconColor;
-    }
-    ctx.beginPath();
-    ctx.arc(rx + rw / 2, capY1 + 12, 3.5, 0, Math.PI * 2);
-    ctx.arc(rx + rw / 2, capY2 + 12, 3.5, 0, Math.PI * 2);
-    ctx.fill();
-    
     ctx.restore(); // restore all
   }
 
@@ -7474,9 +7418,9 @@ export class ObstacleManager {
     const isPerformance = (window as any).gameDisableShadows;
     if (isPerformance) {
       ctx.save();
-      ctx.globalAlpha = 0.72;
-      ctx.fillStyle = '#15062b';
-      ctx.strokeStyle = '#a855f7';
+      ctx.globalAlpha = 1.0; // Fully opaque
+      ctx.fillStyle = '#0c072b'; // Deep twilight indigo
+      ctx.strokeStyle = '#06b6d4'; // Cyan neon border
       ctx.lineWidth = 2.5;
       ctx.fillRect(rx, -1000, rw, rTop + 1000);
       ctx.strokeRect(rx, -1000, rw, rTop + 1000);
@@ -7489,35 +7433,36 @@ export class ObstacleManager {
     ctx.save();
 
     const drawSpaceBlock = (yStart: number, h: number, _isTop: boolean) => {
-      // Dark stellar carbon-alloy panel hybrid space gradient
+      // Premium twilight carbon panel gradient
       const carbonGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      carbonGrad.addColorStop(0, '#080321'); // Space dark violet
-      carbonGrad.addColorStop(0.4, '#8b5cf6'); // Purple nebula
-      carbonGrad.addColorStop(0.7, '#06b6d4'); // Cyan highlight
-      carbonGrad.addColorStop(1, '#03001e');
+      carbonGrad.addColorStop(0, '#090526'); // Space dark violet
+      carbonGrad.addColorStop(0.35, '#6366f1'); // Twilight indigo
+      carbonGrad.addColorStop(0.65, '#ec4899'); // Nebula pink/magenta
+      carbonGrad.addColorStop(0.85, '#3b82f6'); // Space blue
+      carbonGrad.addColorStop(1, '#05021a');
       
-      // Fill with transparency
+      // Fully opaque fill — prevents sky bleed-through blur effect
       ctx.save();
-      ctx.globalAlpha = 0.72;
+      ctx.globalAlpha = 1.0;
       ctx.fillStyle = carbonGrad;
       ctx.fillRect(rx, yStart, rw, h);
       ctx.restore();
 
-      // Stroke with higher opacity
+      // Stroke
       ctx.save();
-      ctx.globalAlpha = 0.9;
-      ctx.strokeStyle = '#06b6d4'; // Cyan border
+      ctx.globalAlpha = 1.0;
+      ctx.strokeStyle = '#22d3ee'; // Cyan border
       ctx.lineWidth = 2.5;
       ctx.strokeRect(rx, yStart, rw, h);
       ctx.restore();
 
-      // Pulsing stellar core (quantum warp-gate)
+      // Pulsing stellar core (quantum warp-gate) - Glowing pink/magenta core
       ctx.save();
       ctx.globalAlpha = 0.55;
       const coreGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      coreGrad.addColorStop(0, 'rgba(139, 92, 246, 0.15)');
-      coreGrad.addColorStop(0.5, 'rgba(6, 182, 212, 0.4)'); // glowing cyan core
-      coreGrad.addColorStop(1, 'rgba(139, 92, 246, 0.15)');
+      coreGrad.addColorStop(0, 'rgba(99, 102, 241, 0.15)');
+      coreGrad.addColorStop(0.5, 'rgba(236, 72, 153, 0.45)');
+      coreGrad.addColorStop(1, 'rgba(99, 102, 241, 0.15)');
       ctx.fillStyle = coreGrad;
       ctx.fillRect(rx + rw * 0.35, yStart, rw * 0.3, h);
       ctx.restore();
@@ -7525,26 +7470,29 @@ export class ObstacleManager {
       // Constellation vectors (glowing starry geometric patterns)
       ctx.save();
       ctx.globalAlpha = 0.65;
-      ctx.strokeStyle = '#e0f2fe'; // star white
+      ctx.strokeStyle = '#fbcfe8'; // soft glowing twilight pink
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(rx + 10, yStart + 40);
       ctx.lineTo(rx + rw * 0.5, yStart + 80);
       ctx.lineTo(rx + rw - 10, yStart + 40);
+      // Extra constellation lines for geometric detail
+      ctx.moveTo(rx + rw * 0.5, yStart + 20);
+      ctx.lineTo(rx + rw * 0.5, yStart + 100);
       ctx.stroke();
       ctx.restore();
 
       // Twinkling warp ring cap at safe boundaries (attractive futuristic design)
       const capY = _isTop ? yStart + h - 22 : yStart;
       const portalGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-      portalGrad.addColorStop(0, '#06b6d4'); // Cyan
-      portalGrad.addColorStop(0.5, '#ffffff'); // star bright core
-      portalGrad.addColorStop(1, '#701a75'); // Purple
+      portalGrad.addColorStop(0, '#38bdf8'); // Sky cyan
+      portalGrad.addColorStop(0.5, '#ffffff'); // Star core white
+      portalGrad.addColorStop(1, '#ec4899'); // Fuchsia/magenta
       
       ctx.save();
       ctx.globalAlpha = 0.85;
       ctx.fillStyle = portalGrad;
-      ctx.strokeStyle = '#06b6d4';
+      ctx.strokeStyle = '#22d3ee';
       ctx.lineWidth = 2;
       ctx.fillRect(rx - 6, capY, rw + 12, 22);
       ctx.strokeRect(rx - 6, capY, rw + 12, 22);
@@ -7563,46 +7511,7 @@ export class ObstacleManager {
     drawSpaceBlock(-1000, rTop + 1000, true);
     drawSpaceBlock(height - rBottom, rBottom + 1000, false);
 
-    // 2. Draw Dynamic Holographic Effects (Clipping inside the pillars)
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(rx, 0, rw, rTop);
-    ctx.rect(rx, height - rBottom, rw, rBottom);
-    ctx.clip();
-
-    // A. Scrolling Horizontal Scanlines
-    ctx.strokeStyle = '#06b6d4';
-    ctx.lineWidth = 1.5;
-    const scanlineSpacing = 16;
-    const timeVal = (window as any).gameEngine ? (window as any).gameEngine.weatherTime : Date.now() * 0.001;
-    const scrollOffset = (obs.x * 0.15 - timeVal * 45) % scanlineSpacing;
-    
-    ctx.globalAlpha = 0.22;
-    for (let y = 0; y < height; y += scanlineSpacing) {
-      const currY = y + scrollOffset;
-      ctx.beginPath();
-      ctx.moveTo(rx, currY);
-      ctx.lineTo(rx + rw, currY);
-      ctx.stroke();
-    }
-
-    // B. Bright Rising/Falling Energy Pulse Line
-    const pulseY = (timeVal * 110) % height;
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 3;
-    ctx.globalAlpha = 0.55;
-    
-    if (!isPerformance) {
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = '#06b6d4';
-    }
-    ctx.beginPath();
-    ctx.moveTo(rx, pulseY);
-    ctx.lineTo(rx + rw, pulseY);
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-
-    ctx.restore(); // end of clipping
+    // Visual motion and shadow effects removed for Twilight Horizon world
 
     ctx.restore(); // restore all
   }
