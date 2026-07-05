@@ -6508,13 +6508,29 @@ export class ObstacleManager {
     spaceGrad.addColorStop(0.8, stop7);
     spaceGrad.addColorStop(1, stop1);
 
-    ctx.fillStyle = spaceGrad;
+    const spaceGradBottom = ctx.createLinearGradient(rx, 0, rx + rw, 0);
+    if (styleIdx === 0) {
+      spaceGradBottom.addColorStop(0, '#05021a');
+      spaceGradBottom.addColorStop(0.3, '#172554');
+      spaceGradBottom.addColorStop(0.5, '#1e3a8a');
+      spaceGradBottom.addColorStop(0.8, '#2563eb');
+      spaceGradBottom.addColorStop(1, '#05021a');
+    } else {
+      spaceGradBottom.addColorStop(0, stop0);
+      spaceGradBottom.addColorStop(0.3, stop3);
+      spaceGradBottom.addColorStop(0.5, stop5);
+      spaceGradBottom.addColorStop(0.8, stop7);
+      spaceGradBottom.addColorStop(1, stop1);
+    }
+
     ctx.strokeStyle = outlineCol;
     ctx.lineWidth = 2.5;
 
     // Semi-transparent fill - allows background nebula/stars to be visible
     ctx.globalAlpha = 0.70;
+    ctx.fillStyle = spaceGrad;
     ctx.fillRect(rx, -1000, rw, rTop + 1000);
+    ctx.fillStyle = spaceGradBottom;
     ctx.fillRect(rx, height - rBottom, rw, rBottom + 1000);
 
     // Stroke
@@ -6532,13 +6548,23 @@ export class ObstacleManager {
     chromeGrad.addColorStop(0, capGrad0);
     chromeGrad.addColorStop(0.5, capGrad5);
     chromeGrad.addColorStop(1, capGrad1);
-    ctx.fillStyle = chromeGrad;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)'; // premium white gloss cap border
-    ctx.lineWidth = 3.5;
+
+    const chromeGradBottom = ctx.createLinearGradient(rx - 6, 0, rx + rw + 6, 0);
+    if (styleIdx === 0) {
+      chromeGradBottom.addColorStop(0, '#1e3a8a');
+      chromeGradBottom.addColorStop(0.5, '#3b82f6');
+      chromeGradBottom.addColorStop(1, '#1d4ed8');
+    } else {
+      chromeGradBottom.addColorStop(0, capGrad0);
+      chromeGradBottom.addColorStop(0.5, capGrad5);
+      chromeGradBottom.addColorStop(1, capGrad1);
+    }
 
     ctx.globalAlpha = 0.85;
+    ctx.fillStyle = chromeGrad;
     ctx.fillRect(rx - 6, capY1, rw + 12, 24);
     ctx.strokeRect(rx - 6, capY1, rw + 12, 24);
+    ctx.fillStyle = chromeGradBottom;
     ctx.fillRect(rx - 6, capY2, rw + 12, 24);
     ctx.strokeRect(rx - 6, capY2, rw + 12, 24);
 
