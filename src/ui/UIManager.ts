@@ -1505,13 +1505,23 @@ export class UIManager {
             justify-content: space-between;
             transition: all 0.3s;
           ">
-            <div style="font-size: 14px; font-weight: 900; color: #ffe47a; display: flex; align-items: center; gap: 6px;">
-              <span style="width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;">
+            <div style="font-size: 14px; font-weight: 900; color: #ffe47a; display: flex; align-items: center; gap: 8px;">
+              <span style="
+                width: 28px;
+                height: 28px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                background: rgba(255, 215, 0, 0.1);
+                box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+                border: 1px solid rgba(255, 215, 0, 0.25);
+              ">
                 ${this.getCoinIconSvg('18px', '18px', '', 'topup')}
               </span>
               +200 Coins
             </div>
-            <button id="topup-coins-ad-btn" ${onCooldown ? 'disabled' : ''} style="
+            <button id="topup-coins-ad-btn" ${onCooldown ? 'disabled' : ''} class="${onCooldown ? '' : 'gold-glowing-btn'}" style="
               background: ${onCooldown ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #ffd700, #ff8800)'};
               border: none;
               padding: 8px 14px;
@@ -1521,7 +1531,7 @@ export class UIManager {
               font-size: 10px;
               font-family: inherit;
               cursor: ${onCooldown ? 'not-allowed' : 'pointer'};
-              box-shadow: ${onCooldown ? 'none' : '0 3px 8px rgba(255,136,0,0.2)'};
+              box-shadow: ${onCooldown ? 'none' : '0 0 12px rgba(255,136,0,0.55), inset 0 1px 0 rgba(255,255,255,0.4)'};
               transition: all 0.2s;
             ">
               ${onCooldown ? 'COOLING' : 'GET 🎬'}
@@ -1539,10 +1549,24 @@ export class UIManager {
             justify-content: space-between;
             transition: all 0.3s;
           ">
-            <div style="font-size: 14px; font-weight: 900; color: #a8e5ff; display: flex; align-items: center; gap: 6px;">
-              💎 +10 Gems
+            <div style="font-size: 14px; font-weight: 900; color: #a8e5ff; display: flex; align-items: center; gap: 8px;">
+              <span style="
+                width: 28px;
+                height: 28px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                background: rgba(0, 195, 255, 0.1);
+                box-shadow: 0 0 10px rgba(0, 195, 255, 0.4);
+                border: 1px solid rgba(0, 195, 255, 0.25);
+                font-size: 13px;
+              ">
+                💎
+              </span>
+              +10 Gems
             </div>
-            <button id="topup-gems-ad-btn" ${onCooldown ? 'disabled' : ''} style="
+            <button id="topup-gems-ad-btn" ${onCooldown ? 'disabled' : ''} class="${onCooldown ? '' : 'cyan-glowing-btn'}" style="
               background: ${onCooldown ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #00c3ff, #0055ff)'};
               border: none;
               padding: 8px 14px;
@@ -1552,7 +1576,7 @@ export class UIManager {
               font-size: 10px;
               font-family: inherit;
               cursor: ${onCooldown ? 'not-allowed' : 'pointer'};
-              box-shadow: ${onCooldown ? 'none' : '0 3px 8px rgba(0,85,255,0.2)'};
+              box-shadow: ${onCooldown ? 'none' : '0 0 12px rgba(0,85,255,0.55), inset 0 1px 0 rgba(255,255,255,0.4)'};
               transition: all 0.2s;
             ">
               ${onCooldown ? 'COOLING' : 'GET 🎬'}
@@ -1599,16 +1623,18 @@ export class UIManager {
           coinBtn.innerText = 'GET 🎬';
           coinBtn.style.background = 'linear-gradient(135deg, #ffd700, #ff8800)';
           coinBtn.style.color = 'white';
-          coinBtn.style.boxShadow = '0 3px 8px rgba(255,136,0,0.2)';
+          coinBtn.style.boxShadow = '0 0 12px rgba(255,136,0,0.55), inset 0 1px 0 rgba(255,255,255,0.4)';
           coinBtn.style.cursor = 'pointer';
+          coinBtn.classList.add('gold-glowing-btn');
         }
         if (gemBtn) {
           gemBtn.disabled = false;
           gemBtn.innerText = 'GET 🎬';
           gemBtn.style.background = 'linear-gradient(135deg, #00c3ff, #0055ff)';
           gemBtn.style.color = 'white';
-          gemBtn.style.boxShadow = '0 3px 8px rgba(0,85,255,0.2)';
+          gemBtn.style.boxShadow = '0 0 12px rgba(0,85,255,0.55), inset 0 1px 0 rgba(255,255,255,0.4)';
           gemBtn.style.cursor = 'pointer';
+          gemBtn.classList.add('cyan-glowing-btn');
         }
         clearInterval(timerInterval);
       }
