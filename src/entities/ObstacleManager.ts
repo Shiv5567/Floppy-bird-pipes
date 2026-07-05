@@ -6482,8 +6482,8 @@ export class ObstacleManager {
       return;
     }
 
-    let stop0 = '#090526', stop3 = '#6366f1', stop5 = '#1e40af', stop7 = '#3b82f6', stop1 = '#05021a'; // Style 0: Twilight Indigo, Dark Blue & Cyan
-    let capGrad0 = '#38bdf8', capGrad5 = '#3b82f6', capGrad1 = '#6366f1';
+    let stop0 = '#090526', stop3 = '#1e40af', stop5 = '#3b82f6', stop7 = '#60a5fa', stop1 = '#05021a'; // Style 0: Twilight Indigo, Dark/Light Blue & Cyan
+    let capGrad0 = '#38bdf8', capGrad5 = '#60a5fa', capGrad1 = '#1e40af';
     let outlineCol = '#22d3ee';
 
     if (styleIdx === 1) {
