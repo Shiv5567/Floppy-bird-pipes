@@ -2413,10 +2413,10 @@ export class Renderer {
           dayWeight = 0; // Night
         }
 
-        // Interpolate color for Layer 3 (closest mountain): Night rgb(6,0,15) -> Day rgb(5,46,22)
-        const r = Math.round(6 + (5 - 6) * dayWeight);
-        const g = Math.round(0 + (46 - 0) * dayWeight);
-        const b = Math.round(15 + (22 - 15) * dayWeight);
+        // Interpolate color for Layer 3 (closest mountain): Night rgb(6,0,15) -> Day rgb(4,32,15) [added 30% blackness]
+        const r = Math.round(6 + (4 - 6) * dayWeight);
+        const g = Math.round(0 + (32 - 0) * dayWeight);
+        const b = Math.round(15 + (15 - 15) * dayWeight);
         const layer3Color = `rgba(${r}, ${g}, ${b}, 0.95)`;
 
         return [
