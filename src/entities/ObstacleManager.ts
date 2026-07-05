@@ -5312,7 +5312,7 @@ export class ObstacleManager {
 
 
   // Draw procedural themed obstacle pillars
-  public render(ctx: CanvasRenderingContext2D, height: number) {
+  public render(ctx: CanvasRenderingContext2D, height: number, timeOfDay?: number) {
     ctx.shadowBlur = 0; // Disable shadows for high performance
     for (let i = 0; i < this.list.length; i++) {
       const obs = this.list[i];
@@ -5440,7 +5440,7 @@ export class ObstacleManager {
                 this.drawVolcanoPillars(ctx, obs, height, styleIdx);
                 break;
               case 'space':
-                this.drawSpaceObstacles(ctx, obs, height, styleIdx);
+                this.drawSpaceObstacles(ctx, obs, height, styleIdx, timeOfDay);
                 break;
               case 'underwater':
                 this.drawUnderwaterPillars(ctx, obs, height, styleIdx);
@@ -6470,8 +6470,7 @@ export class ObstacleManager {
     ctx.fillRect(rx - 5, capY2, rw + 10, 24);
     ctx.strokeRect(rx - 5, capY2, rw + 10, 24);
   }
-
-  private drawSpaceObstacles(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number, styleIdx = 0) {
+  private drawSpaceObstacles(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number, styleIdx = 0, timeOfDay?: number) {
     const rx = obs.x;
     const rw = obs.width;
     const rTop = obs.topHeight;
@@ -6485,6 +6484,111 @@ export class ObstacleManager {
     let stop0 = '#090526', stop3 = '#1e40af', stop5 = '#3b82f6', stop7 = '#60a5fa', stop1 = '#05021a'; // Style 0: Twilight Indigo, Dark/Light Blue & Cyan
     let capGrad0 = '#38bdf8', capGrad5 = '#60a5fa', capGrad1 = '#1e40af';
     let outlineCol = '#22d3ee';
+
+    let isStyle0Day = false;
+    let day_stop0 = '', day_stop3 = '', day_stop5 = '', day_stop7 = '', day_stop1 = '';
+    let day_outlineCol = '';
+    let day_capGrad0 = '', day_capGrad5 = '', day_capGrad1 = '';
+
+    let bot_day_stop0 = '', bot_day_stop3 = '', bot_day_stop5 = '', bot_day_stop7 = '', bot_day_stop1 = '';
+    let bot_day_outlineCol = '';
+    let bot_day_capGrad0 = '', bot_day_capGrad5 = '', bot_day_capGrad1 = '';
+
+    if (styleIdx === 0 && timeOfDay !== undefined) {
+      isStyle0Day = true;
+      let dayWeight = 0;
+      if (timeOfDay >= 5 && timeOfDay < 7) {
+        dayWeight = (timeOfDay - 5) / 2; // Sunrise transition
+      } else if (timeOfDay >= 7 && timeOfDay < 17) {
+        dayWeight = 1.0; // Daytime
+      } else if (timeOfDay >= 17 && timeOfDay < 19) {
+        dayWeight = 1.0 - (timeOfDay - 17) / 2; // Sunset transition
+      } else {
+        dayWeight = 0; // Night
+      }
+
+      // Top Obstacle: smooth transition from Night space to Day sunrise sky colors (matchable sky)
+      const t_r0 = Math.round(9 + (15 - 9) * dayWeight);
+      const t_g0 = Math.round(5 + (23 - 5) * dayWeight);
+      const t_b0 = Math.round(38 + (42 - 38) * dayWeight);
+      day_stop0 = `rgba(${t_r0}, ${t_g0}, ${t_b0}, 0.75)`;
+
+      const t_r3 = Math.round(30 + (56 - 30) * dayWeight);
+      const t_g3 = Math.round(64 + (189 - 64) * dayWeight);
+      const t_b3 = Math.round(175 + (248 - 175) * dayWeight);
+      day_stop3 = `rgba(${t_r3}, ${t_g3}, ${t_b3}, 0.85)`;
+
+      const t_r5 = Math.round(59 + (244 - 59) * dayWeight);
+      const t_g5 = Math.round(130 + (114 - 130) * dayWeight);
+      const t_b5 = Math.round(246 + (182 - 246) * dayWeight);
+      day_stop5 = `rgba(${t_r5}, ${t_g5}, ${t_b5}, 0.85)`;
+
+      const t_r7 = Math.round(96 + (254 - 96) * dayWeight);
+      const t_g7 = Math.round(165 + (240 - 165) * dayWeight);
+      const t_b7 = Math.round(250 + (138 - 250) * dayWeight);
+      day_stop7 = `rgba(${t_r7}, ${t_g7}, ${t_b7}, 0.85)`;
+      
+      day_stop1 = day_stop0;
+
+      const t_ro = Math.round(34 + (244 - 34) * dayWeight);
+      const t_go = Math.round(211 + (114 - 211) * dayWeight);
+      const t_bo = Math.round(238 + (182 - 238) * dayWeight);
+      day_outlineCol = `rgb(${t_ro}, ${t_go}, ${t_bo})`;
+
+      day_capGrad0 = '#38bdf8';
+      const c_r5 = Math.round(96 + (244 - 96) * dayWeight);
+      const c_g5 = Math.round(165 + (114 - 165) * dayWeight);
+      const c_b5 = Math.round(250 + (182 - 250) * dayWeight);
+      day_capGrad5 = `rgb(${c_r5}, ${c_g5}, ${c_b5})`;
+
+      const c_r1 = Math.round(30 + (254 - 30) * dayWeight);
+      const c_g1 = Math.round(64 + (240 - 64) * dayWeight);
+      const c_b1 = Math.round(175 + (138 - 175) * dayWeight);
+      day_capGrad1 = `rgb(${c_r1}, ${c_g1}, ${c_b1})`;
+
+      // Bottom Obstacle: smooth transition from Night space to Day meadow green colors (matchable mountain)
+      const b_r0 = Math.round(5 + (2 - 5) * dayWeight);
+      const b_g0 = Math.round(2 + (44 - 2) * dayWeight);
+      const b_b0 = Math.round(26 + (34 - 26) * dayWeight);
+      bot_day_stop0 = `rgba(${b_r0}, ${b_g0}, ${b_b0}, 0.75)`;
+
+      const b_r3 = Math.round(23 + (4 - 23) * dayWeight);
+      const b_g3 = Math.round(37 + (120 - 37) * dayWeight);
+      const b_b3 = Math.round(84 + (87 - 84) * dayWeight);
+      bot_day_stop3 = `rgba(${b_r3}, ${b_g3}, ${b_b3}, 0.85)`;
+
+      const b_r5 = Math.round(30 + (16 - 30) * dayWeight);
+      const b_g5 = Math.round(58 + (185 - 58) * dayWeight);
+      const b_b5 = Math.round(138 + (129 - 138) * dayWeight);
+      bot_day_stop5 = `rgba(${b_r5}, ${b_g5}, ${b_b5}, 0.85)`;
+
+      const b_r7 = Math.round(37 + (52 - 37) * dayWeight);
+      const b_g7 = Math.round(99 + (211 - 99) * dayWeight);
+      const b_b7 = Math.round(235 + (153 - 235) * dayWeight);
+      bot_day_stop7 = `rgba(${b_r7}, ${b_g7}, ${b_b7}, 0.85)`;
+      
+      bot_day_stop1 = bot_day_stop0;
+
+      const b_ro = Math.round(34 + (16 - 34) * dayWeight);
+      const b_go = Math.round(211 + (185 - 211) * dayWeight);
+      const b_bo = Math.round(238 + (129 - 238) * dayWeight);
+      bot_day_outlineCol = `rgb(${b_ro}, ${b_go}, ${b_bo})`;
+
+      const bc_r0 = Math.round(30 + (4 - 30) * dayWeight);
+      const bc_g0 = Math.round(58 + (120 - 58) * dayWeight);
+      const bc_b0 = Math.round(138 + (87 - 138) * dayWeight);
+      bot_day_capGrad0 = `rgb(${bc_r0}, ${bc_g0}, ${bc_b0})`;
+
+      const bc_r5 = Math.round(59 + (16 - 59) * dayWeight);
+      const bc_g5 = Math.round(130 + (185 - 130) * dayWeight);
+      const bc_b5 = Math.round(246 + (129 - 246) * dayWeight);
+      bot_day_capGrad5 = `rgb(${bc_r5}, ${bc_g5}, ${bc_b5})`;
+
+      const bc_r1 = Math.round(29 + (52 - 29) * dayWeight);
+      const bc_g1 = Math.round(78 + (211 - 78) * dayWeight);
+      const bc_b1 = Math.round(216 + (153 - 216) * dayWeight);
+      bot_day_capGrad1 = `rgb(${bc_r1}, ${bc_g1}, ${bc_b1})`;
+    }
 
     if (styleIdx === 1) {
       // Style 1: Twilight Deep Purple & Neon Fuchsia (Score 101-200)
@@ -6502,14 +6606,28 @@ export class ObstacleManager {
 
     // 1. Draw Semi-Transparent Holographic Pillar Fills
     const spaceGrad = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    spaceGrad.addColorStop(0, stop0);
-    spaceGrad.addColorStop(0.3, stop3);
-    spaceGrad.addColorStop(0.5, stop5);
-    spaceGrad.addColorStop(0.8, stop7);
-    spaceGrad.addColorStop(1, stop1);
+    if (isStyle0Day) {
+      spaceGrad.addColorStop(0, day_stop0);
+      spaceGrad.addColorStop(0.3, day_stop3);
+      spaceGrad.addColorStop(0.5, day_stop5);
+      spaceGrad.addColorStop(0.8, day_stop7);
+      spaceGrad.addColorStop(1, day_stop1);
+    } else {
+      spaceGrad.addColorStop(0, stop0);
+      spaceGrad.addColorStop(0.3, stop3);
+      spaceGrad.addColorStop(0.5, stop5);
+      spaceGrad.addColorStop(0.8, stop7);
+      spaceGrad.addColorStop(1, stop1);
+    }
 
     const spaceGradBottom = ctx.createLinearGradient(rx, 0, rx + rw, 0);
-    if (styleIdx === 0) {
+    if (isStyle0Day) {
+      spaceGradBottom.addColorStop(0, bot_day_stop0);
+      spaceGradBottom.addColorStop(0.3, bot_day_stop3);
+      spaceGradBottom.addColorStop(0.5, bot_day_stop5);
+      spaceGradBottom.addColorStop(0.8, bot_day_stop7);
+      spaceGradBottom.addColorStop(1, bot_day_stop1);
+    } else if (styleIdx === 0) {
       spaceGradBottom.addColorStop(0, '#05021a');
       spaceGradBottom.addColorStop(0.3, '#172554');
       spaceGradBottom.addColorStop(0.5, '#1e3a8a');
@@ -6535,8 +6653,16 @@ export class ObstacleManager {
 
     // Stroke
     ctx.globalAlpha = 1.0;
-    ctx.strokeRect(rx, -1000, rw, rTop + 1000);
-    ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+    if (isStyle0Day) {
+      ctx.strokeStyle = day_outlineCol;
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeStyle = bot_day_outlineCol;
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+    } else {
+      ctx.strokeStyle = outlineCol;
+      ctx.strokeRect(rx, -1000, rw, rTop + 1000);
+      ctx.strokeRect(rx, height - rBottom, rw, rBottom + 1000);
+    }
 
     // Visual motion effects removed for Twilight Horizon world
 
@@ -6545,12 +6671,22 @@ export class ObstacleManager {
     const capY2 = height - rBottom;
 
     const chromeGrad = ctx.createLinearGradient(rx - 6, 0, rx + rw + 6, 0);
-    chromeGrad.addColorStop(0, capGrad0);
-    chromeGrad.addColorStop(0.5, capGrad5);
-    chromeGrad.addColorStop(1, capGrad1);
+    if (isStyle0Day) {
+      chromeGrad.addColorStop(0, day_capGrad0);
+      chromeGrad.addColorStop(0.5, day_capGrad5);
+      chromeGrad.addColorStop(1, day_capGrad1);
+    } else {
+      chromeGrad.addColorStop(0, capGrad0);
+      chromeGrad.addColorStop(0.5, capGrad5);
+      chromeGrad.addColorStop(1, capGrad1);
+    }
 
     const chromeGradBottom = ctx.createLinearGradient(rx - 6, 0, rx + rw + 6, 0);
-    if (styleIdx === 0) {
+    if (isStyle0Day) {
+      chromeGradBottom.addColorStop(0, bot_day_capGrad0);
+      chromeGradBottom.addColorStop(0.5, bot_day_capGrad5);
+      chromeGradBottom.addColorStop(1, bot_day_capGrad1);
+    } else if (styleIdx === 0) {
       chromeGradBottom.addColorStop(0, '#1e3a8a');
       chromeGradBottom.addColorStop(0.5, '#3b82f6');
       chromeGradBottom.addColorStop(1, '#1d4ed8');

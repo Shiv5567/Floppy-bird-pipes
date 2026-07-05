@@ -498,7 +498,7 @@ function loop(time: number) {
   gameEngine.renderer.renderBackgroundLayers(activeWorld);
 
   gameEngine.renderer.beginCamera();
-  gameEngine.obstacleManager.render(ctx, height);
+  gameEngine.obstacleManager.render(ctx, height, gameEngine.renderer.timeOfDay);
   gameEngine.powerupManager.render(ctx, gameEngine);
   gameEngine.bossManager.render(ctx, gameEngine.state === 'GAMEOVER');
   const isNeonCrowUltimate = gameEngine.ultimateActive && gameEngine.bird && (gameEngine.bird.getSkin().id === 'neon_crow' || gameEngine.bird.getSkin().id === 'crimson_dragon');

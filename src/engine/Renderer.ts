@@ -26,7 +26,7 @@ export class Renderer {
   private lightningStrikeX = 0;
 
   // Day/Night cycle
-  private timeOfDay = 6.0; // Start at 6:00 AM (Morning Scene)
+   public timeOfDay = 6.0; // Start at 6:00 AM (Morning Scene)
   private timeSpeed = 0.0025;
 
   // Game scrolling speed (Visual Weather & Aura Pack)
