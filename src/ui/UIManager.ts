@@ -778,13 +778,13 @@ export class UIManager {
         <!-- ===== TOP BAR ===== -->
         <div class="menu-top-bar">
           <div class="top-bar-currencies">
-            <div class="top-bar-coin" id="btn-coin-topup" style="position: relative; cursor: pointer;">
+            <div class="top-bar-coin" id="btn-coin-topup" style="position: relative;">
               <span class="top-bar-coin-icon" style="width: 19px; height: 19px; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; margin-right: 4px;">
                 ${this.getCoinIconSvg('19px', '19px', '', 'topbar')}
               </span>${progress.coins.toLocaleString()}
               <button class="top-bar-add-btn" id="btn-plus-coins" title="Watch ad for +200 Coins">+</button>
             </div>
-            <div class="top-bar-gem" id="btn-gem-topup" style="position: relative; cursor: pointer;">
+            <div class="top-bar-gem" id="btn-gem-topup" style="position: relative;">
               <span class="top-bar-gem-icon">💎</span>${progress.gems.toLocaleString()}
               <button class="top-bar-add-btn" id="btn-plus-gems" title="Watch ad for +10 Gems">+</button>
             </div>
@@ -1639,13 +1639,45 @@ export class UIManager {
     bindClick('side-btn-worlds',       () => { sm.playUISelect(); this.activeTab = 'worlds';       this.render(); });
     bindClick('side-btn-ad-reward',    () => { sm.playUISelect(); this.showTopupPopup(); });
     bindClick('btn-open-settings',     () => { sm.playUISelect(); this.activeTab = 'settings';     this.render(); });
-    bindClick('btn-coin-topup',         () => { sm.playUIClick(); this.showTopupPopup(); });
-    bindClick('btn-gem-topup',          () => { sm.playUIClick(); this.showTopupPopup(); });
-    // Also bind the + buttons directly (stopPropagation so they don't bubble to parent div)
+    // Plus coins button: plays ad directly and rewards 200 coins
     const btnPlusCoinsEl = document.getElementById('btn-plus-coins');
-    if (btnPlusCoinsEl) btnPlusCoinsEl.addEventListener('click', (e) => { e.stopPropagation(); sm.playUIClick(); this.showTopupPopup(); });
+    if (btnPlusCoinsEl) {
+      btnPlusCoinsEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sm.playUIClick();
+        AdManager.showEconomyRewarded((success) => {
+          if (success) {
+            this.engine.progressManager.addCoins(200);
+            this.engine.progressManager.updateQuestProgress('watch_ads', 1);
+            this.engine.progressManager.save();
+            this.render();
+            this.showToastNotification('REWARDS CLAIMED!', 'You received 200 Coins!');
+          } else {
+            this.showToastNotification('AD FAILED', 'Failed to play or watch ad.');
+          }
+        });
+      });
+    }
+
+    // Plus gems button: plays ad directly and rewards 10 gems
     const btnPlusGemsEl = document.getElementById('btn-plus-gems');
-    if (btnPlusGemsEl) btnPlusGemsEl.addEventListener('click', (e) => { e.stopPropagation(); sm.playUIClick(); this.showTopupPopup(); });
+    if (btnPlusGemsEl) {
+      btnPlusGemsEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sm.playUIClick();
+        AdManager.showEconomyRewarded((success) => {
+          if (success) {
+            this.engine.progressManager.addGems(10);
+            this.engine.progressManager.updateQuestProgress('watch_ads', 1);
+            this.engine.progressManager.save();
+            this.render();
+            this.showToastNotification('REWARDS CLAIMED!', 'You received 10 Gems!');
+          } else {
+            this.showToastNotification('AD FAILED', 'Failed to play or watch ad.');
+          }
+        });
+      });
+    }
 
 
 
