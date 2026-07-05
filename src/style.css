@@ -4136,6 +4136,64 @@ body.mobile-performance .top-bar-settings-btn {
   }
 }
 
+/* --- ORBITING COINS & GEMS ANIMATION FOR AD REWARD --- */
+.orbit-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 72px;
+  height: 72px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.orbit-item {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -8px;
+  margin-left: -8px;
+  width: 16px;
+  height: 16px;
+  font-size: 14px;
+  line-height: 16px;
+  text-align: center;
+  pointer-events: none;
+  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.5));
+}
+
+.orbit-coin-1 { animation: orbit-spin-1 6s infinite linear; }
+.orbit-gem-1  { animation: orbit-spin-2 6s infinite linear; }
+.orbit-coin-2 { animation: orbit-spin-3 6s infinite linear; }
+.orbit-gem-2  { animation: orbit-spin-4 6s infinite linear; }
+
+@keyframes orbit-spin-1 {
+  0% { transform: rotate(0deg) translateX(36px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(36px) rotate(-360deg); }
+}
+@keyframes orbit-spin-2 {
+  0% { transform: rotate(90deg) translateX(36px) rotate(-90deg); }
+  100% { transform: rotate(450deg) translateX(36px) rotate(-450deg); }
+}
+@keyframes orbit-spin-3 {
+  0% { transform: rotate(180deg) translateX(36px) rotate(-180deg); }
+  100% { transform: rotate(540deg) translateX(36px) rotate(-540deg); }
+}
+@keyframes orbit-spin-4 {
+  0% { transform: rotate(270deg) translateX(36px) rotate(-270deg); }
+  100% { transform: rotate(630deg) translateX(36px) rotate(-630deg); }
+}
+
+#side-btn-ad-reward {
+  border-color: rgba(255, 107, 0, 0.3) !important;
+}
+
+#side-btn-ad-reward:hover {
+  border-color: rgba(255, 107, 0, 0.8) !important;
+  box-shadow: 0 10px 22px rgba(255, 107, 0, 0.25), 0 8px 20px rgba(0,0,0,0.6) !important;
+}
+
 
 
 

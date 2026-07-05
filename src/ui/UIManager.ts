@@ -805,6 +805,16 @@ export class UIManager {
               ${this.getWorldsIconSvg('60px', '60px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(123, 47, 255, 0.5));', 'home')}
               <span class="side-btn-label">MAP</span>
             </button>
+            <button class="side-btn" id="side-btn-ad-reward" style="width: 98px !important; height: 95px !important; margin-top: 2px; border-radius: 20px; position: relative; overflow: visible;">
+              <div class="orbit-container">
+                <span class="orbit-item orbit-coin-1">🪙</span>
+                <span class="orbit-item orbit-gem-1">💎</span>
+                <span class="orbit-item orbit-coin-2">🪙</span>
+                <span class="orbit-item orbit-gem-2">💎</span>
+              </div>
+              ${this.getAdRewardIconSvg('60px', '60px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(255, 107, 0, 0.5));')}
+              <span class="side-btn-label">AD REWARD</span>
+            </button>
           </div>
 
           <!-- Bird Mascot -->
@@ -1625,6 +1635,7 @@ export class UIManager {
     bindClick('side-btn-powerups',     () => { sm.playUISelect(); this.activeTab = 'powerups';     this.render(); });
     bindClick('side-btn-skins',        () => { sm.playUISelect(); this.activeTab = 'skins';        this.render(); });
     bindClick('side-btn-worlds',       () => { sm.playUISelect(); this.activeTab = 'worlds';       this.render(); });
+    bindClick('side-btn-ad-reward',    () => { sm.playUISelect(); this.showTopupPopup(); });
     bindClick('btn-open-settings',     () => { sm.playUISelect(); this.activeTab = 'settings';     this.render(); });
     bindClick('btn-coin-topup',         () => { sm.playUIClick(); this.showTopupPopup(); });
     bindClick('btn-gem-topup',          () => { sm.playUIClick(); this.showTopupPopup(); });
@@ -5234,6 +5245,36 @@ export class UIManager {
   }
 
 
+
+  private getAdRewardIconSvg(width = '60px', height = '60px', extraStyle = ''): string {
+    return `
+<svg viewBox="0 0 64 64" style="width: ${width}; height: ${height}; ${extraStyle}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="clapGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffb300" />
+      <stop offset="100%" stop-color="#ff3d00" />
+    </linearGradient>
+    <linearGradient id="stripGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#b0b0b0" />
+    </linearGradient>
+  </defs>
+  <!-- Clapperboard Base -->
+  <rect x="8" y="24" width="48" height="32" rx="6" fill="url(#clapGrad)" stroke="#1a0d00" stroke-width="2.5" />
+  <!-- Clap Top (Opened slightly) -->
+  <g transform="rotate(-12 8 20)">
+    <rect x="8" y="10" width="48" height="12" rx="3" fill="#1a0d00" />
+    <!-- Stripes -->
+    <polygon points="12,10 18,10 14,22 8,22" fill="url(#stripGrad)" />
+    <polygon points="24,10 30,10 26,22 20,22" fill="url(#stripGrad)" />
+    <polygon points="36,10 42,10 38,22 32,22" fill="url(#stripGrad)" />
+    <polygon points="48,10 54,10 50,22 44,22" fill="url(#stripGrad)" />
+  </g>
+  <!-- Play Symbol (Center) -->
+  <polygon points="26,32 42,40 26,48" fill="#ffffff" filter="drop-shadow(0 0 4px rgba(255,255,255,0.8))" />
+</svg>
+    `;
+  }
 
   private getCharacterIconSvg(width: string, height: string, extraStyle: string = '', idSuffix: string = 'main'): string {
     return `
