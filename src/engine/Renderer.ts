@@ -2400,12 +2400,31 @@ export class Renderer {
           '#0e0100'
         ][layer - 1];
 
-      case 'space':
+      case 'space': {
+        const time = this.timeOfDay;
+        let dayWeight = 0;
+        if (time >= 5 && time < 7) {
+          dayWeight = (time - 5) / 2; // Sunrise transition
+        } else if (time >= 7 && time < 17) {
+          dayWeight = 1.0; // Daytime
+        } else if (time >= 17 && time < 19) {
+          dayWeight = 1.0 - (time - 17) / 2; // Sunset transition
+        } else {
+          dayWeight = 0; // Night
+        }
+
+        // Interpolate color for Layer 3 (closest mountain): Night rgb(6,0,15) -> Day rgb(5,46,22)
+        const r = Math.round(6 + (5 - 6) * dayWeight);
+        const g = Math.round(0 + (46 - 0) * dayWeight);
+        const b = Math.round(15 + (22 - 15) * dayWeight);
+        const layer3Color = `rgba(${r}, ${g}, ${b}, 0.95)`;
+
         return [
           'rgba(20, 5, 40, 0.4)',
           'rgba(14, 2, 28, 0.7)',
-          'rgba(6, 0, 15, 0.95)'
+          layer3Color
         ][layer - 1];
+      }
 
       case 'underwater':
         return [
