@@ -3441,8 +3441,7 @@ export class ObstacleManager {
       } else if (patternType === 'level2_diamond') {
         // LEVEL 2: "The Wave Gauntlet" - Widened gaps and reduced wave shifts
         if (groupIdx === 1) {
-          // Group 2: Snake Path Pattern (Only snake shape)
-          localGapHeight = Math.round((gapHeight + 15) * 1.2);
+          localGapHeight = Math.round((gapHeight + 15) * 1.25);
           targetCenterY = height / 2 + Math.sin(idxInGroup * 0.6) * 45;
         } else if (groupIdx === 2) {
           // Group 3: "Funneling Spiral Tunnel" - gradual and wide tunnel
