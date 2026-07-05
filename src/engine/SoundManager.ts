@@ -13,11 +13,19 @@ export class SoundManager {
   private lastPlayTimes: Record<string, number> = {};
 
   // Add individual volume controls (Music and System SFX)
-  private musicVolume = 0.6; // 0.0 to 1.0 (60% default)
+  private _musicVolume = 0.6; // 0.0 to 1.0 (60% default backing field)
+  private get musicVolume(): number {
+    const engine = (window as any).gameEngine;
+    const isPlaying = engine && (engine.state === 'PLAYING' || engine.state === 'BOSS_WARNING' || engine.state === 'BOSS_FIGHT');
+    return isPlaying ? Math.min(1.0, this._musicVolume * 1.3) : this._musicVolume;
+  }
+  private set musicVolume(val: number) {
+    this._musicVolume = val;
+  }
   private sfxVolume = 0.4;   // 0.0 to 1.0 (40% default)
 
   constructor() {
-    this.musicVolume = parseFloat(localStorage.getItem('flight_of_legends_music_vol_v2') || '0.6');
+    this._musicVolume = parseFloat(localStorage.getItem('flight_of_legends_music_vol_v2') || '0.6');
     this.sfxVolume = parseFloat(localStorage.getItem('flight_of_legends_sfx_vol_v2') || '0.4');
   }
 
@@ -71,12 +79,12 @@ export class SoundManager {
 
   // Getters and setters for volume control
   public getMusicVolume(): number {
-    return this.musicVolume;
+    return this._musicVolume;
   }
 
   public setMusicVolume(vol: number) {
-    this.musicVolume = Math.max(0.0, Math.min(1.0, vol));
-    localStorage.setItem('flight_of_legends_music_vol_v2', this.musicVolume.toString());
+    this._musicVolume = Math.max(0.0, Math.min(1.0, vol));
+    localStorage.setItem('flight_of_legends_music_vol_v2', this._musicVolume.toString());
     
     if (this.menuAudioElement) {
       this.menuAudioElement.volume = this.isMuted ? 0 : 0.45 * this.musicVolume;
@@ -363,7 +371,7 @@ export class SoundManager {
     this.ensureContextActive();
     if (!this.ctx || this.isMuted) return;
     const t = this.ctx.currentTime;
-    const vol = this.sfxVolume;
+    const vol = this.sfxVolume * 1.4;
     const dest = this.masterVolumeNode || this.ctx.destination;
 
     // Punchy sub thump
@@ -395,7 +403,7 @@ export class SoundManager {
     this.ensureContextActive();
     if (!this.ctx || this.isMuted) return;
     const t = this.ctx.currentTime;
-    const vol = this.sfxVolume;
+    const vol = this.sfxVolume * 1.4;
     const dest = this.masterVolumeNode || this.ctx.destination;
 
     // Quick low punch
@@ -429,7 +437,7 @@ export class SoundManager {
     this.ensureContextActive();
     if (!this.ctx || this.isMuted) return;
     const t = this.ctx.currentTime;
-    const vol = this.sfxVolume;
+    const vol = this.sfxVolume * 1.4;
     const dest = this.masterVolumeNode || this.ctx.destination;
 
     // Thuddy sub drop

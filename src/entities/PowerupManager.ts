@@ -26,7 +26,7 @@ export class PowerupManager {
   private gemDistances: number[] = [];
   private nextGemIndex = 0;
   private lastSpawnedObstacleCenterY = 300;
-  private nextRescueSpawnTarget = 10 + Math.floor(Math.random() * 6); // random between 10 and 15
+  private nextRescueSpawnTarget = 10; // every 10 obstacles in flock mode
 
   constructor() {}
 
@@ -94,7 +94,7 @@ export class PowerupManager {
     this.gemDistances = [];
     this.nextGemIndex = 0;
     this.lastSpawnedObstacleCenterY = 300;
-    this.nextRescueSpawnTarget = 10 + Math.floor(Math.random() * 6);
+    this.nextRescueSpawnTarget = 10;
   }
 
   public initLevelCollectibles(levelNum: number, targetScore: number) {
@@ -246,7 +246,7 @@ export class PowerupManager {
       }
       
       const gameEngine = (window as any).gameEngine;
-      const isAngryRed = gameEngine && gameEngine.bird && gameEngine.bird.getSkin().id === 'angry_red';
+      const isAngryRed = gameEngine && gameEngine.bird && (gameEngine.bird.getSkin().id === 'angry_red' || gameEngine.bird.getSkin().id === 'crimson_dragon');
       const isEagleKing = gameEngine && gameEngine.bird && gameEngine.bird.getSkin().id === 'legendary_eagle_king';
       const isUltimateActive = gameEngine && gameEngine.ultimateActive;
       
@@ -514,7 +514,7 @@ export class PowerupManager {
 
         // Initialize target for flock mode on first obstacle to ensure it is in the 10-15 range
         if (obsIdx === 0) {
-          this.nextRescueSpawnTarget = 10 + Math.floor(Math.random() * 6); // 10 to 15
+          this.nextRescueSpawnTarget = 10; // First cage at obstacle 10
         }
 
         // Determine offset percent: 50% chance of 0, 50% chance of either -0.3 or 0.3
@@ -528,7 +528,7 @@ export class PowerupManager {
         if (obsIdx === this.nextRescueSpawnTarget) {
           // Spawn a cage in the gap center (or shifted)
           this.spawnItem('rescue', width, height, targetX, targetY, unrewardedObstacle, offsetPct);
-          this.nextRescueSpawnTarget = obsIdx + 10 + Math.floor(Math.random() * 6); // Set next spawn between 10 and 15 obstacles
+          this.nextRescueSpawnTarget = obsIdx + 10; // Fixed every 10 obstacles
         } else if (obsIdx % 6 === 0) {
           // Spawn 4 coins group (aims for around 60 to 70 coins per 100 score interval)
           this.spawnItem('coin', width, height, targetX - 45, targetY, unrewardedObstacle, offsetPct);

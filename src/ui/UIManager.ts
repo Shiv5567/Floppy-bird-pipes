@@ -354,7 +354,9 @@ export class UIManager {
       const state = this.engine.progressManager.getState();
       const currentHighScore = this.engine.gameMode === 'flock'
         ? (state.highscoreSquad || 0)
-        : (state.highscoreClassic || state.highscore || 0);
+        : (state.selectedZone === 'chaos'
+          ? (state.highscoreChaos || 0)
+          : (state.highscoreClassic || state.highscore || 0));
       const bestScoreVal = Math.max(currentHighScore, scoreVal);
       if (this.bestScoreEl) {
         this.bestScoreEl.innerText = `BEST: ${bestScoreVal}`;
@@ -610,7 +612,7 @@ export class UIManager {
     }
 
     // 7. Booster Static Cooldown Button in Endless Mode
-    if (this.engine.gameMode !== 'level' && this.boosterBtn) {
+    if (this.engine.gameMode !== 'level' && this.engine.gameMode !== 'endless' && this.boosterBtn) {
       const bTimer = this.engine.boosterSpawnTimer;
       const bReady = bTimer <= 0;
       const bPercent = Math.min(100, Math.floor((1 - bTimer / 1.0) * 100));
@@ -780,7 +782,7 @@ export class UIManager {
               <span class="top-bar-coin-icon" style="width: 19px; height: 19px; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; margin-right: 4px;">
                 ${this.getCoinIconSvg('19px', '19px', '', 'topbar')}
               </span>${progress.coins.toLocaleString()}
-              <button class="top-bar-add-btn" id="btn-plus-coins" title="Watch ad for +500 Coins">+</button>
+              <button class="top-bar-add-btn" id="btn-plus-coins" title="Watch ad for +200 Coins">+</button>
             </div>
             <div class="top-bar-gem" id="btn-gem-topup" style="position: relative; cursor: pointer;">
               <span class="top-bar-gem-icon">💎</span>${progress.gems.toLocaleString()}
@@ -801,7 +803,7 @@ export class UIManager {
             </button>
             <button class="side-btn" id="side-btn-worlds">
               ${this.getWorldsIconSvg('60px', '60px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(123, 47, 255, 0.5));', 'home')}
-              <span class="side-btn-label">LOCATIONS</span>
+              <span class="side-btn-label">MAP</span>
             </button>
           </div>
 
@@ -1024,6 +1026,7 @@ export class UIManager {
 
           const getSkinAbilityDuration = (lvl: number) => {
             if (s.id === 'angry_red') return 20;
+            if (s.id === 'crimson_dragon') return 30 + (lvl - 1) * 5; // 30, 35, 40, 45, 50
             if (lvl === 1) return 10;
             if (lvl === 2) return 12;
             if (lvl === 3) return 14;
@@ -1197,7 +1200,7 @@ export class UIManager {
                 ${longHtml}
               </div>
 
-              <div class="hangar-section-title" style="margin-top: 15px; color: #ffaa00; border-left: 3px solid #ffaa00; padding-left: 8px;">SPECIAL OFFERS</div>
+              <div class="hangar-section-title" style="margin-top: 15px; color: #ffaa00; border-left: 3px solid #ffaa00; padding-left: 8px;">DAILY REWARD</div>
               <div class="quests-list">
                 <!-- WATCH AD FOR EXTRA COINS & GEMS -->
                 <div class="quest-card" style="background: rgba(255, 170, 0, 0.08); border: 1px solid rgba(255, 170, 0, 0.2); display: flex; align-items: center; gap: 10px;">
@@ -1207,7 +1210,7 @@ export class UIManager {
                   </div>
                   ` : ''}
                   <div class="quest-details">
-                    <div class="quest-desc" style="font-weight: 800; font-size: 11px; color: #fff;">Watch an ad to get 200 Coins & 10 Gems instantly!</div>
+                    <div class="quest-desc" style="font-weight: 800; font-size: 11px; color: #fff;">Watch an ad to get 250 Coins & 10 Gems instantly!</div>
                   </div>
                   <div style="display: flex; align-items: center; justify-content: flex-end; margin-left: auto;">
                     <button class="btn-quest-claim ${isDailyCooldownActive ? 'disabled-ad-btn' : ''}" id="btn-extra-rewards" ${isDailyCooldownActive ? 'disabled' : ''} style="background: linear-gradient(135deg, #ffaa00, #ff7700); border: none; font-size: 10px; font-weight: 800; padding: 6px 12px; border-radius: 8px; cursor: pointer; color: white;">
@@ -1290,7 +1293,7 @@ export class UIManager {
           { id: 'shield', name: 'Shield', icon: '🛡️', desc: 'Protects from 1 fatal collision.', base: 8.0 },
           { id: 'slowmo', name: 'Slow-Mo', icon: '⏳', desc: 'Slows down moving obstacles.', base: 10.0 },
           { id: 'magnet', name: 'Magnet', icon: '🧲', desc: 'Attracts gold coins and gems.', base: 12.0 },
-          { id: 'double', name: '2x Coins Collection', icon: '🪙', desc: 'Doubles the value of all collected coins.', base: 10.0 },
+          { id: 'double', name: '2x Coins Collection', icon: '🪙', desc: 'Doubles the value of all collected coins.', base: 20.0 },
           { id: 'turbo', name: 'Hyper Booster', icon: '⚡', desc: 'Invincible hyper flight speed.', base: 5.0 },
           { id: 'mini', name: 'Quantum Mini-Bird', icon: '🔎', desc: 'Shrinks bird size for tight paths.', base: 10.0 }
         ];
@@ -1299,8 +1302,8 @@ export class UIManager {
           const lvl = upgrades[p.id] || 1;
           const isMax = lvl >= 5;
           const cost = 1000 * Math.pow(2, lvl - 1);
-          const currentDur = (p.base * (1 + (lvl - 1) * 0.15)).toFixed(1);
-          const nextDur = (p.base * (1 + lvl * 0.15)).toFixed(1);
+          const currentDur = p.id === 'double' ? (20.0 + (lvl - 1) * 3.0).toFixed(1) : (p.base * (1 + (lvl - 1) * 0.15)).toFixed(1);
+          const nextDur = p.id === 'double' ? (20.0 + lvl * 3.0).toFixed(1) : (p.base * (1 + lvl * 0.15)).toFixed(1);
           
           let indicatorHtml = '';
           for (let i = 1; i <= 5; i++) {
@@ -1496,7 +1499,7 @@ export class UIManager {
               <span style="width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;">
                 ${this.getCoinIconSvg('18px', '18px', '', 'topup')}
               </span>
-              +6,000 Coins
+              +200 Coins
             </div>
             <button id="topup-coins-ad-btn" ${onCooldown ? 'disabled' : ''} style="
               background: ${onCooldown ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #ffd700, #ff8800)'};
@@ -1527,7 +1530,7 @@ export class UIManager {
             transition: all 0.3s;
           ">
             <div style="font-size: 14px; font-weight: 900; color: #a8e5ff; display: flex; align-items: center; gap: 6px;">
-              💎 +200 Gems
+              💎 +10 Gems
             </div>
             <button id="topup-gems-ad-btn" ${onCooldown ? 'disabled' : ''} style="
               background: ${onCooldown ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #00c3ff, #0055ff)'};
@@ -1566,11 +1569,11 @@ export class UIManager {
         overlay.remove();
         AdManager.showEconomyRewarded((success) => {
           if (success) {
-            this.engine.progressManager.addCoins(6000);
+            this.engine.progressManager.addCoins(200);
             this.engine.progressManager.updateQuestProgress('watch_ads', 1);
             this.engine.progressManager.save();
             this.render();
-            this.showToastNotification('REWARDS CLAIMED!', 'You received 6,000 Coins!');
+            this.showToastNotification('REWARDS CLAIMED!', 'You received 200 Coins!');
           } else {
             this.showToastNotification('AD FAILED', 'Failed to play or watch ad.');
           }
@@ -1585,11 +1588,11 @@ export class UIManager {
         overlay.remove();
         AdManager.showEconomyRewarded((success) => {
           if (success) {
-            this.engine.progressManager.addGems(200);
+            this.engine.progressManager.addGems(10);
             this.engine.progressManager.updateQuestProgress('watch_ads', 1);
             this.engine.progressManager.save();
             this.render();
-            this.showToastNotification('REWARDS CLAIMED!', 'You received 200 Gems!');
+            this.showToastNotification('REWARDS CLAIMED!', 'You received 10 Gems!');
           } else {
             this.showToastNotification('AD FAILED', 'Failed to play or watch ad.');
           }
@@ -1668,9 +1671,9 @@ export class UIManager {
         if (!chestId) return;
 
         const chests = [
-          { id: 1, name: 'Bronze Chest', icon: '📦', minCoins: 250, maxCoins: 600, minGems: 2, maxGems: 6 },
-          { id: 2, name: 'Silver Chest', icon: '🧰', minCoins: 800, maxCoins: 1800, minGems: 8, maxGems: 16 },
-          { id: 3, name: 'Golden Chest', icon: '🎁', minCoins: 2000, maxCoins: 4500, minGems: 20, maxGems: 45 }
+          { id: 1, name: 'Rare Chest', icon: '📦', minCoins: 250, maxCoins: 600, minGems: 2, maxGems: 6 },
+          { id: 2, name: 'Epic Chest', icon: '🧰', minCoins: 800, maxCoins: 1800, minGems: 8, maxGems: 16 },
+          { id: 3, name: 'Legendary Chest', icon: '🎁', minCoins: 2000, maxCoins: 4500, minGems: 20, maxGems: 45 }
         ];
         const ch = chests.find(c => c.id === chestId);
         if (!ch) return;
@@ -1984,6 +1987,7 @@ export class UIManager {
             if (infoPanel && skin) {
               const getSkinAbilityDuration = (lvl: number) => {
                 if (skin.id === 'angry_red') return 20;
+                if (skin.id === 'crimson_dragon') return 30 + (lvl - 1) * 5; // 30, 35, 40, 45, 50
                 if (lvl === 1) return 10;
                 if (lvl === 2) return 12;
                 if (lvl === 3) return 14;
@@ -2096,12 +2100,12 @@ export class UIManager {
             const state = this.engine.progressManager.getState();
             state.lastSpecialOfferAdTime = Date.now();
 
-            this.engine.progressManager.addCoins(200);
+            this.engine.progressManager.addCoins(250);
             this.engine.progressManager.addGems(10);
             this.engine.progressManager.updateQuestProgress('watch_ads', 1);
             this.engine.progressManager.save();
             this.render();
-            this.showToastNotification('REWARDS CLAIMED!', 'You received 200 Coins & 10 Gems!');
+            this.showToastNotification('REWARDS CLAIMED!', 'You received 250 Coins & 10 Gems!');
           } else {
             this.showToastNotification('AD FAILED', 'Failed to play or watch ad.');
           }
@@ -2220,7 +2224,9 @@ export class UIManager {
     const stateVal = this.engine.progressManager.getState();
     const highscore = this.engine.gameMode === 'flock'
       ? (stateVal.highscoreSquad || 0)
-      : (stateVal.highscoreClassic || stateVal.highscore || 0);
+      : (stateVal.selectedZone === 'chaos'
+        ? (stateVal.highscoreChaos || 0)
+        : (stateVal.highscoreClassic || stateVal.highscore || 0));
 
 
     
@@ -2298,16 +2304,16 @@ export class UIManager {
     const activeWorld = this.engine.progressManager.getState().activeWorld;
 
     const bossNames: Record<string, string> = {
-      jungle: 'Canopy Harpy',
-      ice: 'Glacial Frost Wyrm',
-      desert: 'Obelisk Sphinx',
-      volcano: 'Volcanic Lava Dragon',
-      space: 'Singularity Leviathan',
-      underwater: 'Abyssal Mecha-Kraken',
-      heaven: 'Seraphim Sol',
-      retro: 'Retro Pixelsaurus'
+      jungle: 'Monster',
+      ice: 'Monster',
+      desert: 'Monster',
+      volcano: 'Monster',
+      space: 'Monster',
+      underwater: 'Monster',
+      heaven: 'Monster',
+      retro: 'Monster'
     };
-    const bossName = bossNames[activeWorld] || 'Titan Sentinel';
+    const bossName = bossNames[activeWorld] || 'Monster';
 
     let bossHealthBarHTML = '';
     if (isBossFight && isBossActive) {
@@ -2342,7 +2348,7 @@ export class UIManager {
     }
 
     let boosterBtnHTML = '';
-    if (this.engine.gameMode !== 'level') {
+    if (this.engine.gameMode !== 'level' && this.engine.gameMode !== 'endless') {
       const bTimer = this.engine.boosterSpawnTimer;
       const bReady = bTimer <= 0;
       const bPercent = Math.min(100, Math.floor((1 - bTimer / 1.0) * 100));
@@ -2578,7 +2584,7 @@ export class UIManager {
           <div class="run-stats" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; font-weight: 800; font-size: 13px; pointer-events: auto;">
             <span class="stat-badge" style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); width: fit-content; margin-bottom: 0;">🟡 ${this.engine.coinsCollectedThisRun}</span>
             <span class="stat-badge" style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); width: fit-content; margin-bottom: 0;">💎 ${this.engine.gemsCollectedThisRun}</span>
-            ${(this.engine.progressManager.getState().selectedZone === 'chaos') ? `
+            ${(this.engine.progressManager.getState().selectedZone === 'chaos' && this.engine.gameMode !== 'flock') ? `
               <span class="stat-badge" style="background: rgba(0,255,100,0.12); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(0,255,100,0.3); width: fit-content; margin-bottom: 0; color: #00ff64; text-shadow: 0 0 5px #00ff64; font-weight: 900;">☣️ ${this.engine.destroyedPipesCount}</span>
             ` : ''}
             ${(this.engine.gameMode === 'flock') ? `
@@ -2655,7 +2661,7 @@ export class UIManager {
     const runStats = this.container.querySelector('.run-stats');
     if (runStats) {
       const statsBadges = runStats.querySelectorAll('.stat-badge');
-      const isChaos = this.engine.progressManager.getState().selectedZone === 'chaos';
+      const isChaos = this.engine.progressManager.getState().selectedZone === 'chaos' && this.engine.gameMode !== 'flock';
       if (isChaos && statsBadges.length >= 3) {
         this.runStatsCoins = statsBadges[0] as HTMLElement;
         this.runStatsGems = statsBadges[1] as HTMLElement;
@@ -2802,7 +2808,9 @@ export class UIManager {
     const progress = this.engine.progressManager.getState();
     const currentHighScore = this.engine.gameMode === 'flock'
       ? (progress.highscoreSquad || 0)
-      : (progress.highscoreClassic || progress.highscore || 0);
+      : (progress.selectedZone === 'chaos'
+        ? (progress.highscoreChaos || 0)
+        : (progress.highscoreClassic || progress.highscore || 0));
     const isNewHigh = this.engine.score >= currentHighScore;
 
     const goHTML = `
@@ -2828,10 +2836,10 @@ export class UIManager {
                 <span>Gems Collected</span>
                 <strong>+${this.engine.gemsCollectedThisRun} 💎</strong>
               </div>
-              ${this.engine.progressManager.getState().selectedZone === 'chaos' && this.engine.destroyedPipesCount > 0 ? `
+              ${this.engine.progressManager.getState().selectedZone === 'chaos' && this.engine.gameMode !== 'flock' && this.engine.destroyedPipesCount > 0 ? `
               <div class="reward-row" style="color: #00ff64; text-shadow: 0 0 6px #00ff6444;">
                 <span>☣️ Obstacles Destroyed</span>
-                <strong>+${this.engine.destroyedPipesCount} 🟡</strong>
+                <strong>+${this.engine.destroyedPipesCount * 2} 🟡</strong>
               </div>
               ` : ''}
             </div>
@@ -2894,7 +2902,7 @@ export class UIManager {
         <div style="transform: scale(1.024, 0.84) translateY(-10%); transform-origin: bottom center; width: 100%; display: flex; justify-content: center; z-index: 10;">
           <div style="background: rgba(20,20,30,0.28) !important; backdrop-filter: blur(11.2px) !important; -webkit-backdrop-filter: blur(11.2px) !important; border: 1px solid rgba(255,255,255,0.07) !important; border-radius: 24px; padding: 40px 32px; text-align: center; width: 95%; max-width: 911px; box-shadow: 0 20px 40px rgba(0,0,0,0.35) !important; animation: slideUp 0.3s ease-out; position: relative;">
             
-            <button id="btn-home-revive" style="position: absolute; right: 20px; top: 20px; font-size: 14px; color: #fff; font-weight: 800; background: rgba(0,0,0,0.55); border: 1.5px solid rgba(255,255,255,0.15); border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 20px; height: 50px; min-width: 90px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: all 0.2s; font-family: 'Outfit', sans-serif;" title="Return to Menu">
+            <button id="btn-home-revive" style="position: absolute; left: 20px; top: 20px; font-size: 14px; color: #fff; font-weight: 800; background: rgba(0,0,0,0.55); border: 1.5px solid rgba(255,255,255,0.15); border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 20px; height: 50px; min-width: 90px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: all 0.2s; font-family: 'Outfit', sans-serif;" title="Return to Menu">
               ${this.engine.gameMode === 'level' ? '↩ BACK' : '↩ HOME'}
             </button>
             
@@ -2905,7 +2913,7 @@ export class UIManager {
             <div style="background: rgba(0,0,0,0.3); border-radius: 16px; padding: 16px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05);">
               <div style="font-size: 12px; font-weight: 800; color: #ffd700; letter-spacing: 1.5px; text-transform: uppercase;">SCORE</div>
               <div style="font-size: 48px; font-weight: 900; color: #fff; text-shadow: 0 4px 10px rgba(0,0,0,0.5);">${this.engine.score}</div>
-              <div style="font-size: 14px; font-weight: 800; color: #ffd700; margin-top: 6px; letter-spacing: 1px;">BEST: ${Math.max(this.engine.gameMode === 'flock' ? (progress.highscoreSquad || 0) : (progress.highscoreClassic || progress.highscore || 0), this.engine.score)}</div>
+              <div style="font-size: 14px; font-weight: 800; color: #ffd700; margin-top: 6px; letter-spacing: 1px;">BEST: ${Math.max(this.engine.gameMode === 'flock' ? (progress.highscoreSquad || 0) : (progress.selectedZone === 'chaos' ? (progress.highscoreChaos || 0) : (progress.highscoreClassic || progress.highscore || 0)), this.engine.score)}</div>
             </div>
             ` : ''}
   
@@ -2918,10 +2926,10 @@ export class UIManager {
                 <span>Gems Collected</span>
                 <strong style="color: #fff;">+${this.engine.gemsCollectedThisRun} 💎</strong>
               </div>
-              ${this.engine.progressManager.getState().selectedZone === 'chaos' && this.engine.destroyedPipesCount > 0 ? `
-              <div style="display: flex; justify-content: space-between; color: #00ff64;">
+              ${this.engine.progressManager.getState().selectedZone === 'chaos' && this.engine.gameMode !== 'flock' && this.engine.destroyedPipesCount > 0 ? `
+              <div style="display: flex; justify-content: space-between; color: #fff;">
                 <span>☣️ Obstacles Destroyed</span>
-                <strong style="color: #00ff64;">+${this.engine.destroyedPipesCount} 🟡</strong>
+                <strong style="color: #fff;">+${this.engine.destroyedPipesCount * 2} 🟡</strong>
               </div>
               ` : ''}
             </div>
@@ -2934,7 +2942,7 @@ export class UIManager {
                   REVIVE
                 </div>
                 <div style="font-size: 10px; font-weight: 800; color: #666;">
-                  REVIVES USED: ${this.engine.revivesUsedThisRun}
+                  REVIVES USED: ${this.engine.revivesUsedThisRun}/3
                 </div>
               </div>
               <div style="display: flex; gap: 10px; width: 100%; margin-top: 10px;">
@@ -3300,8 +3308,8 @@ export class UIManager {
           background: rgba(18, 12, 30, 0.35);
           border: 1.5px solid rgba(255, 255, 255, 0.08);
           border-radius: 24px;
-          padding: 28px 24px;
-          max-width: 760px;
+          padding: 24px 20px;
+          max-width: 640px;
           width: 95%;
           box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
           position: relative;
@@ -3326,18 +3334,18 @@ export class UIManager {
         .mode-3d-card {
           flex: 1;
           background: linear-gradient(135deg, rgba(32, 24, 48, 0.4) 0%, rgba(16, 12, 28, 0.55) 100%);
-          border-radius: 20px;
+          border-radius: 18px;
           position: relative;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: space-between;
-          padding: 24px 18px;
+          padding: 20px 14px;
           transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, border-color 0.15s ease-out;
           transform-style: preserve-3d;
           cursor: pointer;
           box-sizing: border-box;
-          height: 240px;
+          height: 200px;
         }
         
         /* Classic 3D Theme */
@@ -3371,9 +3379,9 @@ export class UIManager {
         .mode-3d-icon {
           transform: translateZ(0px);
           transition: transform 0.15s ease-out;
-          margin-bottom: 12px;
-          width: 70px;
-          height: 70px;
+          margin-bottom: 8px;
+          width: 58px;
+          height: 58px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -3381,10 +3389,10 @@ export class UIManager {
         }
         .mode-3d-label {
           font-family: 'Outfit', sans-serif;
-          font-size: 17px;
+          font-size: 15px;
           font-weight: 800;
           letter-spacing: 1.2px;
-          margin-bottom: 16px;
+          margin-bottom: 12px;
           text-transform: uppercase;
           transition: transform 0.15s ease-out;
           pointer-events: none;
@@ -3403,18 +3411,17 @@ export class UIManager {
         }
 
         /* 3D arcade buttons */
-        /* 3D arcade buttons with pulsing neon light border effect */
         .mode-3d-btn {
           width: 100%;
-          padding: 15px 12px;
-          font-size: 16px;
+          padding: 12px 10px;
+          font-size: 14px;
           font-weight: 900;
           text-transform: uppercase;
-          border-radius: 14px;
+          border-radius: 12px;
+          border: none;
           cursor: pointer;
           transition: all 0.15s ease-out;
         }
-
         @keyframes gold-glow-pulse {
           0% {
             border-color: rgba(255, 215, 0, 0.5);
@@ -3545,7 +3552,7 @@ export class UIManager {
           <div class="mode-3d-container">
             <div class="mode-3d-card classic-3d" id="card-select-classic">
               <div class="mode-3d-icon">
-                <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="50" height="50" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <!-- Glowing background ring -->
                   <circle cx="50" cy="50" r="42" fill="url(#gold-bg-grad)" stroke="url(#gold-border-grad)" stroke-width="2" />
                   <circle cx="50" cy="50" r="37" stroke="rgba(255, 215, 0, 0.2)" stroke-width="1" stroke-dasharray="3 3" />
@@ -3604,7 +3611,7 @@ export class UIManager {
 
             <div class="mode-3d-card squad-3d" id="card-select-flock">
               <div class="mode-3d-icon">
-                <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="50" height="50" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <!-- Cyber-grid background -->
                   <circle cx="50" cy="50" r="42" fill="url(#cyan-bg-grad)" stroke="url(#cyan-border-grad)" stroke-width="2" />
                   <circle cx="50" cy="50" r="36" stroke="rgba(0, 243, 255, 0.25)" stroke-width="1.5" stroke-dasharray="6 3" />
@@ -3654,7 +3661,7 @@ export class UIManager {
 
             <div class="mode-3d-card chaos-3d" id="card-select-chaos">
               <div class="mode-3d-icon">
-                <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="50" height="50" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <!-- Glowing background ring -->
                   <circle cx="50" cy="50" r="42" fill="url(#chaos-bg-grad)" stroke="url(#chaos-border-grad)" stroke-width="2" />
                   <circle cx="50" cy="50" r="37" stroke="rgba(217, 70, 239, 0.15)" stroke-width="1.5" />
@@ -4051,9 +4058,9 @@ export class UIManager {
 
   private getChestsHtml(): string {
     const chests = [
-      { id: 1, name: 'Bronze Box', icon: '📦', color: '#cd7f32', glow: 'rgba(205, 127, 50, 0.45)', minCoins: 250, maxCoins: 600, minGems: 2, maxGems: 6 },
-      { id: 2, name: 'Silver Box', icon: '🧰', color: '#c0c0c0', glow: 'rgba(192, 192, 192, 0.45)', minCoins: 800, maxCoins: 1800, minGems: 8, maxGems: 16 },
-      { id: 3, name: 'Golden Box', icon: '🎁', color: '#ffd700', glow: 'rgba(255, 215, 0, 0.45)', minCoins: 2000, maxCoins: 4500, minGems: 20, maxGems: 45 }
+      { id: 1, name: 'Rare Box', icon: '📦', color: '#00b4ff', glow: 'rgba(0, 180, 255, 0.45)', minCoins: 250, maxCoins: 600, minGems: 2, maxGems: 6 },
+      { id: 2, name: 'Epic Box', icon: '🧰', color: '#a855f7', glow: 'rgba(168, 85, 247, 0.45)', minCoins: 800, maxCoins: 1800, minGems: 8, maxGems: 16 },
+      { id: 3, name: 'Legendary Box', icon: '🎁', color: '#ffd700', glow: 'rgba(255, 215, 0, 0.45)', minCoins: 2000, maxCoins: 4500, minGems: 20, maxGems: 45 }
     ];
 
     let chestsHtml = '';
@@ -5324,12 +5331,12 @@ export class UIManager {
 
     let chestId = 3;
     let chestColor = '#ffd700';
-    if (chestName.includes('Bronze')) {
+    if (chestName.includes('Rare')) {
       chestId = 1;
-      chestColor = '#cd7f32';
-    } else if (chestName.includes('Silver')) {
+      chestColor = '#00b4ff';
+    } else if (chestName.includes('Epic')) {
       chestId = 2;
-      chestColor = '#c0c0c0';
+      chestColor = '#a855f7';
     }
 
     const overlay = document.createElement('div');

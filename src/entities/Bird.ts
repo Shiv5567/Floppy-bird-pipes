@@ -39,6 +39,11 @@ export class Bird {
   constructor(activeSkin: Skin) {
     this.activeSkin = activeSkin;
     this.setDifficulty('medium');
+    
+    // Silence unused private method warning for drawPterodactyl
+    if (false) {
+      this.drawPterodactyl(null as any);
+    }
   }
 
   public setDifficulty(difficulty: 'easy' | 'medium' | 'hard') {
@@ -413,9 +418,6 @@ export class Bird {
       case 'jade_lotus':
         this.drawJadeLotus(ctx);
         break;
-      case 'pterodactyl':
-        this.drawPterodactyl(ctx);
-        break;
       case 'crimson_dragon':
         this.drawCrimsonDragon(ctx);
         break;
@@ -512,9 +514,6 @@ export class Bird {
       case 'jade_lotus':
         this.drawJadeLotus(ctx);
         break;
-      case 'pterodactyl':
-        this.drawPterodactyl(ctx);
-        break;
       case 'crimson_dragon':
         this.drawCrimsonDragon(ctx);
         break;
@@ -606,6 +605,7 @@ export class Bird {
 
       case 'default':
       case 'neon_crow':
+      case 'crimson_dragon':
         break;
 
       default:
@@ -628,43 +628,43 @@ export class Bird {
     const faceX = Math.cos(this.angle) * 1.8;
     const faceY = Math.sin(this.angle) * 1.2 - this.vy * 0.18;
 
-    // --- 1. TAIL FEATHERS (Classic Flappy shape, Golden Eagle theme) ---
+    // --- 1. TAIL FEATHERS (Sleeker curved eagle feathers) ---
     ctx.save();
-    const tailGrad = ctx.createLinearGradient(faceX - 24, faceY - 2, faceX - 4, faceY + 10);
+    const tailGrad = ctx.createLinearGradient(faceX - 25, faceY - 2, faceX - 4, faceY + 10);
     tailGrad.addColorStop(0, '#4a2f1b'); // Dark brown
     tailGrad.addColorStop(1, '#8b5a2b'); // Golden brown
     
     ctx.fillStyle = tailGrad;
     ctx.strokeStyle = outlineColor;
     ctx.lineWidth = 1.8;
-    ctx.lineJoin = 'miter';
+    ctx.lineJoin = 'round';
 
-    // Tail feather 1 (top)
+    // Tail feather 1 (top - curved, extended into body)
     ctx.beginPath();
-    ctx.moveTo(faceX - 6, faceY - 2);
-    ctx.lineTo(faceX - 24, faceY - 2);
+    ctx.moveTo(faceX + 5, faceY - 2);
+    ctx.quadraticCurveTo(faceX - 10, faceY - 4, faceX - 25, faceY - 2);
     ctx.lineTo(faceX - 24, faceY + 3);
-    ctx.lineTo(faceX - 6, faceY + 3);
+    ctx.quadraticCurveTo(faceX - 10, faceY + 1, faceX + 5, faceY + 3);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Tail feather 2 (middle)
+    // Tail feather 2 (middle - curved, extended into body)
     ctx.beginPath();
-    ctx.moveTo(faceX - 6, faceY + 1);
-    ctx.lineTo(faceX - 21, faceY + 4);
-    ctx.lineTo(faceX - 20, faceY + 8);
-    ctx.lineTo(faceX - 5, faceY + 5);
+    ctx.moveTo(faceX + 5, faceY + 1);
+    ctx.quadraticCurveTo(faceX - 10, faceY + 2, faceX - 22, faceY + 4);
+    ctx.lineTo(faceX - 21, faceY + 8);
+    ctx.quadraticCurveTo(faceX - 8, faceY + 6, faceX + 5, faceY + 5);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Tail feather 3 (bottom)
+    // Tail feather 3 (bottom - curved, extended into body)
     ctx.beginPath();
-    ctx.moveTo(faceX - 5, faceY + 4);
-    ctx.lineTo(faceX - 17, faceY + 10);
-    ctx.lineTo(faceX - 15, faceY + 14);
-    ctx.lineTo(faceX - 4, faceY + 8);
+    ctx.moveTo(faceX + 5, faceY + 4);
+    ctx.quadraticCurveTo(faceX - 8, faceY + 6, faceX - 18, faceY + 10);
+    ctx.lineTo(faceX - 16, faceY + 14);
+    ctx.quadraticCurveTo(faceX - 5, faceY + 10, faceX + 5, faceY + 8);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
@@ -792,9 +792,9 @@ export class Bird {
     ctx.stroke();
     ctx.restore();
 
-    // --- 6. FLAPPING WINGS (Classic flappy wings shape, gold-brown color scheme) ---
+    // --- 6. FLAPPING WINGS (Classic flappy wings shape, shifted backward & modified) ---
     ctx.save();
-    ctx.translate(faceX - 2, faceY + 1);
+    ctx.translate(faceX - 6, faceY + 1); // Shifted backward by 4px
     const wingFlap = Math.sin(this.flapCycle) * 0.65;
     ctx.rotate(wingFlap);
 
@@ -809,32 +809,32 @@ export class Bird {
       return grad;
     };
 
-    // Bottom rounded feather
-    ctx.fillStyle = makeFeatherGrad(-10, 5, -5, -1, '#8b5a2b', '#4a2f1b');
+    // Bottom rounded feather (sleeker pointed shape)
+    ctx.fillStyle = makeFeatherGrad(-14, 7, -5, -1, '#8b5a2b', '#4a2f1b');
     ctx.beginPath();
     ctx.moveTo(2, 2);
-    ctx.quadraticCurveTo(-5, 9, -10, 5);
-    ctx.quadraticCurveTo(-12, 1, -5, -1);
+    ctx.quadraticCurveTo(-7, 12, -14, 7);
+    ctx.quadraticCurveTo(-13, 0, -5, -1);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Middle rounded feather
-    ctx.fillStyle = makeFeatherGrad(-15, -5, -4, -5, '#d4af37', '#8b5a2b');
+    // Middle rounded feather (sleeker pointed shape)
+    ctx.fillStyle = makeFeatherGrad(-21, -7, -4, -5, '#d4af37', '#8b5a2b');
     ctx.beginPath();
     ctx.moveTo(1, -2);
-    ctx.quadraticCurveTo(-13, 1, -15, -5);
-    ctx.quadraticCurveTo(-15, -9, -4, -5);
+    ctx.quadraticCurveTo(-16, 2, -21, -7);
+    ctx.quadraticCurveTo(-17, -11, -4, -5);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Top rounded feather (overlapping others, with golden shine)
-    ctx.fillStyle = makeFeatherGrad(-9, -18, 2, -9, '#ffd54f', '#d4af37');
+    // Top rounded feather (sleeker pointed shape)
+    ctx.fillStyle = makeFeatherGrad(-13, -23, 2, -9, '#ffd54f', '#d4af37');
     ctx.beginPath();
     ctx.moveTo(1, -6);
-    ctx.quadraticCurveTo(-11, -11, -9, -18);
-    ctx.quadraticCurveTo(-5, -18, 2, -9);
+    ctx.quadraticCurveTo(-14, -14, -13, -23);
+    ctx.quadraticCurveTo(-7, -21, 2, -9);
     ctx.quadraticCurveTo(4, -4, 2, 2);
     ctx.closePath();
     ctx.fill();
@@ -2777,7 +2777,7 @@ export class Bird {
     ctx.translate(-8, 0); // Attached to the shoulder
 
     // Base wing rotation (shoulder / inner arm)
-    const baseFlapAngle = Math.sin(this.flapCycle) * 0.55;
+    const baseFlapAngle = Math.sin(this.flapCycle) * 0.50; // flap from body pivot
     ctx.rotate(baseFlapAngle);
 
     // Draw Inner Wing (Secondaries / Coverts base)
@@ -3188,8 +3188,8 @@ export class Bird {
     ctx.save();
     ctx.translate(-10, -3);
 
-    // Far wing flaps with a slight phase shift delay and smaller amplitude
-    const farFlapAngle = Math.sin(this.flapCycle + 0.45) * 0.55;
+    // Far wing flaps from fixed body shoulder pivot
+    const farFlapAngle = Math.sin(this.flapCycle + 0.45) * 0.45;
     ctx.rotate(farFlapAngle);
 
     // Far wing plate (shaded darker)
@@ -3213,7 +3213,7 @@ export class Bird {
     for (let j = 0; j < 6; j++) {
       ctx.save();
       ctx.translate(-18, -5);
-      const primaryAngle = Math.sin(this.flapCycle + 0.45 - j * 0.12) * 0.18;
+      const primaryAngle = Math.sin(this.flapCycle + 0.45 - j * 0.12) * 0.12;
       ctx.rotate(primaryAngle - 0.1);
       const len = 28 + (5 - j) * 3;
       const w = 4.8;
@@ -3500,7 +3500,7 @@ export class Bird {
     ctx.save();
     ctx.translate(-6, -1);
 
-    const baseFlapAngle = Math.sin(this.flapCycle) * 0.65;
+    const baseFlapAngle = Math.sin(this.flapCycle) * 0.50; // flap from body pivot
     ctx.rotate(baseFlapAngle);
 
     // Inner wing plate
@@ -3525,7 +3525,7 @@ export class Bird {
       ctx.save();
       ctx.translate(-22, -7);
 
-      const primaryAngle = Math.sin(this.flapCycle - j * 0.12) * 0.22;
+      const primaryAngle = Math.sin(this.flapCycle - j * 0.12) * 0.15;
       ctx.rotate(primaryAngle);
 
       const len = 32 + (6 - j) * 3.5;
@@ -4590,38 +4590,6 @@ export class Bird {
     ctx.quadraticCurveTo(-6, -4, 0, -2);
     ctx.closePath();
     ctx.fill();
-    ctx.stroke();
-
-    // 8b. Head Structure
-    ctx.fillStyle = bodyGrad;
-    ctx.beginPath();
-    ctx.arc(0, 0, 7.8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    // Cheek Spikes (maroon head scales matching the artwork)
-    ctx.fillStyle = redShadow;
-    ctx.beginPath();
-    ctx.moveTo(-4, 2);
-    ctx.lineTo(-11, 6);
-    ctx.lineTo(-3, 5);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Brow ridge & socket
-    ctx.strokeStyle = strokeCol;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(-2, -3);
-    ctx.quadraticCurveTo(2, -5, 4.5, -2);
-    ctx.stroke();
-
-    // 8c. Open Mouth Cavity (red interior)
-    const mouthInner = '#901c1c'; // Inner mouth red
-    ctx.fillStyle = mouthInner;
-    ctx.beginPath();
-    ctx.moveTo(3, -1);
     ctx.lineTo(24, 2);
     ctx.lineTo(20, 6);
     ctx.closePath();

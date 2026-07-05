@@ -3521,99 +3521,82 @@ body.mobile-performance ::after {
    AD BUTTONS & COOLDOWN INDICATORS (Time Lap)
    ==================================================== */
 .top-bar-add-btn {
+  background: linear-gradient(135deg, #ffb300, #ff6b00, #ff3d00, #ffb300);
+  background-size: 300% 300%;
   border: none;
   color: white;
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  font-size: 14px;
-  font-weight: 900;
+  font-size: 13px;
+  font-weight: 800;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   margin-left: 6px;
-  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 0 8px rgba(255, 107, 0, 0.6), inset 0 0 6px rgba(255, 255, 255, 0.4);
+  transition: background 0.2s ease, border-radius 0.2s ease, opacity 0.2s ease;
   pointer-events: auto;
   line-height: 1;
-  text-shadow: 0 0 3px #ffffff, 0 0 6px currentColor !important;
+  animation: plusButtonGlow 1.8s infinite ease-in-out, plusSurfaceSweep 3s infinite linear;
 }
 
-#btn-plus-coins, #btn-plus-coins-revive {
-  background: linear-gradient(135deg, #ffd700, #ff8800) !important;
-  border: 1.5px solid rgba(255, 215, 0, 0.5) !important;
-  animation: coin-plus-glow 1.8s infinite alternate ease-in-out !important;
-}
-
-#btn-plus-coins:hover, #btn-plus-coins-revive:hover {
-  transform: scale(1.22) rotate(90deg);
-  background: linear-gradient(135deg, #ffe066, #ff9900);
-  border-color: #ffffff;
-  animation-play-state: paused;
-  box-shadow: 0 0 15px rgba(255, 136, 0, 0.9), inset 0 0 5px rgba(255, 255, 255, 0.8);
-  filter: drop-shadow(0 0 5px rgba(255, 136, 0, 0.9));
-}
-
-#btn-plus-gems, #btn-plus-gems-revive {
-  background: linear-gradient(135deg, #00c3ff, #0055ff) !important;
-  border: 1.5px solid rgba(0, 195, 255, 0.5) !important;
-  animation: gem-plus-glow 1.8s infinite alternate ease-in-out !important;
-}
-
-#btn-plus-gems:hover, #btn-plus-gems-revive:hover {
-  transform: scale(1.22) rotate(90deg);
-  background: linear-gradient(135deg, #00d5ff, #0077ff);
-  border-color: #ffffff;
-  animation-play-state: paused;
-  box-shadow: 0 0 15px rgba(0, 85, 255, 0.9), inset 0 0 5px rgba(255, 255, 255, 0.8);
-  filter: drop-shadow(0 0 5px rgba(0, 85, 255, 0.9));
-}
-
-@keyframes coin-plus-glow {
+@keyframes plusButtonGlow {
   0% {
-    box-shadow: 0 0 4px rgba(255, 136, 0, 0.4), inset 0 0 3px rgba(255, 255, 255, 0.4);
-    filter: drop-shadow(0 0 2px rgba(255, 136, 0, 0.3));
-    border-color: rgba(255, 215, 0, 0.4);
+    box-shadow: 0 0 6px #ff6b00, 0 0 12px rgba(255, 107, 0, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.4);
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    box-shadow: 0 0 15px #ffb300, 0 0 28px rgba(255, 179, 0, 0.9), inset 0 0 12px rgba(255, 255, 255, 0.8);
+    transform: translateY(-4px) scale(1.12);
   }
   100% {
-    box-shadow: 0 0 10px rgba(255, 136, 0, 0.8), inset 0 0 6px rgba(255, 255, 255, 0.6);
-    filter: drop-shadow(0 0 6px rgba(255, 136, 0, 0.7));
-    border-color: rgba(255, 215, 0, 1.0);
+    box-shadow: 0 0 6px #ff6b00, 0 0 12px rgba(255, 107, 0, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.4);
+    transform: translateY(0) scale(1);
   }
 }
 
-@keyframes gem-plus-glow {
+@keyframes plusSurfaceSweep {
   0% {
-    box-shadow: 0 0 4px rgba(0, 85, 255, 0.4), inset 0 0 3px rgba(255, 255, 255, 0.4);
-    filter: drop-shadow(0 0 2px rgba(0, 85, 255, 0.3));
-    border-color: rgba(0, 195, 255, 0.4);
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
   }
   100% {
-    box-shadow: 0 0 10px rgba(0, 85, 255, 0.8), inset 0 0 6px rgba(255, 255, 255, 0.6);
-    filter: drop-shadow(0 0 6px rgba(0, 85, 255, 0.7));
-    border-color: rgba(0, 195, 255, 1.0);
+    background-position: 0% 50%;
   }
+}
+
+.top-bar-add-btn:hover {
+  background: linear-gradient(135deg, #ffffd0, #ffb300, #ff8800);
+  box-shadow: 0 0 18px #ffb300, 0 0 30px rgba(255, 179, 0, 0.9), inset 0 0 10px rgba(255, 255, 255, 0.9);
+  transform: translateY(-5px) scale(1.25) !important;
+  animation-play-state: paused;
 }
 
 .top-bar-add-btn:active {
-  transform: scale(0.85);
-  animation: none;
-  filter: none;
+  transform: translateY(0) scale(0.85) !important;
 }
 
 /* Disabled styling for buttons when on cooldown */
 .top-bar-add-btn.disabled-ad-btn {
-  background: rgba(255, 255, 255, 0.1) !important;
-  color: rgba(255, 255, 255, 0.4) !important;
-  box-shadow: none !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
   cursor: not-allowed !important;
-  font-size: 8px !important;
+  font-size: 9px !important;
   width: auto !important;
   height: auto !important;
   border-radius: 10px !important;
-  padding: 2px 6px !important;
+  padding: 3px 7px !important;
   pointer-events: none !important;
+  animation: none !important;
+  transform: none !important;
 }
 
 /* General disabled styling for claim / revive ad buttons */
@@ -4087,6 +4070,72 @@ body.mobile-performance .top-bar-settings-btn {
     box-shadow: 0 6px 0 #3a0082, inset 0 0 14px rgba(217, 70, 239, 0.85);
   }
 }
+
+/* --- CURRENCY HEADER PLUS BUTTONS ENHANCEMENTS --- */
+#btn-plus-coins, #btn-plus-coins-revive {
+  background: linear-gradient(135deg, #ffd700, #ff8800) !important;
+  border: 1.5px solid rgba(255, 215, 0, 0.8) !important;
+  animation: coin-plus-glow 1.8s infinite alternate ease-in-out !important;
+  box-shadow: 0 2.5px 0 #b84a00, inset 0 0 8px rgba(255, 255, 255, 0.7) !important;
+  transition: all 0.2s ease !important;
+}
+
+#btn-plus-coins:hover, #btn-plus-coins-revive:hover {
+  transform: translateY(-5px) scale(1.25) rotate(90deg) !important;
+  background: linear-gradient(135deg, #ffe066, #ff9900) !important;
+  border-color: #ffffff !important;
+  animation-play-state: paused !important;
+  box-shadow: 0 2.5px 0 #b84a00, inset 0 0 18px rgba(255, 255, 255, 1.0) !important;
+  filter: drop-shadow(0 0 35px rgba(255, 136, 0, 1.0)) !important;
+}
+
+#btn-plus-gems, #btn-plus-gems-revive {
+  background: linear-gradient(135deg, #d946ef, #7b2fff) !important;
+  border: 1.5px solid rgba(217, 70, 239, 0.8) !important;
+  animation: gem-plus-glow 1.8s infinite alternate ease-in-out !important;
+  box-shadow: 0 2.5px 0 #3a0082, inset 0 0 8px rgba(255, 255, 255, 0.7) !important;
+  transition: all 0.2s ease !important;
+}
+
+#btn-plus-gems:hover, #btn-plus-gems-revive:hover {
+  transform: translateY(-5px) scale(1.25) rotate(90deg) !important;
+  background: linear-gradient(135deg, #e879f9, #904cff) !important;
+  border-color: #ffffff !important;
+  animation-play-state: paused !important;
+  box-shadow: 0 2.5px 0 #3a0082, inset 0 0 18px rgba(255, 255, 255, 1.0) !important;
+  filter: drop-shadow(0 0 35px rgba(123, 47, 255, 1.0)) !important;
+}
+
+@keyframes coin-plus-glow {
+  0% {
+    box-shadow: 0 2.5px 0 #b84a00, inset 0 0 5px rgba(255, 255, 255, 0.4);
+    filter: drop-shadow(0 0 6px rgba(255, 136, 0, 0.5));
+    border-color: rgba(255, 215, 0, 0.5);
+    transform: translateY(0);
+  }
+  100% {
+    box-shadow: 0 2.5px 0 #b84a00, inset 0 0 15px rgba(255, 255, 255, 1.0);
+    filter: drop-shadow(0 0 24px rgba(255, 136, 0, 1.0));
+    border-color: rgba(255, 215, 0, 1.0);
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes gem-plus-glow {
+  0% {
+    box-shadow: 0 2.5px 0 #3a0082, inset 0 0 5px rgba(255, 255, 255, 0.4);
+    filter: drop-shadow(0 0 6px rgba(123, 47, 255, 0.5));
+    border-color: rgba(217, 70, 239, 0.5);
+    transform: translateY(0);
+  }
+  100% {
+    box-shadow: 0 2.5px 0 #3a0082, inset 0 0 15px rgba(255, 255, 255, 1.0);
+    filter: drop-shadow(0 0 24px rgba(123, 47, 255, 1.0));
+    border-color: rgba(217, 70, 239, 1.0);
+    transform: translateY(-4px);
+  }
+}
+
 
 
 

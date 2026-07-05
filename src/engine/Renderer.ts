@@ -678,8 +678,8 @@ export class Renderer {
           b1 = Math.round(eveningBottom[2] + (nightBottom[2] - eveningBottom[2]) * progress);
         }
         
-        skyGrad.addColorStop(0, `rgba(${r0}, ${g0}, ${b0}, 0.3)`);
-        skyGrad.addColorStop(1, `rgba(${r1}, ${g1}, ${b1}, 0.3)`);
+        skyGrad.addColorStop(0, `rgb(${r0}, ${g0}, ${b0})`);
+        skyGrad.addColorStop(1, `rgb(${r1}, ${g1}, ${b1})`);
         break;
       }
       case 'underwater':
@@ -1210,10 +1210,15 @@ export class Renderer {
             redness = (time - 17) / 2;
           }
 
-          const rayAColor = `rgba(${Math.round(255)}, ${Math.round(248 - redness * 180)}, ${Math.round(200 - redness * 132)}, ${0.11 + redness * 0.04})`;
-          const rayBColor = `rgba(${Math.round(255)}, ${Math.round(215 - redness * 177)}, ${Math.round(0 + redness * 38)}, ${0.08 + redness * 0.02})`;
+          // Calculate how close the time is to midday (12:00)
+          // Daytime is 5 to 19. Midday is 12. Maximum distance is 7 hours.
+          const distToMidday = Math.abs(time - 12);
+          const middayFactor = Math.max(0, 1 - distToMidday / 7); // 1.0 at 12:00, 0.0 at 5:00 and 19:00
+
+          const rayAColor = `rgba(${Math.round(255)}, ${Math.round(248 - redness * 180)}, ${Math.round(200 - redness * 132)}, ${0.22 + middayFactor * 0.12 + redness * 0.06})`;
+          const rayBColor = `rgba(${Math.round(255)}, ${Math.round(215 - redness * 177)}, ${Math.round(0 + redness * 38)}, ${0.15 + middayFactor * 0.10 + redness * 0.04})`;
           
-          const sunCoreColor = `rgba(${Math.round(255)}, ${Math.round(255 - redness * 200)}, ${Math.round(255 - redness * 200)}, ${0.4 + redness * 0.2})`;
+          const sunCoreColor = `rgba(${Math.round(255)}, ${Math.round(255 - redness * 200)}, ${Math.round(255 - redness * 200)}, ${0.80 + middayFactor * 0.20})`;
 
           // 1. Layered Sunburst Rays (Warm White, Yellow & Peach / Sunset Red)
           this.ctx.save();
@@ -1258,6 +1263,20 @@ export class Renderer {
           this.ctx.beginPath();
           this.ctx.arc(sunX, sunY, 20, 0, Math.PI * 2);
           this.ctx.fill();
+
+          // 3. Midday bright white-hot inner core highlight
+          if (middayFactor > 0) {
+            this.ctx.save();
+            const innerGlow = this.ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, 15);
+            innerGlow.addColorStop(0, '#ffffff'); // pure white hot center
+            innerGlow.addColorStop(0.5, 'rgba(255, 253, 230, 0.95)');
+            innerGlow.addColorStop(1, 'rgba(254, 240, 138, 0)'); // fade out to yellow-gold
+            this.ctx.fillStyle = innerGlow;
+            this.ctx.beginPath();
+            this.ctx.arc(sunX, sunY, 15, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.restore();
+          }
           
           this.ctx.restore();
         }

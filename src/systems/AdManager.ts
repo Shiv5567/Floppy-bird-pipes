@@ -35,11 +35,21 @@ export class AdManager {
   private static nextInterstitialNetwork: 'AdMob' | 'Unity' = 'AdMob';
 
   // 2. Economy / Booster ad state
-  private static lastEconomyRewardedTime: number = 0;
+  private static get lastEconomyRewardedTime(): number {
+    return parseInt(localStorage.getItem('legends_ad_last_economy_time') || '0', 10);
+  }
+  private static set lastEconomyRewardedTime(val: number) {
+    localStorage.setItem('legends_ad_last_economy_time', val.toString());
+  }
   private static nextEconomyRewardNetwork: 'AdMob' | 'Unity' = 'AdMob';
 
   // 3. Revive ad state
-  private static lastReviveRewardedTime: number = 0;
+  private static get lastReviveRewardedTime(): number {
+    return parseInt(localStorage.getItem('legends_ad_last_revive_time') || '0', 10);
+  }
+  private static set lastReviveRewardedTime(val: number) {
+    localStorage.setItem('legends_ad_last_revive_time', val.toString());
+  }
   private static nextReviveNetwork: 'AdMob' | 'Unity' = 'AdMob';
 
   private static updateTimer: any = null;

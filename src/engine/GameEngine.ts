@@ -267,7 +267,7 @@ export class GameEngine {
     this.activeSkillUnlocked = null;
     this.activeSkillCooldown = 0;
     this.activeSkillMaxCooldown = 0;
-    this.nextBossScore = this.gameMode === 'flock' ? 75 : 100;
+    this.nextBossScore = this.gameMode === 'flock' ? 50 : 100;
     this.playerBossHP = 0;
     this.maxPlayerBossHP = 0;
     this.bossManager.reset();
@@ -454,7 +454,7 @@ export class GameEngine {
           );
         }
         
-        if (this.bird.getSkin().id === 'neon_crow') {
+        if (this.bird.getSkin().id === 'neon_crow' || this.bird.getSkin().id === 'crimson_dragon') {
           // Indefinite duration: keep duration full
           this.ultimateDurationLeft = this.ultimateMaxDuration;
           
@@ -1029,6 +1029,7 @@ export class GameEngine {
             obs.passed = true;
             this.incrementScore();
             this.progressManager.updateQuestProgress('obstacles', 1);
+            this.progressManager.updateQuestProgress('destroy_pipes', 1);
             if (this.progressManager.getState().selectedZone === 'classic') {
               this.progressManager.updateQuestProgress('obstacles_classic', 1);
             }
@@ -1148,7 +1149,7 @@ export class GameEngine {
           }
         }
 
-        // Trigger Boss Warning in Squad Survival (Flock) mode every 75 obstacles (score gap)
+        // Trigger Boss Warning in Squad Survival (Flock) mode every 50 obstacles (score gap)
         if (this.gameMode === 'flock' && this.score >= this.nextBossScore) {
           this.triggerBossWarning();
         }
@@ -1179,7 +1180,7 @@ export class GameEngine {
             this.state = 'PLAYING';
             this.incrementScore(10); // Massive points
             if (this.gameMode === 'flock') {
-              this.nextBossScore = Math.ceil((this.score + 1) / 75) * 75;
+              this.nextBossScore = Math.ceil((this.score + 1) / 50) * 50;
             }
           }
         }
@@ -1288,7 +1289,7 @@ export class GameEngine {
       }
 
       // Check items pickup — all birds in flock collect all objects in their path
-      const isNeonCrowUltimate = this.ultimateActive && this.bird.getSkin().id === 'neon_crow';
+      const isNeonCrowUltimate = this.ultimateActive && (this.bird.getSkin().id === 'neon_crow' || this.bird.getSkin().id === 'crimson_dragon');
       if (this.gameMode === 'flock' || isNeonCrowUltimate) {
         const flockLen = this.flock.length;
         for (let idx = 0; idx < flockLen; idx++) {
@@ -1499,7 +1500,13 @@ export class GameEngine {
 
     // Stop world music during revive screen as per user request
     this.soundManager.stopMusic();
-    // Unlimited revives allowed!
+    
+    // Max 3 revives allowed across all modes!
+    if (this.revivesUsedThisRun >= 3) {
+      this.confirmGameOver();
+      return;
+    }
+    
     this.preReviveState = this.state === 'BOSS_WARNING' || this.state === 'BOSS_FIGHT' ? this.state : 'PLAYING';
     this.state = 'REVIVE_CHOICE';
     this.reviveCountdown = 5.0;
@@ -1524,10 +1531,10 @@ export class GameEngine {
       this.progressManager.incrementAchievement('survival_legend', Math.floor(this.squadSurvivalTime));
     }
 
-    // Chaos Zone bonus: convert every destroyed obstacle into a coin
+    // Chaos Zone bonus: convert every destroyed obstacle into a coin (double coins reward)
     if (this.progressManager.getState().selectedZone === 'chaos' && this.destroyedPipesCount > 0) {
-      this.progressManager.addCoins(this.destroyedPipesCount);
-      this.coinsCollectedThisRun += this.destroyedPipesCount;
+      this.progressManager.addCoins(this.destroyedPipesCount * 2);
+      this.coinsCollectedThisRun += this.destroyedPipesCount * 2;
     }
 
     // Save
@@ -1707,9 +1714,6 @@ export class GameEngine {
       this.progressManager.updateQuestProgress('volcano_pts', this.score, true);
     }
     
-    // Play subtle chime on score pass
-    this.soundManager.playCoin();
-
     // Demo completion checks were removed  
   }
 
@@ -1878,8 +1882,8 @@ export class GameEngine {
       duration = 12.0;
       max = 12.0;
     } else if (type === 'double') {
-      duration = 10.0;
-      max = 10.0;
+      duration = 20.0;
+      max = 20.0;
     } else if (type === 'turbo') {
       this.bird.isInvincible = true;
       this.scrollSpeed = this.baseScrollSpeed * 2.3;
@@ -1895,12 +1899,17 @@ export class GameEngine {
       max = 10.0;
     }
 
-    // Apply powerup upgrades multiplier (boosts duration by 15% per upgrade level)
+    // Apply powerup upgrades multiplier (boosts duration by 15% per upgrade level, except double coins which gets +3s per level)
     const upgrades = this.progressManager.getState().powerupUpgrades || {};
     const lvl = upgrades[type] || 1;
-    const multiplier = 1 + (lvl - 1) * 0.15;
-    duration *= multiplier;
-    max *= multiplier;
+    if (type === 'double') {
+      duration = 20.0 + (lvl - 1) * 3.0;
+      max = duration;
+    } else {
+      const multiplier = 1 + (lvl - 1) * 0.15;
+      duration *= multiplier;
+      max *= multiplier;
+    }
 
     // Add or reset powerup timer
     this.activePowerupsList[type] = {
@@ -2043,6 +2052,9 @@ export class GameEngine {
 
     if (skin.id === 'angry_red') {
       duration = 20.0;
+    } else if (skin.id === 'crimson_dragon') {
+      // Mountain Banshee: 30s base, +5s per upgrade level
+      duration = 30 + (lvl - 1) * 5;
     }
 
     let subtext = 'SPECIAL ACTIVE ABILITY RELEASED!';
@@ -2061,9 +2073,9 @@ export class GameEngine {
       // Sky Sovereign: Micro Glider
       this.bird.sizeMultiplier = 0.60;
       subtext = 'MICRO SIZE ACTIVE!';
-    } else if (id === 'neon_crow') {
-      // Neon Raven: Cyber Clone
-      subtext = 'CYBER CLONE ACTIVE!';
+    } else if (id === 'neon_crow' || id === 'crimson_dragon') {
+      // Cyber Clone / Mountain Banshee
+      subtext = id === 'crimson_dragon' ? 'BANSHEE CLONE & MAGNET ACTIVE!' : 'CYBER CLONE ACTIVE!';
       this.preUltimateFlockLength = this.flock.length;
       if (this.gameMode !== 'flock') {
         this.flock = [this.bird];
@@ -2108,17 +2120,6 @@ export class GameEngine {
       // Lotus Hummingbird: Temporal Dilation
       this.timeScale = 0.30; // 70% slow-mo
       subtext = 'WORLD TIME SLOWED BY 70%! HYPER AGILITY ACTIVE!';
-    } else if (id === 'pterodactyl') {
-      // Primal Pterodactyl: Primal Temporal Glide
-      this.bird.isInvincible = true;
-      this.timeScale = 0.50; // 50% slow-mo
-      this.scrollSpeed = this.baseScrollSpeed * 1.50; // 1.5x speed blast
-      subtext = 'PRIMAL GLIDE ACTIVE! 50% SLOW-MO + 1.5X SPEED BLAST!';
-    } else if (id === 'crimson_dragon') {
-      // Crimson Wyvern: Crimson Inferno Blast
-      this.bird.isInvincible = true;
-      this.scrollSpeed = this.baseScrollSpeed * 1.80; // 1.8x speed blast
-      subtext = 'INFERNO BLAST ACTIVE! 1.8X SPEED BOOST + INVINCIBILITY!';
     }
 
     this.ultimateMaxDuration = duration;
@@ -2200,7 +2201,7 @@ export class GameEngine {
   // ── SQUAD SURVIVAL FOLLOWER UPDATES ──────────────────────────────────────────
 
   private updateFlockFollowers(dt: number, activeTimeScale: number) {
-    const isNeonCrowUltimate = this.ultimateActive && this.bird.getSkin().id === 'neon_crow';
+    const isNeonCrowUltimate = this.ultimateActive && (this.bird.getSkin().id === 'neon_crow' || this.bird.getSkin().id === 'crimson_dragon');
     if (this.gameMode === 'flock' || isNeonCrowUltimate) {
       if (this.flock.length > 0) {
         this.bird = this.flock[0];
