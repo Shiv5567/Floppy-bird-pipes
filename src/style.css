@@ -4187,7 +4187,7 @@ body.mobile-performance .top-bar-settings-btn {
 
 #side-btn-ad-reward {
   position: absolute !important;
-  top: calc(52px + env(safe-area-inset-top, 0px)) !important;
+  top: calc(62px + env(safe-area-inset-top, 0px)) !important;
   left: 12px !important;
   z-index: 60 !important;
   border-color: rgba(255, 107, 0, 0.3) !important;
