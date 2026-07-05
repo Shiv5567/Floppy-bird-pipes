@@ -1480,7 +1480,7 @@ export class Renderer {
         this.ctx.globalCompositeOperation = 'screen';
 
         const numRays = isMobile ? 4 : 7;
-        const maxOpacity = isMobile ? 0.12 : 0.18;
+        const maxOpacity = isMobile ? 0.32 : 0.48;
         for (let i = 0; i < numRays; i++) {
           const waveOffset = Math.sin(this.weatherTime * 0.5 + i * 0.8) * 0.12;
           const baseAngle = (i - (numRays - 1) / 2) * (isMobile ? 0.4 : 0.35) + waveOffset;
