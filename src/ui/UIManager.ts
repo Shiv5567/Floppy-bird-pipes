@@ -797,15 +797,7 @@ export class UIManager {
 
           <!-- Left side panel -->
           <div class="side-panel-left">
-            <button class="side-btn" id="side-btn-skins">
-              ${this.getCharacterIconSvg('60px', '60px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.5));', 'home')}
-              <span class="side-btn-label">CHARACTERS</span>
-            </button>
-            <button class="side-btn" id="side-btn-worlds">
-              ${this.getWorldsIconSvg('60px', '60px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(123, 47, 255, 0.5));', 'home')}
-              <span class="side-btn-label">MAP</span>
-            </button>
-            <button class="side-btn" id="side-btn-ad-reward" style="width: 98px !important; height: 95px !important; margin-top: 2px; border-radius: 20px; position: relative; overflow: visible;">
+            <button class="side-btn" id="side-btn-ad-reward" style="width: 98px !important; height: 95px !important; border-radius: 20px; position: relative; overflow: visible;">
               <div class="orbit-container">
                 <span class="orbit-item orbit-coin-1">🪙</span>
                 <span class="orbit-item orbit-gem-1">💎</span>
@@ -814,6 +806,14 @@ export class UIManager {
               </div>
               ${this.getAdRewardIconSvg('60px', '60px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(255, 107, 0, 0.5));')}
               <span class="side-btn-label">AD REWARD</span>
+            </button>
+            <button class="side-btn" id="side-btn-skins">
+              ${this.getCharacterIconSvg('60px', '60px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.5));', 'home')}
+              <span class="side-btn-label">CHARACTERS</span>
+            </button>
+            <button class="side-btn" id="side-btn-worlds">
+              ${this.getWorldsIconSvg('60px', '60px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(123, 47, 255, 0.5));', 'home')}
+              <span class="side-btn-label">MAP</span>
             </button>
           </div>
 
