@@ -2416,10 +2416,56 @@ export class ObstacleManager {
         }
       } else {
         // Endless mode obstacle movement
-        const isEndlessAnimationZone = gameMode === 'endless' && zone !== 'classic' && (obs.spawnScore !== undefined ? obs.spawnScore : score) <= 80;
-        const isStaticEndless = gameMode === 'endless' && zone !== 'classic' && (score < 50 || (obs.spawnScore !== undefined && obs.spawnScore < 50)) && !isEndlessAnimationZone;
-        
-        const isChaosMode = zone === 'chaos';
+        const spawnScoreVal = obs.spawnScore !== undefined ? obs.spawnScore : score;
+        const isSoloAnimationRange = gameMode === 'endless' && spawnScoreVal >= 20 && spawnScoreVal <= 100;
+
+        if (isSoloAnimationRange) {
+          let centerY = obs.spawnCenterY !== undefined ? obs.spawnCenterY : (obs.initialTopHeight + (height - obs.initialBottomHeight - obs.initialTopHeight) / 2);
+          const currentGap = obs.gapHeight !== undefined ? obs.gapHeight : (height - obs.initialBottomHeight - obs.initialTopHeight);
+          let verticalShift = 0;
+          let isDirectHeightSet = false;
+          
+          obs.shakeX = 0;
+          obs.shakeX2 = 0;
+          
+          if (spawnScoreVal >= 20 && spawnScoreVal < 40) {
+            // Animation 1: Gentle Synchronized Float (Celestial Float)
+            verticalShift = Math.sin(this.waveTime * 1.5 + (obs.obstacleIdx || 0) * 0.5) * 15;
+          } else if (spawnScoreVal >= 40 && spawnScoreVal < 60) {
+            // Animation 2: Slow Breathing Gap (Expanding Portal)
+            const breathing = Math.sin(this.waveTime * 1.8 + (obs.obstacleIdx || 0) * 0.3) * 12;
+            obs.topHeight = (centerY - currentGap / 2) - breathing;
+            obs.bottomHeight = height - (centerY + currentGap / 2) - breathing;
+            isDirectHeightSet = true;
+          } else if (spawnScoreVal >= 60 && spawnScoreVal < 80) {
+            // Animation 3: Gentle Horizontal Sway
+            const sway = Math.sin(this.waveTime * 1.6 + (obs.obstacleIdx || 0) * 0.4) * 18;
+            obs.shakeX = sway;
+            obs.shakeX2 = sway;
+            verticalShift = 0;
+          } else if (spawnScoreVal >= 80 && spawnScoreVal <= 100) {
+            // Animation 4: Gentle Circular Orbit Wave
+            const t = this.waveTime * 1.6 + (obs.obstacleIdx || 0) * 0.4;
+            obs.shakeX = Math.cos(t) * 12;
+            obs.shakeX2 = obs.shakeX;
+            verticalShift = Math.sin(t) * 8;
+          }
+          
+          if (!isDirectHeightSet) {
+            centerY += verticalShift;
+            const minCenterY = 45 + currentGap / 2;
+            const maxCenterY = height - 45 - currentGap / 2;
+            centerY = Math.max(minCenterY, Math.min(maxCenterY, centerY));
+            
+            obs.topHeight = centerY - currentGap / 2;
+            obs.bottomHeight = height - centerY - currentGap / 2;
+          }
+        } else {
+          // Original endless mode logic
+          const isEndlessAnimationZone = gameMode === 'endless' && zone !== 'classic' && spawnScoreVal <= 80;
+          const isStaticEndless = gameMode === 'endless' && zone !== 'classic' && (score < 50 || (obs.spawnScore !== undefined && obs.spawnScore < 50)) && !isEndlessAnimationZone;
+          
+          const isChaosMode = zone === 'chaos';
         if (isChaosMode) {
           obs.shakeX = 0;
           obs.shakeX2 = 0;
@@ -3170,6 +3216,7 @@ export class ObstacleManager {
           }
         }
       }
+    }
 
       // Handle Cyberpunk pulsing lasers
       if (obs.isLaser) {
