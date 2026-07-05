@@ -794,14 +794,26 @@ export class UIManager {
 
         <!-- Floating Ad Reward button directly below the coin section -->
         <button class="side-btn" id="side-btn-ad-reward" style="width: 54px !important; height: 52px !important; border-radius: 12px; overflow: visible; z-index: 60;">
+          <div class="ad-reward-icon-glow-bg" style="
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 32px;
+            height: 30px;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(255, 107, 0, 0.45) 0%, rgba(255, 107, 0, 0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+          "></div>
           <div class="orbit-container">
             <span class="orbit-item orbit-coin-1">🪙</span>
             <span class="orbit-item orbit-gem-1">💎</span>
             <span class="orbit-item orbit-coin-2">🪙</span>
             <span class="orbit-item orbit-gem-2">💎</span>
           </div>
-          ${this.getAdRewardIconSvg('33px', '33px', 'margin-top: -2px; margin-bottom: 1px; filter: drop-shadow(0 0 4px rgba(255, 107, 0, 0.5));')}
-          <span class="side-btn-label" style="font-size: 7px; letter-spacing: 0px;">AD REWARD</span>
+          ${this.getAdRewardIconSvg('33px', '33px', 'margin-top: -2px; margin-bottom: 1px; filter: drop-shadow(0 0 5px #ff7b00) drop-shadow(0 0 2px rgba(255, 61, 0, 0.8)); position: relative; z-index: 2;')}
+          <span class="side-btn-label" style="font-size: 7px; letter-spacing: 0px; position: relative; z-index: 2;">AD REWARD</span>
         </button>
 
         <!-- ===== CENTER STAGE ===== -->
