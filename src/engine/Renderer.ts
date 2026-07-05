@@ -687,9 +687,9 @@ export class Renderer {
         skyGrad.addColorStop(1, '#003554');
         break;
       case 'heaven':
-        skyGrad.addColorStop(0, '#1e3f66');
-        skyGrad.addColorStop(0.6, '#528aae');
-        skyGrad.addColorStop(1, '#bcd4e6');
+        skyGrad.addColorStop(0, '#bae6fd');   // Soft sky blue
+        skyGrad.addColorStop(0.5, '#fbcfe8'); // Rose pink clouds
+        skyGrad.addColorStop(1, '#fef08a');   // Golden heights yellow
         break;
       case 'retro':
         skyGrad.addColorStop(0, '#1a1a1a');
@@ -2357,6 +2357,58 @@ export class Renderer {
             this.ctx.lineTo(px, finalPy);
             this.ctx.closePath();
             this.ctx.fill();
+            this.ctx.fillStyle = color; // restore
+          }
+        }
+      }
+ 
+      // --- Draw Heaven Celestial Structures (Premium Upgrade) ---
+      if (worldId === 'heaven') {
+        this.ctx.fillStyle = color;
+        
+        if (layer === 1) {
+          // Layer 1: Floating Cloud Castles / Shrines in the far background
+          const castleSpacing = 1000;
+          for (let x = -castleSpacing; x < width + castleSpacing; x += castleSpacing) {
+            const cx = x - (offset % castleSpacing);
+            const cy = height * 0.55 + layer * 70 - 70;
+            const finalCy = Math.round(cy - this.cameraY * (layer * 0.25));
+            
+            // Draw a floating cloud island base
+            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+            this.ctx.beginPath();
+            this.ctx.arc(cx - 30, finalCy, 25, 0, Math.PI * 2);
+            this.ctx.arc(cx + 30, finalCy, 25, 0, Math.PI * 2);
+            this.ctx.arc(cx, finalCy - 10, 35, 0, Math.PI * 2);
+            this.ctx.closePath();
+            this.ctx.fill();
+ 
+            // Draw a beautiful golden temple structure on top of the cloud
+            this.ctx.fillStyle = '#ffd700'; // Pure gold columns/roof
+            
+            // Main temple base
+            this.ctx.fillRect(cx - 25, finalCy - 20, 50, 4);
+            
+            // Columns
+            this.ctx.fillRect(cx - 20, finalCy - 45, 4, 25);
+            this.ctx.fillRect(cx - 8, finalCy - 45, 4, 25);
+            this.ctx.fillRect(cx + 4, finalCy - 45, 4, 25);
+            this.ctx.fillRect(cx + 16, finalCy - 45, 4, 25);
+            
+            // Roof (Triangle pediment)
+            this.ctx.beginPath();
+            this.ctx.moveTo(cx - 28, finalCy - 45);
+            this.ctx.lineTo(cx, finalCy - 62);
+            this.ctx.lineTo(cx + 28, finalCy - 45);
+            this.ctx.closePath();
+            this.ctx.fill();
+            
+            // Subtle shining gold details/crown
+            this.ctx.fillStyle = '#ffffff';
+            this.ctx.beginPath();
+            this.ctx.arc(cx, finalCy - 62, 3, 0, Math.PI * 2);
+            this.ctx.fill();
+            
             this.ctx.fillStyle = color; // restore
           }
         }

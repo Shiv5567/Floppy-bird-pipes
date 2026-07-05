@@ -6879,6 +6879,60 @@ export class ObstacleManager {
     ctx.fillRect(rx - 8, capY2, rw + 16, 24);
     ctx.strokeRect(rx - 8, capY2, rw + 16, 24);
 
+    // Draw angelic wings extending from the golden caps (Celestial cloud kingdom style upgrade)
+    const drawWings = (y: number) => {
+      ctx.save();
+      ctx.fillStyle = '#ffd700';
+      ctx.strokeStyle = outlineCol;
+      ctx.lineWidth = 1.5;
+      
+      const wingHeight = 20;
+      const wingWidth = 18;
+      const wingY = y + (24 - wingHeight) / 2;
+      
+      // Left Wing
+      ctx.beginPath();
+      ctx.moveTo(rx - 8, wingY + wingHeight * 0.5);
+      // Curve outward and up
+      ctx.bezierCurveTo(
+        rx - 8 - wingWidth, wingY - 8,
+        rx - 8 - wingWidth * 1.5, wingY + wingHeight * 0.1,
+        rx - 8 - wingWidth * 0.8, wingY + wingHeight * 0.8
+      );
+      // Curve back down and in
+      ctx.bezierCurveTo(
+        rx - 8 - wingWidth * 0.4, wingY + wingHeight,
+        rx - 8, wingY + wingHeight * 0.8,
+        rx - 8, wingY + wingHeight * 0.5
+      );
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Right Wing
+      ctx.beginPath();
+      ctx.moveTo(rx + rw + 8, wingY + wingHeight * 0.5);
+      // Curve outward and up
+      ctx.bezierCurveTo(
+        rx + rw + 8 + wingWidth, wingY - 8,
+        rx + rw + 8 + wingWidth * 1.5, wingY + wingHeight * 0.1,
+        rx + rw + 8 + wingWidth * 0.8, wingY + wingHeight * 0.8
+      );
+      // Curve back down and in
+      ctx.bezierCurveTo(
+        rx + rw + 8 + wingWidth * 0.4, wingY + wingHeight,
+        rx + rw + 8, wingY + wingHeight * 0.8,
+        rx + rw + 8, wingY + wingHeight * 0.5
+      );
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    };
+
+    drawWings(capY1);
+    drawWings(capY2);
+
     // Blinking halo star
     const isPerfHeaven = (window as any).gameDisableShadows;
     const starColor = isPerfHeaven ? starColorVal : (Math.sin((obs.x || 0) * 0.12) > 0 ? starColorVal : '#ffffff');
