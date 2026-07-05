@@ -1213,11 +1213,6 @@ export class Renderer {
           const rayAColor = `rgba(${Math.round(255)}, ${Math.round(248 - redness * 180)}, ${Math.round(200 - redness * 132)}, ${0.11 + redness * 0.04})`;
           const rayBColor = `rgba(${Math.round(255)}, ${Math.round(215 - redness * 177)}, ${Math.round(0 + redness * 38)}, ${0.08 + redness * 0.02})`;
           
-          const glowStop0 = `rgba(${Math.round(255)}, ${Math.round(255 - redness * 187)}, ${Math.round(255 - redness * 187)}, ${0.4 + redness * 0.2})`;
-          const glowStop5 = `rgba(${Math.round(255)}, ${Math.round(251 - redness * 213)}, ${Math.round(235 - redness * 197)}, ${0.4 + redness * 0.1})`;
-          const glowStop85 = `rgba(${Math.round(254)}, ${Math.round(249 - redness * 221)}, ${Math.round(195 - redness * 167)}, ${0.03 + redness * 0.07})`;
-          
-          const flareRingColor = `rgba(${Math.round(255)}, ${Math.round(230 - redness * 162)}, ${Math.round(200 - redness * 132)}, ${0.15 + redness * 0.05})`;
           const sunCoreColor = `rgba(${Math.round(255)}, ${Math.round(255 - redness * 200)}, ${Math.round(255 - redness * 200)}, ${0.4 + redness * 0.2})`;
 
           // 1. Layered Sunburst Rays (Warm White, Yellow & Peach / Sunset Red)
@@ -1258,32 +1253,12 @@ export class Renderer {
           
           this.ctx.restore();
 
-          // 2. Realistic White-to-Yellow / Red Gradient Corona
-          const sunGlow = this.ctx.createRadialGradient(sunX, sunY, 15, sunX, sunY, 95);
-          sunGlow.addColorStop(0, glowStop0); // white/red core 60% transparent
-          sunGlow.addColorStop(0.2, glowStop0); // white/red glow 60% transparent
-          sunGlow.addColorStop(0.5, glowStop5); // cream/red corona
-          sunGlow.addColorStop(0.85, glowStop85); // very soft outer glow
-          sunGlow.addColorStop(1, 'rgba(254, 249, 195, 0)');
-          this.ctx.fillStyle = sunGlow;
-          this.ctx.beginPath();
-          this.ctx.arc(sunX, sunY, 95, 0, Math.PI * 2);
-          this.ctx.fill();
-          
-          // 3. Delicate Outer Lens Flare Ring
-          this.ctx.strokeStyle = flareRingColor;
-          this.ctx.lineWidth = 1.0;
-          this.ctx.beginPath();
-          this.ctx.arc(sunX, sunY, 130, 0, Math.PI * 2);
-          this.ctx.stroke();
-          
-          // 4. White / Red Sun Core (60% transparent)
+          // 2. Crisp Solid Sun Core (no blurry radial gradient corona)
           this.ctx.fillStyle = sunCoreColor;
           this.ctx.beginPath();
           this.ctx.arc(sunX, sunY, 20, 0, Math.PI * 2);
           this.ctx.fill();
-
-          // Lens flares removed to eliminate large blurry circle artifacts from the screen
+          
           this.ctx.restore();
         }
 
