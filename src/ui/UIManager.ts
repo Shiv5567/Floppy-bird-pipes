@@ -793,15 +793,15 @@ export class UIManager {
         </div>
 
         <!-- Floating Ad Reward button directly below the coin section -->
-        <button class="side-btn" id="side-btn-ad-reward" style="width: 90px !important; height: 87px !important; border-radius: 20px; overflow: visible; z-index: 60;">
+        <button class="side-btn" id="side-btn-ad-reward" style="width: 54px !important; height: 52px !important; border-radius: 12px; overflow: visible; z-index: 60;">
           <div class="orbit-container">
             <span class="orbit-item orbit-coin-1">🪙</span>
             <span class="orbit-item orbit-gem-1">💎</span>
             <span class="orbit-item orbit-coin-2">🪙</span>
             <span class="orbit-item orbit-gem-2">💎</span>
           </div>
-          ${this.getAdRewardIconSvg('55px', '55px', 'margin-top: -2px; margin-bottom: 2px; filter: drop-shadow(0 0 6px rgba(255, 107, 0, 0.5));')}
-          <span class="side-btn-label" style="font-size: 10px;">AD REWARD</span>
+          ${this.getAdRewardIconSvg('33px', '33px', 'margin-top: -2px; margin-bottom: 1px; filter: drop-shadow(0 0 4px rgba(255, 107, 0, 0.5));')}
+          <span class="side-btn-label" style="font-size: 7px; letter-spacing: 0px;">AD REWARD</span>
         </button>
 
         <!-- ===== CENTER STAGE ===== -->
