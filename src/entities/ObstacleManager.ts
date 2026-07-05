@@ -437,11 +437,10 @@ export class ObstacleManager {
           } else if (obs.patternType === 'level2_diamond') {
             // LEVEL 2: "The Wave Gauntlet"
             if (groupIdx === 1) {
-              // Group 2: Animated Snake Wave Pattern (Only snake shape)
+              // Group 2: Static Snake Wave (Animation removed to make it easy)
               obs.isLaser = false;
-              const centerY = height / 2 + Math.sin((obs.x * 0.008) - this.waveTime * 3.5) * 55;
-              obs.targetTopHeight = centerY - obs.gapHeight! / 2;
-              obs.targetBottomHeight = height - centerY - obs.gapHeight! / 2;
+              obs.targetTopHeight = obs.baseTopHeight!;
+              obs.targetBottomHeight = obs.baseBottomHeight!;
               obs.shakeX = 0;
               obs.shakeX2 = 0;
             } else if (groupIdx === 2) {
