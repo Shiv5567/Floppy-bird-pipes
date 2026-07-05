@@ -1478,21 +1478,19 @@ export class UIManager {
         </div>
 
         <!-- Cooldown Indicator -->
-        ${onCooldown ? `
-          <div style="
-            background: rgba(255, 0, 85, 0.1);
-            border: 1px solid rgba(255, 0, 85, 0.35);
-            padding: 6px 12px;
-            border-radius: 10px;
-            font-size: 10px;
-            color: #ff3366;
-            margin-bottom: 14px;
-            font-weight: 800;
-            display: inline-block;
-          ">
-            ⏳ COOLDOWN: Refilling in ${cooldownStr}
-          </div>
-        ` : ''}
+        <div id="topup-cooldown-banner" style="
+          background: rgba(255, 0, 85, 0.1);
+          border: 1px solid rgba(255, 0, 85, 0.35);
+          padding: 6px 12px;
+          border-radius: 10px;
+          font-size: 10px;
+          color: #ff3366;
+          margin-bottom: 14px;
+          font-weight: 800;
+          display: ${onCooldown ? 'inline-block' : 'none'};
+        ">
+          ⏳ COOLDOWN: Refilling in <span id="topup-cooldown-timer">${cooldownStr}</span>
+        </div>
 
         <!-- Cards Section -->
         <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -1566,19 +1564,75 @@ export class UIManager {
 
     document.body.appendChild(overlay);
 
+    // Setup real-time countdown interval ticker
+    const timerInterval = setInterval(() => {
+      const currentMs = AdManager.getEconomyCooldownRemaining();
+      const currentCooldown = currentMs > 0;
+      const bannerEl = document.getElementById('topup-cooldown-banner');
+      const timerSpan = document.getElementById('topup-cooldown-timer');
+      const coinBtn = document.getElementById('topup-coins-ad-btn') as HTMLButtonElement | null;
+      const gemBtn = document.getElementById('topup-gems-ad-btn') as HTMLButtonElement | null;
+
+      if (currentCooldown) {
+        if (bannerEl) bannerEl.style.display = 'inline-block';
+        if (timerSpan) timerSpan.innerText = Math.ceil(currentMs / 1000) + 's';
+        if (coinBtn) {
+          coinBtn.disabled = true;
+          coinBtn.innerText = 'COOLING';
+          coinBtn.style.background = 'rgba(255,255,255,0.06)';
+          coinBtn.style.color = 'rgba(255,255,255,0.35)';
+          coinBtn.style.boxShadow = 'none';
+          coinBtn.style.cursor = 'not-allowed';
+        }
+        if (gemBtn) {
+          gemBtn.disabled = true;
+          gemBtn.innerText = 'COOLING';
+          gemBtn.style.background = 'rgba(255,255,255,0.06)';
+          gemBtn.style.color = 'rgba(255,255,255,0.35)';
+          gemBtn.style.boxShadow = 'none';
+          gemBtn.style.cursor = 'not-allowed';
+        }
+      } else {
+        if (bannerEl) bannerEl.style.display = 'none';
+        if (coinBtn) {
+          coinBtn.disabled = false;
+          coinBtn.innerText = 'GET 🎬';
+          coinBtn.style.background = 'linear-gradient(135deg, #ffd700, #ff8800)';
+          coinBtn.style.color = 'white';
+          coinBtn.style.boxShadow = '0 3px 8px rgba(255,136,0,0.2)';
+          coinBtn.style.cursor = 'pointer';
+        }
+        if (gemBtn) {
+          gemBtn.disabled = false;
+          gemBtn.innerText = 'GET 🎬';
+          gemBtn.style.background = 'linear-gradient(135deg, #00c3ff, #0055ff)';
+          gemBtn.style.color = 'white';
+          gemBtn.style.boxShadow = '0 3px 8px rgba(0,85,255,0.2)';
+          gemBtn.style.cursor = 'pointer';
+        }
+        clearInterval(timerInterval);
+      }
+    }, 1000);
+
+    const removeOverlay = () => {
+      clearInterval(timerInterval);
+      overlay.remove();
+    };
+
     // Close button
     const closeBtn = document.getElementById('topup-close-btn');
-    if (closeBtn) closeBtn.addEventListener('click', () => overlay.remove());
+    if (closeBtn) closeBtn.addEventListener('click', removeOverlay);
     // Click outside to close
     overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) overlay.remove();
+      if (e.target === overlay) removeOverlay();
     });
 
     // Coins Watch Ad
     const coinsAdBtn = document.getElementById('topup-coins-ad-btn');
-    if (coinsAdBtn && !onCooldown) {
+    if (coinsAdBtn) {
       coinsAdBtn.addEventListener('click', () => {
-        overlay.remove();
+        if (AdManager.getEconomyCooldownRemaining() > 0) return;
+        removeOverlay();
         AdManager.showEconomyRewarded((success) => {
           if (success) {
             this.engine.progressManager.addCoins(200);
@@ -1595,9 +1649,10 @@ export class UIManager {
 
     // Gems Watch Ad
     const gemsAdBtn = document.getElementById('topup-gems-ad-btn');
-    if (gemsAdBtn && !onCooldown) {
+    if (gemsAdBtn) {
       gemsAdBtn.addEventListener('click', () => {
-        overlay.remove();
+        if (AdManager.getEconomyCooldownRemaining() > 0) return;
+        removeOverlay();
         AdManager.showEconomyRewarded((success) => {
           if (success) {
             this.engine.progressManager.addGems(10);
