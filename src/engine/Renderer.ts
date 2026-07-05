@@ -2362,57 +2362,7 @@ export class Renderer {
         }
       }
  
-      // --- Draw Heaven Celestial Structures (Premium Upgrade) ---
-      if (worldId === 'heaven') {
-        this.ctx.fillStyle = color;
-        
-        if (layer === 1) {
-          // Layer 1: Floating Cloud Castles / Shrines in the far background
-          const castleSpacing = 1000;
-          for (let x = -castleSpacing; x < width + castleSpacing; x += castleSpacing) {
-            const cx = x - (offset % castleSpacing);
-            const cy = height * 0.55 + layer * 70 - 70;
-            const finalCy = Math.round(cy - this.cameraY * (layer * 0.25));
-            
-            // Draw a floating cloud island base
-            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-            this.ctx.beginPath();
-            this.ctx.arc(cx - 30, finalCy, 25, 0, Math.PI * 2);
-            this.ctx.arc(cx + 30, finalCy, 25, 0, Math.PI * 2);
-            this.ctx.arc(cx, finalCy - 10, 35, 0, Math.PI * 2);
-            this.ctx.closePath();
-            this.ctx.fill();
- 
-            // Draw a beautiful golden temple structure on top of the cloud
-            this.ctx.fillStyle = '#ffd700'; // Pure gold columns/roof
-            
-            // Main temple base
-            this.ctx.fillRect(cx - 25, finalCy - 20, 50, 4);
-            
-            // Columns
-            this.ctx.fillRect(cx - 20, finalCy - 45, 4, 25);
-            this.ctx.fillRect(cx - 8, finalCy - 45, 4, 25);
-            this.ctx.fillRect(cx + 4, finalCy - 45, 4, 25);
-            this.ctx.fillRect(cx + 16, finalCy - 45, 4, 25);
-            
-            // Roof (Triangle pediment)
-            this.ctx.beginPath();
-            this.ctx.moveTo(cx - 28, finalCy - 45);
-            this.ctx.lineTo(cx, finalCy - 62);
-            this.ctx.lineTo(cx + 28, finalCy - 45);
-            this.ctx.closePath();
-            this.ctx.fill();
-            
-            // Subtle shining gold details/crown
-            this.ctx.fillStyle = '#ffffff';
-            this.ctx.beginPath();
-            this.ctx.arc(cx, finalCy - 62, 3, 0, Math.PI * 2);
-            this.ctx.fill();
-            
-            this.ctx.fillStyle = color; // restore
-          }
-        }
-      }
+
 
 
 
@@ -2616,8 +2566,8 @@ export class Renderer {
   }
 
   public applyAmbientLighting(worldId: string) {
-    // Skip for Twilight Horizon — the multiply blend smears moving objects
-    if (worldId === 'space') return;
+    // Skip for Twilight Horizon and Cloud Kingdom (keeps Cloud Kingdom always bright day)
+    if (worldId === 'space' || worldId === 'heaven') return;
 
     const width = this.canvas.width / this.dpr;
     const height = this.canvas.height / this.dpr;
