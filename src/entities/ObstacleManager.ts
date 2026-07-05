@@ -2429,18 +2429,12 @@ export class ObstacleManager {
           obs.shakeX2 = 0;
           
           if (spawnScoreVal >= 20 && spawnScoreVal < 40) {
-            // Animation 1: Proximity-Triggered Sliding Gates (Opens as player approaches)
-            const birdXPos = _birdX !== undefined ? _birdX : 100;
-            const dx = obs.x - birdXPos;
-            let slideOffset = 0;
-            if (dx > 0 && dx < 280) {
-              const progress = 1.0 - (dx / 280);
-              // Smooth ease-out slide
-              slideOffset = Math.sin(progress * Math.PI / 2) * 26;
-            }
-            obs.topHeight = (centerY - currentGap / 2) - slideOffset;
-            obs.bottomHeight = height - (centerY + currentGap / 2) - slideOffset;
-            isDirectHeightSet = true;
+            // Animation 1: Symmetrical Diagonal Zipper Slide (New)
+            const t = this.waveTime * 1.6 + (obs.obstacleIdx || 0) * 0.4;
+            const slide = Math.sin(t) * 16;
+            obs.shakeX = slide;
+            obs.shakeX2 = -slide;
+            verticalShift = slide * 0.6;
           } else if (spawnScoreVal >= 40 && spawnScoreVal < 60) {
             // Animation 2: Counter-Phase Pendulum Swing (Top and bottom sway in opposite directions)
             const pendulum = Math.sin(this.waveTime * 1.8 + (obs.obstacleIdx || 0) * 0.4) * 22;
@@ -2455,10 +2449,17 @@ export class ObstacleManager {
             const bounce = Math.cos(t * 2.0) * 5 * (1.0 - Math.abs(Math.tanh(stepVal * 4.0)));
             verticalShift = baseShift + bounce;
           } else if (spawnScoreVal >= 80 && spawnScoreVal <= 100) {
-            // Animation 4: Undulating Ribbon Wave (Phase-shifted top/bottom wavy path)
-            const t = this.waveTime * 1.8 + (obs.obstacleIdx || 0) * 0.5;
-            obs.topHeight = (centerY - currentGap / 2) + Math.sin(t) * 16;
-            obs.bottomHeight = height - (centerY + currentGap / 2) + Math.cos(t) * 16;
+            // Animation 4: Proximity-Triggered Sliding Gates (Shifted from 20-40)
+            const birdXPos = _birdX !== undefined ? _birdX : 100;
+            const dx = obs.x - birdXPos;
+            let slideOffset = 0;
+            if (dx > 0 && dx < 280) {
+              const progress = 1.0 - (dx / 280);
+              // Smooth ease-out slide
+              slideOffset = Math.sin(progress * Math.PI / 2) * 26;
+            }
+            obs.topHeight = (centerY - currentGap / 2) - slideOffset;
+            obs.bottomHeight = height - (centerY + currentGap / 2) - slideOffset;
             isDirectHeightSet = true;
           }
           
