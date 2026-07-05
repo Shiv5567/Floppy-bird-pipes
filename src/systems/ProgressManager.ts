@@ -592,7 +592,7 @@ export class ProgressManager {
             });
             return loadedQuests;
           })(),
-          levelModeUnlockedLevel: 1,
+          levelModeUnlockedLevel: loadedState.levelModeUnlockedLevel !== undefined ? loadedState.levelModeUnlockedLevel : 1,
           levelModeStars: loadedState.levelModeStars || {},
           powerupUpgrades: (() => {
             const u = loadedState.powerupUpgrades || { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1, double: 1 };
