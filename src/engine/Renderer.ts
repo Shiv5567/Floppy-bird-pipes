@@ -1550,6 +1550,71 @@ export class Renderer {
           }
         }
         this.ctx.restore();
+
+        // --- 5. Draw Procedural Drifting Fluffy Clouds (Dynamic Motion) ---
+        this.ctx.save();
+        const numDriftingClouds = isMobile ? 3 : 6;
+        for (let i = 0; i < numDriftingClouds; i++) {
+          const randSeed = i * 456.78;
+          const speed = 15 + (i % 3) * 10;
+          const cloudWidth = 100 + (i % 2) * 40;
+          const xStart = (Math.sin(randSeed) * 0.5 + 0.5) * width;
+          const x = (xStart + this.weatherTime * speed) % (width + cloudWidth * 2) - cloudWidth;
+          const y = height * 0.15 + (i % 4) * (height * 0.12);
+          
+          this.ctx.globalAlpha = 0.40 + (i % 3) * 0.1;
+          this.ctx.fillStyle = 'rgba(255, 255, 255, 0.82)';
+          
+          this.ctx.beginPath();
+          this.ctx.arc(x, y, 20, Math.PI * 0.5, Math.PI * 1.5);
+          this.ctx.arc(x + 15, y - 15, 25, Math.PI, Math.PI * 2);
+          this.ctx.arc(x + 45, y - 15, 30, Math.PI * 1.2, Math.PI * 2);
+          this.ctx.arc(x + 75, y, 22, Math.PI * 1.5, Math.PI * 0.5);
+          this.ctx.lineTo(x, y + 20);
+          this.ctx.closePath();
+          this.ctx.fill();
+        }
+        this.ctx.restore();
+
+        // --- 6. Draw Falling Angelic Golden & White Feathers (Dynamic Motion) ---
+        this.ctx.save();
+        const numFeathers = isMobile ? 4 : 8;
+        for (let i = 0; i < numFeathers; i++) {
+          const randSeed = i * 987.65;
+          const xStart = (Math.cos(randSeed) * 0.5 + 0.5) * width;
+          const fallSpeed = 25 + (i % 4) * 8;
+          const swaySpeed = 1.3 + (i % 3) * 0.6;
+          const swayWidth = 20 + (i % 2) * 12;
+          
+          const yDist = (this.weatherTime * fallSpeed) % (height + 100);
+          const y = (yDist - 50);
+          const x = xStart + Math.sin(this.weatherTime * swaySpeed + randSeed) * swayWidth;
+          
+          const angle = Math.sin(this.weatherTime * swaySpeed + randSeed) * 0.35;
+          
+          this.ctx.save();
+          this.ctx.translate(x, y);
+          this.ctx.rotate(angle);
+          this.ctx.globalAlpha = 0.45 + (i % 3) * 0.15;
+          this.ctx.fillStyle = i % 2 === 0 ? '#ffd700' : '#ffffff';
+          
+          this.ctx.beginPath();
+          this.ctx.moveTo(0, -12);
+          this.ctx.bezierCurveTo(-6, -6, -8, 2, 0, 12);
+          this.ctx.bezierCurveTo(8, 2, 6, -6, 0, -12);
+          this.ctx.closePath();
+          this.ctx.fill();
+          
+          this.ctx.strokeStyle = i % 2 === 0 ? '#ffffff' : '#ffd700';
+          this.ctx.lineWidth = 0.8;
+          this.ctx.beginPath();
+          this.ctx.moveTo(0, -12);
+          this.ctx.lineTo(0, 15);
+          this.ctx.stroke();
+          
+          this.ctx.restore();
+        }
+        this.ctx.restore();
         break;
       }
       case 'desert': {

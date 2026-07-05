@@ -6890,13 +6890,17 @@ export class ObstacleManager {
       const wingWidth = 18;
       const wingY = y + (24 - wingHeight) / 2;
       
+      // Calculate active wing flapping/folding based on time
+      const timeFactor = performance.now() * 0.005 + (rx * 0.03) + (y * 0.02);
+      const flapAmt = Math.sin(timeFactor) * 4.5;
+      
       // Left Wing
       ctx.beginPath();
       ctx.moveTo(rx - 8, wingY + wingHeight * 0.5);
-      // Curve outward and up
+      // Curve outward and up (adjust control points with flapAmt)
       ctx.bezierCurveTo(
-        rx - 8 - wingWidth, wingY - 8,
-        rx - 8 - wingWidth * 1.5, wingY + wingHeight * 0.1,
+        rx - 8 - wingWidth, wingY - 8 + flapAmt,
+        rx - 8 - wingWidth * 1.5, wingY + wingHeight * 0.1 + flapAmt,
         rx - 8 - wingWidth * 0.8, wingY + wingHeight * 0.8
       );
       // Curve back down and in
@@ -6912,10 +6916,10 @@ export class ObstacleManager {
       // Right Wing
       ctx.beginPath();
       ctx.moveTo(rx + rw + 8, wingY + wingHeight * 0.5);
-      // Curve outward and up
+      // Curve outward and up (mirror the flapAmt)
       ctx.bezierCurveTo(
-        rx + rw + 8 + wingWidth, wingY - 8,
-        rx + rw + 8 + wingWidth * 1.5, wingY + wingHeight * 0.1,
+        rx + rw + 8 + wingWidth, wingY - 8 + flapAmt,
+        rx + rw + 8 + wingWidth * 1.5, wingY + wingHeight * 0.1 + flapAmt,
         rx + rw + 8 + wingWidth * 0.8, wingY + wingHeight * 0.8
       );
       // Curve back down and in
