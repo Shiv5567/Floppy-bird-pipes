@@ -1283,46 +1283,7 @@ export class Renderer {
           this.ctx.arc(sunX, sunY, 20, 0, Math.PI * 2);
           this.ctx.fill();
 
-          // 5. Blazing Cinematic Lens Flares along the diagonal vector
-          const dx = width / 2 - sunX;
-          const dy = height / 2 - sunY;
-
-          // Lens Flare A: Cyan glowing ring
-          const fx1 = sunX + dx * 0.45;
-          const fy1 = sunY + dy * 0.45;
-          const flareGlow1 = this.ctx.createRadialGradient(fx1, fy1, 0, fx1, fy1, 40);
-          flareGlow1.addColorStop(0, 'rgba(14, 165, 233, 0.1)');
-          flareGlow1.addColorStop(0.7, 'rgba(14, 165, 233, 0.04)');
-          flareGlow1.addColorStop(1, 'rgba(0, 0, 0, 0)');
-          this.ctx.fillStyle = flareGlow1;
-          this.ctx.beginPath();
-          this.ctx.arc(fx1, fy1, 40, 0, Math.PI * 2);
-          this.ctx.fill();
-
-          // Lens Flare B: Soft Yellow/White medium disc (70% reduced yellow deepness)
-          const fx2 = sunX + dx * 0.9;
-          const fy2 = sunY + dy * 0.9;
-          const flareGlow2 = this.ctx.createRadialGradient(fx2, fy2, 0, fx2, fy2, 22);
-          flareGlow2.addColorStop(0, 'rgba(254, 249, 195, 0.05)');
-          flareGlow2.addColorStop(0.7, 'rgba(254, 249, 195, 0.015)');
-          flareGlow2.addColorStop(1, 'rgba(0, 0, 0, 0)');
-          this.ctx.fillStyle = flareGlow2;
-          this.ctx.beginPath();
-          this.ctx.arc(fx2, fy2, 22, 0, Math.PI * 2);
-          this.ctx.fill();
-
-          // Lens Flare C: Soft Violet giant halo
-          const fx3 = sunX + dx * 1.4;
-          const fy3 = sunY + dy * 1.4;
-          const flareGlow3 = this.ctx.createRadialGradient(fx3, fy3, 0, fx3, fy3, 60);
-          flareGlow3.addColorStop(0, 'rgba(168, 85, 247, 0.08)');
-          flareGlow3.addColorStop(0.8, 'rgba(168, 85, 247, 0.02)');
-          flareGlow3.addColorStop(1, 'rgba(0, 0, 0, 0)');
-          this.ctx.fillStyle = flareGlow3;
-          this.ctx.beginPath();
-          this.ctx.arc(fx3, fy3, 60, 0, Math.PI * 2);
-          this.ctx.fill();
-          
+          // Lens flares removed to eliminate large blurry circle artifacts from the screen
           this.ctx.restore();
         }
 
