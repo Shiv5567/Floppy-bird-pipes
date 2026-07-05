@@ -2984,17 +2984,17 @@ export class UIManager {
         <!-- ===== HEADER BAR ===== -->
         <div class="menu-top-bar" style="position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: calc(16px + env(safe-area-inset-top, 0px)) 16px 8px 16px; z-index: 100;">
           <div class="top-bar-currencies" style="display: flex; gap: 10px;">
-            <div class="top-bar-coin" id="btn-coin-topup-revive" style="position: relative; cursor: pointer; background: rgba(0,0,0,0.5); padding: 6px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; font-weight: 800; font-size: 14px; color: #fff;">
+            <div class="top-bar-coin" id="btn-coin-topup-revive" style="position: relative; background: rgba(0,0,0,0.5); padding: 6px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; font-weight: 800; font-size: 14px; color: #fff;">
               <span class="top-bar-coin-icon" style="width: 19px; height: 19px; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; margin-right: 4px;">
                 ${this.getCoinIconSvg('19px', '19px', '', 'topbar-revive')}
               </span>
               <span>${progress.coins.toLocaleString()}</span>
-              <button class="top-bar-add-btn" id="btn-plus-coins-revive" style="margin-left: 8px; width: 18px; height: 18px; font-size: 11px;" title="Watch ad for +6000 Coins">+</button>
+              <button class="top-bar-add-btn" id="btn-plus-coins-revive" style="margin-left: 8px; width: 18px; height: 18px; font-size: 11px;" title="Watch ad for +200 Coins">+</button>
             </div>
-            <div class="top-bar-gem" id="btn-gem-topup-revive" style="position: relative; cursor: pointer; background: rgba(0,0,0,0.5); padding: 6px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; font-weight: 800; font-size: 14px; color: #fff;">
+            <div class="top-bar-gem" id="btn-gem-topup-revive" style="position: relative; background: rgba(0,0,0,0.5); padding: 6px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; font-weight: 800; font-size: 14px; color: #fff;">
               <span class="top-bar-gem-icon" style="margin-right: 4px;">💎</span>
               <span>${progress.gems.toLocaleString()}</span>
-              <button class="top-bar-add-btn" id="btn-plus-gems-revive" style="margin-left: 8px; width: 18px; height: 18px; font-size: 11px;" title="Watch ad for +200 Gems">+</button>
+              <button class="top-bar-add-btn" id="btn-plus-gems-revive" style="margin-left: 8px; width: 18px; height: 18px; font-size: 11px;" title="Watch ad for +10 Gems">+</button>
             </div>
           </div>
         </div>
@@ -3107,20 +3107,45 @@ export class UIManager {
 
     // Bind Topup events for the revive screen header bar
     const sm = this.engine.soundManager;
-    const handleTopup = () => {
-      sm.playUIClick();
-      this.showTopupPopup();
-    };
-    document.getElementById('btn-coin-topup-revive')?.addEventListener('click', handleTopup);
-    document.getElementById('btn-gem-topup-revive')?.addEventListener('click', handleTopup);
-    document.getElementById('btn-plus-coins-revive')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      handleTopup();
-    });
-    document.getElementById('btn-plus-gems-revive')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      handleTopup();
-    });
+    // Plus coins button: plays ad directly and rewards 200 coins
+    const btnPlusCoinsReviveEl = document.getElementById('btn-plus-coins-revive');
+    if (btnPlusCoinsReviveEl) {
+      btnPlusCoinsReviveEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sm.playUIClick();
+        AdManager.showEconomyRewarded((success) => {
+          if (success) {
+            this.engine.progressManager.addCoins(200);
+            this.engine.progressManager.updateQuestProgress('watch_ads', 1);
+            this.engine.progressManager.save();
+            this.render();
+            this.showToastNotification('REWARDS CLAIMED!', 'You received 200 Coins!');
+          } else {
+            this.showToastNotification('AD FAILED', 'Failed to play or watch ad.');
+          }
+        });
+      });
+    }
+
+    // Plus gems button: plays ad directly and rewards 10 gems
+    const btnPlusGemsReviveEl = document.getElementById('btn-plus-gems-revive');
+    if (btnPlusGemsReviveEl) {
+      btnPlusGemsReviveEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sm.playUIClick();
+        AdManager.showEconomyRewarded((success) => {
+          if (success) {
+            this.engine.progressManager.addGems(10);
+            this.engine.progressManager.updateQuestProgress('watch_ads', 1);
+            this.engine.progressManager.save();
+            this.render();
+            this.showToastNotification('REWARDS CLAIMED!', 'You received 10 Gems!');
+          } else {
+            this.showToastNotification('AD FAILED', 'Failed to play or watch ad.');
+          }
+        });
+      });
+    }
   }
 
   private renderLevelComplete() {
