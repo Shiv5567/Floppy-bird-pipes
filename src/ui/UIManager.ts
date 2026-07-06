@@ -2722,7 +2722,7 @@ export class UIManager {
           <div class="run-stats" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; font-weight: 800; font-size: 13px; pointer-events: auto;">
             <span class="stat-badge" style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); width: fit-content; margin-bottom: 0;">🟡 ${this.engine.coinsCollectedThisRun}</span>
             <span class="stat-badge" style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); width: fit-content; margin-bottom: 0;">💎 ${this.engine.gemsCollectedThisRun}</span>
-            ${(this.engine.progressManager.getState().selectedZone === 'chaos' && this.engine.gameMode !== 'flock') ? `
+            ${(this.engine.progressManager.getState().selectedZone === 'chaos' && this.engine.gameMode === 'endless') ? `
               <span class="stat-badge" style="background: rgba(0,255,100,0.12); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(0,255,100,0.3); width: fit-content; margin-bottom: 0; color: #00ff64; text-shadow: 0 0 5px #00ff64; font-weight: 900;">☣️ ${this.engine.destroyedPipesCount}</span>
             ` : ''}
             ${(this.engine.gameMode === 'flock') ? `
