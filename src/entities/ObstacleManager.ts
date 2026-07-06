@@ -7022,17 +7022,29 @@ export class ObstacleManager {
       const gameEngine = (window as any).gameEngine;
       const isVolcano = gameEngine && gameEngine.progressManager && gameEngine.progressManager.getState().activeWorld === 'volcano';
       
+      const isChaos = gameEngine && gameEngine.progressManager && gameEngine.progressManager.getState().selectedZone === 'chaos';
+
       // Set up deep glowing shadow for 3D depth (reduced by 30% if not volcano)
       if (!(window as any).gameDisableShadows) {
         ctx.shadowColor = '#ff0000';
-        ctx.shadowBlur = isVolcano ? 12 : 8.4;
+        let blurVal = isVolcano ? 12 : 8.4;
+        if (isChaos) {
+          blurVal *= 0.80; // 20% reduction in deepness/glowing shadow
+        }
+        ctx.shadowBlur = blurVal;
       }
       
       // Draw a pulsing crimson warning border (reduced by 30% in thickness and opacity if not volcano)
       const pulse = 0.5 + 0.5 * Math.sin(performance.now() * 0.007);
-      const borderThickness = (isVolcano ? 3.9 : 2.7) * 1.2;
-      const minOpacity = isVolcano ? 0.65 : 0.45;
-      const maxOpacityOffset = isVolcano ? 0.35 : 0.55;
+      let borderThickness = (isVolcano ? 3.9 : 2.7) * 1.2;
+      let minOpacity = isVolcano ? 0.65 : 0.45;
+      let maxOpacityOffset = isVolcano ? 0.35 : 0.55;
+
+      if (isChaos) {
+        borderThickness *= 0.80; // 20% reduction in thickness
+        minOpacity *= 0.80;        // 20% reduction in color opacity
+        maxOpacityOffset *= 0.80;  // 20% reduction in pulse amplitude
+      }
       
       ctx.strokeStyle = `rgba(255, 0, 0, ${minOpacity + pulse * maxOpacityOffset})`;
       ctx.lineWidth = borderThickness;
