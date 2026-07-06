@@ -3499,7 +3499,7 @@ export class ObstacleManager {
       } else if (patternType === 'level2_diamond') {
         // LEVEL 2: "The Wave Gauntlet" - Widened gaps and reduced wave shifts
         if (groupIdx === 1) {
-          localGapHeight = Math.round((gapHeight + 15) * 1.25);
+          localGapHeight = Math.round((gapHeight + 15) * 1.50); // Increased by 20% (1.25 * 1.20 = 1.50)
           targetCenterY = height / 2;
         } else if (groupIdx === 2) {
           // Group 3: "Funneling Spiral Tunnel" - gradual and wide tunnel
