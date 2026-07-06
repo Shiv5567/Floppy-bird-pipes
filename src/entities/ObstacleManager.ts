@@ -5486,7 +5486,22 @@ export class ObstacleManager {
 
           // Map slot to actual style: slots 0,1,2 → styleIdx 0,1,3; slot 3 → 3D pillars
           const slotToStyle = [0, 1, 3]; // slots 0-2
-          if (styleSlot === 3) {
+          
+          const isMobile = (window as any).gameIsMobile || false;
+          if (isMobile) {
+            // Force ultra-performance lightweight structured pillars on mobile devices to solve lag completely
+            switch (obs.worldId) {
+              case 'jungle': this.drawStructuredJunglePillars(ctx, obs, height); break;
+              case 'ice': this.drawStructuredIcePillars(ctx, obs, height); break;
+              case 'desert': this.drawStructuredDesertPillars(ctx, obs, height); break;
+              case 'volcano': this.drawStructuredVolcanoPillars(ctx, obs, height); break;
+              case 'space': this.drawStructuredSpaceObstacles(ctx, obs, height); break;
+              case 'underwater': this.drawStructuredUnderwaterPillars(ctx, obs, height); break;
+              case 'heaven': this.drawStructuredHeavenPillars(ctx, obs, height); break;
+              case 'retro': this.drawStructuredRetroPillars(ctx, obs, height); break;
+              default: this.drawStructuredDefaultPillars(ctx, obs, height); break;
+            }
+          } else if (styleSlot === 3) {
             // 3D Pillars
             this.draw3DPillars(ctx, obs, height);
           } else {

@@ -50,7 +50,7 @@ export class Renderer {
 
   public resize() {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 1024;
-    const maxDpr = isMobile ? 1.15 : 2.0; // Enforce lower DPR on mobile for ultra smooth performance (reduces pixel counts by ~3-4x)
+    const maxDpr = isMobile ? 1.0 : 2.0; // Enforce lower DPR on mobile for ultra smooth performance (reduces pixel counts by ~3-4x)
     this.dpr = Math.min(maxDpr, window.devicePixelRatio || 1);
     const rect = this.canvas.getBoundingClientRect();
     this.canvas.width = rect.width * this.dpr;
@@ -288,8 +288,9 @@ export class Renderer {
     // Cap the spawn delta-time at 60fps (~0.016s) to completely avoid lag death spirals and particle bursts during performance spikes
     const spawnDelta = Math.min(0.016, deltaTime);
     const rateCoeff = spawnDelta * this.weather.density;
-    const isPerformanceMode = (window as any).gameDisableShadows;
-    const spawnRate = isPerformanceMode ? rateCoeff * 0.12 : rateCoeff * 0.3;
+    const isMobile = (window as any).gameIsMobile || false;
+    const isPerformanceMode = (window as any).gameDisableShadows || false;
+    const spawnRate = isMobile ? rateCoeff * 0.03 : (isPerformanceMode ? rateCoeff * 0.12 : rateCoeff * 0.3);
     if (Math.random() < spawnRate) {
       switch (this.weather.type) {
         case 'rain': {
@@ -2335,7 +2336,7 @@ export class Renderer {
     
     // 3 separate layers of hills / city silhouettes
     for (let layer = 1; layer <= 3; layer++) {
-      if (worldId === 'ice' && layer === 1) continue; // Remove furthest static mountain layer
+      if ((worldId === 'ice' && layer === 1) || (isMobile && layer === 1)) continue; // Skip furthest static mountain layer (ice world or mobile)
       this.ctx.save();
       const offset = this.offsets[layer];
       const color = this.getLayerColor(worldId, layer);
