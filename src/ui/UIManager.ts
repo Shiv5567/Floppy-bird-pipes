@@ -2925,6 +2925,7 @@ export class UIManager {
 
     document.getElementById('btn-restart-paused')?.addEventListener('click', () => {
       this.engine.soundManager.playUIClick();
+      this.engine.confirmGameOver(); // Save score and progress!
       AdManager.onTransitionPoint();
       this.engine.startGame();
       this.render();

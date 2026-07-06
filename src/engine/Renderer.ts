@@ -217,7 +217,7 @@ export class Renderer {
 
     const isChaosMode = gameEngine && gameEngine.progressManager && gameEngine.progressManager.getState().selectedZone === 'chaos';
     if (isChaosMode) {
-      targetZoom *= 0.80; // 20% zoom out (scale to 80%) for Mayhem mode
+      targetZoom *= 1.15; // 15% zoom in (scale to 115%) for Mayhem mode
     }
 
     // Hard-lock zoom to 1.0 in performance mode, otherwise smoothly interpolate (allow zoom in flock mode, boss fight, Hummingbird ultimate, and Chaos mode)

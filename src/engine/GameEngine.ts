@@ -675,6 +675,7 @@ export class GameEngine {
           const pointsToAdd = Math.floor(this.boosterScoreAccumulator);
           this.boosterScoreAccumulator -= pointsToAdd;
           this.score += pointsToAdd;
+          this.progressManager.addScore(this.score, this.gameMode);
           this.boosterTimer -= pointsToAdd; // Decrement obstacle counter
           this.particleEngine.emitCoinSparkle(this.bird.x + 30, this.bird.y, '#ffd700');
         }
@@ -735,6 +736,7 @@ export class GameEngine {
           const pointsToReallyAdd = Math.min(pointsToAdd, 20 - this.falconObstaclesPassed);
           if (pointsToReallyAdd > 0) {
             this.score += pointsToReallyAdd;
+            this.progressManager.addScore(this.score, this.gameMode);
             this.falconObstaclesPassed += pointsToReallyAdd;
             this.particleEngine.emitCoinSparkle(this.bird.x + 30, this.bird.y, '#00f3ff');
           }
@@ -1690,6 +1692,7 @@ export class GameEngine {
       multiplier *= 2; // Legendary Eagle King gets 2x score only when ultimate is active!
     }
     this.score += amt * multiplier;
+    this.progressManager.addScore(this.score, this.gameMode);
     
     // Trigger earthquake every 20 obstacles in Chaos Mode (Squad Mode only)
     if (this.progressManager.getState().selectedZone === 'chaos' && this.gameMode === 'flock') {

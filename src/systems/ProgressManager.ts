@@ -325,32 +325,40 @@ export class ProgressManager {
   }
 
   public addScore(score: number, gameMode?: 'endless' | 'level' | 'flock' | 'chaos') {
+    let hasChanged = false;
     if (gameMode === 'flock') {
       if (!this.state.highscoreSquad) this.state.highscoreSquad = 0;
       if (score > this.state.highscoreSquad) {
         this.state.highscoreSquad = score;
+        hasChanged = true;
       }
     } else if (gameMode === 'endless') {
       if (this.state.selectedZone === 'chaos') {
         if (!this.state.highscoreChaos) this.state.highscoreChaos = 0;
         if (score > this.state.highscoreChaos) {
           this.state.highscoreChaos = score;
+          hasChanged = true;
         }
       } else {
         if (!this.state.highscoreClassic) this.state.highscoreClassic = 0;
         if (score > this.state.highscoreClassic) {
           this.state.highscoreClassic = score;
+          hasChanged = true;
         }
         if (score > this.state.highscore) {
           this.state.highscore = score;
+          hasChanged = true;
         }
       }
     } else {
       if (score > this.state.highscore) {
         this.state.highscore = score;
+        hasChanged = true;
       }
     }
-    this.save();
+    if (hasChanged) {
+      this.save();
+    }
   }
 
   public buySkin(id: string): { success: boolean; msg: string } {
