@@ -2023,6 +2023,7 @@ export class GameEngine {
 
   // Trigger the Hyper Booster Ability (1s duration, passes 50 obstacles, 1s cooldown)
   public triggerBooster() {
+    if (this.gameMode === 'flock') return; // Deactivated in flock mode!
     if (this.state !== 'PLAYING' && this.state !== 'BOSS_FIGHT' && this.state !== 'BOSS_WARNING') return;
     if (this.boosterActive || this.boosterDeactivating) return;
     if (this.boosterSpawnTimer > 0) return; // Must be cooled down

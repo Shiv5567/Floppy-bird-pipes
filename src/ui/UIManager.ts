@@ -2486,7 +2486,7 @@ export class UIManager {
     }
 
     let boosterBtnHTML = '';
-    if (this.engine.gameMode !== 'level' && this.engine.gameMode !== 'endless') {
+    if (this.engine.gameMode !== 'level' && this.engine.gameMode !== 'endless' && this.engine.gameMode !== 'flock') {
       const bTimer = this.engine.boosterSpawnTimer;
       const bReady = bTimer <= 0;
       const bPercent = Math.min(100, Math.floor((1 - bTimer / 1.0) * 100));
