@@ -220,8 +220,14 @@ export class Renderer {
       targetZoom *= 1.15; // 15% zoom in (scale to 115%) for Mayhem mode
     }
 
-    // Hard-lock zoom to 1.0 in performance mode, otherwise smoothly interpolate (allow zoom in flock mode, boss fight, Hummingbird ultimate, and Chaos mode)
-    if (isPerformanceMode && !isFlockMode && gameState !== 'BOSS_FIGHT' && !isJadeLotusUltimate && !isChaosMode) {
+    const isSoloMode = gameEngine && gameEngine.gameMode === 'endless' && gameEngine.progressManager && gameEngine.progressManager.getState().selectedZone !== 'chaos';
+    if (isSoloMode || isFlockMode) {
+      targetZoom *= 1.20; // 20% zoom in for Solo and Flock modes
+    }
+
+    // Hard-lock zoom to 1.0 in performance mode, otherwise smoothly interpolate (allow zoom in flock mode, boss fight, Hummingbird ultimate, Chaos mode, and Solo mode)
+    const isZoomAllowed = isFlockMode || isChaosMode || isSoloMode || isJadeLotusUltimate || gameState === 'BOSS_FIGHT';
+    if (isPerformanceMode && !isZoomAllowed) {
       this.zoomFactor = 1.0;
     } else {
       this.zoomFactor += (targetZoom - this.zoomFactor) * 0.08 * (deltaTime * 60);
