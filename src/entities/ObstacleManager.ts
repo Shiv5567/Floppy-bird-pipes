@@ -3509,6 +3509,9 @@ export class ObstacleManager {
         } else {
           // Group 1: Gentle wave pattern with wide gaps
           localGapHeight = gapHeight + 10;
+          if (idxInGroup >= 10 && idxInGroup < 20) {
+            localGapHeight = Math.round(localGapHeight * 1.20); // 20% increase for the second sub-group (obstacles 10-19)
+          }
           const baseCenterY = height / 2 + Math.sin(idxInGroup * 0.28) * 45;
 
           // Alternating gap shift every 10 obstacles with a smooth transition over 3 obstacles
