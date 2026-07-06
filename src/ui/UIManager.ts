@@ -2199,7 +2199,7 @@ export class UIManager {
         if (!world) return;
 
         if (world.unlocked) {
-          sm.playUISelect();
+          sm.playWorldSelect(id);
           this.engine.progressManager.setWorld(id);
           this.engine.renderer.setWeather(id);
           this.activeTab = 'main';

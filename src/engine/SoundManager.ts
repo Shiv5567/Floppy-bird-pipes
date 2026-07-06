@@ -431,6 +431,89 @@ export class SoundManager {
     });
   }
 
+  /** Unique themed sound effect when a world is selected */
+  public playWorldSelect(worldId: string) {
+    if (!this.checkThrottle('world_select')) return;
+    this.ensureContextActive();
+    if (!this.ctx || this.isMuted) return;
+    const t = this.ctx.currentTime;
+    const vol = this.sfxVolume * 1.5;
+    const dest = this.masterVolumeNode || this.ctx.destination;
+
+    if (worldId === 'jungle') {
+      // Jungle: Woodblock / Forest chime sound
+      const osc = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(450, t);
+      osc.frequency.exponentialRampToValueAtTime(800, t + 0.12);
+      g.gain.setValueAtTime(0.3 * vol, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+      osc.connect(g); g.connect(dest);
+      osc.start(t); osc.stop(t + 0.22);
+    } else if (worldId === 'volcano') {
+      // Volcano: Lava rumbling sweep
+      const osc = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(80, t);
+      osc.frequency.linearRampToValueAtTime(45, t + 0.25);
+      g.gain.setValueAtTime(0.45 * vol, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+      osc.connect(g); g.connect(dest);
+      osc.start(t); osc.stop(t + 0.32);
+    } else if (worldId === 'space') {
+      // Space: Sci-fi laser synthesizer sweep
+      const osc = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(300, t);
+      osc.frequency.exponentialRampToValueAtTime(1400, t + 0.18);
+      g.gain.setValueAtTime(0.28 * vol, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+      osc.connect(g); g.connect(dest);
+      osc.start(t); osc.stop(t + 0.27);
+    } else if (worldId === 'heaven') {
+      // Heaven: Ascending crystal bell chime (C6 -> E6 -> G6)
+      [[1046.50, 0.0], [1318.51, 0.08], [1567.98, 0.16]].forEach(([freq, delay]) => {
+        const osc = this.ctx!.createOscillator();
+        const g = this.ctx!.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t + delay);
+        g.gain.setValueAtTime(0.001, t + delay);
+        g.gain.linearRampToValueAtTime(0.2 * vol, t + delay + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.25);
+        osc.connect(g); g.connect(dest);
+        osc.start(t + delay); osc.stop(t + delay + 0.28);
+      });
+    } else if (worldId === 'ice') {
+      // Ice: Cracking ice chime sound
+      const osc = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(1800, t);
+      osc.frequency.exponentialRampToValueAtTime(900, t + 0.15);
+      g.gain.setValueAtTime(0.22 * vol, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+      osc.connect(g); g.connect(dest);
+      osc.start(t); osc.stop(t + 0.24);
+    } else if (worldId === 'desert') {
+      // Desert: Mystical wind pipe tone
+      const osc = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(380, t);
+      osc.frequency.linearRampToValueAtTime(320, t + 0.25);
+      g.gain.setValueAtTime(0.001, t);
+      g.gain.linearRampToValueAtTime(0.25 * vol, t + 0.08);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+      osc.connect(g); g.connect(dest);
+      osc.start(t); osc.stop(t + 0.3);
+    } else {
+      this.playUISelect();
+    }
+  }
+
   /** Premium back: descending thud + soft sweep */
   public playUIBack() {
     if (!this.checkThrottle('ui_back')) return;
