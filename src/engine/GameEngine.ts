@@ -633,6 +633,10 @@ export class GameEngine {
             if (this.gameMode === 'endless' && this.score >= 1 && this.score <= 50) {
               this.scrollSpeed *= 0.93; // 7% reduction
             }
+            const isChaos = this.gameMode === 'endless' && this.progressManager.getState().selectedZone === 'chaos';
+            if (isChaos) {
+              this.scrollSpeed *= 0.95; // 5% reduction for Mayhem mode
+            }
             // Squad mode scroll speed progression:
             // - Score 500 to 1000: up to +20% speed (at 1000)
             // - Score >= 1000: +3% speed for every 50 points of score increment (endless)
