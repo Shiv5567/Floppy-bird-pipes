@@ -2953,7 +2953,7 @@ export class UIManager {
 
     const goHTML = `
       <div class="overlay-screen fade-in glass-modal" style="display: flex; align-items: center; justify-content: center;">
-        <div style="transform: scale(0.67) translateY(-20%); transform-origin: bottom center; width: 100%; display: flex; justify-content: center;">
+        <div style="transform: scale(0.67) translateY(-40%); transform-origin: bottom center; width: 100%; display: flex; justify-content: center;">
           <div class="modal-card gameover-card animate-slide-up">
             <div class="skull-badge">💥</div>
             <h2 class="modal-title warning-text">CRASHED!</h2>
@@ -3037,7 +3037,7 @@ export class UIManager {
           </div>
         </div>
 
-        <div style="transform: scale(0.82, 0.67) translateY(-10%); transform-origin: bottom center; width: 100%; display: flex; justify-content: center; z-index: 10;">
+        <div style="transform: scale(0.82, 0.67) translateY(-30%); transform-origin: bottom center; width: 100%; display: flex; justify-content: center; z-index: 10;">
           <div style="background: rgba(20,20,30,0.28) !important; backdrop-filter: blur(11.2px) !important; -webkit-backdrop-filter: blur(11.2px) !important; border: 1px solid rgba(255,255,255,0.07) !important; border-radius: 24px; padding: 40px 32px; text-align: center; width: 95%; max-width: 911px; box-shadow: 0 20px 40px rgba(0,0,0,0.35) !important; animation: slideUp 0.3s ease-out; position: relative;">
             
             <button id="btn-home-revive" style="position: absolute; left: 20px; top: 20px; font-size: 14px; color: #fff; font-weight: 800; background: rgba(0,0,0,0.55); border: 1.5px solid rgba(255,255,255,0.15); border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 20px; height: 50px; min-width: 90px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: all 0.2s; font-family: 'Outfit', sans-serif;" title="Return to Menu">
