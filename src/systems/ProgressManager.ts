@@ -520,7 +520,7 @@ export class ProgressManager {
 
   public load() {
     try {
-      const forceResetKey = 'legends_progression_reset_v4';
+      const forceResetKey = 'legends_progression_reset_v5';
       if (!localStorage.getItem(forceResetKey)) {
         localStorage.setItem(forceResetKey, 'true');
         this.fullReset();
