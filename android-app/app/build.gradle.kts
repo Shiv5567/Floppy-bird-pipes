@@ -10,8 +10,8 @@ android {
         applicationId = "com.advance.flappylegends"
         minSdk = 24
         targetSdk = 36
-        versionCode = 4
-        versionName = "1.1.3"
+        versionCode = 5
+        versionName = "1.1.4"
     }
 
     layout.buildDirectory.set(file("C:/Users/Admin/.gemini/antigravity-ide/scratch/build-app"))
