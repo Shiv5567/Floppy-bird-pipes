@@ -206,8 +206,9 @@ export class Renderer {
 
     const gameEngine = (window as any).gameEngine;
     const isFlockMode = gameEngine && (gameEngine.gameMode === 'flock');
-    if (isFlockMode) {
-      targetZoom *= 0.96; // Zoom out by 4% in squad mode!
+    const isSoloMode = gameEngine && gameEngine.gameMode === 'endless' && gameEngine.progressManager && gameEngine.progressManager.getState().selectedZone !== 'chaos';
+    if (isSoloMode || isFlockMode) {
+      targetZoom *= 1.06; // 6% zoom in (a little bit zoom in) for both Solo and Flock modes
     }
 
     const isJadeLotusUltimate = gameEngine && gameEngine.ultimateActive && gameEngine.bird && gameEngine.bird.getSkin().id === 'jade_lotus';
@@ -220,8 +221,8 @@ export class Renderer {
       targetZoom *= 0.80; // 20% zoom out (scale to 80%) for Mayhem mode
     }
 
-    // Hard-lock zoom to 1.0 in performance mode, otherwise smoothly interpolate (allow zoom in flock mode, boss fight, Hummingbird ultimate, and Chaos mode)
-    const isZoomAllowed = isFlockMode || isChaosMode || isJadeLotusUltimate || gameState === 'BOSS_FIGHT';
+    // Hard-lock zoom to 1.0 in performance mode, otherwise smoothly interpolate (allow zoom in flock mode, boss fight, Hummingbird ultimate, Chaos mode, and Solo mode)
+    const isZoomAllowed = isFlockMode || isChaosMode || isJadeLotusUltimate || gameState === 'BOSS_FIGHT' || isSoloMode;
     if (isPerformanceMode && !isZoomAllowed) {
       this.zoomFactor = 1.0;
     } else {
