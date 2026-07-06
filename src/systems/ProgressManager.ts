@@ -565,6 +565,14 @@ export class ProgressManager {
           localStorage.removeItem('flight_of_legends_chest_3_claims');
           localStorage.setItem(chestsResetKey, 'true');
         }
+
+        // One-time skins reset to lock all characters except default
+        const skinsLockResetKey = 'flight_of_legends_skins_lock_reset_v1';
+        if (!localStorage.getItem(skinsLockResetKey)) {
+          loadedState.unlockedSkins = ['default'];
+          loadedState.activeSkin = 'default';
+          localStorage.setItem(skinsLockResetKey, 'true');
+        }
         
         // Setup initial structure defaults to handle back-compat updates
         this.state = {
