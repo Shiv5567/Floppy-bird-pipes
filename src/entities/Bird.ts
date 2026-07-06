@@ -235,6 +235,11 @@ export class Bird {
     // Size scaling - Apply skin passive & active ultimate size overrides
     let baseSizeMult = 1.0;
 
+    const isChaos = engine && engine.gameMode === 'endless' && engine.progressManager && engine.progressManager.getState().selectedZone === 'chaos';
+    if (isChaos) {
+      baseSizeMult *= 1.10; // 10% size increase for Mayhem mode
+    }
+
     if (engine && engine.activePowerupsList['mini']) {
       this.sizeMultiplier = 0.55;
     } else if (engine && engine.ultimateActive && this.activeSkin.id === 'default') {
