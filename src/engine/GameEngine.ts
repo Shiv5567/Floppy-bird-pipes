@@ -173,8 +173,8 @@ export class GameEngine {
     this.renderer.setWeather(this.progressManager.getState().activeWorld);
 
     // Initialize global performance detector to bypass expensive shadow blurs
-    // ALWAYS disable canvas shadows by default on ALL devices (PC and mobile) to solve lag completely
-    (window as any).gameDisableShadows = true;
+    const savedShadowsSetting = localStorage.getItem('game_disable_shadows');
+    (window as any).gameDisableShadows = savedShadowsSetting !== null ? (savedShadowsSetting === 'true') : true;
     (window as any).gameEngine = this;
   }
 
@@ -779,7 +779,7 @@ export class GameEngine {
           // Blade rotates continuously
           if (this.weaponType === 'blade') {
             this.bladeRotation += dt * 10;
-            const bladeRadius = 55 + this.weaponLevel * 10;
+            const bladeRadius = (55 + this.weaponLevel * 10) * 1.35;
             const bx = this.bird.x;
             const by = this.bird.y;
             const obstaclesList = this.obstacleManager.getList();
@@ -1694,8 +1694,8 @@ export class GameEngine {
     this.score += amt * multiplier;
     this.progressManager.addScore(this.score, this.gameMode);
     
-    // Trigger earthquake every 20 obstacles in Chaos Mode (Squad Mode only)
-    if (this.progressManager.getState().selectedZone === 'chaos' && this.gameMode === 'flock') {
+    // Trigger earthquake every 20 obstacles in Chaos Mode (Mayhem Mode)
+    if (this.progressManager.getState().selectedZone === 'chaos' && this.gameMode !== 'flock') {
       this.chaosObstaclesPassed += amt;
       if (this.chaosObstaclesPassed >= 20) {
         this.chaosObstaclesPassed = 0;
@@ -2222,8 +2222,8 @@ export class GameEngine {
         
         const groupIdx = Math.floor((i - 1) / 4);
         const subIdx = (i - 1) % 4;
-        const dx = (-55 * (Math.floor(subIdx / 2) + 1) - 35 * groupIdx) * 0.8;
-        const dy = ((subIdx % 2 === 0 ? -40 : 40) * (Math.floor(subIdx / 2) + 1) + (groupIdx * (i % 2 === 0 ? -12 : 12))) * 0.8;
+        const dx = (-55 * (Math.floor(subIdx / 2) + 1) - 35 * groupIdx) * 1.04;
+        const dy = ((subIdx % 2 === 0 ? -40 : 40) * (Math.floor(subIdx / 2) + 1) + (groupIdx * (i % 2 === 0 ? -12 : 12))) * 1.04;
         
         const targetX = this.bird.x + dx;
         const targetY = this.bird.y + dy;

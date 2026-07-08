@@ -1156,7 +1156,7 @@ export class PowerupManager {
       ctx.shadowColor = color;
     }
     ctx.fillStyle = '#ffffff';
-    ctx.font = '17px sans-serif';
+    ctx.font = item.type === 'weapon' ? '22px sans-serif' : '17px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(emoji, 0, 0.5);

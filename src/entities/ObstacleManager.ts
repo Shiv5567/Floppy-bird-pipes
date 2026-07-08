@@ -255,8 +255,8 @@ export class ObstacleManager {
       minGap = 386;
       distMultiplier = 1.45; // Generous horizontal spacing for the flock
     } else if (gameMode === 'flock') {
-      startGap = 302; // Set minimum vertical gap to 302 (12% increase from 270)
-      minGap = 302;   // Set minimum vertical gap to 302 (12% increase from 270)
+      startGap = 242; // Set minimum vertical gap to 242 (20% reduction from 302)
+      minGap = 242;   // Set minimum vertical gap to 242 (20% reduction from 302)
       distMultiplier = 1.575; // 30% reduction from 2.25 (2.25 * 0.7 = 1.575)
     } else if (gameMode === 'formation') {
       startGap = 320;
@@ -3275,7 +3275,7 @@ export class ObstacleManager {
       const dynamicGap = zone === 'classic' ? startGap : (startGap - (startGap - minGap) * progressRatio);
       let gapWithDifficulty = this.activeLevelConfig ? this.activeLevelConfig.gapHeight : dynamicGap;
       if (zone === 'chaos') {
-        gapWithDifficulty *= 1.10; // 10% vertical path gap increase
+        gapWithDifficulty *= 1.20; // 20% vertical path gap increase
       }
       if (gameMode === 'endless') {
         if (score >= 300 && score < 500) {
@@ -3316,7 +3316,7 @@ export class ObstacleManager {
       let gapWithDifficulty = this.activeLevelConfig ? this.activeLevelConfig.gapHeight : dynamicGap;
 
       if (zone === 'chaos') {
-        gapWithDifficulty *= 1.10; // 10% vertical path gap increase
+        gapWithDifficulty *= 1.20; // 20% vertical path gap increase
       }
 
       // Classic Mode (Endless) vertical path gap reduction:
@@ -4816,7 +4816,7 @@ export class ObstacleManager {
       currentStepGap *= 1.18; // Increase vertical path gap by 18% for score 1 to 100 in endless/solo mode
     }
     if (gameMode === 'flock') {
-      currentStepGap = Math.max(270, currentStepGap); // Enforce vertical gap minimum of 270px
+      currentStepGap = Math.max(216, currentStepGap); // Enforce vertical gap minimum of 216px (20% reduction from 270)
     }
 
     // Safeguard boundaries to keep safe gap consistent and within bounds
@@ -7014,6 +7014,8 @@ export class ObstacleManager {
   }
 
   private drawDestructibleOverlay(ctx: CanvasRenderingContext2D, obs: Obstacle, height: number) {
+    const gameEngine = (window as any).gameEngine;
+    if (gameEngine && gameEngine.gameMode === 'flock') return;
     if (!obs.isDestructible || obs.isDestroyed) return;
 
     const topShift = obs.shakeX || 0;

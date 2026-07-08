@@ -1701,6 +1701,10 @@ body, html {
   font-size: 14px;
 }
 
+.hud-powerup-badge[data-powerup-type="weapon"] .pow-icon {
+  font-size: 18.2px;
+}
+
 .pow-bar-container {
   width: 50px;
   height: 4px;

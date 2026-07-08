@@ -548,7 +548,7 @@ export class ProgressManager {
         }
 
         // One-time missions/achievements reset
-        const missionsResetKey = 'flight_of_legends_missions_reset_v2';
+        const missionsResetKey = 'flight_of_legends_missions_reset_v3';
         if (!localStorage.getItem(missionsResetKey)) {
           loadedState.achievements = {};
           loadedState.unlockedAchievements = [];
@@ -567,7 +567,7 @@ export class ProgressManager {
         }
 
         // One-time skins reset to lock all characters except default
-        const skinsLockResetKey = 'flight_of_legends_skins_lock_reset_v1';
+        const skinsLockResetKey = 'flight_of_legends_skins_lock_reset_v2';
         if (!localStorage.getItem(skinsLockResetKey)) {
           loadedState.unlockedSkins = ['default'];
           loadedState.activeSkin = 'default';
@@ -600,6 +600,7 @@ export class ProgressManager {
             loadedQuests.forEach(lq => {
               const dq = defaultQuests.find(q => q.id === lq.id);
               if (dq) {
+                lq.target = dq.target;
                 lq.rewardCoins = dq.rewardCoins;
                 lq.rewardGems = dq.rewardGems;
                 lq.name = dq.name;
@@ -622,9 +623,9 @@ export class ProgressManager {
           unlockedWorlds: loadedState.unlockedWorlds || ['jungle', 'ice', 'space', 'desert', 'volcano', 'heaven']
         };
 
-        // Sync skins unlocked state and levels (all unlocked for testing)
+        // Sync skins unlocked state and levels based on unlockedSkins progression
         this.skins.forEach(s => {
-          s.unlocked = true;
+          s.unlocked = this.state.unlockedSkins.includes(s.id);
           if (this.state.skinUpgrades[s.id]) {
             s.upgradeLevel = this.state.skinUpgrades[s.id];
           }
@@ -705,7 +706,7 @@ export class ProgressManager {
       { id: 'short_obstacles_1', name: 'Pass Pipes', desc: 'Pass 5,000 Pipes', target: 5000, current: 0, rewardCoins: 2000, rewardGems: 10, claimed: false },
       { id: 'short_rescue_1', name: 'Rescue Birds from Cage', desc: 'Rescue 100 Birds from Cage', target: 100, current: 0, rewardCoins: 2500, rewardGems: 10, claimed: false },
       { id: 'short_score_1', name: 'Reach Score', desc: 'Reach a Score of 100', target: 100, current: 0, rewardCoins: 1500, rewardGems: 10, claimed: false },
-      { id: 'short_boss_1', name: 'Defeat Monsters', desc: 'Defeat 20 Monsters', target: 20, current: 0, rewardCoins: 3000, rewardGems: 15, claimed: false },
+      { id: 'short_boss_1', name: 'Defeat Monsters', desc: 'Defeat 50 Monsters', target: 50, current: 0, rewardCoins: 3000, rewardGems: 15, claimed: false },
       { id: 'short_destroy_pipes_1', name: 'Destroy Pipes', desc: 'Destroy 2,000 Pipes', target: 2000, current: 0, rewardCoins: 2500, rewardGems: 10, claimed: false },
       { id: 'short_unlock_chars_1', name: 'Unlock Characters', desc: 'Unlock 3 Characters', target: 3, current: 0, rewardCoins: 3200, rewardGems: 10, claimed: false },
       { id: 'short_use_ultimate_1', name: 'Use Ultimate', desc: 'Use Ultimate Power 50 Times', target: 50, current: 0, rewardCoins: 3200, rewardGems: 10, claimed: false },
@@ -722,7 +723,7 @@ export class ProgressManager {
       { id: 'long_rescue_1', name: 'Rescue Birds from Cage', desc: 'Rescue 2,200 Birds from Cage', target: 2200, current: 0, rewardCoins: 7000, rewardGems: 30, claimed: false },
       { id: 'long_obstacles_1', name: 'Pass Pipes', desc: 'Pass 60,000 Pipes', target: 60000, current: 0, rewardCoins: 5500, rewardGems: 20, claimed: false },
       { id: 'long_score_1', name: 'Reach Score', desc: 'Reach a Score of 500', target: 500, current: 0, rewardCoins: 5000, rewardGems: 15, claimed: false },
-      { id: 'long_destroy_pipes_1', name: 'Destroy Pipes', desc: 'Destroy 100,000 Pipes', target: 100000, current: 0, rewardCoins: 50000, rewardGems: 20, claimed: false },
+      { id: 'long_destroy_pipes_1', name: 'Destroy Pipes', desc: 'Destroy 15,000 Pipes', target: 15000, current: 0, rewardCoins: 5000, rewardGems: 20, claimed: false },
       { id: 'long_obstacles_classic_1', name: 'Pass Pipes Classic', desc: 'Pass 3,500 Pipes in Classic Mode', target: 3500, current: 0, rewardCoins: 5500, rewardGems: 20, claimed: false },
       { id: 'long_boss_1', name: 'Defeat Monsters', desc: 'Defeat 2,500 Monsters', target: 2500, current: 0, rewardCoins: 8000, rewardGems: 25, claimed: false },
       { id: 'long_use_ultimate_1', name: 'Use Ultimate', desc: 'Use Ultimate Power 200 Times', target: 200, current: 0, rewardCoins: 6000, rewardGems: 15, claimed: false },

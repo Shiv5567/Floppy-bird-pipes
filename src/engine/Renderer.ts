@@ -185,17 +185,21 @@ export class Renderer {
     const targetCameraY = (birdY - 360) * 0.65; // Dampen the tracking slightly for stability
     this.cameraY += (targetCameraY - this.cameraY) * 0.12 * (deltaTime * 60);
 
+    const gameEngine = (window as any).gameEngine;
+    const isFlockMode = gameEngine && (gameEngine.gameMode === 'flock');
+    const isSoloMode = gameEngine && gameEngine.gameMode === 'endless' && gameEngine.progressManager && gameEngine.progressManager.getState().selectedZone !== 'chaos';
+
     // Dynamic micro-camera zoom based on gameplay state (zoomed out by 10%)
     let targetZoom = 1.0; // standard native 1:1 scale to avoid hardware blur
     const isPerformanceMode = (window as any).gameDisableShadows;
     if (isPerformanceMode) {
       targetZoom = 1.0; // Enforce native pixel grid on low-graphics/mobile
-      if (gameState === 'BOSS_FIGHT') {
+      if (gameState === 'BOSS_FIGHT' && !isFlockMode) {
         targetZoom = 0.77;
       }
     } else {
       targetZoom = 0.90;
-      if (gameState === 'BOSS_FIGHT') {
+      if (gameState === 'BOSS_FIGHT' && !isFlockMode) {
         targetZoom = 0.77; // Zoom out for grand scale modular boss fight
       } else if (timeScale < 0.9) {
         targetZoom = 1.09; // Micro zoom-in during epic matrix slow-mo grazes
@@ -204,11 +208,10 @@ export class Renderer {
       }
     }
 
-    const gameEngine = (window as any).gameEngine;
-    const isFlockMode = gameEngine && (gameEngine.gameMode === 'flock');
-    const isSoloMode = gameEngine && gameEngine.gameMode === 'endless' && gameEngine.progressManager && gameEngine.progressManager.getState().selectedZone !== 'chaos';
-    if (isSoloMode || isFlockMode) {
-      targetZoom *= 1.06; // 6% zoom in (a little bit zoom in) for both Solo and Flock modes
+    if (isSoloMode) {
+      targetZoom *= 1.06; // 6% zoom in (a little bit zoom in) for Solo mode
+    } else if (isFlockMode) {
+      targetZoom *= 1.05; // 5% zoom in for Flock mode
     }
 
     const isJadeLotusUltimate = gameEngine && gameEngine.ultimateActive && gameEngine.bird && gameEngine.bird.getSkin().id === 'jade_lotus';
@@ -216,9 +219,9 @@ export class Renderer {
       targetZoom *= 0.85; // 15% zoom out (scale to 85%)
     }
 
-    const isChaosMode = gameEngine && gameEngine.progressManager && gameEngine.progressManager.getState().selectedZone === 'chaos';
+    const isChaosMode = gameEngine && gameEngine.progressManager && gameEngine.progressManager.getState().selectedZone === 'chaos' && gameEngine.gameMode !== 'flock';
     if (isChaosMode) {
-      targetZoom *= 0.80; // 20% zoom out (scale to 80%) for Mayhem mode
+      targetZoom *= 0.90; // 10% zoom out (scale to 90%) for Mayhem mode
     }
 
     // Hard-lock zoom to 1.0 in performance mode, otherwise smoothly interpolate (allow zoom in flock mode, boss fight, Hummingbird ultimate, Chaos mode, and Solo mode)
@@ -2624,7 +2627,7 @@ export class Renderer {
 
     // Apply Chaos Events screen transforms
     const engine = (window as any).gameEngine;
-    if (engine && engine.progressManager.getState().selectedZone === 'chaos' && engine.gameMode === 'flock') {
+    if (engine && engine.progressManager.getState().selectedZone === 'chaos' && engine.gameMode !== 'flock') {
       if (engine.activeChaosEvent === 'earthquake') {
         const shakeX = (Math.random() - 0.5) * 12;
         const shakeY = (Math.random() - 0.5) * 12;

@@ -1403,6 +1403,15 @@ export class UIManager {
               </div>
             </div>
 
+            <!-- Graphics Quality settings section -->
+            <div class="control-group" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px; margin-top: 20px;">
+              <div class="segment-label" style="font-size: 11px; font-weight: 800; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 12px; text-transform: uppercase;">GRAPHICS QUALITY</div>
+              <div style="display: flex; gap: 10px;">
+                <button class="graphics-btn ${(window as any).gameDisableShadows ? '' : 'active'}" id="btn-graphics-high" style="flex: 1; padding: 10px; border-radius: 12px; font-family: var(--font-family); font-weight: 900; font-size: 11px; cursor: pointer; border: 1.5px solid ${(window as any).gameDisableShadows ? 'rgba(255,255,255,0.1)' : '#00ff88'}; background: ${(window as any).gameDisableShadows ? 'rgba(255,255,255,0.03)' : 'rgba(0,255,136,0.15)'}; color: ${(window as any).gameDisableShadows ? 'rgba(255,255,255,0.6)' : '#00ff88'}; transition: all 0.2s; text-shadow: ${(window as any).gameDisableShadows ? 'none' : '0 0 6px #00ff88'};">✨ HIGH GRAPHICS</button>
+                <button class="graphics-btn ${(window as any).gameDisableShadows ? 'active' : ''}" id="btn-graphics-std" style="flex: 1; padding: 10px; border-radius: 12px; font-family: var(--font-family); font-weight: 900; font-size: 11px; cursor: pointer; border: 1.5px solid ${(window as any).gameDisableShadows ? '#00f3ff' : 'rgba(255,255,255,0.1)'}; background: ${(window as any).gameDisableShadows ? 'rgba(0,243,255,0.15)' : 'rgba(255,255,255,0.03)'}; color: ${(window as any).gameDisableShadows ? '#00f3ff' : 'rgba(255,255,255,0.6)'}; transition: all 0.2s; text-shadow: ${(window as any).gameDisableShadows ? '0 0 6px #00f3ff' : 'none'};">⚡ PERFORMANCE</button>
+              </div>
+            </div>
+
             <!-- Game Share System -->
             <div class="control-group" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px; margin-top: 20px;">
               <div class="segment-label" style="font-size: 11px; font-weight: 800; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 12px; text-transform: uppercase;">SHARE GAME & EARN REWARDS</div>
@@ -1797,6 +1806,27 @@ export class UIManager {
       // Play a quick feedback coin sound when releasing the slider so the player can test the volume!
       slideSfx.addEventListener('change', () => {
         this.engine.soundManager.playCoin();
+      });
+    }
+
+    // Graphics Quality Buttons Binding
+    const btnGraphicsHigh = this.container.querySelector('#btn-graphics-high') as HTMLButtonElement;
+    if (btnGraphicsHigh) {
+      btnGraphicsHigh.addEventListener('click', () => {
+        this.engine.soundManager.playUISelect();
+        (window as any).gameDisableShadows = false; // Enable shadows (High Graphics)
+        localStorage.setItem('game_disable_shadows', 'false');
+        this.render();
+      });
+    }
+
+    const btnGraphicsStd = this.container.querySelector('#btn-graphics-std') as HTMLButtonElement;
+    if (btnGraphicsStd) {
+      btnGraphicsStd.addEventListener('click', () => {
+        this.engine.soundManager.playUISelect();
+        (window as any).gameDisableShadows = true; // Disable shadows (Performance Mode)
+        localStorage.setItem('game_disable_shadows', 'true');
+        this.render();
       });
     }
 
@@ -2372,7 +2402,7 @@ export class UIManager {
     const powerupBadges = pList.map(p => {
       const percent = (p.durationLeft / p.maxDuration) * 100;
       return `
-        <div class="hud-powerup-badge glass-card fade-in">
+        <div class="hud-powerup-badge glass-card fade-in" data-powerup-type="${p.type}">
           <span class="pow-icon">${p.type === 'shield' ? '🛡️' : p.type === 'slowmo' ? '⏳' : p.type === 'magnet' ? '🧲' : p.type === 'double' ? '🪙' : p.type === 'turbo' ? '⚡' : p.type === 'ghost' ? '👻' : p.type === 'mini' ? '🔎' : p.type === 'weapon' ? '🎯' : '🪶'}</span>
           <div class="pow-bar-container">
             <div class="pow-bar-inner" style="width: ${percent}%; background-color: ${this.getPowerupColor(p.type)}"></div>

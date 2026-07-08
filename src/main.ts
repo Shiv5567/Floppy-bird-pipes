@@ -578,7 +578,7 @@ function loop(time: number) {
     ctx.translate(gameEngine.bird.x, gameEngine.bird.y);
     ctx.rotate(gameEngine.bladeRotation);
     
-    const bladeRadius = 55 + gameEngine.weaponLevel * 10;
+    const bladeRadius = (55 + gameEngine.weaponLevel * 10) * 1.35;
     
     // Draw outer glowing buzzsaw circle
     ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)';
