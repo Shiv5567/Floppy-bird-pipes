@@ -4248,3 +4248,8 @@ body.mobile-performance .top-bar-settings-btn {
     box-shadow: 0 0 18px rgba(0, 85, 255, 0.8), inset 0 1px 0 rgba(255,255,255,0.5) !important;
   }
 }
+
+@keyframes spin-clockwise {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

@@ -50,7 +50,8 @@ export class Renderer {
 
   public resize() {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 1024;
-    const maxDpr = isMobile ? 1.15 : 2.0; // Enforce lower DPR on mobile for ultra smooth performance (reduces pixel counts by ~3-4x)
+    const isPerformanceMode = (window as any).gameDisableShadows;
+    const maxDpr = isPerformanceMode ? (isMobile ? 1.0 : 1.15) : 2.0; 
     this.dpr = Math.min(maxDpr, window.devicePixelRatio || 1);
     const rect = this.canvas.getBoundingClientRect();
     this.canvas.width = rect.width * this.dpr;
@@ -990,7 +991,7 @@ export class Renderer {
         break;
       }
       case 'space': {
-        const isMobile = (window as any).gameIsMobile;
+        const isMobile = ((window as any).gameIsMobile || false) && (window as any).gameDisableShadows;
         const time = this.timeOfDay;
         
         // Night Opacity (Nebula, Galaxy, Moon, Stars)
@@ -1436,7 +1437,7 @@ export class Renderer {
       }
 
       case 'heaven': {
-        const isMobile = (window as any).gameIsMobile;
+        const isMobile = ((window as any).gameIsMobile || false) && (window as any).gameDisableShadows;
 
         // --- 1. Draw Subtle Radiant Celestial Sun Glow & Aureola ---
         const sunX = width * 0.5;
@@ -1628,7 +1629,7 @@ export class Renderer {
         break;
       }
       case 'desert': {
-        const isMobile = (window as any).gameIsMobile;
+        const isMobile = ((window as any).gameIsMobile || false) && (window as any).gameDisableShadows;
         const time = this.timeOfDay;
         
         // 1. Draw Twinkling Stars, Milky Way & Constellation (Visible at Night)
@@ -1965,7 +1966,7 @@ export class Renderer {
       }
       default: {
         const time = this.timeOfDay;
-        const isMobile = (window as any).gameIsMobile;
+        const isMobile = ((window as any).gameIsMobile || false) && (window as any).gameDisableShadows;
         
         // 1. Draw Twinkling Stars, Milky Way & Constellations
         let starOpacity = 0;
@@ -2334,7 +2335,7 @@ export class Renderer {
   }
 
   private drawParallaxHills(worldId: string, width: number, height: number) {
-    const isMobile = (window as any).gameIsMobile || false;
+    const isMobile = ((window as any).gameIsMobile || false) && (window as any).gameDisableShadows;
     
     // 3 separate layers of hills / city silhouettes
     for (let layer = 1; layer <= 3; layer++) {
