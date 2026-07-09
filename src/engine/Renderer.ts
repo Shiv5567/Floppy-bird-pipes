@@ -29,7 +29,6 @@ export class Renderer {
   public timeOfDay = 6.0; // Start at 6:00 AM (Morning Scene)
   private timeSpeed = 0.0025;
   public activeWorldId = 'jungle';
-  private nightFadeFactor = 0;
 
   // Game scrolling speed (Visual Weather & Aura Pack)
   private currentSpeed = 5.0;
@@ -103,6 +102,39 @@ export class Renderer {
         this.weather = { type: 'clear', windSpeed: 0, density: 0, lightning: false };
     }
     this.generateParallaxCache(worldId);
+  }
+
+  private getNightOpacity(time: number): number {
+    // Night is 19.0 to 5.0 (24-hour cycle)
+    let nightHour = 0;
+    if (time >= 19.0) {
+      nightHour = time - 19.0;
+    } else if (time < 5.0) {
+      nightHour = time + 5.0; // 19 to 24 is 5 hours, so 0 to 5 becomes 5 to 10
+    } else {
+      return 0; // Day time
+    }
+
+    // nightHour is between 0 and 10
+    // Total night duration is 10 hours (~72.5 seconds)
+    // 10 seconds is 1.38 hours
+    // Phase 1 (0 to 10s): 0.0 to 1.38 hours -> opacity = 0
+    // Phase 2 (10s to 20s): 1.38 to 2.76 hours -> fade in
+    // Phase 3 (20s to 52.5s): 2.76 to 7.24 hours -> opacity = 1.0 (max)
+    // Phase 4 (52.5s to 62.5s): 7.24 to 8.62 hours -> fade out
+    // Phase 5 (62.5s to 72.5s): 8.62 to 10.0 hours -> opacity = 0
+
+    if (nightHour < 1.38) {
+      return 0;
+    } else if (nightHour >= 1.38 && nightHour < 2.76) {
+      return (nightHour - 1.38) / 1.38;
+    } else if (nightHour >= 2.76 && nightHour < 7.24) {
+      return 1.0;
+    } else if (nightHour >= 7.24 && nightHour < 8.62) {
+      return (8.62 - nightHour) / 1.38;
+    } else {
+      return 0;
+    }
   }
 
   private generateParallaxCache(worldId: string) {
@@ -243,19 +275,6 @@ export class Renderer {
       currentSpeed = this.timeSpeed * (80 / 87);
     }
     this.timeOfDay = (this.timeOfDay + currentSpeed * (deltaTime * 60)) % 24;
-
-    // Smooth real-time 10-second fade for space/twilight night assets
-    const time = this.timeOfDay;
-    const isNight = time >= 19.0 || time < 5.0;
-    if (isNight) {
-      if (this.nightFadeFactor < 1.0) {
-        this.nightFadeFactor = Math.min(1.0, this.nightFadeFactor + deltaTime / 10.0);
-      }
-    } else {
-      if (this.nightFadeFactor > 0.0) {
-        this.nightFadeFactor = Math.max(0.0, this.nightFadeFactor - deltaTime / 10.0);
-      }
-    }
 
     // Camera shake decay
     if (this.shakeDuration > 0) {
@@ -1015,10 +1034,13 @@ export class Renderer {
         const isMobile = ((window as any).gameIsMobile || false) && (window as any).gameDisableShadows;
         const time = this.timeOfDay;
         
-        // Smooth staggered opacities based on 10-second real-time nightFadeFactor
-        const galaxyOpacity = Math.max(0, Math.min(1, (this.nightFadeFactor - 0.0) / 0.7));
-        const moonOpacity   = Math.max(0, Math.min(1, (this.nightFadeFactor - 0.2) / 0.7));
-        const starsOpacity  = Math.max(0, Math.min(1, (this.nightFadeFactor - 0.4) / 0.6));
+        // Base night opacity calculated from the 24-hour cycle
+        const baseOpacity = this.getNightOpacity(time);
+        
+        // Smooth staggered opacities (appear gradually, not suddenly, with staggering)
+        const galaxyOpacity = Math.max(0, Math.min(1, (baseOpacity - 0.0) / 0.8));
+        const moonOpacity   = Math.max(0, Math.min(1, (baseOpacity - 0.15) / 0.85));
+        const starsOpacity  = Math.max(0, Math.min(1, (baseOpacity - 0.3) / 0.7));
         
         // Day Opacity (Cosmic Sun & Rays)
         let dayOpacity = 0;
@@ -1168,57 +1190,6 @@ export class Renderer {
             this.ctx.beginPath();
             this.ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
             this.ctx.fill();
-
-            // Lunar Maria (Subtle light-silver lunar plains for a clean surface look)
-            this.ctx.fillStyle = 'rgba(241, 245, 249, 0.15)';
-            const drawMare = (mx: number, my: number, rx: number, ry: number, rot: number) => {
-              this.ctx.save();
-              this.ctx.translate(moonX + mx, moonY + my);
-              this.ctx.rotate(rot);
-              this.ctx.beginPath();
-              this.ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
-              this.ctx.fill();
-              this.ctx.restore();
-            };
-            drawMare(-12, -10, 10, 6, Math.PI / 6);
-            drawMare(8, -15, 7, 5, -Math.PI / 4);
-            drawMare(-22, 5, 8, 12, Math.PI / 12);
-            drawMare(-5, 18, 14, 8, -Math.PI / 8);
-            drawMare(15, 10, 9, 6, Math.PI / 4);
-
-            // Moon Craters (with subtle highlights for premium depth without dark spots)
-            const drawCrater = (cx: number, cy: number, r: number) => {
-              // Crater bowl (light silver-grey instead of dark slate)
-              this.ctx.fillStyle = 'rgba(248, 250, 252, 0.25)';
-              this.ctx.beginPath();
-              this.ctx.arc(moonX + cx, moonY + cy, r, 0, Math.PI * 2);
-              this.ctx.fill();
-              
-              // Subtle soft rim (light silver-grey instead of dark)
-              this.ctx.strokeStyle = 'rgba(203, 213, 225, 0.25)';
-              this.ctx.lineWidth = 0.8;
-              this.ctx.beginPath();
-              this.ctx.arc(moonX + cx - 0.5, moonY + cy - 0.5, r, Math.PI * 1.7, Math.PI * 0.7);
-              this.ctx.stroke();
-
-              // Bright rim highlight (sunlit side)
-              this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.65)';
-              this.ctx.lineWidth = 0.8;
-              this.ctx.beginPath();
-              this.ctx.arc(moonX + cx + 0.8, moonY + cy + 0.8, r, Math.PI * 0.7, Math.PI * 1.7);
-              this.ctx.stroke();
-            };
-
-            // Draw multiple craters
-            drawCrater(-12, -6, 6);
-            drawCrater(6, 12, 5.5);
-            drawCrater(-18, 14, 4);
-            drawCrater(16, -10, 5);
-            drawCrater(2, -18, 3);
-            drawCrater(-3, 20, 3.5);
-            drawCrater(22, 6, 2.5);
-            drawCrater(-24, -12, 3);
-            drawCrater(12, 22, 2);
             this.ctx.restore();
           }
           this.ctx.restore();
