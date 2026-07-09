@@ -165,6 +165,14 @@ class MainActivity : ComponentActivity() {
                             } catch (e: Exception) {
                                 Log.e("FLIGHT_OF_LEGENDS_STARTUP", "Failed to resolve mailto intent", e)
                             }
+                        } else if (url.contains("play.google.com") || url.startsWith("market://")) {
+                            try {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                startActivity(intent)
+                                return true
+                            } catch (e: Exception) {
+                                Log.e("FLIGHT_OF_LEGENDS_STARTUP", "Failed to resolve playstore intent", e)
+                            }
                         }
                         return super.shouldOverrideUrlLoading(view, request)
                     }

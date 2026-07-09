@@ -1417,9 +1417,9 @@ export class UIManager {
                     💬 FEEDBACK
                   </button>
                 </a>
-                <a href="mailto:charan.support@gmail.com?subject=Flappy%20Legends%20Support" style="flex: 1; text-decoration: none;">
-                  <button style="width: 100%; padding: 12px; border: 1.5px solid rgba(0, 243, 255, 0.4); border-radius: 12px; font-family: var(--font-family); font-weight: 900; font-size: 11px; cursor: pointer; color: #00f3ff; background: rgba(0, 243, 255, 0.1); display: flex; align-items: center; justify-content: center; gap: 6px; text-transform: uppercase; transition: all 0.2s; box-shadow: 0 4px 10px rgba(0, 243, 255, 0.15); text-shadow: 0 0 4px rgba(0, 243, 255, 0.3);">
-                    ✉️ CONTACT
+                <a href="https://play.google.com/store/apps/details?id=com.advance.flappylegends&pcampaignid=web_share&ref=ref_dev_1783615215476_fgskhchsl_1783615547441_988527" target="_blank" style="flex: 1; text-decoration: none;">
+                  <button style="width: 100%; padding: 12px; border: 1.5px solid rgba(255, 215, 0, 0.4); border-radius: 12px; font-family: var(--font-family); font-weight: 900; font-size: 11px; cursor: pointer; color: #ffd700; background: rgba(255, 215, 0, 0.1); display: flex; align-items: center; justify-content: center; gap: 6px; text-transform: uppercase; transition: all 0.2s; box-shadow: 0 4px 10px rgba(255, 215, 0, 0.15); text-shadow: 0 0 4px rgba(255, 215, 0, 0.3);">
+                    ⭐ RATE GAME
                   </button>
                 </a>
               </div>
