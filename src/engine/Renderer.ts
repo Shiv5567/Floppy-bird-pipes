@@ -26,8 +26,9 @@ export class Renderer {
   private lightningStrikeX = 0;
 
   // Day/Night cycle
-   public timeOfDay = 6.0; // Start at 6:00 AM (Morning Scene)
+  public timeOfDay = 6.0; // Start at 6:00 AM (Morning Scene)
   private timeSpeed = 0.0025;
+  public activeWorldId = 'jungle';
 
   // Game scrolling speed (Visual Weather & Aura Pack)
   private currentSpeed = 5.0;
@@ -69,6 +70,7 @@ export class Renderer {
   }
 
   public setWeather(worldId: string) {
+    this.activeWorldId = worldId;
     this.weatherTime = 0;
     this.lightningFlash = 0;
     switch (worldId) {
@@ -234,7 +236,12 @@ export class Renderer {
     }
 
     // Day/Night progression
-    this.timeOfDay = (this.timeOfDay + this.timeSpeed * (deltaTime * 60)) % 24;
+    let currentSpeed = this.timeSpeed;
+    if (this.activeWorldId === 'space' && (this.timeOfDay >= 18 || this.timeOfDay < 6)) {
+      // Slow down time during night to make it 7 seconds longer (87s instead of 80s)
+      currentSpeed = this.timeSpeed * (80 / 87);
+    }
+    this.timeOfDay = (this.timeOfDay + currentSpeed * (deltaTime * 60)) % 24;
 
     // Camera shake decay
     if (this.shakeDuration > 0) {
@@ -995,10 +1002,15 @@ export class Renderer {
         const time = this.timeOfDay;
         
         // Night Opacity (Nebula, Galaxy, Moon, Stars)
+        // Stars and Galaxy disappear during sunset (17:00-19:00) and sunrise (5:00-7:00) when the sky is red.
         let nightOpacity = 0;
-        if (time >= 19 || time < 5) nightOpacity = 1.0;
-        else if (time >= 17 && time < 19) nightOpacity = (time - 17) / 2;
-        else if (time >= 5 && time < 7) nightOpacity = (7 - time) / 2;
+        if (time >= 19.5 || time < 4.5) {
+          nightOpacity = 1.0;
+        } else if (time >= 19 && time < 19.5) {
+          nightOpacity = (time - 19) / 0.5; // fade in after sunset (when sky redness clears)
+        } else if (time >= 4.5 && time < 5) {
+          nightOpacity = (5 - time) / 0.5; // fade out before sunrise (when sky redness begins)
+        }
         
         // Day Opacity (Cosmic Sun & Rays)
         let dayOpacity = 0;
