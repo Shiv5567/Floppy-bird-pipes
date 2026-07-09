@@ -1142,7 +1142,7 @@ export class UIManager {
           } else {
             if ((w as any).costAd) {
               actionHtml = `<button class="btn-buy-world-ad btn-buy-skin" data-id="${w.id}" style="padding: 6px 12px; font-size: 10px; width: auto; font-family: inherit; background: linear-gradient(135deg, #ff6b00, #ffaa00); border: none; color: white;">
-                📺 FREE AD
+                🎬 AD
               </button>`;
             } else {
               actionHtml = `<button class="btn-buy-world btn-buy-skin" data-id="${w.id}" style="padding: 6px 12px; font-size: 10px; width: auto; font-family: inherit;">

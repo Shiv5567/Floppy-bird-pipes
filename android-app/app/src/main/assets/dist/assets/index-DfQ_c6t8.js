@@ -293,7 +293,7 @@
           `}).join(``)}</div>
         `;case`worlds`:{let e={jungle:`#00c853`,ice:`#40c4ff`,desert:`#ffab40`,volcano:`#ff3d00`,space:`#651fff`,heaven:`#ffd740`};return`
           <div class="vertical-scroll" style="gap: 24px; padding-bottom: 20px; margin-top: 35px;">${this.engine.progressManager.getWorldsList().map(n=>{let r=t.activeWorld===n.id,i=e[n.id]||`#fff`,a=`<div class="world-icon" style="font-size:50px">${n.emoji}</div>`;n.id===`jungle`?a=this.getJungleWorldIconSvg(`58px`,`58px`):n.id===`ice`?a=this.getIceWorldIconSvg(`58px`,`58px`):n.id===`volcano`?a=this.getVolcanoWorldIconSvg(`58px`,`58px`):n.id===`space`?a=this.getSpaceWorldIconSvg(`58px`,`58px`):n.id===`heaven`?a=this.getHeavenWorldIconSvg(`58px`,`58px`):n.id===`desert`&&(a=this.getDesertWorldIconSvg(`58px`,`58px`));let o=``;return o=n.unlocked?r?`<span style="color:${i};font-size:9px;font-weight:800">● ACTIVE</span>`:`<span style="font-size:18px;color:rgba(255,255,255,0.25)">›</span>`:n.costAd?`<button class="btn-buy-world-ad btn-buy-skin" data-id="${n.id}" style="padding: 6px 12px; font-size: 10px; width: auto; font-family: inherit; background: linear-gradient(135deg, #ff6b00, #ffaa00); border: none; color: white;">
-                📺 FREE AD
+                🎬 AD
               </button>`:`<button class="btn-buy-world btn-buy-skin" data-id="${n.id}" style="padding: 6px 12px; font-size: 10px; width: auto; font-family: inherit;">
                 ${n.costCoins>0?`🟡 `+n.costCoins.toLocaleString():`💎 `+n.costGems.toLocaleString()}
               </button>`,`
