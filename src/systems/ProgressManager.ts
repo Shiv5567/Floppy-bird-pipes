@@ -31,6 +31,7 @@ export interface GameWorld {
   costCoins: number;
   costGems: number;
   unlocked: boolean;
+  costAd?: boolean;
 }
 
 export interface PlayerProgressState {
@@ -411,7 +412,7 @@ export class ProgressManager {
     if (!world) return false;
     if (world.unlocked) return false;
     if (!this.state.unlockedWorlds) {
-      this.state.unlockedWorlds = ['jungle'];
+      this.state.unlockedWorlds = ['space'];
     }
     world.unlocked = true;
     if (!this.state.unlockedWorlds.includes(id)) {
@@ -539,12 +540,12 @@ export class ProgressManager {
           localStorage.setItem(skinsResetKey, 'true');
         }
 
-        // One-time worlds reset to ensure Amazon Rainforest is auto-set as default
-        const worldsResetKey = 'flight_of_legends_worlds_reset_v2';
-        if (!localStorage.getItem(worldsResetKey)) {
-          loadedState.unlockedWorlds = ['space', 'jungle'];
+        // One-time worlds reset to ensure Twilight Horizon is auto-set as default and purchasing system applies
+        const worldsResetKeyV3 = 'flight_of_legends_worlds_reset_v3';
+        if (!localStorage.getItem(worldsResetKeyV3)) {
+          loadedState.unlockedWorlds = ['space'];
           loadedState.activeWorld = 'space';
-          localStorage.setItem(worldsResetKey, 'true');
+          localStorage.setItem(worldsResetKeyV3, 'true');
         }
 
         // One-time missions/achievements reset
@@ -620,7 +621,7 @@ export class ProgressManager {
           })(),
           levelPlayCounts: loadedState.levelPlayCounts || {},
           sharedTargets: loadedState.sharedTargets || [],
-          unlockedWorlds: loadedState.unlockedWorlds || ['jungle', 'ice', 'space', 'desert', 'volcano', 'heaven']
+          unlockedWorlds: loadedState.unlockedWorlds || ['space']
         };
 
         // Sync skins unlocked state and levels based on unlockedSkins progression
@@ -631,9 +632,10 @@ export class ProgressManager {
           }
         });
 
-        // Sync worlds unlocked state (all unlocked by default)
+        // Sync worlds unlocked state
+        const unlockedWorldsList = this.state.unlockedWorlds || ['space'];
         this.worldsList.forEach(w => {
-          w.unlocked = true;
+          w.unlocked = unlockedWorldsList.includes(w.id);
         });
 
         // Sync achievements progress
@@ -687,7 +689,7 @@ export class ProgressManager {
       powerupUpgrades: { shield: 1, slowmo: 1, magnet: 1, turbo: 1, mini: 1, double: 1 },
       levelPlayCounts: {},
       sharedTargets: [],
-      unlockedWorlds: ['jungle', 'ice', 'space', 'desert', 'volcano', 'heaven']
+      unlockedWorlds: ['space']
     };
     
     // Reset skins
@@ -874,12 +876,12 @@ export class ProgressManager {
 
   private initDefaultWorlds() {
     this.worldsList = [
-      { id: 'space',      name: 'TWILIGHT HORIZON',        emoji: '🌌', costCoins: 0, costGems: 0, unlocked: true },
-      { id: 'jungle',     name: 'AMAZON RAINFOREST', emoji: '🌴', costCoins: 0, costGems: 0, unlocked: true },
-      { id: 'ice',        name: 'FROST VALLEY',   emoji: '❄️', costCoins: 0, costGems: 0, unlocked: true },
-      { id: 'desert',     name: 'ANCIENT EGYPT : THE DESERT', emoji: '🏜️', costCoins: 0, costGems: 0, unlocked: true },
-      { id: 'volcano',    name: 'VOLCANIC REALM',      emoji: '🌋', costCoins: 0, costGems: 0, unlocked: true },
-      { id: 'heaven',     name: 'GOLDEN HEIGHTS : THE CLOUD KINGDOM', emoji: '🌤️', costCoins: 0, costGems: 0, unlocked: true }
+      { id: 'space',      name: 'TWILIGHT HORIZON',                    emoji: '🌌', costCoins: 0,     costGems: 0,   unlocked: true },
+      { id: 'jungle',     name: 'AMAZON RAINFOREST',                   emoji: '🌴', costCoins: 0,     costGems: 0,   unlocked: false, costAd: true },
+      { id: 'ice',        name: 'FROST VALLEY',                        emoji: '❄️', costCoins: 5000,  costGems: 0,   unlocked: false },
+      { id: 'desert',     name: 'ANCIENT EGYPT : THE DESERT',          emoji: '🏜️', costCoins: 10000, costGems: 0,   unlocked: false },
+      { id: 'volcano',    name: 'VOLCANIC REALM',                      emoji: '🌋', costCoins: 15000, costGems: 0,   unlocked: false },
+      { id: 'heaven',     name: 'GOLDEN HEIGHTS : THE CLOUD KINGDOM',  emoji: '🌤️', costCoins: 0,     costGems: 200, unlocked: false }
     ];
   }
 
@@ -893,7 +895,7 @@ export class ProgressManager {
     if (world.unlocked) return { success: false, msg: 'World already unlocked!' };
 
     if (!this.state.unlockedWorlds) {
-      this.state.unlockedWorlds = ['jungle'];
+      this.state.unlockedWorlds = ['space'];
     }
 
     if (world.costCoins > 0) {
@@ -921,6 +923,24 @@ export class ProgressManager {
     }
 
     return { success: false, msg: 'World cannot be purchased.' };
+  }
+
+  public unlockWorldFree(id: string): { success: boolean; msg: string } {
+    const world = this.worldsList.find(w => w.id === id);
+    if (!world) return { success: false, msg: 'World not found.' };
+    if (world.unlocked) return { success: false, msg: 'World already unlocked!' };
+
+    if (!this.state.unlockedWorlds) {
+      this.state.unlockedWorlds = ['space'];
+    }
+
+    world.unlocked = true;
+    if (!this.state.unlockedWorlds.includes(id)) {
+      this.state.unlockedWorlds.push(id);
+    }
+    this.updateQuestProgress('unlock_worlds', this.state.unlockedWorlds.length, true);
+    this.save();
+    return { success: true, msg: `Unlocked ${world.name} successfully!` };
   }
 
   /**

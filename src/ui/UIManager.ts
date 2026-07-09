@@ -1140,9 +1140,15 @@ export class UIManager {
               actionHtml = `<span style="font-size:18px;color:rgba(255,255,255,0.25)">›</span>`;
             }
           } else {
-            actionHtml = `<button class="btn-buy-world btn-buy-skin" data-id="${w.id}" style="padding: 6px 12px; font-size: 10px; width: auto; font-family: inherit;">
-              ${w.costCoins > 0 ? '🟡 ' + w.costCoins.toLocaleString() : '💎 ' + w.costGems.toLocaleString()}
-            </button>`;
+            if ((w as any).costAd) {
+              actionHtml = `<button class="btn-buy-world-ad btn-buy-skin" data-id="${w.id}" style="padding: 6px 12px; font-size: 10px; width: auto; font-family: inherit; background: linear-gradient(135deg, #ff6b00, #ffaa00); border: none; color: white;">
+                📺 FREE AD
+              </button>`;
+            } else {
+              actionHtml = `<button class="btn-buy-world btn-buy-skin" data-id="${w.id}" style="padding: 6px 12px; font-size: 10px; width: auto; font-family: inherit;">
+                ${w.costCoins > 0 ? '🟡 ' + w.costCoins.toLocaleString() : '💎 ' + w.costGems.toLocaleString()}
+              </button>`;
+            }
           }
 
           return `
@@ -2224,8 +2230,30 @@ export class UIManager {
         e.stopPropagation();
         sm.playUIClick();
         const id = (btn as HTMLElement).getAttribute('data-id') || '';
-        this.engine.progressManager.buyWorld(id);
-        this.render(); // Redraw UI, no toast notification
+        const res = this.engine.progressManager.buyWorld(id);
+        if (res && !res.success) {
+          this.showToastNotification('LOCKED', res.msg);
+        }
+        this.render(); // Redraw UI
+      });
+    });
+
+    // Explicit Worlds purchase ad button click
+    const buyWorldAdBtns = this.container.querySelectorAll('.btn-buy-world-ad');
+    buyWorldAdBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sm.playUIClick();
+        const id = (btn as HTMLElement).getAttribute('data-id') || '';
+        AdManager.showEconomyRewarded((success) => {
+          if (success) {
+            this.engine.progressManager.unlockWorldFree(id);
+            this.render();
+            this.showToastNotification('WORLD UNLOCKED!', 'Amazon Rainforest is now unlocked!');
+          } else {
+            this.showToastNotification('AD FAILED', 'Watch ad fully to unlock this world!');
+          }
+        });
       });
     });
 
