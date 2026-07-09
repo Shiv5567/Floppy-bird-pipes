@@ -174,7 +174,7 @@ export class GameEngine {
 
     // Initialize global performance detector to bypass expensive shadow blurs
     const savedShadowsSetting = localStorage.getItem('game_disable_shadows');
-    (window as any).gameDisableShadows = savedShadowsSetting !== null ? (savedShadowsSetting === 'true') : true;
+    (window as any).gameDisableShadows = savedShadowsSetting !== null ? (savedShadowsSetting === 'true') : false;
     (window as any).gameEngine = this;
   }
 

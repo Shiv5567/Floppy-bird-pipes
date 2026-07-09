@@ -17,6 +17,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.Network
+import android.net.Uri
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.util.Log
@@ -25,13 +26,11 @@ import androidx.core.content.ContextCompat
 import androidx.activity.ComponentActivity
 import androidx.core.view.WindowCompat
 import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.FullScreenContentCallback
-import com.google.android.gms.ads.interstitial.InterstitialAd
-import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAd
+import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAdLoadCallback
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 
@@ -50,8 +49,7 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var webView: WebView
     private lateinit var rootLayout: FrameLayout
-    private var adView: AdView? = null
-    private var interstitialAd: InterstitialAd? = null
+    private var rewardedInterstitialAd: RewardedInterstitialAd? = null
     private var rewardedAd: RewardedAd? = null
 
     // AdMob loading and retry state
@@ -61,9 +59,9 @@ class MainActivity : ComponentActivity() {
     private var rewardedRetryCount = 0
 
     // Unity Ads state
-    private val unityGameId = "5320875" // Test Game ID
-    private val unityRewardedPlacement = "Rewarded_Android" // Default rewarded placement
-    private val unityInterstitialPlacement = "Interstitial_Android" // Default interstitial placement
+    private val unityGameId = "800083217" // Real Game ID
+    private val unityRewardedPlacement = "800083217" // Real rewarded placement
+    private val unityInterstitialPlacement = "800083217" // Real interstitial placement
     private var isUnityAdsInitialized = false
     private var isUnityRewardedLoaded = false
     private var isUnityInterstitialLoaded = false
@@ -154,6 +152,23 @@ class MainActivity : ComponentActivity() {
                 
                 // Intercept all requests under https://localapp/ to serve assets locally.
                 wv.webViewClient = object : WebViewClient() {
+                    override fun shouldOverrideUrlLoading(
+                        view: WebView?,
+                        request: WebResourceRequest?
+                    ): Boolean {
+                        val url = request?.url?.toString() ?: return false
+                        if (url.startsWith("mailto:")) {
+                            try {
+                                val intent = Intent(Intent.ACTION_SENDTO, Uri.parse(url))
+                                startActivity(intent)
+                                return true
+                            } catch (e: Exception) {
+                                Log.e("FLIGHT_OF_LEGENDS_STARTUP", "Failed to resolve mailto intent", e)
+                            }
+                        }
+                        return super.shouldOverrideUrlLoading(view, request)
+                    }
+
                     override fun shouldInterceptRequest(
                         view: WebView?,
                         request: WebResourceRequest?
@@ -321,7 +336,7 @@ class MainActivity : ComponentActivity() {
             }
 
             // Initialize Unity Ads SDK
-            UnityAds.initialize(this, unityGameId, true, object : IUnityAdsInitializationListener {
+            UnityAds.initialize(this, unityGameId, false, object : IUnityAdsInitializationListener {
                 override fun onInitializationComplete() {
                     Log.d("FLIGHT_OF_LEGENDS_STARTUP", "Unity Ads SDK initialized successfully.")
                     isUnityAdsInitialized = true
@@ -398,7 +413,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         try {
-            adView?.destroy()
             webView.destroy()
         } catch (e: Exception) {
             Log.e("FLIGHT_OF_LEGENDS_STARTUP", "Exception in onDestroy()", e)
@@ -406,67 +420,28 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    fun showBannerAd() {
-        try {
-            if (adView != null) return // Already showing
-            
-            val banner = AdView(this).apply {
-                adUnitId = "ca-app-pub-3940256099942544/6300978111" // Test Banner ID
-                setAdSize(AdSize.BANNER)
-                layoutParams = FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.MATCH_PARENT,
-                    FrameLayout.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    gravity = android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL
-                }
-            }
-            
-            adView = banner
-            rootLayout.addView(banner)
-            
-            val adRequest = AdRequest.Builder().build()
-            banner.loadAd(adRequest)
-            Log.d("FLIGHT_OF_LEGENDS_STARTUP", "Banner Ad loaded.")
-        } catch (e: Exception) {
-            Log.e("FLIGHT_OF_LEGENDS_STARTUP", "Exception in showBannerAd()", e)
-        }
-    }
-
-    fun hideBannerAd() {
-        try {
-            adView?.let { banner ->
-                rootLayout.removeView(banner)
-                banner.destroy()
-                adView = null
-                Log.d("FLIGHT_OF_LEGENDS_STARTUP", "Banner Ad hidden and destroyed.")
-            }
-        } catch (e: Exception) {
-            Log.e("FLIGHT_OF_LEGENDS_STARTUP", "Exception in hideBannerAd()", e)
-        }
-    }
-
     fun loadInterstitialAd() {
         try {
-            if (interstitialAd != null || isInterstitialLoading) return
+            if (rewardedInterstitialAd != null || isInterstitialLoading) return
             isInterstitialLoading = true
 
             val adRequest = AdRequest.Builder().build()
-            InterstitialAd.load(
+            RewardedInterstitialAd.load(
                 this,
-                "ca-app-pub-3940256099942544/1033173712", // Test Interstitial ID
+                "ca-app-pub-7590043194932862/9278780713", // Real Rewarded Interstitial ID (flappy1)
                 adRequest,
-                object : InterstitialAdLoadCallback() {
-                    override fun onAdLoaded(ad: InterstitialAd) {
-                        interstitialAd = ad
+                object : RewardedInterstitialAdLoadCallback() {
+                    override fun onAdLoaded(ad: RewardedInterstitialAd) {
+                        rewardedInterstitialAd = ad
                         isInterstitialLoading = false
                         interstitialRetryCount = 0
-                        Log.d("FLIGHT_OF_LEGENDS_STARTUP", "AdMob Interstitial Ad loaded successfully.")
+                        Log.d("FLIGHT_OF_LEGENDS_STARTUP", "AdMob Rewarded Interstitial Ad loaded successfully.")
                     }
                     override fun onAdFailedToLoad(error: LoadAdError) {
-                        interstitialAd = null
+                        rewardedInterstitialAd = null
                         isInterstitialLoading = false
                         interstitialRetryCount++
-                        Log.e("FLIGHT_OF_LEGENDS_STARTUP", "AdMob Interstitial failed to load: $error. Retry count: $interstitialRetryCount")
+                        Log.e("FLIGHT_OF_LEGENDS_STARTUP", "AdMob Rewarded Interstitial failed to load: $error. Retry count: $interstitialRetryCount")
                         // Background retry using exponential backoff (e.g. 5s, 10s, 15s... max 60s)
                         val delay = Math.min(60, 5 * interstitialRetryCount) * 1000L
                         webView.postDelayed({
@@ -483,24 +458,26 @@ class MainActivity : ComponentActivity() {
 
     fun showInterstitialAd(callbackName: String? = null) {
         try {
-            val ad = interstitialAd
+            val ad = rewardedInterstitialAd
             if (ad != null) {
                 ad.fullScreenContentCallback = object : FullScreenContentCallback() {
                     override fun onAdDismissedFullScreenContent() {
-                        interstitialAd = null
+                        rewardedInterstitialAd = null
                         loadInterstitialAd()
                         callbackName?.let { webView.evaluateJavascript("javascript:$it(true)", null) }
                     }
                     override fun onAdFailedToShowFullScreenContent(error: com.google.android.gms.ads.AdError) {
-                        Log.e("FLIGHT_OF_LEGENDS_STARTUP", "AdMob Interstitial failed to show: ${error.message}")
-                        interstitialAd = null
+                        Log.e("FLIGHT_OF_LEGENDS_STARTUP", "AdMob Rewarded Interstitial failed to show: ${error.message}")
+                        rewardedInterstitialAd = null
                         loadInterstitialAd()
                         callbackName?.let { webView.evaluateJavascript("javascript:$it(false)", null) }
                     }
                 }
-                ad.show(this)
+                ad.show(this) { rewardItem ->
+                    Log.d("FLIGHT_OF_LEGENDS_STARTUP", "User earned reward from Rewarded Interstitial: ${rewardItem.amount}")
+                }
             } else {
-                Log.w("FLIGHT_OF_LEGENDS_STARTUP", "Interstitial Ad requested but not loaded. Reloading...")
+                Log.w("FLIGHT_OF_LEGENDS_STARTUP", "Rewarded Interstitial Ad requested but not loaded. Reloading...")
                 loadInterstitialAd()
                 callbackName?.let { webView.evaluateJavascript("javascript:$it(false)", null) }
             }
@@ -518,7 +495,7 @@ class MainActivity : ComponentActivity() {
             val adRequest = AdRequest.Builder().build()
             RewardedAd.load(
                 this,
-                "ca-app-pub-3940256099942544/5224354917", // Test Rewarded ID
+                "ca-app-pub-7590043194932862/4368023368", // Real Rewarded ID (flappy1)
                 adRequest,
                 object : RewardedAdLoadCallback() {
                     override fun onAdLoaded(ad: RewardedAd) {
@@ -725,24 +702,6 @@ class MainActivity : ComponentActivity() {
     // --- Javascript Interfaces ---
     inner class AdMobInterface {
         @JavascriptInterface
-        fun showBanner() {
-            try {
-                runOnUiThread { showBannerAd() }
-            } catch (e: Exception) {
-                Log.e("FLIGHT_OF_LEGENDS_STARTUP", "Exception in AdMobInterface.showBanner()", e)
-            }
-        }
-
-        @JavascriptInterface
-        fun hideBanner() {
-            try {
-                runOnUiThread { hideBannerAd() }
-            } catch (e: Exception) {
-                Log.e("FLIGHT_OF_LEGENDS_STARTUP", "Exception in AdMobInterface.hideBanner()", e)
-            }
-        }
-
-        @JavascriptInterface
         fun showInterstitial() {
             try {
                 runOnUiThread { showInterstitialAd() }
@@ -831,7 +790,7 @@ class MainActivity : ComponentActivity() {
         @JavascriptInterface
         fun isAdReady(adType: String): Boolean {
             val ready = when (adType) {
-                "AdMobInterstitial" -> interstitialAd != null
+                "AdMobInterstitial" -> rewardedInterstitialAd != null
                 "UnityInterstitial" -> isUnityInterstitialLoaded
                 "AdMobRewarded" -> rewardedAd != null
                 "UnityRewarded" -> isUnityRewardedLoaded

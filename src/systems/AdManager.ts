@@ -10,8 +10,8 @@ declare global {
       isAdReady?(adType: string): boolean;
     };
     AndroidAdMob?: {
-      showBanner(): void;
-      hideBanner(): void;
+      showBanner?(): void;
+      hideBanner?(): void;
       showInterstitial(): void;
       showRewarded(callbackName: string): void;
     };
@@ -659,7 +659,7 @@ export class AdManager {
   public static hideBanner() {
     if (typeof window.AndroidBridge !== 'undefined' && (window.AndroidBridge as any).hideBanner) {
       (window.AndroidBridge as any).hideBanner();
-    } else if (typeof window.AndroidAdMob !== 'undefined') {
+    } else if (typeof window.AndroidAdMob !== 'undefined' && window.AndroidAdMob.hideBanner) {
       window.AndroidAdMob.hideBanner();
     } else {
       console.log("[AdMob Mock] hideBanner()");

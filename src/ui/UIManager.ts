@@ -1378,12 +1378,11 @@ export class UIManager {
 
             <!-- Volume control sliders section -->
             <div class="control-group" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px;">
-              <div class="segment-label" style="font-size: 11px; font-weight: 800; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 15px; text-transform: uppercase;">SOUND VOLUME CONTROLS</div>
               
               <!-- Background Music slider -->
               <div class="slider-row" style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 6px;">
                 <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
-                  <span>🎵 BACKGROUND MUSIC</span>
+                  <span>🎵 MUSIC</span>
                   <span id="label-music-val" style="color: #00f3ff; font-weight: 900;">${Math.round(this.engine.soundManager.getMusicVolume() * 100)}%</span>
                 </div>
                 <input type="range" class="settings-slider" id="slide-music-vol" min="0" max="100" value="${Math.round(this.engine.soundManager.getMusicVolume() * 100)}" 
@@ -1394,21 +1393,12 @@ export class UIManager {
               <!-- System SFX slider -->
               <div class="slider-row" style="display: flex; flex-direction: column; gap: 6px;">
                 <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
-                  <span>🔊 SYSTEM SOUND EFFECTS</span>
+                  <span>🔊 SOUND EFFECTS</span>
                   <span id="label-sfx-val" style="color: #a855f7; font-weight: 900;">${Math.round(this.engine.soundManager.getSfxVolume() * 100)}%</span>
                 </div>
                 <input type="range" class="settings-slider" id="slide-sfx-vol" min="0" max="100" value="${Math.round(this.engine.soundManager.getSfxVolume() * 100)}" 
                        style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; outline: none; -webkit-appearance: none; cursor: pointer; accent-color: #a855f7;"
                 >
-              </div>
-            </div>
-
-            <!-- Graphics Quality settings section -->
-            <div class="control-group" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px; margin-top: 20px;">
-              <div class="segment-label" style="font-size: 11px; font-weight: 800; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 12px; text-transform: uppercase;">GRAPHICS QUALITY</div>
-              <div style="display: flex; gap: 10px;">
-                <button class="graphics-btn ${(window as any).gameDisableShadows ? '' : 'active'}" id="btn-graphics-high" style="flex: 1; padding: 10px; border-radius: 12px; font-family: var(--font-family); font-weight: 900; font-size: 11px; cursor: pointer; border: 1.5px solid ${(window as any).gameDisableShadows ? 'rgba(255,255,255,0.1)' : '#00ff88'}; background: ${(window as any).gameDisableShadows ? 'rgba(255,255,255,0.03)' : 'rgba(0,255,136,0.15)'}; color: ${(window as any).gameDisableShadows ? 'rgba(255,255,255,0.6)' : '#00ff88'}; transition: all 0.2s; text-shadow: ${(window as any).gameDisableShadows ? 'none' : '0 0 6px #00ff88'};">✨ HIGH GRAPHICS</button>
-                <button class="graphics-btn ${(window as any).gameDisableShadows ? 'active' : ''}" id="btn-graphics-std" style="flex: 1; padding: 10px; border-radius: 12px; font-family: var(--font-family); font-weight: 900; font-size: 11px; cursor: pointer; border: 1.5px solid ${(window as any).gameDisableShadows ? '#00f3ff' : 'rgba(255,255,255,0.1)'}; background: ${(window as any).gameDisableShadows ? 'rgba(0,243,255,0.15)' : 'rgba(255,255,255,0.03)'}; color: ${(window as any).gameDisableShadows ? '#00f3ff' : 'rgba(255,255,255,0.6)'}; transition: all 0.2s; text-shadow: ${(window as any).gameDisableShadows ? '0 0 6px #00f3ff' : 'none'};">⚡ PERFORMANCE</button>
               </div>
             </div>
 
@@ -1419,11 +1409,20 @@ export class UIManager {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
                 <span>SHARE</span>
               </button>
-            </div>
 
-            <!-- Back Button at bottom -->
-            <div style="margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px;">
-              <button class="btn btn-secondary" id="btn-settings-back" style="width: 100%; padding: 12px; border-radius: 12px; font-weight: 800; cursor: pointer;">BACK TO MENU</button>
+              <!-- Feedback & Contact columns -->
+              <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <a href="mailto:charan.support@gmail.com?subject=Flappy%20Legends%20Feedback" style="flex: 1; text-decoration: none;">
+                  <button style="width: 100%; padding: 12px; border: 1.5px solid rgba(168, 85, 247, 0.4); border-radius: 12px; font-family: var(--font-family); font-weight: 900; font-size: 11px; cursor: pointer; color: #a855f7; background: rgba(168, 85, 247, 0.1); display: flex; align-items: center; justify-content: center; gap: 6px; text-transform: uppercase; transition: all 0.2s; box-shadow: 0 4px 10px rgba(168, 85, 247, 0.15); text-shadow: 0 0 4px rgba(168, 85, 247, 0.3);">
+                    💬 FEEDBACK
+                  </button>
+                </a>
+                <a href="mailto:charan.support@gmail.com?subject=Flappy%20Legends%20Support" style="flex: 1; text-decoration: none;">
+                  <button style="width: 100%; padding: 12px; border: 1.5px solid rgba(0, 243, 255, 0.4); border-radius: 12px; font-family: var(--font-family); font-weight: 900; font-size: 11px; cursor: pointer; color: #00f3ff; background: rgba(0, 243, 255, 0.1); display: flex; align-items: center; justify-content: center; gap: 6px; text-transform: uppercase; transition: all 0.2s; box-shadow: 0 4px 10px rgba(0, 243, 255, 0.15); text-shadow: 0 0 4px rgba(0, 243, 255, 0.3);">
+                    ✉️ CONTACT
+                  </button>
+                </a>
+              </div>
             </div>
           </div>
         `;
@@ -1730,7 +1729,6 @@ export class UIManager {
     };
 
     bindClick('btn-back-main', navigateBackWithAnimation);
-    bindClick('btn-settings-back', navigateBackWithAnimation);
     bindClick('btn-settings-back-icon', navigateBackWithAnimation);
 
 
@@ -1809,26 +1807,7 @@ export class UIManager {
       });
     }
 
-    // Graphics Quality Buttons Binding
-    const btnGraphicsHigh = this.container.querySelector('#btn-graphics-high') as HTMLButtonElement;
-    if (btnGraphicsHigh) {
-      btnGraphicsHigh.addEventListener('click', () => {
-        this.engine.soundManager.playUISelect();
-        (window as any).gameDisableShadows = false; // Enable shadows (High Graphics)
-        localStorage.setItem('game_disable_shadows', 'false');
-        this.render();
-      });
-    }
 
-    const btnGraphicsStd = this.container.querySelector('#btn-graphics-std') as HTMLButtonElement;
-    if (btnGraphicsStd) {
-      btnGraphicsStd.addEventListener('click', () => {
-        this.engine.soundManager.playUISelect();
-        (window as any).gameDisableShadows = true; // Disable shadows (Performance Mode)
-        localStorage.setItem('game_disable_shadows', 'true');
-        this.render();
-      });
-    }
 
     // Mysterious chests opening
     const chestBtns = this.container.querySelectorAll('.btn-open-chest[data-chest-id]');
@@ -2305,10 +2284,7 @@ export class UIManager {
       })
         .catch(err => console.error("KV initialize failed:", err));
 
-      let gameUrl = window.location.origin + window.location.pathname + `?ref=${shareToken}`;
-      if (window.location.hostname === 'localapp' || window.location.protocol === 'file:') {
-        gameUrl = `https://shiv5567.github.io/Floppy-bird-pipes/?ref=${shareToken}`;
-      }
+      let gameUrl = `https://play.google.com/store/apps/details?id=com.advance.flappylegends&pcampaignid=web_share&ref=${shareToken}`;
       const text = `Hey! Play Flappy Legends: Flappy Bird Game with me here: ${gameUrl}`;
       
       let shareUrl = '';

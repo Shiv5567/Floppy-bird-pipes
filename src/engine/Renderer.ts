@@ -73,7 +73,7 @@ export class Renderer {
     this.lightningFlash = 0;
     switch (worldId) {
       case 'jungle':
-        this.weather = { type: 'jungle_fog', windSpeed: 1, density: 68, lightning: true }; // 20% increased density
+        this.weather = { type: 'rain', windSpeed: 1, density: 68, lightning: true }; // 20% increased density
         break;
       case 'ice':
         this.weather = { type: 'snow', windSpeed: 2, density: 35, lightning: false };
@@ -271,7 +271,6 @@ export class Renderer {
 
     // Spawn rare space shooting stars drifting super fast in clear weather (for Space world)
     if (this.weather.type === 'clear') {
-      const isPerformanceMode = (window as any).gameDisableShadows;
       if (Math.random() < 0.008 * deltaTime * 60) {
         this.particleEngine.spawn(
           Math.random() * width,
@@ -285,22 +284,6 @@ export class Renderer {
           'spark',
           true,
           'rgba(0, 243, 255, 0.5)'
-        );
-      }
-      // Cosmic stardust particles floating slowly (bypassed in performance mode)
-      if (!isPerformanceMode && Math.random() < 0.08 * deltaTime * 60) {
-        this.particleEngine.spawn(
-          width + 20,
-          Math.random() * height,
-          -1.0 - Math.random() * 2.0 - this.currentSpeed * 0.25,
-          (Math.random() - 0.5) * 0.4,
-          Math.random() > 0.5 ? 'rgba(0, 243, 255, 0.75)' : 'rgba(217, 70, 239, 0.75)',
-          1.5 + Math.random() * 2.5,
-          0.9,
-          0.003,
-          'circle',
-          true,
-          Math.random() > 0.5 ? 'rgba(0, 243, 255, 0.35)' : 'rgba(217, 70, 239, 0.35)'
         );
       }
       return;
@@ -413,22 +396,6 @@ export class Renderer {
             undefined,
             0.04 // Expand sand clouds slightly
           );
-          // Glowing gold treasure dust / Egyptian tomb sparkles
-          if (Math.random() < 0.25) {
-            this.particleEngine.spawn(
-              width + 20,
-              Math.random() * height,
-              -10 - Math.random() * 8 - this.currentSpeed * 1.5,
-              (Math.random() - 0.5) * 1.5,
-              'rgba(255, 215, 0, 0.85)',
-              2 + Math.random() * 3,
-              0.9,
-              0.01,
-              'star',
-              true,
-              'rgba(255, 170, 0, 0.4)'
-            );
-          }
           break;
         }
 
@@ -448,24 +415,6 @@ export class Renderer {
             'rgba(255, 90, 0, 0.8)'
           );
           
-          // Volumetric ash/smoke clouds rising from below
-          if (Math.random() < 0.15) {
-            this.particleEngine.spawn(
-              Math.random() * width,
-              height + 10,
-              (Math.random() - 0.5) * 2 - this.currentSpeed * 0.1,
-              -1.5 - Math.random() * 2,
-              'rgba(80, 70, 70, 0.35)',
-              12 + Math.random() * 12,
-              0.8,
-              0.008,
-              'circle',
-              false,
-              undefined,
-              0.12
-            );
-          }
-
           // Rare basalt ember burst shatters
           if (Math.random() < 0.12) {
             this.particleEngine.emitExplosion(
@@ -491,22 +440,6 @@ export class Renderer {
             0.004,
             'bubble'
           );
-          // Bioluminescent aquamarine plankton sparkles
-          if (Math.random() < 0.18) {
-            this.particleEngine.spawn(
-              width + 20,
-              Math.random() * height,
-              -2 - Math.random() * 2 - this.currentSpeed * 0.5,
-              (Math.random() - 0.5) * 0.8,
-              'rgba(0, 255, 180, 0.8)',
-              2 + Math.random() * 2.5,
-              0.9,
-              0.005,
-              'circle',
-              true,
-              'rgba(0, 255, 180, 0.45)'
-            );
-          }
           break;
         }
 
@@ -526,23 +459,6 @@ export class Renderer {
             true,
             isFeather ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 215, 0, 0.5)'
           );
-          // Drifting soft clouds in the foreground passing by
-          if (Math.random() < 0.08) {
-            this.particleEngine.spawn(
-              width + 50,
-              Math.random() * height,
-              -1.2 - Math.random() * 1.5 - this.currentSpeed * 0.4,
-              (Math.random() - 0.5) * 0.3,
-              'rgba(255, 255, 255, 0.45)',
-              15 + Math.random() * 25,
-              0.7,
-              0.002,
-              'circle',
-              false,
-              undefined,
-              0.06
-            );
-          }
           break;
         }
         case 'jungle_fog': {
