@@ -29,6 +29,7 @@ export class Renderer {
   public timeOfDay = 6.0; // Start at 6:00 AM (Morning Scene)
   private timeSpeed = 0.0025;
   public activeWorldId = 'jungle';
+  private nightFadeFactor = 0;
 
   // Game scrolling speed (Visual Weather & Aura Pack)
   private currentSpeed = 5.0;
@@ -242,6 +243,19 @@ export class Renderer {
       currentSpeed = this.timeSpeed * (80 / 87);
     }
     this.timeOfDay = (this.timeOfDay + currentSpeed * (deltaTime * 60)) % 24;
+
+    // Smooth real-time 10-second fade for space/twilight night assets
+    const time = this.timeOfDay;
+    const isNight = time >= 19.0 || time < 5.0;
+    if (isNight) {
+      if (this.nightFadeFactor < 1.0) {
+        this.nightFadeFactor = Math.min(1.0, this.nightFadeFactor + deltaTime / 10.0);
+      }
+    } else {
+      if (this.nightFadeFactor > 0.0) {
+        this.nightFadeFactor = Math.max(0.0, this.nightFadeFactor - deltaTime / 10.0);
+      }
+    }
 
     // Camera shake decay
     if (this.shakeDuration > 0) {
@@ -1001,16 +1015,10 @@ export class Renderer {
         const isMobile = ((window as any).gameIsMobile || false) && (window as any).gameDisableShadows;
         const time = this.timeOfDay;
         
-        // Night Opacity (Nebula, Galaxy, Moon, Stars)
-        // Stars and Galaxy disappear during sunset (17:00-19:00) and sunrise (5:00-7:00) when the sky is red.
-        let nightOpacity = 0;
-        if (time >= 19.5 || time < 4.5) {
-          nightOpacity = 1.0;
-        } else if (time >= 19 && time < 19.5) {
-          nightOpacity = (time - 19) / 0.5; // fade in after sunset (when sky redness clears)
-        } else if (time >= 4.5 && time < 5) {
-          nightOpacity = (5 - time) / 0.5; // fade out before sunrise (when sky redness begins)
-        }
+        // Smooth staggered opacities based on 10-second real-time nightFadeFactor
+        const galaxyOpacity = Math.max(0, Math.min(1, (this.nightFadeFactor - 0.0) / 0.7));
+        const moonOpacity   = Math.max(0, Math.min(1, (this.nightFadeFactor - 0.2) / 0.7));
+        const starsOpacity  = Math.max(0, Math.min(1, (this.nightFadeFactor - 0.4) / 0.6));
         
         // Day Opacity (Cosmic Sun & Rays)
         let dayOpacity = 0;
@@ -1020,9 +1028,9 @@ export class Renderer {
 
         if (!isMobile) {
           // --- 1. Distant Nebula Cloud Glows ---
-          if (nightOpacity > 0) {
+          if (galaxyOpacity > 0) {
             this.ctx.save();
-            this.ctx.globalAlpha = nightOpacity;
+            this.ctx.globalAlpha = galaxyOpacity;
             // Purple Nebula Top-Left
             const nebulaGrad1 = this.ctx.createRadialGradient(width * 0.15, height * 0.25, 10, width * 0.15, height * 0.25, 220);
             nebulaGrad1.addColorStop(0, 'rgba(88, 28, 135, 0.18)'); // deep purple
@@ -1046,7 +1054,7 @@ export class Renderer {
 
             // --- 2. Draw Milky Way Galaxy Nebula ---
             this.ctx.save();
-            this.ctx.globalAlpha = nightOpacity;
+            this.ctx.globalAlpha = galaxyOpacity;
             const galX = width * 0.35;
             const galY = height * 0.32;
             this.ctx.translate(galX, galY);
@@ -1121,13 +1129,13 @@ export class Renderer {
         }
 
         // --- 3. Draw Giant Detailed Moon (Only at Night) ---
-        if (nightOpacity > 0) {
+        if (moonOpacity > 0) {
           const moonX = width * 0.8;
           const moonY = height * 0.22;
           const moonRadius = 40; // slightly larger for majestic details
 
           this.ctx.save();
-          this.ctx.globalAlpha = nightOpacity;
+          this.ctx.globalAlpha = moonOpacity;
 
           if (isMobile) {
             // Optimized flat moon drawing for mobile devices (removes radial gradients, craters, and corona glows)
@@ -1305,7 +1313,7 @@ export class Renderer {
         }
 
         // --- 5. Twinkling Stars (Only at Night) ---
-        if (nightOpacity > 0) {
+        if (starsOpacity > 0) {
           this.ctx.save();
           const starPalette = ['#ffffff', '#fffbeb', '#a5f3fc', '#fbcfe8', '#fef9c3', '#e9d5ff', '#fda4af'];
           const starCount = isMobile ? 35 : 120;
@@ -1317,7 +1325,7 @@ export class Renderer {
             const twinkle = 0.25 + 0.75 * (Math.sin(this.weatherTime * 1.8 + i) * 0.5 + 0.5);
             const size = 0.9 + (Math.sin(i * 99.3) * 0.5 + 0.5) * 1.2;
             
-            this.ctx.globalAlpha = nightOpacity * twinkle;
+            this.ctx.globalAlpha = starsOpacity * twinkle;
             this.ctx.fillStyle = starPalette[i % starPalette.length];
             
             // Draw regular tiny star
@@ -1340,11 +1348,11 @@ export class Renderer {
         }
 
         // --- 6. Shooting Stars (Meteors - Only at Night) ---
-        if (nightOpacity > 0) {
+        if (starsOpacity > 0) {
           const cycle = (this.weatherTime * 0.25) % 15; // Streaks every 15 seconds
           if (cycle < 2.0 && !isMobile) {
             this.ctx.save();
-            this.ctx.globalAlpha = nightOpacity;
+            this.ctx.globalAlpha = starsOpacity;
             const t = cycle / 2.0; // Normalized time (0 to 1)
             
             const cycleIdx = Math.floor(this.weatherTime / 15);
