@@ -5,8 +5,8 @@ export class Bird {
   public x = 120;
   public y = 300;
   public vy = 0;
-  public radius = 26; // Base collision circle radius
-  public baseRadius = 26;
+  public radius = 29.9; // Base collision circle radius (15% increase from 26)
+  public baseRadius = 29.9;
   public angle = 0;
   
   // Physics parameters (Increased vertical velocity by 20% for snappier feel)
@@ -540,7 +540,7 @@ export class Bird {
     
     // Scale breathing effect based on a sine wave
     const breath = 1.0 + Math.sin(this.auraPulse) * 0.08;
-    const baseRadius = 26 * breath;
+    const baseRadius = this.baseRadius * breath;
     
     // Set line dash and global styling parameters
     ctx.lineWidth = 1.8;
