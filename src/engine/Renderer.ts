@@ -558,19 +558,19 @@ export class Renderer {
     const skyGrad = this.ctx.createLinearGradient(0, 0, 0, height);
     switch (worldId) {
       case 'jungle':
-        skyGrad.addColorStop(0, '#04281a');
-        skyGrad.addColorStop(1, '#0e4634');
+        skyGrad.addColorStop(0, '#10563b');
+        skyGrad.addColorStop(1, '#1d825c');
         break;
       case 'ice':
-        skyGrad.addColorStop(0, '#0d1e3a');
-        skyGrad.addColorStop(1, '#2c4266');
+        skyGrad.addColorStop(0, '#3b6ea5');
+        skyGrad.addColorStop(1, '#6692ca');
         break;
       case 'desert': {
         const time = this.timeOfDay;
         
-        // 4-Keyframe Continuous Day/Night Cycle Colors for Desert World
-        const nightTop = [8, 4, 20];
-        const nightBottom = [24, 16, 48];
+        // 4-Keyframe Continuous Day/Night Cycle Colors for Desert World (Made night bright!)
+        const nightTop = [60, 40, 100];
+        const nightBottom = [100, 80, 160];
         
         const morningTop = [253, 186, 116]; // Golden orange
         const morningBottom = [234, 88, 12];  // Deep orange
@@ -626,8 +626,8 @@ export class Renderer {
         break;
       }
       case 'volcano':
-        skyGrad.addColorStop(0, '#110300');
-        skyGrad.addColorStop(1, '#3b0a00');
+        skyGrad.addColorStop(0, '#661100');
+        skyGrad.addColorStop(1, '#b83b00');
         break;
       case 'space': {
         const time = this.timeOfDay;
@@ -694,8 +694,8 @@ export class Renderer {
         break;
       }
       case 'underwater':
-        skyGrad.addColorStop(0, '#00132b');
-        skyGrad.addColorStop(1, '#003554');
+        skyGrad.addColorStop(0, '#003a6b');
+        skyGrad.addColorStop(1, '#007cb0');
         break;
       case 'heaven':
         skyGrad.addColorStop(0, '#bae6fd');   // Soft sky blue
@@ -703,15 +703,15 @@ export class Renderer {
         skyGrad.addColorStop(1, '#fef08a');   // Golden heights yellow
         break;
       case 'retro':
-        skyGrad.addColorStop(0, '#1a1a1a');
-        skyGrad.addColorStop(1, '#1a1a1a');
+        skyGrad.addColorStop(0, '#3a1a5a');
+        skyGrad.addColorStop(1, '#6a2a8a');
         break;
       default: {
         const time = this.timeOfDay;
         
-        // 4-Keyframe Continuous Day/Night Cycle Colors for Classic World
-        const nightTop = [4, 8, 20];
-        const nightBottom = [13, 27, 58];
+        // 4-Keyframe Continuous Day/Night Cycle Colors for Classic World (Made night bright!)
+        const nightTop = [50, 65, 110];
+        const nightBottom = [80, 100, 160];
         
         const morningTop = [254, 215, 170];  // Rose gold
         const morningBottom = [253, 186, 116]; // Golden orange
@@ -2451,9 +2451,9 @@ export class Renderer {
     switch (worldId) {
       case 'jungle':
         return [
-          '#0c2a1c', // Layer 1 (Furthest)
-          '#081e13', // Layer 2
-          '#05120a'  // Layer 3 (Closest)
+          '#154b32', // Layer 1 (Furthest)
+          '#0e3422', // Layer 2
+          '#0b2619'  // Layer 3 (Closest)
         ][layer - 1];
 
 
@@ -2466,16 +2466,16 @@ export class Renderer {
 
       case 'desert':
         return [
-          '#8e612f',
-          '#734b21',
-          '#4e2f11'
+          '#b88a55',
+          '#976f3f',
+          '#7a542a'
         ][layer - 1];
 
       case 'volcano':
         return [
-          '#2c0400',
-          '#1e0200',
-          '#0e0100'
+          '#8a1a08',
+          '#631003',
+          '#400a01'
         ][layer - 1];
 
       case 'space': {
@@ -2506,9 +2506,9 @@ export class Renderer {
 
       case 'underwater':
         return [
-          '#002946',
-          '#001e35',
-          '#000f1c'
+          '#00578f',
+          '#003e6b',
+          '#002542'
         ][layer - 1];
 
       case 'heaven':
@@ -2520,16 +2520,16 @@ export class Renderer {
 
       case 'retro':
         return [
-          '#2e2e2e',
-          '#424242',
-          '#5c5c5c'
+          '#522485',
+          '#6b32a3',
+          '#8742c4'
         ][layer - 1];
 
       default:
         return [
-          '#2b738c',
-          '#225d73',
-          '#153d4c'
+          '#459bb9',
+          '#327c97',
+          '#225d73'
         ][layer - 1];
     }
   }
@@ -2580,10 +2580,10 @@ export class Renderer {
 
     this.ctx.save();
     
-    // 1. Cinematic overlay vignette
+    // 1. Cinematic overlay vignette (reduced darkness)
     const vig = this.ctx.createRadialGradient(width / 2, height / 2, width * 0.3, width / 2, height / 2, width * 0.75);
     vig.addColorStop(0, 'rgba(0, 0, 0, 0)');
-    vig.addColorStop(1, 'rgba(0, 0, 0, 0.6)');
+    vig.addColorStop(1, 'rgba(0, 0, 0, 0.20)');
     this.ctx.fillStyle = vig;
     this.ctx.fillRect(0, 0, width, height);
 
@@ -2614,9 +2614,10 @@ export class Renderer {
   }
 
   public beginCamera() {
-    this.ctx.save();
     const width = this.canvas.width / this.dpr;
     const height = this.canvas.height / this.dpr;
+    
+    this.ctx.save();
     
     // Zoom from screen center
     this.ctx.translate(width / 2, height / 2);
@@ -2652,36 +2653,32 @@ export class Renderer {
     let intensity = 0;
 
     if (worldId === 'jungle') {
-      // Constant dark, gloomy, green-teal storm atmosphere for Amazon Rainforest
+      // Constant dark, gloomy, green-teal storm atmosphere for Amazon Rainforest (made bright!)
       ambientColor = '#0b1d17';
-      intensity = 0.26;
+      intensity = 0.06;
     } else {
       const time = this.timeOfDay;
-      // 0 to 24 hour scale
+      // 0 to 24 hour scale (made night/low light cycles bright!)
       if (time >= 20 || time < 4) {
-        // Dead of night: deep midnight blue overlay
         ambientColor = '#0b0c2a';
-        intensity = 0.38;
+        intensity = 0.08;
       } else if (time >= 4 && time < 7) {
-        // Sunrise: transition from night to warm orange
-        const progress = (time - 4) / 3; // 0 to 1
+        const progress = (time - 4) / 3;
         const r = Math.round(11 + (255 - 11) * progress);
         const g = Math.round(12 + (120 - 12) * progress);
         const b = Math.round(42 + (50 - 42) * progress);
         ambientColor = `rgb(${r}, ${g}, ${b})`;
-        intensity = 0.38 * (1 - progress) + 0.18 * progress;
+        intensity = 0.08 * (1 - progress) + 0.04 * progress;
       } else if (time >= 7 && time < 17) {
-        // Day: very light warm golden sunlight tint
         ambientColor = '#fff6d5';
-        intensity = 0.04;
+        intensity = 0.03;
       } else {
-        // Sunset: transition from day to deep crimson/purple
-        const progress = (time - 17) / 3; // 0 to 1
+        const progress = (time - 17) / 3;
         const r = Math.round(255 * (1 - progress) + 11 * progress);
         const g = Math.round(120 * (1 - progress) + 12 * progress);
         const b = Math.round(50 * (1 - progress) + 42 * progress);
         ambientColor = `rgb(${r}, ${g}, ${b})`;
-        intensity = 0.18 * (1 - progress) + 0.38 * progress;
+        intensity = 0.04 * (1 - progress) + 0.08 * progress;
       }
     }
 
