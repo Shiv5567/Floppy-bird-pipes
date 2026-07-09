@@ -1051,8 +1051,8 @@
   
             <div class="revive-heartbeat-box">
               <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
-                <div style="font-size: 12px; font-weight: 800; color: #aaa; letter-spacing: 1px;">
-                  REVIVE
+                <div style="font-size: 12px; font-weight: 900; color: #fff; letter-spacing: 1.5px; text-transform: uppercase;">
+                  CONTINUE
                 </div>
                 <div style="font-size: 10px; font-weight: 800; color: #666;">
                   REVIVES USED: ${this.engine.revivesUsedThisRun}/3
