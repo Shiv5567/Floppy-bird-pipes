@@ -4,7 +4,7 @@ import { SoundManager } from './engine/SoundManager.ts';
 import { GameEngine } from './engine/GameEngine.ts';
 import { UIManager } from './ui/UIManager.ts';
 
-// Bulletproof global shadow neutralization to boost low-end mobile performance
+// Disable expensive HTML5 Canvas shadow rendering globally as requested (drop shadow removed)
 Object.defineProperty(CanvasRenderingContext2D.prototype, 'shadowBlur', {
   set: function() {},
   get: function() { return 0; }
@@ -172,10 +172,7 @@ function init() {
   const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
   if (!canvas) return;
 
-  // Add mobile class helper to completely disable expensive layout blurs (backdrop-filter)
-  if (isMobileDevice) {
-    document.body.classList.add('mobile-performance');
-  }
+  // Performance-based mobile blur neutralization removed to keep premium graphics
 
   progressManager = new ProgressManager();
   soundManager = new SoundManager();

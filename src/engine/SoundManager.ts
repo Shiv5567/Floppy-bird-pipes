@@ -17,7 +17,7 @@ export class SoundManager {
   private get musicVolume(): number {
     const engine = (window as any).gameEngine;
     const isPlaying = engine && (engine.state === 'PLAYING' || engine.state === 'BOSS_WARNING' || engine.state === 'BOSS_FIGHT');
-    return isPlaying ? Math.min(1.0, this._musicVolume * 1.3) : this._musicVolume;
+    return isPlaying ? Math.min(1.6, this._musicVolume * 2.08) : this._musicVolume; // 60% increase (1.3 * 1.6 = 2.08)
   }
   private set musicVolume(val: number) {
     this._musicVolume = val;
@@ -87,10 +87,10 @@ export class SoundManager {
     localStorage.setItem('flight_of_legends_music_vol_v2', this._musicVolume.toString());
     
     if (this.menuAudioElement) {
-      this.menuAudioElement.volume = this.isMuted ? 0 : 0.45 * this.musicVolume;
+      this.menuAudioElement.volume = this.isMuted ? 0 : Math.min(1.0, 0.45 * this.musicVolume);
     }
     if (this.customAudioElement) {
-      this.customAudioElement.volume = this.isMuted ? 0 : 0.45 * this.musicVolume;
+      this.customAudioElement.volume = this.isMuted ? 0 : Math.min(1.0, 0.45 * this.musicVolume);
     }
   }
 
@@ -109,10 +109,10 @@ export class SoundManager {
       this.masterVolumeNode.gain.setValueAtTime(muted ? 0 : 0.55, this.ctx.currentTime);
     }
     if (this.customAudioElement) {
-      this.customAudioElement.volume = muted ? 0 : 0.45 * this.musicVolume;
+      this.customAudioElement.volume = muted ? 0 : Math.min(1.0, 0.45 * this.musicVolume);
     }
     if (this.menuAudioElement) {
-      this.menuAudioElement.volume = muted ? 0 : 0.45 * this.musicVolume;
+      this.menuAudioElement.volume = muted ? 0 : Math.min(1.0, 0.45 * this.musicVolume);
     }
   }
 
@@ -136,7 +136,7 @@ export class SoundManager {
 
     const audio = new Audio('/Glass Alibi_102453106.mp3');
     audio.loop = true;
-    audio.volume = this.isMuted ? 0 : 0.45 * this.musicVolume;
+    audio.volume = this.isMuted ? 0 : Math.min(1.0, 0.45 * this.musicVolume);
     this.menuAudioElement = audio;
 
     audio.play().catch(() => {

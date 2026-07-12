@@ -172,9 +172,8 @@ export class GameEngine {
     
     this.renderer.setWeather(this.progressManager.getState().activeWorld);
 
-    // Initialize global performance detector to bypass expensive shadow blurs
-    const savedShadowsSetting = localStorage.getItem('game_disable_shadows');
-    (window as any).gameDisableShadows = savedShadowsSetting !== null ? (savedShadowsSetting === 'true') : false;
+    // High graphics mode is always active; performance mode is completely deactivated
+    (window as any).gameDisableShadows = false;
     (window as any).gameEngine = this;
   }
 
@@ -237,6 +236,7 @@ export class GameEngine {
 
     // Reset Chaos Mode states
     this.gravityFlipped = false;
+    this.activeChaosEvent = 'none';
     this.weaponActive = false;
     this.weaponLevel = 0;
     this.weaponTimer = 0.0;
@@ -306,25 +306,7 @@ export class GameEngine {
 
   public update(deltaTime: number) {
     // FPS performance governor
-    if (deltaTime > 0) {
-      const currentFps = 1 / deltaTime;
-      // If frame rate drops below 45 FPS
-      if (currentFps < 45) {
-        this.fpsLowFrameStreak++;
-        if (this.fpsLowFrameStreak >= 120 && !(window as any).gameDisableShadows) {
-          (window as any).gameDisableShadows = true;
-          window.dispatchEvent(new CustomEvent('achievement_unlocked', {
-            detail: {
-              name: 'PERFORMANCE MODE ENABLED ⚡',
-              desc: 'Graphics simplified to maintain target 60 FPS!'
-            }
-          }));
-        }
-      } else {
-        // Slowly cool down the low frame streak
-        if (this.fpsLowFrameStreak > 0) this.fpsLowFrameStreak--;
-      }
-    }
+    // Automatic performance mode downgrades removed to keep premium graphics permanently active
 
     // Apply delta-time cap to avoid giant skips when tabbing away and use exact raw delta time
     const dt = Math.min(0.1, deltaTime);
@@ -561,7 +543,7 @@ export class GameEngine {
             this.scrollSpeed = currentSpeed;
           }
         } else {
-          const selectedZone = this.progressManager.getState().selectedZone;
+          const selectedZone = this.gameMode === 'flock' ? 'classic' : this.progressManager.getState().selectedZone;
           const selectedDifficulty = this.progressManager.getState().selectedDifficulty;
           
           let startSpeed = 1.0;
@@ -746,11 +728,11 @@ export class GameEngine {
       this.renderer.update(dt, this.scrollSpeed, this.bird.y, activeTimeScale);
 
       if (this.state === 'PLAYING') {
-        const selectedZone = this.progressManager.getState().selectedZone;
+        const selectedZone = this.gameMode === 'flock' ? 'classic' : this.progressManager.getState().selectedZone;
         const selectedDifficulty = this.progressManager.getState().selectedDifficulty;
 
          // --- Chaos Events Cycle ---
-        if (this.progressManager.getState().selectedZone === 'chaos') {
+        if (this.progressManager.getState().selectedZone === 'chaos' && this.gameMode === 'endless') {
           if (this.activeChaosEvent !== 'none') {
             this.chaosEventTimer -= dt;
             if (this.chaosEventTimer <= 0) {
@@ -1695,7 +1677,7 @@ export class GameEngine {
     this.progressManager.addScore(this.score, this.gameMode);
     
     // Trigger earthquake every 20 obstacles in Chaos Mode (Mayhem Mode)
-    if (this.progressManager.getState().selectedZone === 'chaos' && this.gameMode !== 'flock') {
+    if (this.gameMode === 'endless' && this.progressManager.getState().selectedZone === 'chaos') {
       this.chaosObstaclesPassed += amt;
       if (this.chaosObstaclesPassed >= 20) {
         this.chaosObstaclesPassed = 0;
@@ -2222,8 +2204,8 @@ export class GameEngine {
         
         const groupIdx = Math.floor((i - 1) / 4);
         const subIdx = (i - 1) % 4;
-        const dx = (-55 * (Math.floor(subIdx / 2) + 1) - 35 * groupIdx) * 1.04;
-        const dy = ((subIdx % 2 === 0 ? -40 : 40) * (Math.floor(subIdx / 2) + 1) + (groupIdx * (i % 2 === 0 ? -12 : 12))) * 1.04;
+        const dx = ((-55 * (Math.floor(subIdx / 2) + 1) - 35 * groupIdx) * 1.04) * 0.80;
+        const dy = (((subIdx % 2 === 0 ? -40 : 40) * (Math.floor(subIdx / 2) + 1) + (groupIdx * (i % 2 === 0 ? -12 : 12))) * 1.04) * 0.80;
         
         const targetX = this.bird.x + dx;
         const targetY = this.bird.y + dy;

@@ -75,7 +75,7 @@ export class Renderer {
     this.lightningFlash = 0;
     switch (worldId) {
       case 'jungle':
-        this.weather = { type: 'rain', windSpeed: 1, density: 68, lightning: true }; // 20% increased density
+        this.weather = { type: 'rain', windSpeed: 1, density: 150, lightning: true }; // Heavily increased rain density
         break;
       case 'ice':
         this.weather = { type: 'snow', windSpeed: 2, density: 35, lightning: false };
@@ -255,7 +255,7 @@ export class Renderer {
       targetZoom *= 0.85; // 15% zoom out (scale to 85%)
     }
 
-    const isChaosMode = gameEngine && gameEngine.progressManager && gameEngine.progressManager.getState().selectedZone === 'chaos' && gameEngine.gameMode !== 'flock';
+    const isChaosMode = gameEngine && gameEngine.gameMode === 'endless' && gameEngine.progressManager && gameEngine.progressManager.getState().selectedZone === 'chaos';
     if (isChaosMode) {
       targetZoom *= 0.90; // 10% zoom out (scale to 90%) for Mayhem mode
     }
@@ -308,6 +308,11 @@ export class Renderer {
     const width = this.canvas.width / this.dpr;
     const height = this.canvas.height / this.dpr;
 
+    const gameEngine = (window as any).gameEngine;
+    const score = gameEngine ? gameEngine.score : 0;
+    const checkScore = score > 0 ? score : 1;
+    const isReducedPhase = Math.floor((checkScore - 1) / 50) % 2 === 0;
+    const rainMultiplier = isReducedPhase ? 0.5 : 1.0;
 
     // Spawn rare space shooting stars drifting super fast in clear weather (for Space world)
     if (this.weather.type === 'clear') {
@@ -333,54 +338,61 @@ export class Renderer {
     const spawnDelta = Math.min(0.016, deltaTime);
     const rateCoeff = spawnDelta * this.weather.density;
     const isPerformanceMode = (window as any).gameDisableShadows;
-    const spawnRate = isPerformanceMode ? rateCoeff * 0.12 : rateCoeff * 0.3;
+    let spawnRate = isPerformanceMode ? rateCoeff * 0.12 : rateCoeff * 0.3;
+    if (this.weather.type === 'rain') {
+      spawnRate *= rainMultiplier;
+    }
+
     if (Math.random() < spawnRate) {
       switch (this.weather.type) {
         case 'rain': {
-          // Spawn rain drops falling fast diagonally, reacting to flight wind speed (size increased by 30%)
-          this.particleEngine.spawn(
-            Math.random() * (width + 300) - 100,
-            -10,
-            -3 - Math.random() * 3 - this.currentSpeed * 1.4, // Wind sweeps backwards based on scrolling speed
-            12 + Math.random() * 5,
-            'rgba(174, 219, 240, 0.45)',
-            (1.5 + Math.random() * 1.5) * 1.3, // 30% larger rain drops
-            0.8,
-            0.015,
-            'square'
-          );
+          // Heavy tropical Amazon Rainforest downpour (spawns multiple visible drops per tick, scaled by rainMultiplier)
+          const dropCount = Math.max(1, Math.floor((2 + Math.random() * 3) * rainMultiplier));
+          for (let d = 0; d < dropCount; d++) {
+            this.particleEngine.spawn(
+              Math.random() * (width + 300) - 100,
+              -10,
+              -4 - Math.random() * 4 - this.currentSpeed * 1.4, // Faster falling diagonal speed
+              14 + Math.random() * 6,
+              'rgba(174, 219, 240, 0.70)', // 70% opacity for high visibility
+              (1.5 + Math.random() * 1.5) * (isReducedPhase ? 1.3 : 1.8), // 30% larger in reduced phase, 80% larger in heavy phase
+              0.9,
+              0.015,
+              'square'
+            );
+          }
           
-          // Spawn wind-blown green leaves flowing right to left
-          if (Math.random() < 0.18) {
+          // Spawn wind-blown green leaves flowing right to left (increased frequency and size, scaled by rainMultiplier)
+          if (Math.random() < 0.28 * rainMultiplier) {
             this.particleEngine.spawn(
               width + 20, // start offscreen on the right
               Math.random() * (height - 50), // random Y height
-              -8 - Math.random() * 6 - this.currentSpeed * 1.2, // fast horizontal wind-blown speed to the left
-              1 + Math.random() * 2, // gentle downward drift
-              Math.random() > 0.5 ? '#2e7d32' : '#4caf50', // varied green leaf colors
-              4 + Math.random() * 5, // size of leaves
-              0.85,
-              0.008 + Math.random() * 0.006, // slow decay so they traverse the screen
+              -9 - Math.random() * 7 - this.currentSpeed * 1.2, // fast horizontal wind-blown speed to the left
+              1 + Math.random() * 2.5, // gentle downward drift
+              Math.random() > 0.5 ? '#1b5e20' : '#2e7d32', // rich jungle green colors
+              (5 + Math.random() * 6) * (isReducedPhase ? 0.75 : 1.0), // slightly smaller leaves in reduced phase
+              0.90,
+              0.006 + Math.random() * 0.005, // slower decay to stay longer on screen
               'leaf', // Use the built-in 'leaf' shape
               false
             );
           }
           
-          // Spawn a splash ripple on the bottom boundary (frequency increased by 20% to 0.36)
-          if (Math.random() < 0.36) {
+          // Spawn a splash ripple on the bottom boundary (increased frequency and size, scaled by rainMultiplier)
+          if (Math.random() < 0.55 * rainMultiplier) {
             this.particleEngine.spawn(
               Math.random() * width,
               height - 15 - Math.random() * 10,
               -this.currentSpeed * 0.2, // Drifts slightly with speed
               0,
-              'rgba(174, 219, 240, 0.35)',
-              1.3, // 30% larger splash ripples
-              0.7,
-              0.04,
+              'rgba(174, 219, 240, 0.55)', // More visible splashes
+              1.8 * (isReducedPhase ? 0.7 : 1.0), // Smaller splash ripples in reduced phase
+              0.8,
+              0.035,
               'bubble',
               false,
               undefined,
-              0.39 // 30% larger growth factor (0.3 * 1.3)
+              0.55 * (isReducedPhase ? 0.7 : 1.0) // Smaller growth factor in reduced phase
             );
           }
           break;
@@ -2620,7 +2632,7 @@ export class Renderer {
 
     // Apply Chaos Events screen transforms
     const engine = (window as any).gameEngine;
-    if (engine && engine.progressManager.getState().selectedZone === 'chaos' && engine.gameMode !== 'flock') {
+    if (engine && engine.gameMode === 'endless' && engine.progressManager.getState().selectedZone === 'chaos') {
       if (engine.activeChaosEvent === 'earthquake') {
         const shakeX = (Math.random() - 0.5) * 12;
         const shakeY = (Math.random() - 0.5) * 12;

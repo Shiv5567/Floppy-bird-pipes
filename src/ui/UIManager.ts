@@ -1272,9 +1272,9 @@ export class UIManager {
             if (!lvl) {
               return `<div class="level-select-card placeholder" style="opacity: 0; pointer-events: none;"></div>`;
             }
-            const unlockedLevel = progress.levelModeUnlockedLevel || 1;
-            const isLocked = lvl.levelNum > unlockedLevel;
-            const isLatest = lvl.levelNum === unlockedLevel;
+            const unlockedLevel = 60; // Force unlock all levels for testing
+            const isLocked = false; // Always unlocked for testing
+            const isLatest = lvl.levelNum === (progress.levelModeUnlockedLevel || 1);
 
             let levelColor = 'inherit';
             if (lvl.levelNum >= 1 && lvl.levelNum <= 20) {
@@ -2994,11 +2994,13 @@ export class UIManager {
             <h2 class="modal-title warning-text">CRASHED!</h2>
   
   
+            ${this.engine.gameMode !== 'level' ? `
             <div class="final-score-box glass-card">
               <div class="score-label">${isNewHigh ? '🏆 NEW HIGH SCORE! 🏆' : 'FINAL SCORE'}</div>
               <div class="score-number pop-scale">${this.engine.score}</div>
-              ${this.engine.gameMode !== 'level' ? `<div style="font-size: 14px; font-weight: 800; color: #ffd700; margin-top: 6px; letter-spacing: 1px;">BEST: ${Math.max(currentHighScore, this.engine.score)}</div>` : ''}
+              <div style="font-size: 14px; font-weight: 800; color: #ffd700; margin-top: 6px; letter-spacing: 1px;">BEST: ${Math.max(currentHighScore, this.engine.score)}</div>
             </div>
+            ` : ''}
   
             <div class="rewards-summary">
               <div class="reward-row">

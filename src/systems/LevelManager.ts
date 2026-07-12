@@ -391,10 +391,10 @@ export class LevelManager {
       lvl39.gapHeight = Math.round(lvl39.gapHeight * 1.20);
     }
     
-    // Reduce Level 1 scroll speed (horizontal velocity) by 20%
+    // Reduce Level 1 scroll speed (horizontal velocity) by 45% for a gentle entry and better animation timing
     const lvl1Speed = this.levels.find(l => l.levelNum === 1);
     if (lvl1Speed) {
-      lvl1Speed.scrollSpeed = lvl1Speed.scrollSpeed * 0.80;
+      lvl1Speed.scrollSpeed = lvl1Speed.scrollSpeed * 0.55;
     }
 
     // Reduce Level 8 scroll speed by 15%
@@ -525,6 +525,32 @@ export class LevelManager {
         targetLevel.patterns = [heavenPatterns[levelNum]];
         targetLevel.worldId = 'heaven';
         targetLevel.name = `Golden Heights : The Cloud Kingdom - Zone ${levelNum - 50}`;
+      }
+    }
+
+    // Adjust Level 19 path gap (increase by 15%, then an additional 8%) and Level 20 path gap (reduce by 15%)
+    const lvl19Final = this.levels.find(l => l.levelNum === 19);
+    if (lvl19Final) {
+      lvl19Final.gapHeight = Math.round(lvl19Final.gapHeight * 1.15 * 1.08);
+    }
+    const lvl20Final = this.levels.find(l => l.levelNum === 20);
+    if (lvl20Final) {
+      lvl20Final.gapHeight = Math.round(lvl20Final.gapHeight * 0.85);
+    }
+
+    // Adjust Levels 15 to 18 path gaps (reduce by 20% for testing/balancing)
+    for (let n = 15; n <= 18; n++) {
+      const lvl = this.levels.find(l => l.levelNum === n);
+      if (lvl) {
+        lvl.gapHeight = Math.round(lvl.gapHeight * 0.80);
+      }
+    }
+
+    // Adjust Levels 2 and 3 path gaps (increase by 12% for playability)
+    for (let n = 2; n <= 3; n++) {
+      const lvl = this.levels.find(l => l.levelNum === n);
+      if (lvl) {
+        lvl.gapHeight = Math.round(lvl.gapHeight * 1.12);
       }
     }
   }

@@ -60,8 +60,8 @@ class MainActivity : ComponentActivity() {
 
     // Unity Ads state
     private val unityGameId = "800083217" // Real Game ID
-    private val unityRewardedPlacement = "800083217" // Real rewarded placement
-    private val unityInterstitialPlacement = "800083217" // Real interstitial placement
+    private val unityRewardedPlacement = "Rewarded_Android" // Real rewarded placement
+    private val unityInterstitialPlacement = "Interstitial_Android" // Real interstitial placement
     private var isUnityAdsInitialized = false
     private var isUnityRewardedLoaded = false
     private var isUnityInterstitialLoaded = false

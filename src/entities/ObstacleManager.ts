@@ -255,8 +255,8 @@ export class ObstacleManager {
       minGap = 386;
       distMultiplier = 1.45; // Generous horizontal spacing for the flock
     } else if (gameMode === 'flock') {
-      startGap = 242; // Set minimum vertical gap to 242 (20% reduction from 302)
-      minGap = 242;   // Set minimum vertical gap to 242 (20% reduction from 302)
+      startGap = 302; // Restore previous vertical gap of 302
+      minGap = 302;   // Restore previous vertical gap of 302
       distMultiplier = 1.575; // 30% reduction from 2.25 (2.25 * 0.7 = 1.575)
     } else if (gameMode === 'formation') {
       startGap = 320;
@@ -398,7 +398,9 @@ export class ObstacleManager {
           const elasticEase = progress === 0 ? 0 : progress === 1 ? 1 : Math.pow(2, -10 * progress) * Math.sin((progress * 10 - 0.75) * c4) + 1;
           // Smooth easeOutSine for Level 11 and Level 1 to avoid mid-animation split jitter
           const sineEase = Math.sin((progress * Math.PI) / 2);
-          const easedOpen = (obs.levelNum === 11 || obs.levelNum === 1) ? sineEase : elasticEase;
+          // Cinematic easeInOutCubic for Level 1 for a slow, engaging mechanical reveal
+          const easeInOutCubic = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+          const easedOpen = obs.levelNum === 1 ? easeInOutCubic : ((obs.levelNum === 11) ? sineEase : elasticEase);
 
           // Level 1-5 Custom Flight Path & Animation Updates
           // Level 1-10 Choreographed Animations Update Loop
@@ -3493,9 +3495,9 @@ export class ObstacleManager {
           // Group 1 & 3: Gentle smooth sine wave path
           targetCenterY = height / 2 + Math.sin(idxInGroup * 0.35) * 32;
         }
-        // Dynamically scale trigger distance to ensure the splitting animation starts on-screen on both mobile and desktop viewports (shifted 20% left)
-        triggerDistance = Math.min(500, width * 0.65) * 0.80;
-        animDuration = 0.675; // 35% slower and smooth animation (0.50 * 1.35 = 0.675)
+        // Trigger closer to the bird (further left) so the animation is fully visible on mobile screens, and make it open slowly
+        triggerDistance = 270;
+        animDuration = 1.30; // Slower opening duration
       } else if (patternType === 'level2_diamond') {
         // LEVEL 2: "The Wave Gauntlet" - Widened gaps and reduced wave shifts
         if (groupIdx === 1) {
@@ -3710,7 +3712,19 @@ export class ObstacleManager {
         // LEVEL 13: Symmetrical W-shape (Level 11 Group 3 — all obstacles)
         hasAsymmetricHeights = true;
         const idx = obstacleIdx % 12;
-        localGapHeight = gapHeight - 15;
+        
+        // Apply different gap increases for each group (Group 1: 20%, Group 2: 15%, Group 3: 10%)
+        if (obstacleIdx <= 5) {
+          // Group 1: first obstacles group — gap 20% increased
+          localGapHeight = Math.round((gapHeight - 15) * 1.20);
+        } else if (obstacleIdx <= 11) {
+          // Group 2: second obstacles group — gap 15% increased
+          localGapHeight = Math.round((gapHeight - 15) * 1.15);
+        } else {
+          // Group 3: last obstacles group — gap 10% increased
+          localGapHeight = Math.round((gapHeight - 15) * 1.10);
+        }
+
         const angle = (idx / 11) * Math.PI * 2;
         targetTopHeight = (height / 2 - localGapHeight / 2) + Math.cos(angle * 2) * 70;
         triggerDistance = 240;
@@ -3852,16 +3866,16 @@ export class ObstacleManager {
         // LEVEL 19: Crossflow Intercepting Gates — path straightened (all offsets zeroed)
         hasAsymmetricHeights = true;
         if (obstacleIdx <= 5) {
-          // Group 1: straight center
-          localGapHeight = gapHeight - 20;
+          // Group 1: straight center — gap 20% increased
+          localGapHeight = Math.round((gapHeight - 20) * 1.20);
           targetTopHeight = height / 2 - localGapHeight / 2;
         } else if (obstacleIdx <= 11) {
-          // Group 2: straight center — gap 10% reduced
-          localGapHeight = Math.round((gapHeight - 15) * 0.90);
+          // Group 2: straight center — gap 15% increased (originally 10% reduced, net 0.90 * 1.15)
+          localGapHeight = Math.round((gapHeight - 15) * 0.90 * 1.15);
           targetTopHeight = height / 2 - localGapHeight / 2;
         } else {
-          // Group 3: straight center — gap 18% reduced
-          localGapHeight = Math.round((gapHeight + 20) * 0.82);
+          // Group 3: straight center — gap 10% increased (originally 18% reduced, net 0.82 * 1.10)
+          localGapHeight = Math.round((gapHeight + 20) * 0.82 * 1.10);
           targetTopHeight = height / 2 - localGapHeight / 2;
         }
         triggerDistance = 220;
@@ -4816,7 +4830,8 @@ export class ObstacleManager {
       currentStepGap *= 1.18; // Increase vertical path gap by 18% for score 1 to 100 in endless/solo mode
     }
     if (gameMode === 'flock') {
-      currentStepGap = Math.max(216, currentStepGap); // Enforce vertical gap minimum of 216px (20% reduction from 270)
+      const minGapClamp = (score <= 100) ? Math.round(270 * 1.12) : 270; // 12% increase for score 1-100 (reaches ~302px)
+      currentStepGap = Math.max(minGapClamp, currentStepGap);
     }
 
     // Safeguard boundaries to keep safe gap consistent and within bounds
@@ -4856,6 +4871,20 @@ export class ObstacleManager {
           animDuration = 0.45;
           triggerDistance = 260; // trigger opening 260px before bird reaches the pipe
         }
+      }
+    }
+
+    // Flock Mode: 30% of pipes have split-opening animation for score 1-50
+    if (gameMode === 'flock' && score >= 1 && score <= 50) {
+      if (Math.random() < 0.30) {
+        approachAnimType = 'open';
+        closedTopHeight = targetCenterY;
+        closedBottomHeight = height - targetCenterY;
+        animDuration = 0.45;
+        triggerDistance = 260; // trigger opening 260px before bird reaches the pipe
+        
+        topHeight = closedTopHeight;
+        bottomHeight = closedBottomHeight;
       }
     }
 
@@ -5212,7 +5241,9 @@ export class ObstacleManager {
     }
 
     // 1. Check floor/ceiling boundaries with generous collision tolerance
-    const isChaos = (window as any).gameEngine && ((window as any).gameEngine.gameMode === 'chaos' || (window as any).gameEngine.progressManager.getState().selectedZone === 'chaos');
+    const isChaos = (window as any).gameEngine && 
+                    (window as any).gameEngine.gameMode === 'endless' && 
+                    (window as any).gameEngine.progressManager.getState().selectedZone === 'chaos';
 
     if (bird.y - effectiveRadius <= 5) {
       bird.y = 5 + effectiveRadius;
@@ -5392,13 +5423,9 @@ export class ObstacleManager {
       const originalShakeX = obs.shakeX || 0;
       const originalShakeX2 = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
 
-      // Round values to nearest pixel to eliminate sub-pixel border shimmering and vibration
-      obs.x = Math.round(obs.x);
-      obs.width = Math.round(obs.width);
-      obs.topHeight = Math.round(obs.topHeight);
-      obs.bottomHeight = Math.round(obs.bottomHeight);
-      obs.shakeX = Math.round(originalShakeX);
-      obs.shakeX2 = Math.round(originalShakeX2);
+      // Keep exact sub-pixel float coordinates to ensure buttery-smooth scrolling movement
+      obs.shakeX = originalShakeX;
+      obs.shakeX2 = originalShakeX2;
 
       const scoreForStyle = obs.spawnScore !== undefined ? obs.spawnScore : this.currentScore;
 

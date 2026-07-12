@@ -129,15 +129,22 @@ export class BossManager {
     const dtCoeff = deltaTime * 60 * timeScale;
     this.timer += deltaTime * timeScale;
 
+    const baseTargetX = width - 122;
+    const isFlock = (window as any).gameEngine && (window as any).gameEngine.gameMode === 'flock';
+    const targetBossX = isFlock ? birdX + (baseTargetX - birdX) * 1.10 : baseTargetX;
+
     // 1. Manage state machine
     if (this.state === 'entering') {
       // Float from offscreen
-      this.bossX += (width - 122 - this.bossX) * 0.04 * dtCoeff;
-      if (Math.abs(this.bossX - (width - 122)) < 10) {
+      this.bossX += (targetBossX - this.bossX) * 0.04 * dtCoeff;
+      if (Math.abs(this.bossX - targetBossX) < 10) {
         this.state = 'fighting';
         this.timer = 0;
       }
     } else if (this.state === 'fighting') {
+      // Keep target X distance with smooth interpolation
+      this.bossX += (targetBossX - this.bossX) * 0.04 * dtCoeff;
+
       // Hover vertically following bird with delay
       this.targetBossY = birdY;
       this.bossY += (this.targetBossY - this.bossY) * 0.036 * dtCoeff;
@@ -270,7 +277,7 @@ export class BossManager {
     const dx = birdX - this.bossX;
     const dy = birdY - this.bossY;
 
-    const baseSpeed = 5.72 * 1.15; // 15% speed increase
+    const baseSpeed = 5.72 * 1.15 * 0.90 * 0.90; // 15% speed increase, reduced by 10%, and another 10%
     soundManager.playZap();
 
     const gameEngine = (window as any).gameEngine;
