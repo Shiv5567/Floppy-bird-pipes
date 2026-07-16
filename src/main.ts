@@ -138,26 +138,39 @@ let gameEngine: GameEngine;
 let uiManager: UIManager;
 
 let lastTime = 0;
-const deltaHistory: number[] = [];
+let lowFpsStreak = 0;
 
-// Smooths raw delta times using a responsive rolling moving average filter.
-// This filters out browser VSync micro-jitter and sudden single-frame spikes
-// while staying perfectly synchronized with any display refresh rate (60Hz, 90Hz, 120Hz, 144Hz, 240Hz).
+// Snaps raw delta times to precise VSync intervals (240Hz, 144Hz, 120Hz, 90Hz, 75Hz, 60Hz, 30Hz)
+// to eliminate micro-jitter and maintain perfectly stable frame updates.
 function snapDeltaTime(rawDt: number): number {
-  // Clamp delta time to reasonable limits [0.004, 0.1] to prevent huge jumps on sudden spikes
-  const clamped = Math.max(0.004, Math.min(0.1, rawDt));
-  
-  deltaHistory.push(clamped);
-  if (deltaHistory.length > 8) {
-    deltaHistory.shift();
+  const clamped = Math.max(0.002, Math.min(0.1, rawDt));
+
+  const vsyncIntervals = [
+    1 / 240,
+    1 / 144,
+    1 / 120,
+    1 / 90,
+    1 / 75,
+    1 / 60,
+    1 / 30
+  ];
+
+  let closest = clamped;
+  let minDiff = Infinity;
+  for (let i = 0; i < vsyncIntervals.length; i++) {
+    const diff = Math.abs(clamped - vsyncIntervals[i]);
+    if (diff < minDiff) {
+      minDiff = diff;
+      closest = vsyncIntervals[i];
+    }
   }
 
-  // Calculate simple moving average of recent frame times
-  let sum = 0;
-  for (let i = 0; i < deltaHistory.length; i++) {
-    sum += deltaHistory[i];
+  // Snap to VSync if raw frame time is within 2ms of a target refresh rate
+  if (minDiff < 0.002) {
+    return closest;
   }
-  return sum / deltaHistory.length;
+
+  return clamped;
 }
 
 let lastScore = 0;
@@ -172,7 +185,8 @@ function init() {
   const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
   if (!canvas) return;
 
-  // Performance-based mobile blur neutralization removed to keep premium graphics
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 1024;
+  (window as any).gameIsMobile = isMobile;
 
   progressManager = new ProgressManager();
   soundManager = new SoundManager();
@@ -482,6 +496,31 @@ function loop(time: number) {
   // causing visible vibration/judder. Snap delta time is highly stable and does not need trailing averaging.
 
   updateGamepad();
+
+  // Dynamic performance governor: if raw FPS is below 52fps (interval > 19.2ms) for 90 consecutive frames (~1.5s),
+  // automatically enable low graphics mode by setting gameDisableShadows = true to restore 60fps!
+  if (gameEngine && gameEngine.state === 'PLAYING') {
+    if (rawDeltaTime > 0.0192) {
+      lowFpsStreak++;
+      if (lowFpsStreak > 90 && !(window as any).gameDisableShadows) {
+        (window as any).gameDisableShadows = true;
+        console.log("Performance Governor: Low graphics mode activated to protect frame rate.");
+        
+        // Notify player with a subtle toast
+        window.dispatchEvent(new CustomEvent('achievement_unlocked', {
+          detail: { 
+            name: "PERFORMANCE OPTIMIZED! ⚡", 
+            desc: "Graphics settings auto-tuned for butter-smooth gameplay." 
+          }
+        }));
+        
+        // Force resize to apply updated DPR rules
+        gameEngine.renderer.resize();
+      }
+    } else {
+      lowFpsStreak = Math.max(0, lowFpsStreak - 1);
+    }
+  }
 
   gameEngine.update(deltaTime);
 

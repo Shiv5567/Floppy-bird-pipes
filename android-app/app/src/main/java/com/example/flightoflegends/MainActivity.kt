@@ -43,6 +43,7 @@ import com.unity3d.ads.UnityAdsShowOptions
 import com.unity3d.ads.UnityAds.UnityAdsInitializationError
 import com.unity3d.ads.UnityAds.UnityAdsLoadError
 import com.unity3d.ads.UnityAds.UnityAdsShowError
+import android.content.pm.ApplicationInfo
 import java.io.IOException
 
 class MainActivity : ComponentActivity() {
@@ -344,7 +345,9 @@ class MainActivity : ComponentActivity() {
             }
 
             // Initialize Unity Ads SDK
-            UnityAds.initialize(this, unityGameId, false, object : IUnityAdsInitializationListener {
+            val isDebuggable = (0 != (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE))
+            Log.d("FLIGHT_OF_LEGENDS_STARTUP", "Initializing Unity Ads SDK (Game ID: $unityGameId, Test Mode: $isDebuggable)...")
+            UnityAds.initialize(this, unityGameId, isDebuggable, object : IUnityAdsInitializationListener {
                 override fun onInitializationComplete() {
                     Log.d("FLIGHT_OF_LEGENDS_STARTUP", "Unity Ads SDK initialized successfully.")
                     isUnityAdsInitialized = true

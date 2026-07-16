@@ -321,13 +321,22 @@ export class AdManager {
       return;
     }
 
-    const network = this.nextEconomyRewardNetwork;
-    const isReady = this.isAdAvailable(network, 'Rewarded');
+    let network = this.nextEconomyRewardNetwork;
+    let isReady = this.isAdAvailable(network, 'Rewarded');
+
+    if (!isReady) {
+      const fallbackNetwork: 'AdMob' | 'Unity' = (network === 'AdMob') ? 'Unity' : 'AdMob';
+      if (this.isAdAvailable(fallbackNetwork, 'Rewarded')) {
+        console.log(`[AdManager] Economy preferred network ${network} not ready, but fallback ${fallbackNetwork} is ready. Using fallback.`);
+        network = fallbackNetwork;
+        isReady = true;
+      }
+    }
 
     if (isReady) {
       this.executeRewardedNow(network, onCompleted);
     } else {
-      console.log(`[AdManager] Economy rewarded ad not ready on ${network}. Triggering preload and waiting...`);
+      console.log(`[AdManager] Economy rewarded ad not ready on preferred network ${network}. Triggering preload and waiting...`);
       if (typeof window.AndroidBridge !== 'undefined' && window.AndroidBridge.preloadAds) {
         window.AndroidBridge.preloadAds();
       }
@@ -336,15 +345,28 @@ export class AdManager {
       let elapsed = 0;
       const interval = setInterval(() => {
         elapsed += 500;
-        const ready = this.isAdAvailable(network, 'Rewarded');
-        if (ready) {
+        
+        const primaryReady = this.isAdAvailable(network, 'Rewarded');
+        const fallbackNetwork = (network === 'AdMob') ? 'Unity' : 'AdMob';
+        const fallbackReady = this.isAdAvailable(fallbackNetwork, 'Rewarded');
+
+        if (primaryReady) {
           clearInterval(interval);
           spinner.remove();
           this.executeRewardedNow(network, onCompleted);
+        } else if (fallbackReady) {
+          clearInterval(interval);
+          spinner.remove();
+          console.log(`[AdManager] Fallback network ${fallbackNetwork} loaded first during wait. Using fallback.`);
+          this.executeRewardedNow(fallbackNetwork, onCompleted);
         } else if (elapsed >= 6000) {
           clearInterval(interval);
           spinner.remove();
-          console.warn(`[AdManager] Economy rewarded ad load timeout.`);
+          console.warn(`[AdManager] Economy rewarded ad load timeout. Switching preferred network to fallback.`);
+          
+          // Switch preferred network to fallback so next click tries the other network
+          this.nextEconomyRewardNetwork = (network === 'AdMob') ? 'Unity' : 'AdMob';
+          
           this.notifyUser('AD NOT READY', 'Ad is taking longer to load. Please try again.');
           onCompleted(false);
         }
@@ -363,6 +385,9 @@ export class AdManager {
           if (success) {
             this.lastEconomyRewardedTime = Date.now();
             this.updateAdButtonsDOM();
+          } else {
+            // Ad failed to show, retry AdMob
+            this.nextEconomyRewardNetwork = 'AdMob';
           }
           onCompleted(success);
           delete window.onAdMobRewardedCallback;
@@ -384,6 +409,9 @@ export class AdManager {
           if (success) {
             this.lastEconomyRewardedTime = Date.now();
             this.updateAdButtonsDOM();
+          } else {
+            // Unity failed to show, retry AdMob
+            this.nextEconomyRewardNetwork = 'AdMob';
           }
           onCompleted(success);
           delete window.onUnityRewardedCallback;
@@ -419,13 +447,22 @@ export class AdManager {
       return;
     }
 
-    const network = this.nextReviveNetwork;
-    const isReady = this.isAdAvailable(network, 'Interstitial');
+    let network = this.nextReviveNetwork;
+    let isReady = this.isAdAvailable(network, 'Interstitial');
+
+    if (!isReady) {
+      const fallbackNetwork: 'AdMob' | 'Unity' = (network === 'AdMob') ? 'Unity' : 'AdMob';
+      if (this.isAdAvailable(fallbackNetwork, 'Interstitial')) {
+        console.log(`[AdManager] Revive preferred network ${network} not ready, but fallback ${fallbackNetwork} is ready. Using fallback.`);
+        network = fallbackNetwork;
+        isReady = true;
+      }
+    }
 
     if (isReady) {
       this.executeInterstitialNow(network, onCompleted);
     } else {
-      console.log(`[AdManager] Revive interstitial ad not ready on ${network}. Triggering preload and waiting...`);
+      console.log(`[AdManager] Revive interstitial ad not ready on preferred network ${network}. Triggering preload and waiting...`);
       if (typeof window.AndroidBridge !== 'undefined' && window.AndroidBridge.preloadAds) {
         window.AndroidBridge.preloadAds();
       }
@@ -434,15 +471,27 @@ export class AdManager {
       let elapsed = 0;
       const interval = setInterval(() => {
         elapsed += 500;
-        const ready = this.isAdAvailable(network, 'Interstitial');
-        if (ready) {
+        
+        const primaryReady = this.isAdAvailable(network, 'Interstitial');
+        const fallbackNetwork = (network === 'AdMob') ? 'Unity' : 'AdMob';
+        const fallbackReady = this.isAdAvailable(fallbackNetwork, 'Interstitial');
+
+        if (primaryReady) {
           clearInterval(interval);
           spinner.remove();
           this.executeInterstitialNow(network, onCompleted);
+        } else if (fallbackReady) {
+          clearInterval(interval);
+          spinner.remove();
+          console.log(`[AdManager] Fallback revive network ${fallbackNetwork} loaded first during wait. Using fallback.`);
+          this.executeInterstitialNow(fallbackNetwork, onCompleted);
         } else if (elapsed >= 6000) {
           clearInterval(interval);
           spinner.remove();
-          console.warn(`[AdManager] Revive interstitial ad load timeout.`);
+          console.warn(`[AdManager] Revive ad load timeout. Switching preferred network to fallback.`);
+          
+          this.nextReviveNetwork = (network === 'AdMob') ? 'Unity' : 'AdMob';
+          
           this.notifyUser('AD NOT READY', 'Ad is taking longer to load. Please try again.');
           onCompleted(false);
         }
@@ -461,6 +510,9 @@ export class AdManager {
           if (success) {
             this.lastReviveRewardedTime = Date.now();
             this.updateAdButtonsDOM();
+          } else {
+            // Ad failed to show, retry AdMob
+            this.nextReviveNetwork = 'AdMob';
           }
           onCompleted(success);
           delete window.onReviveInterstitialCallback;
@@ -485,6 +537,9 @@ export class AdManager {
           if (success) {
             this.lastReviveRewardedTime = Date.now();
             this.updateAdButtonsDOM();
+          } else {
+            // Unity failed to show, retry AdMob
+            this.nextReviveNetwork = 'AdMob';
           }
           onCompleted(success);
           delete window.onReviveInterstitialCallback;

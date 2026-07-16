@@ -255,8 +255,8 @@ export class ObstacleManager {
       minGap = 386;
       distMultiplier = 1.45; // Generous horizontal spacing for the flock
     } else if (gameMode === 'flock') {
-      startGap = 302; // Restore previous vertical gap of 302
-      minGap = 302;   // Restore previous vertical gap of 302
+      startGap = 332; // 10% increase from 302 (302 * 1.10 = 332)
+      minGap = 332;   // 10% increase from 302 (302 * 1.10 = 332)
       distMultiplier = 1.575; // 30% reduction from 2.25 (2.25 * 0.7 = 1.575)
     } else if (gameMode === 'formation') {
       startGap = 320;
@@ -4830,7 +4830,7 @@ export class ObstacleManager {
       currentStepGap *= 1.18; // Increase vertical path gap by 18% for score 1 to 100 in endless/solo mode
     }
     if (gameMode === 'flock') {
-      const minGapClamp = (score <= 100) ? Math.round(270 * 1.12) : 270; // 12% increase for score 1-100 (reaches ~302px)
+      const minGapClamp = (score <= 100) ? Math.round(297 * 1.12) : 297; // 10% increase applied: base 270→297, clamp 302→332 for score 1-100
       currentStepGap = Math.max(minGapClamp, currentStepGap);
     }
 
@@ -5423,9 +5423,14 @@ export class ObstacleManager {
       const originalShakeX = obs.shakeX || 0;
       const originalShakeX2 = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
 
-      // Keep exact sub-pixel float coordinates to ensure buttery-smooth scrolling movement
-      obs.shakeX = originalShakeX;
-      obs.shakeX2 = originalShakeX2;
+      // Round rendering coordinates to the nearest pixel boundary to eliminate sub-pixel shimmering/judder.
+      // High-precision float values are kept for physics calculation and restored right after rendering.
+      obs.x = Math.round(originalX);
+      obs.width = Math.round(originalWidth);
+      obs.topHeight = Math.round(originalTopHeight);
+      obs.bottomHeight = Math.round(originalBottomHeight);
+      obs.shakeX = Math.round(originalShakeX);
+      obs.shakeX2 = Math.round(originalShakeX2);
 
       const scoreForStyle = obs.spawnScore !== undefined ? obs.spawnScore : this.currentScore;
 
@@ -6573,9 +6578,9 @@ export class ObstacleManager {
       return;
     }
 
-    let stop0 = '#090526', stop3 = '#1e40af', stop5 = '#3b82f6', stop7 = '#60a5fa', stop1 = '#05021a'; // Style 0: Twilight Indigo, Dark/Light Blue & Cyan
-    let capGrad0 = '#38bdf8', capGrad5 = '#60a5fa', capGrad1 = '#1e40af';
-    let outlineCol = '#22d3ee';
+    let stop0 = '#0d073a', stop3 = '#2451cc', stop5 = '#4a90f0', stop7 = '#7ab8fc', stop1 = '#08031f'; // Style 0: Twilight Indigo deepened by ~20%
+    let capGrad0 = '#4dcef9', capGrad5 = '#7ab8fc', capGrad1 = '#2451cc';
+    let outlineCol = '#00e5ff';
 
     let isStyle0Day = false;
     let day_stop0 = '', day_stop3 = '', day_stop5 = '', day_stop7 = '', day_stop1 = '';
@@ -6603,22 +6608,22 @@ export class ObstacleManager {
       const t_r0 = Math.round(9 + (15 - 9) * dayWeight);
       const t_g0 = Math.round(5 + (23 - 5) * dayWeight);
       const t_b0 = Math.round(38 + (42 - 38) * dayWeight);
-      day_stop0 = `rgba(${t_r0}, ${t_g0}, ${t_b0}, 0.75)`;
+      day_stop0 = `rgba(${t_r0}, ${t_g0}, ${t_b0}, 0.92)`;  // was 0.75, -20% transparency
 
       const t_r3 = Math.round(30 + (56 - 30) * dayWeight);
       const t_g3 = Math.round(64 + (189 - 64) * dayWeight);
       const t_b3 = Math.round(175 + (248 - 175) * dayWeight);
-      day_stop3 = `rgba(${t_r3}, ${t_g3}, ${t_b3}, 0.85)`;
+      day_stop3 = `rgba(${t_r3}, ${t_g3}, ${t_b3}, 0.97)`;  // was 0.85, -20% transparency
 
       const t_r5 = Math.round(59 + (244 - 59) * dayWeight);
       const t_g5 = Math.round(130 + (114 - 130) * dayWeight);
       const t_b5 = Math.round(246 + (182 - 246) * dayWeight);
-      day_stop5 = `rgba(${t_r5}, ${t_g5}, ${t_b5}, 0.85)`;
+      day_stop5 = `rgba(${t_r5}, ${t_g5}, ${t_b5}, 0.97)`;  // was 0.85, -20% transparency
 
       const t_r7 = Math.round(96 + (254 - 96) * dayWeight);
       const t_g7 = Math.round(165 + (240 - 165) * dayWeight);
       const t_b7 = Math.round(250 + (138 - 250) * dayWeight);
-      day_stop7 = `rgba(${t_r7}, ${t_g7}, ${t_b7}, 0.85)`;
+      day_stop7 = `rgba(${t_r7}, ${t_g7}, ${t_b7}, 0.97)`;  // was 0.85, -20% transparency
       
       day_stop1 = day_stop0;
 
@@ -6642,22 +6647,22 @@ export class ObstacleManager {
       const b_r0 = Math.round(5 + (2 - 5) * dayWeight);
       const b_g0 = Math.round(2 + (44 - 2) * dayWeight);
       const b_b0 = Math.round(26 + (34 - 26) * dayWeight);
-      bot_day_stop0 = `rgba(${b_r0}, ${b_g0}, ${b_b0}, 0.75)`;
+      bot_day_stop0 = `rgba(${b_r0}, ${b_g0}, ${b_b0}, 0.92)`;  // was 0.75, -20% transparency
 
       const b_r3 = Math.round(23 + (4 - 23) * dayWeight);
       const b_g3 = Math.round(37 + (120 - 37) * dayWeight);
       const b_b3 = Math.round(84 + (87 - 84) * dayWeight);
-      bot_day_stop3 = `rgba(${b_r3}, ${b_g3}, ${b_b3}, 0.85)`;
+      bot_day_stop3 = `rgba(${b_r3}, ${b_g3}, ${b_b3}, 0.97)`;  // was 0.85, -20% transparency
 
       const b_r5 = Math.round(30 + (16 - 30) * dayWeight);
       const b_g5 = Math.round(58 + (185 - 58) * dayWeight);
       const b_b5 = Math.round(138 + (129 - 138) * dayWeight);
-      bot_day_stop5 = `rgba(${b_r5}, ${b_g5}, ${b_b5}, 0.85)`;
+      bot_day_stop5 = `rgba(${b_r5}, ${b_g5}, ${b_b5}, 0.97)`;  // was 0.85, -20% transparency
 
       const b_r7 = Math.round(37 + (52 - 37) * dayWeight);
       const b_g7 = Math.round(99 + (211 - 99) * dayWeight);
       const b_b7 = Math.round(235 + (153 - 235) * dayWeight);
-      bot_day_stop7 = `rgba(${b_r7}, ${b_g7}, ${b_b7}, 0.85)`;
+      bot_day_stop7 = `rgba(${b_r7}, ${b_g7}, ${b_b7}, 0.97)`;  // was 0.85, -20% transparency
       
       bot_day_stop1 = bot_day_stop0;
 
@@ -6683,15 +6688,15 @@ export class ObstacleManager {
     }
 
     if (styleIdx === 1) {
-      // Style 1: Twilight Deep Purple & Neon Fuchsia (Score 101-200)
-      stop0 = '#120224'; stop3 = '#4a044e'; stop5 = '#701a75'; stop7 = '#a21caf'; stop1 = '#090112';
-      capGrad0 = '#d946ef'; capGrad5 = '#fbcfe8'; capGrad1 = '#4a044e';
-      outlineCol = '#d946ef';
+      // Style 1: Twilight Deep Purple & Neon Fuchsia (Score 101-200) — deepened colors
+      stop0 = '#1a032e'; stop3 = '#620560'; stop5 = '#8f2398'; stop7 = '#c025d3'; stop1 = '#0d0118';
+      capGrad0 = '#e958ff'; capGrad5 = '#fde0ff'; capGrad1 = '#620560';
+      outlineCol = '#f000ff';
     } else if (styleIdx === 3) {
-      // Style 3: Cosmic Nebula Teal & Sapphire (Score 200-350)
-      stop0 = '#020f12'; stop3 = '#0f766e'; stop5 = '#14b8a6'; stop7 = '#6366f1'; stop1 = '#01080a';
-      capGrad0 = '#2dd4bf'; capGrad5 = '#c084fc'; capGrad1 = '#1e3a8a';
-      outlineCol = '#2dd4bf';
+      // Style 3: Cosmic Nebula Teal & Sapphire (Score 200-350) — deepened colors
+      stop0 = '#031418'; stop3 = '#0f9e94'; stop5 = '#18d4c0'; stop7 = '#7c80ff'; stop1 = '#020b0d';
+      capGrad0 = '#3df5e0'; capGrad5 = '#d4a0ff'; capGrad1 = '#1e4aaa';
+      outlineCol = '#00f5d4';
     }
 
     ctx.save();
@@ -6737,7 +6742,7 @@ export class ObstacleManager {
     ctx.lineWidth = 2.5;
 
     // Semi-transparent fill - allows background nebula/stars to be visible
-    ctx.globalAlpha = 0.70;
+    ctx.globalAlpha = 0.84; // was 0.70 — 20% less transparency
     ctx.fillStyle = spaceGrad;
     ctx.fillRect(rx, -1000, rw, rTop + 1000);
     ctx.fillStyle = spaceGradBottom;
@@ -6788,7 +6793,7 @@ export class ObstacleManager {
       chromeGradBottom.addColorStop(1, capGrad1);
     }
 
-    ctx.globalAlpha = 0.85;
+    ctx.globalAlpha = 1.0; // was 0.85 — cap pylons fully solid for richer look
     ctx.fillStyle = chromeGrad;
     ctx.fillRect(rx - 6, capY1, rw + 12, 24);
     ctx.strokeRect(rx - 6, capY1, rw + 12, 24);

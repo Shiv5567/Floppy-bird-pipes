@@ -1272,9 +1272,10 @@ export class UIManager {
             if (!lvl) {
               return `<div class="level-select-card placeholder" style="opacity: 0; pointer-events: none;"></div>`;
             }
-            const unlockedLevel = 60; // Force unlock all levels for testing
-            const isLocked = false; // Always unlocked for testing
-            const isLatest = lvl.levelNum === (progress.levelModeUnlockedLevel || 1);
+
+            const unlockedUpTo = progress.levelModeUnlockedLevel || 1;
+            const isLocked = lvl.levelNum > unlockedUpTo;
+            const isLatest = lvl.levelNum === unlockedUpTo;
 
             let levelColor = 'inherit';
             if (lvl.levelNum >= 1 && lvl.levelNum <= 20) {
@@ -1418,7 +1419,7 @@ export class UIManager {
 
               <!-- Feedback & Contact columns -->
               <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <a href="mailto:charan.support@gmail.com?subject=Flappy%20Legends%20Feedback" style="flex: 1; text-decoration: none;">
+                <a href="mailto:support.charan@gmail.com?subject=Flappy%20Legends%20Feedback" style="flex: 1; text-decoration: none;">
                   <button style="width: 100%; padding: 12px; border: 1.5px solid rgba(168, 85, 247, 0.4); border-radius: 12px; font-family: var(--font-family); font-weight: 900; font-size: 11px; cursor: pointer; color: #a855f7; background: rgba(168, 85, 247, 0.1); display: flex; align-items: center; justify-content: center; gap: 6px; text-transform: uppercase; transition: all 0.2s; box-shadow: 0 4px 10px rgba(168, 85, 247, 0.15); text-shadow: 0 0 4px rgba(168, 85, 247, 0.3);">
                     💬 FEEDBACK
                   </button>

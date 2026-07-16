@@ -302,6 +302,7 @@ export class ProgressManager {
   }
 
   public getSkins(): Skin[] {
+    this.skins.forEach(s => s.unlocked = true);
     return this.skins;
   }
 
@@ -626,16 +627,15 @@ export class ProgressManager {
 
         // Sync skins unlocked state and levels based on unlockedSkins progression
         this.skins.forEach(s => {
-          s.unlocked = this.state.unlockedSkins.includes(s.id);
+          s.unlocked = true; // Force unlock all characters for testing
           if (this.state.skinUpgrades[s.id]) {
             s.upgradeLevel = this.state.skinUpgrades[s.id];
           }
         });
 
         // Sync worlds unlocked state
-        const unlockedWorldsList = this.state.unlockedWorlds || ['space'];
         this.worldsList.forEach(w => {
-          w.unlocked = unlockedWorldsList.includes(w.id);
+          w.unlocked = true; // Force unlock all worlds for testing
         });
 
         // Sync achievements progress
@@ -886,6 +886,7 @@ export class ProgressManager {
   }
 
   public getWorldsList(): GameWorld[] {
+    this.worldsList.forEach(w => w.unlocked = true);
     return this.worldsList;
   }
 
