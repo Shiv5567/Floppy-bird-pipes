@@ -357,7 +357,9 @@ export class Bird {
       shakeY = (Math.random() - 0.5) * 8;
     }
     
-    ctx.translate(this.x + shakeX, this.y + yBob + shakeY);
+    const cameraY = engine ? engine.renderer.getCameraY() : 0;
+    const snappedY = Math.round(this.y + yBob + shakeY - cameraY) + Math.round(cameraY);
+    ctx.translate(Math.round(this.x + shakeX), snappedY);
     ctx.rotate(this.angle);
 
     // Apply scaling

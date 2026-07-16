@@ -2627,8 +2627,8 @@ export class Renderer {
     this.ctx.scale(this.zoomFactor, this.zoomFactor);
     this.ctx.translate(-width / 2, -height / 2);
 
-    // Translate standard coordinate space downwards by active cameraY with float precision for smooth tracking
-    this.ctx.translate(0, -this.cameraY);
+    // Translate standard coordinate space downwards by active cameraY snapped to nearest pixel to prevent full-screen judder
+    this.ctx.translate(0, -Math.round(this.cameraY));
 
     // Apply Chaos Events screen transforms
     const engine = (window as any).gameEngine;

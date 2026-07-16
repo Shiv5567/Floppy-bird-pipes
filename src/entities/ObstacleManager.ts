@@ -5424,11 +5424,14 @@ export class ObstacleManager {
       const originalShakeX2 = obs.shakeX2 !== undefined ? obs.shakeX2 : (obs.shakeX || 0);
 
       // Round rendering coordinates to the nearest pixel boundary to eliminate sub-pixel shimmering/judder.
+      // Top and bottom heights are snapped relative to the cameraY to prevent 1px relative camera-obstacle jitter!
       // High-precision float values are kept for physics calculation and restored right after rendering.
+      const gameEngine = (window as any).gameEngine;
+      const cameraY = gameEngine ? gameEngine.renderer.getCameraY() : 0;
       obs.x = Math.round(originalX);
       obs.width = Math.round(originalWidth);
-      obs.topHeight = Math.round(originalTopHeight);
-      obs.bottomHeight = Math.round(originalBottomHeight);
+      obs.topHeight = Math.round(originalTopHeight - cameraY) + Math.round(cameraY);
+      obs.bottomHeight = height - (Math.round(height - originalBottomHeight - cameraY) + Math.round(cameraY));
       obs.shakeX = Math.round(originalShakeX);
       obs.shakeX2 = Math.round(originalShakeX2);
 
